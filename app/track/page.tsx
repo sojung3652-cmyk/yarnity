@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/AppProvider";
-import { THEME_EVENT } from "@/components/Nav";
 import { drawTrack } from "@/lib/drawMap";
 import { clamp, fmt, PART_KO, plan } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
@@ -54,15 +53,14 @@ export default function TrackPage() {
 
   const step = useCallback((d: number) => { if (!p) return; updateProject(p.id, { current: clamp((p.current || 0) + d, 0, plan(p).rows.length) }); }, [p, updateProject]);
 
-  // canvas: redraw on change, resize (120ms debounce), theme toggle, OS colour-scheme change
+  // canvas: redraw on change and on resize (120ms debounce)
   const redraw = useCallback(() => { if (p && pp && cvRef.current) drawTrack(cvRef.current, { ...p, current }, pp); }, [p, pp, current]);
   useEffect(() => {
     redraw();
     let rz: ReturnType<typeof setTimeout>;
     const onResize = () => { clearTimeout(rz); rz = setTimeout(redraw, 120); };
-    const mq = matchMedia("(prefers-color-scheme: dark)");
-    addEventListener("resize", onResize); addEventListener(THEME_EVENT, redraw); mq.addEventListener("change", redraw);
-    return () => { clearTimeout(rz); removeEventListener("resize", onResize); removeEventListener(THEME_EVENT, redraw); mq.removeEventListener("change", redraw); };
+    addEventListener("resize", onResize);
+    return () => { clearTimeout(rz); removeEventListener("resize", onResize); };
   }, [redraw]);
 
   // keyboard: Space = 한 단 끝, Backspace = 되돌리기

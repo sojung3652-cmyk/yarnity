@@ -1,5 +1,4 @@
 // localStorage wrapper, same keys and JSON shape as the prototype:
-//   iyarn.theme    "light" | "dark"
 //   iyarn.projects Project[]
 //   iyarn.active   project id | null
 //   iyarn.draft    Draft
