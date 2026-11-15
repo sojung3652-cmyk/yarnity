@@ -6,14 +6,18 @@ import Image from "next/image";
 import { Book } from "@/components/Book/Book";
 import { useBookState } from "@/components/Book/useBookState";
 
+// 1808px (q0.97) up to ~1920 device px, 3616px (q0.94) above. The ?w= keeps next/image's loader check happy.
+const bgLoader = ({ width }: { width: number }) => (width <= 1920 ? "/pic/home-bg-1808.webp" : "/pic/home-bg-3616.webp") + `?w=${width}`;
+
 export function Hero() {
   const state = useBookState();
   return (
     <section className={"hero-desk" + (state.open ? " is-open" : "")} aria-label="소개">
       <div className="hero-bg" aria-hidden="true">
-        {/* unoptimized: the WebP is already encoded with care (q 0.97). Letting next/image re-encode it at
-            its default quality compressed it a second time and left blocky steps in the soft light. */}
-        <Image src="/pic/home-bg.webp" alt="" fill priority sizes="100vw" unoptimized className="hero-bg-img" />
+        {/* Two pre-encoded sizes of the desk photo; the browser picks by screen width x pixel ratio.
+            The loader serves them as they are: letting next/image re-encode at its default quality
+            compressed the photo a second time and left blocky steps in the soft light. */}
+        <Image src="/pic/home-bg-3616.webp" loader={bgLoader} alt="" fill priority sizes="100vw" className="hero-bg-img" />
       </div>
       <div className="hero-fade" aria-hidden="true" />
       <div className="hero-copy-desk" inert={state.open}>
