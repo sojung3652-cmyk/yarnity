@@ -88,3 +88,10 @@
 .page3d .hero-cta{margin-top:10px}
 @media (max-width:760px){.stage3d{height:clamp(480px,calc(100svh - 200px),700px)}}
 .css3d-layer{position:absolute!important;inset:0;pointer-events:none;overflow:hidden}
+/* real "Start Creating" button laid on the printed right page (CSS3DRenderer) */
+.page3d-btn{width:148px;height:42px;min-height:42px;padding:0;background:#3A322F;color:#fff;font-size:13.5px}
+/* "<" close button on the open book */
+.close-chevron{position:absolute;left:12px;top:12px;z-index:5;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s}
+.close-chevron.on{opacity:1;pointer-events:auto}
+.scene .close-chevron{left:calc(-1 * var(--W) / 2 - 56px)}
+@media (max-width:760px){.scene .close-chevron{left:-8px;top:-52px}}

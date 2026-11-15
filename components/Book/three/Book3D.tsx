@@ -1,157 +1,160 @@
 "use client";
-// WebGL book: a hardcover in a thin crochet sleeve, rendered with React Three Fiber.
-// Geometry: geometry.ts / meshes.ts. Materials: materials.ts. Open/close state comes from useBookState.
+// WebGL paper book: a thick book in a hand-knit cover (see legacy/pic/book_ref.png), rendered with
+// React Three Fiber. Opening is staged like stop motion: the cover swings open, then six sheets turn
+// one after another, bowing like paper, while the camera rises to look down on the spread.
+// Geometry: geometry.ts / meshes.ts. Materials: materials.ts. Open state: useBookState (shared with the CSS book).
 import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import * as THREE from "three";
+import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import { OpenButton } from "../OpenButton";
+import { CloseChevron } from "../CloseChevron";
 import { useReducedMotion, type BookState } from "../useBookState";
-import { BOARD, D, EDGE_R, FAB, FLAP, H, OPEN_ANGLE, PAGES, PIVOT, roundedRect, sleevePath, SPINE_RX, T, W } from "./geometry";
-import { createEdge, createRibbon, loopTube, updateEdge, updateRibbon } from "./meshes";
-import { PANEL, useBookMaterials, type BookMaterials } from "./materials";
-import { drawEndpaper, LABEL_CM } from "./paperTextures";
+import {
+  BLOCK, blockTop, BOARD, BORDER_OUT, BORDER_R, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, P0, PANEL_SIZE, sheetCurve, SHEETS, sleevePath, T, W,
+} from "./geometry";
+import { createEdge, createRibbon, createSheet, loopTube, updateEdge, updateRibbon, updateSheet } from "./meshes";
+import { useBookMaterials, type BookMaterials } from "./materials";
+import { LABEL_CM, PAGE_D, PAGE_LAYOUT, PX_CM } from "./paperTextures";
+import { roundedRectXZ } from "./shapes";
 
-const DURATION = 1.2; // seconds, as in the CSS book
-const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); // ease-in-out cubic
+// ---- timeline (seconds) ----
+const TOTAL = 1.6;
+const COVER_END = 0.9;
+const SHEET_START = 0.46, SHEET_STAGGER = 0.075, SHEET_DUR = 0.62;
+// stop-motion feel: each sheet turns at a slightly different speed (fixed, so it is the same every time)
+const SHEET_SPEED = [1.04, 0.93, 1.08, 0.97, 1.1, 0.91];
+const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
-/** Shared animation state, read by the meshes and the camera every frame. */
-interface Anim { t: number; target: number; angle: number }
+interface Anim { t: number; target: number; cover: number; sheets: number[]; cam: number }
+function derive(a: Anim) {
+  const s = a.t * TOTAL;
+  a.cover = ease(clamp01(s / COVER_END));
+  a.sheets = SHEET_SPEED.map((f, k) => ease(clamp01((s - SHEET_START - k * SHEET_STAGGER) / (SHEET_DUR / f))));
+  a.cam = ease(a.t);
+}
 
+// ---- knit sleeve: back, spine and joint (moves with the cover) ----
 function Sleeve({ anim, m }: { anim: Anim; m: BookMaterials }) {
   const geo = useMemo(() => {
-    const p = sleevePath(0);
-    return { ribbon: createRibbon(p), top: createEdge(p, -D / 2, EDGE_R), bottom: createEdge(p, D / 2, EDGE_R) };
+    const p = sleevePath(0), sp = p.filter(q => q.seg === 1);
+    return { ribbon: createRibbon(p), top: createEdge(sp, -D / 2, BORDER_R), bottom: createEdge(sp, D / 2, BORDER_R) };
   }, []);
   const last = useRef(-1);
   useFrame(() => {
-    if (Math.abs(anim.angle - last.current) < 1e-5) return; // only rebuild while the cover moves
-    last.current = anim.angle;
-    const p = sleevePath(anim.angle);
-    updateRibbon(geo.ribbon, p); updateEdge(geo.top, p, -D / 2, EDGE_R); updateEdge(geo.bottom, p, D / 2, EDGE_R);
+    if (Math.abs(anim.cover - last.current) < 1e-6) return;
+    last.current = anim.cover;
+    const p = sleevePath(anim.cover), sp = p.filter(q => q.seg === 1);
+    updateRibbon(geo.ribbon, p); updateEdge(geo.top, sp, -D / 2, BORDER_R); updateEdge(geo.bottom, sp, D / 2, BORDER_R);
   });
   useEffect(() => () => { geo.ribbon.dispose(); geo.top.dispose(); geo.bottom.dispose(); }, [geo]);
   return (
     <>
-      <mesh geometry={geo.ribbon} material={m.knit} castShadow receiveShadow />
-      <mesh geometry={geo.top} material={m.edge} castShadow />
-      <mesh geometry={geo.bottom} material={m.edge} castShadow />
+      <mesh geometry={geo.ribbon} material={[m.cream, m.lavender, m.cream]} castShadow receiveShadow />
+      <mesh geometry={geo.top} material={m.border} castShadow />
+      <mesh geometry={geo.bottom} material={m.border} castShadow />
     </>
   );
 }
 
-/** Straight crochet edge along a flap's free end, with rounded corners. */
-function FlapEnd({ x, y, m }: { x: number; y: number; m: BookMaterials }) {
-  return (
-    <group position={[x, y, 0]}>
-      <mesh material={m.edge} rotation-x={Math.PI / 2} castShadow><cylinderGeometry args={[EDGE_R, EDGE_R, D, 12, 1, true]} /></mesh>
-      <mesh material={m.edge} position-z={-D / 2}><sphereGeometry args={[EDGE_R, 12, 8]} /></mesh>
-      <mesh material={m.edge} position-z={D / 2}><sphereGeometry args={[EDGE_R, 12, 8]} /></mesh>
-    </group>
-  );
+/** Chain border around a cover: rounded rectangle at the board edge, 4% of the width thick. */
+function Border({ y, m }: { y: number; m: BookMaterials }) {
+  const g = useMemo(() => loopTube(roundedRectXZ(W + 2 * BORDER_OUT, D + 2 * BORDER_OUT, 1.0), y, BORDER_R, 16), [y]);
+  useEffect(() => () => g.dispose(), [g]);
+  return <mesh geometry={g} material={m.border} castShadow receiveShadow />;
 }
 
-function spineBoardGeometry() {
-  const s = new THREE.Shape(), cx = -W / 2, cy = T / 2;
-  s.moveTo(cx, T);
-  s.absellipse(cx, cy, SPINE_RX, T / 2, Math.PI / 2, 1.5 * Math.PI, false, 0);
-  s.lineTo(cx, T);
-  const g = new THREE.ExtrudeGeometry(s, { depth: D - 0.02, bevelEnabled: false, curveSegments: 24 });
-  g.translate(0, 0, -(D - 0.02) / 2);
-  return g;
+/** Two small lavender stitches at each end of the label. */
+function LabelStitches({ m }: { m: BookMaterials }) {
+  const pos: [number, number][] = [];
+  for (const sx of [-1, 1]) for (const sz of [-0.32, 0.32]) pos.push([sx * (LABEL_CM[0] / 2 - 0.32), sz * LABEL_CM[1] * 0.5]);
+  return <>{pos.map(([x, z], i) => (
+    <mesh key={i} material={m.thread} position={[x, 0.035, z]} rotation-x={Math.PI / 2}><capsuleGeometry args={[0.045, 0.32, 4, 8]} /></mesh>
+  ))}</>;
 }
 
-const PANEL_Y = T + FAB + 0.012;
-
-/** Yellow running stitch inside the picture panel: short floss dashes along an inset rounded rectangle. */
-function RunningStitch({ m }: { m: BookMaterials }) {
-  const ref = useRef<THREE.InstancedMesh>(null);
-  const dashes = useMemo(() => {
-    const loop = roundedRect(PANEL[0] - 0.7, PANEL[1] - 0.7, 0.25, 6), out: { x: number; z: number; a: number }[] = [];
-    const dash = 0.34, gap = 0.17; let carry = 0;
-    for (let i = 0; i < loop.length; i++) {
-      const [ax, az] = loop[i], [bx, bz] = loop[(i + 1) % loop.length], len = Math.hypot(bx - ax, bz - az);
-      for (let s = carry; s < len; s += dash + gap) { const t = (s + dash / 2) / len; out.push({ x: ax + (bx - ax) * t, z: az + (bz - az) * t, a: Math.atan2(bz - az, bx - ax) }); }
-      carry = (carry - len) % (dash + gap); if (carry < 0) carry += dash + gap;
-    }
-    return out;
-  }, []);
-  useEffect(() => {
-    const o = new THREE.Object3D(), R = (i: number) => (Math.sin(i * 12.9898) * 43758.5453) % 1;
-    dashes.forEach((d, i) => {
-      o.position.set(d.x + R(i) * 0.02, PANEL_Y + 0.02, d.z + R(i + 7) * 0.02);
-      o.rotation.set(0, -d.a, Math.PI / 2); o.updateMatrix(); ref.current!.setMatrixAt(i, o.matrix);
-    });
-    ref.current!.instanceMatrix.needsUpdate = true;
-  }, [dashes]);
-  return (
-    <instancedMesh ref={ref} args={[undefined, m.thread, dashes.length]} castShadow>
-      <capsuleGeometry args={[0.042, 0.28, 4, 8]} />
-    </instancedMesh>
-  );
-}
-
-/** Everything that turns with the front cover, modelled in the closed position. */
-function FrontCover({ anim, m, reduce }: { anim: Anim; m: BookMaterials; reduce: boolean }) {
-  const ref = useRef<THREE.Group>(null);
-  const joinGeo = useMemo(() => loopTube(roundedRect(PANEL[0] + 0.05, PANEL[1] + 0.05, 0.12), PANEL_Y, 0.075), []);
-  const lastDraw = useRef(0);
-  useFrame(({ clock }) => {
-    if (ref.current) ref.current.rotation.z = anim.angle;
-    // the stitch map on the endpaper turns slowly, like the CSS book; only redraw when it can be seen
-    const now = clock.elapsedTime;
-    if (anim.angle > 1.3 && now - lastDraw.current > 1 / 30 && !reduce) {
-      lastDraw.current = now; drawEndpaper(m.endpaperCanvas, now, false); m.endpaperTex.needsUpdate = true;
-    }
+/** Front cover: board + knit (picture, border, label). Modelled closed; turned by coverPose. */
+function FrontCover({ anim, m }: { anim: Anim; m: BookMaterials }) {
+  const outer = useRef<THREE.Group>(null);
+  useFrame(() => {
+    const g = outer.current; if (!g) return;
+    const pose = coverPose(anim.cover);
+    g.position.set(P0[0] + pose.dx, P0[1] + pose.dy, 0); g.rotation.z = pose.A;
   });
-  useEffect(() => () => joinGeo.dispose(), [joinGeo]);
-  // CSS label: left 15%, bottom 13% of the cover, rotated -1.2deg
-  const lx = -W / 2 + 0.15 * W + LABEL_CM[0] / 2, lz = D / 2 - 0.13 * D - LABEL_CM[1] / 2;
+  // label: lower left of the cover, as in the reference photo, slightly askew
+  const lx = -W / 2 + 0.14 * W + LABEL_CM[0] / 2, lz = D / 2 - 0.15 * D - LABEL_CM[1] / 2;
   return (
-    <group position={[PIVOT[0], PIVOT[1], 0]} ref={ref}>
-      <group position={[-PIVOT[0], -PIVOT[1], 0]}>
-        <mesh material={m.board} position={[0, T - BOARD / 2, 0]} castShadow receiveShadow><boxGeometry args={[W, BOARD, D]} /></mesh>
-        {/* endpaper (inside of the cover), to the hinge side of the flap */}
-        <mesh material={m.endpaper} position={[-FLAP / 2 + 0.15, T - BOARD - 0.004, 0]} rotation-x={Math.PI / 2} receiveShadow>
-          <planeGeometry args={[W - FLAP + 0.3, D - 0.3]} />
-        </mesh>
-        {/* embroidered picture panel, its slip-stitch join, running stitch and cloth label */}
-        <mesh material={m.panel} position={[0, PANEL_Y, 0]} rotation-x={-Math.PI / 2} receiveShadow><planeGeometry args={PANEL} /></mesh>
-        <mesh geometry={joinGeo} material={m.join} castShadow receiveShadow />
-        <RunningStitch m={m} />
-        <mesh material={m.label} position={[lx, PANEL_Y + 0.03, lz]} rotation={[-Math.PI / 2, 0, THREE.MathUtils.degToRad(1.2)]} castShadow receiveShadow>
-          <boxGeometry args={[LABEL_CM[0], LABEL_CM[1], 0.04]} />
-        </mesh>
-        <FlapEnd x={W / 2 - FLAP} y={T - BOARD - H} m={m} />
+    <group ref={outer} position={[P0[0], P0[1], 0]}>
+      <group position={[-P0[0], -P0[1], 0]}>
+        <mesh material={m.inside} position={[0, T - BOARD / 2, 0]} castShadow receiveShadow><boxGeometry args={[W, BOARD, D]} /></mesh>
+        <mesh material={m.panel} position={[0, T + FAB + 0.004, 0]} rotation-x={-Math.PI / 2} receiveShadow><planeGeometry args={PANEL_SIZE} /></mesh>
+        <Border y={BORDER_Y_FRONT} m={m} />
+        <group position={[lx, T + FAB + 0.03, lz]} rotation-y={THREE.MathUtils.degToRad(-3)}>
+          <mesh material={m.label} rotation-x={-Math.PI / 2} castShadow receiveShadow><boxGeometry args={[LABEL_CM[0], LABEL_CM[1], 0.05]} /></mesh>
+          <LabelStitches m={m} />
+        </group>
       </group>
     </group>
   );
 }
 
-// Right page content (DOM, so "Start Creating" is a real link). 360 CSS px = the page width.
-// Placed in 3D with three's CSS3DRenderer. The content itself is rendered by React through a portal
-// into the element we hand to CSS3DObject: it stays in the normal React tree (router context, Strict
-// Mode safe). drei <Html> was tried first; its separate React root ends up empty under Strict Mode.
-const PAGE_PX = 360, PAGE_W = PAGES.x1 - PAGES.x0, PAGE_D = PAGES.z1 - PAGES.z0;
-const PAGE_H_PX = Math.round(PAGE_PX * PAGE_D / PAGE_W);
+/** Page block: hundreds of sheets (edge texture), top curling into the gutter, fore edge slightly hollow. */
+function useBlockGeometry() {
+  return useMemo(() => {
+    const w = BLOCK.x1 - BLOCK.x0, h = blockTop(BLOCK.x1) - BLOCK.y0, d = BLOCK.z1 - BLOCK.z0;
+    const g = new THREE.BoxGeometry(w, h, d, 24, 1, 24);
+    g.translate((BLOCK.x0 + BLOCK.x1) / 2, BLOCK.y0 + h / 2, (BLOCK.z0 + BLOCK.z1) / 2);
+    const p = g.attributes.position as THREE.BufferAttribute, top = BLOCK.y0 + h - 1e-4;
+    for (let i = 0; i < p.count; i++) {
+      let x = p.getX(i), y = p.getY(i); const z = p.getZ(i);
+      if (y > top) y = blockTop(x);
+      if (x > BLOCK.x1 - 1e-4) x -= FORE_CONCAVE * (1 - Math.pow(z / (d / 2), 2));
+      p.setXY(i, x, y);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
+}
 
-interface CssLayer { renderer: CSS3DRenderer; page: HTMLDivElement }
+/** One sheet (two faces) that turns with progress p, or the static page under them. */
+function Sheet({ k, anim, front, back }: { k: number; anim: Anim; front: THREE.Material; back: THREE.Material }) {
+  const geo = useMemo(() => createSheet(PAGE_D), []);
+  const last = useRef(-1);
+  useFrame(() => {
+    const p = k < SHEETS ? anim.sheets[k] : 0;
+    if (Math.abs(p - last.current) < 1e-6) return;
+    last.current = p;
+    const c = sheetCurve(k, p); updateSheet(geo, c.pts, c.heads);
+  });
+  useEffect(() => () => geo.dispose(), [geo]);
+  return (
+    <>
+      <mesh geometry={geo} material={front} castShadow receiveShadow />
+      <mesh geometry={geo} material={back} castShadow receiveShadow />
+    </>
+  );
+}
 
-function RightPage({ anim, layer }: { anim: Anim; layer: CssLayer }) {
+// ---- the real "Start Creating" button, laid on the right page with CSS3DRenderer ----
+// The printed page carries the text; the button is DOM so it can be clicked and focused. drei <Html>
+// was tried in the previous 3D version: its separate React root ends up empty under Strict Mode, so the
+// DOM is rendered through a portal into the element given to CSS3DObject (keeps the Next router context).
+interface CssLayer { renderer: CSS3DRenderer; el: HTMLDivElement }
+const BTN = PAGE_LAYOUT.button;
+function PageButton({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   const obj = useMemo(() => {
-    const o = new CSS3DObject(layer.page);
-    o.position.set((PAGES.x0 + PAGES.x1) / 2, PAGES.y1 + 0.01, (PAGES.z0 + PAGES.z1) / 2);
-    o.rotation.set(-Math.PI / 2, 0, 0);
-    o.scale.setScalar(PAGE_W / PAGE_PX);
+    const o = new CSS3DObject(layer.el);
+    const x = GUTTER_X + (BTN.x + BTN.w / 2) * PX_CM, z = BLOCK.z0 + (BTN.y + BTN.h / 2) * PX_CM;
+    o.position.set(x, blockTop(x) + 0.08, z); o.rotation.set(-Math.PI / 2, 0, 0); o.scale.setScalar(PX_CM);
     return o;
   }, [layer]);
   const shown = useRef<boolean | null>(null);
   useFrame(() => {
-    // fade in over the last 20% of the opening; not focusable or clickable while hidden
-    const o = Math.min(1, Math.max(0, (anim.t - 0.8) / 0.2)), el = layer.page;
+    const o = clamp01((anim.t - 0.85) / 0.15), el = layer.el;
     el.style.opacity = String(o);
     const vis = o > 0.5;
     if (vis !== shown.current) { shown.current = vis; el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; }
@@ -159,113 +162,92 @@ function RightPage({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   return <primitive object={obj} />;
 }
 
-function PageContent() {
-  return (
-    <div className="page3d hero-copy" lang="en" style={{ height: PAGE_H_PX }}>
-      <span className="eyebrow">Yarnity / Intelligent Crochet</span>
-      <h1><span>Your creativity.</span> <span>Our intelligence.</span> <span>Every stitch, together.</span></h1>
-      <p>Generate your patterns with AI. Track every stitch. Bring your ideas to life.</p>
-      <div className="hero-cta"><Link className="btn btn-primary" href="/new">Start Creating</Link></div>
-    </div>
-  );
-}
-
-function BookModel({ anim, onOpen, layer, m, reduce }: { anim: Anim; onOpen: () => void; layer: CssLayer; m: BookMaterials; reduce: boolean }) {
-  const spine = useMemo(spineBoardGeometry, []);
+function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void; layer: CssLayer; m: BookMaterials }) {
+  const block = useBlockGeometry();
   const [hover, setHover] = useState(false);
   useEffect(() => { document.body.style.cursor = hover ? "pointer" : ""; return () => { document.body.style.cursor = ""; }; }, [hover]);
   const click = (e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); if (anim.target === 0) onOpen(); };
-  const pw = PAGES.x1 - PAGES.x0, ph = PAGES.y1 - PAGES.y0, pd = PAGES.z1 - PAGES.z0;
   return (
     <group position-y={FAB} onClick={click} onPointerOver={() => setHover(anim.target === 0)} onPointerOut={() => setHover(false)}>
-      <mesh material={m.board} position={[0, BOARD / 2, 0]} castShadow receiveShadow><boxGeometry args={[W, BOARD, D]} /></mesh>
-      <mesh geometry={spine} material={m.board} />
-      {/* page block: [+x fore edge, -x spine, +y top page, -y, +z bottom edge, -z top edge] */}
-      <mesh position={[(PAGES.x0 + PAGES.x1) / 2, (PAGES.y0 + PAGES.y1) / 2, 0]} material={m.pages} castShadow receiveShadow>
-        <boxGeometry args={[pw, ph, pd]} />
-      </mesh>
-      <FlapEnd x={W / 2 - FLAP} y={BOARD + H} m={m} />
+      <mesh material={m.inside} position={[0, BOARD / 2, 0]} castShadow receiveShadow><boxGeometry args={[W, BOARD, D]} /></mesh>
+      <Border y={BORDER_Y_BACK} m={m} />
+      <mesh geometry={block} material={m.block} castShadow receiveShadow />
+      <Sheet k={SHEETS} anim={anim} front={m.rightPage} back={m.pageBack} />
+      {Array.from({ length: SHEETS }, (_, k) => (
+        <Sheet key={k} k={k} anim={anim} front={m.pageFront} back={k === SHEETS - 1 ? m.leftPage : m.pageBack} />
+      ))}
       <Sleeve anim={anim} m={m} />
-      <FrontCover anim={anim} m={m} reduce={reduce} />
-      <RightPage anim={anim} layer={layer} />
+      <FrontCover anim={anim} m={m} />
+      <PageButton anim={anim} layer={layer} />
     </group>
   );
 }
 
-// ---------- camera ----------
+// ---- camera ----
 const FOV = 22;
-const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 38), THREE.MathUtils.degToRad(24));
-
-function fitDistance(halfW: number, halfH: number, aspect: number) {
-  const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
-  return Math.max(halfH / t, halfW / (t * aspect));
-}
+// closed: ~33 degrees above the table (matches how much page thickness the reference photo shows), book turned ~25 degrees
+const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 33), THREE.MathUtils.degToRad(25));
+// open: high and from the front, so the spread reads like a page
+const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 72), 0);
+const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2)); return Math.max(hh / t, hw / (t * aspect)); };
 
 function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   const { camera, size, scene } = useThree();
   useEffect(() => { layer.renderer.setSize(size.width, size.height); }, [layer, size]);
-  const tmp = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), up: new THREE.Vector3() }), []);
+  const v = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dir: new THREE.Vector3() }), []);
   useFrame(() => {
-    const aspect = size.width / size.height, narrow = aspect < 0.85, e = ease(anim.t);
-    // closed: 3/4 view from above, book filling a bit over half the stage (like the CSS book)
-    const cTgt = new THREE.Vector3(0, FAB + T / 2, 0), cDist = fitDistance(12.5 / 0.74, 12.5 / 0.74, aspect);
-    // open: straight down on the spread (phones: on the right page, as the CSS book does)
-    const spreadL = PIVOT[0] - W - 1.2, spreadR = W / 2 + 0.4;
-    const oTgt = narrow ? new THREE.Vector3((PAGES.x0 + PAGES.x1) / 2, FAB + PAGES.y1, 0) : new THREE.Vector3((spreadL + spreadR) / 2, FAB + T * 0.6, 0);
-    const oDist = narrow ? fitDistance(W / 2 / 0.86, D / 2 / 0.7, aspect) : fitDistance((spreadR - spreadL) / 2 / 0.62, D / 2 / 0.74, aspect);
-    // blend direction (elevation/azimuth), distance and target together
-    const dir = CLOSED_DIR.clone().lerp(new THREE.Vector3(0, 1, 0.0001), e).normalize();
-    tmp.tgt.copy(cTgt).lerp(oTgt, e);
-    // pull back mid-way: the cover stands up towards the camera around 90 degrees
-    const bump = 1 + 0.45 * Math.sin(Math.PI * e);
-    tmp.pos.copy(tmp.tgt).addScaledVector(dir, THREE.MathUtils.lerp(cDist, oDist, e) * bump);
-    tmp.up.set(0, 1, 0).lerp(new THREE.Vector3(0, 0, -1), e).normalize();
-    camera.position.copy(tmp.pos); camera.up.copy(tmp.up); camera.lookAt(tmp.tgt);
+    const aspect = size.width / size.height, narrow = aspect < 0.85, e = anim.cam;
+    const cTgt = new THREE.Vector3(0, FAB + T / 2, 0), cDist = fit(14 / 0.8, 14 / 0.8, aspect);
+    const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
+    const oTgt = narrow ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
+    const oDist = narrow ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.66, D / 2 / 0.76, aspect);
+    v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).normalize();
+    v.tgt.copy(cTgt).lerp(oTgt, e);
+    const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
+    v.pos.copy(v.tgt).addScaledVector(v.dir, THREE.MathUtils.lerp(cDist, oDist, e) * bump);
+    camera.position.copy(v.pos); camera.up.set(0, 1, 0); camera.lookAt(v.tgt);
     camera.updateMatrixWorld(); scene.updateMatrixWorld();
-    layer.renderer.render(scene, camera); // DOM page follows the same camera
+    layer.renderer.render(scene, camera); // the DOM button follows the same camera
   });
   return null;
 }
 
 function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: boolean) => void; reduce: boolean; layer: CssLayer }) {
-  const anim = useMemo<Anim>(() => ({ t: open ? 1 : 0, target: open ? 1 : 0, angle: 0 }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0 }; derive(a); return a; }, []);
   const m = useBookMaterials();
   const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl);
-  const tick = useRef(0);
   useEffect(() => { anim.target = open ? 1 : 0; if (reduce) anim.t = anim.target; invalidate(); }, [open, reduce, anim, invalidate]);
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
     if (!location.search.includes("debug")) return;
-    (window as unknown as { __book3d: object }).__book3d = { setProgress: (v: number) => { anim.t = v; anim.target = v; invalidate(); }, progress: () => anim.t, frames: () => gl.info.render.frame };
+    (window as unknown as { __book3d: object }).__book3d = {
+      setProgress: (v: number) => { anim.t = v; anim.target = v; invalidate(); }, progress: () => anim.t, frames: () => gl.info.render.frame,
+    };
   }, [anim, invalidate, gl]);
   useFrame((_, dt) => {
-    const step = Math.min(dt, 0.1) / DURATION; // real time, so slow devices do not stretch the 1.2s
+    const step = Math.min(dt, 0.1) / TOTAL; // real time, capped, so slow devices do not stretch 1.6s
     anim.t = anim.target > anim.t ? Math.min(anim.target, anim.t + step) : Math.max(anim.target, anim.t - step);
-    anim.angle = OPEN_ANGLE * ease(anim.t);
-    // frameloop="demand": render every frame while the cover moves; while open, ~30fps for the
-    // slowly turning endpaper stitch map; nothing at all when closed and still
-    if (anim.t !== anim.target) invalidate();
-    else if (anim.angle > 1.3 && !reduce && !tick.current) tick.current = window.setTimeout(() => { tick.current = 0; invalidate(); }, 33);
+    derive(anim);
+    if (anim.t !== anim.target) invalidate(); // frameloop="demand": render only while moving
   }, -1);
-  useEffect(() => () => clearTimeout(tick.current), []); // before the meshes and camera read it
   return (
     <>
       <CameraRig anim={anim} layer={layer} />
-      {/* studio lighting without downloading an HDR: soft boxes rendered into a small environment map */}
+      {/* soft studio light without an HDR download: soft boxes baked into a small environment map */}
       <Environment resolution={256} frames={1} background={false}>
-        <Lightformer form="rect" intensity={2.4} color="#fff7ef" position={[-12, 14, 6]} scale={[18, 12, 1]} target={[0, 0, 0]} />
-        <Lightformer form="rect" intensity={0.8} color="#f3f0ff" position={[14, 6, 10]} scale={[14, 10, 1]} target={[0, 0, 0]} />
-        <Lightformer form="rect" intensity={0.6} color="#ffffff" position={[0, 6, -16]} scale={[20, 6, 1]} target={[0, 0, 0]} />
-        <Lightformer form="ring" intensity={0.35} color="#fff3e6" position={[0, -8, 0]} scale={10} target={[0, 0, 0]} />
+        <Lightformer form="rect" intensity={3} color="#fff8f0" position={[-12, 16, 8]} scale={[20, 14, 1]} target={[0, 0, 0]} />
+        <Lightformer form="rect" intensity={1.1} color="#f6f2ff" position={[14, 8, 12]} scale={[16, 10, 1]} target={[0, 0, 0]} />
+        <Lightformer form="rect" intensity={0.8} color="#ffffff" position={[0, 8, -18]} scale={[24, 8, 1]} target={[0, 0, 0]} />
+        <Lightformer form="ring" intensity={0.5} color="#fff3e6" position={[0, -8, 0]} scale={12} target={[0, 0, 0]} />
       </Environment>
-      <hemisphereLight args={["#fffaf4", "#e9ddd2", 0.55]} />
-      {/* key light from the top left (the same side the CSS book's shadows imply), weak fill opposite */}
-      <directionalLight position={[-20, 26, 16]} intensity={1.7} color="#fff6ec" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={4}>
-        <orthographicCamera attach="shadow-camera" args={[-30, 30, 30, -30, 1, 90]} />
+      <hemisphereLight args={["#fffaf4", "#eadfd4", 0.8]} />
+      {/* key light top-left, weak fill opposite */}
+      <directionalLight position={[-20, 28, 14]} intensity={1.5} color="#fff6ec" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={5}>
+        <orthographicCamera attach="shadow-camera" args={[-34, 34, 34, -34, 1, 100]} />
       </directionalLight>
-      <directionalLight position={[22, 12, 18]} intensity={0.3} color="#f1eeff" />
-      <BookModel anim={anim} onOpen={() => setOpen(true)} layer={layer} m={m} reduce={reduce} />
-      <ContactShadows position={[0, 0.001, 0]} scale={70} blur={2.6} far={8} opacity={0.5} resolution={1024} color="#3a2a22" frames={Infinity} />
+      <directionalLight position={[22, 12, 18]} intensity={0.35} color="#f1eeff" />
+      <BookModel anim={anim} onOpen={() => setOpen(true)} layer={layer} m={m} />
+      <ContactShadows position={[0, 0.001, 0]} scale={80} blur={2.8} far={9} opacity={0.42} resolution={1024} color="#4a382e" frames={Infinity} />
     </>
   );
 }
@@ -274,13 +256,12 @@ export default function Book3D({ open, setOpen, toggle, onFail }: BookState & { 
   const [ready, setReady] = useState(false);
   const reduce = useReducedMotion();
   const cssHost = useRef<HTMLDivElement>(null);
-  // CSS3D layer: created once (this component is client-only), mounted over the canvas
   const [layer] = useState<CssLayer>(() => {
-    const page = document.createElement("div"); page.id = "bookRight"; page.style.opacity = "0"; page.inert = true;
+    const el = document.createElement("div"); el.id = "bookRight"; el.style.opacity = "0"; el.inert = true;
     const renderer = new CSS3DRenderer(); renderer.domElement.className = "css3d-layer";
-    return { renderer, page };
+    return { renderer, el };
   });
-  useEffect(() => { const host = cssHost.current!; host.appendChild(layer.renderer.domElement); return () => { layer.renderer.domElement.remove(); }; }, [layer]);
+  useEffect(() => { cssHost.current!.appendChild(layer.renderer.domElement); return () => { layer.renderer.domElement.remove(); }; }, [layer]);
   return (
     <section className="bookstage" aria-label="소개">
       <div className={"stage3d" + (ready ? " ready" : "")} id="book">
@@ -288,10 +269,10 @@ export default function Book3D({ open, setOpen, toggle, onFail }: BookState & { 
           dpr={[1, 2]}
           frameloop="demand"
           shadows={{ type: THREE.PCFShadowMap }}
-          camera={{ fov: FOV, near: 1, far: 400, position: [0, 60, 80] }}
+          camera={{ fov: FOV, near: 1, far: 500, position: [0, 60, 80] }}
           gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
           onCreated={({ gl }) => {
-            gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.12;
+            gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.3;
             gl.domElement.addEventListener("webglcontextlost", e => { e.preventDefault(); onFail(); });
             requestAnimationFrame(() => setReady(true));
           }}
@@ -299,7 +280,14 @@ export default function Book3D({ open, setOpen, toggle, onFail }: BookState & { 
           <Scene open={open} setOpen={setOpen} reduce={reduce} layer={layer} />
         </Canvas>
         <div ref={cssHost} />
-        {createPortal(<PageContent />, layer.page)}
+        {createPortal(<Link className="btn btn-primary page3d-btn" href="/new">Start Creating</Link>, layer.el)}
+        <CloseChevron open={open} onClose={() => setOpen(false)} />
+      </div>
+      {/* the printed page text, for screen readers */}
+      <div className="sr" lang="en">
+        <p>Yarnity / Intelligent Crochet</p>
+        <h1>Your creativity. Our intelligence. Every stitch, together.</h1>
+        <p>Generate your patterns with AI. Track every stitch. Bring your ideas to life.</p>
       </div>
       <OpenButton open={open} onToggle={toggle} />
     </section>

@@ -1,132 +1,201 @@
-// Geometry of the WebGL book. Pure math (no three.js), so it can be unit-tested.
+// Geometry of the WebGL paper book. Pure math (no three.js), unit-tested in tests/book-geometry.test.ts.
 //
-// Units: centimetres. Book frame: lying on a table, front cover facing +Y, spine on the left (-X),
-// top edge of the book at -Z (so the camera, sitting on the +Z side, reads it upright).
-// The crochet sleeve is modelled as one fabric ribbon: its cross-section (a 2-D path in the XY plane)
-// is extruded along Z. The path runs
-//   back flap -> back fore-edge fold -> back -> rounded spine -> JOINT -> front -> front fold -> front flap
-// and everything after the joint turns with the front cover. Recomputing the path for each opening
-// angle makes the joint bend like real fabric, and the ribbon can never separate from the boards.
+// Units: cm. Book frame: lying on a table (y up), front cover facing +Y, spine on the left (-X),
+// top edge of the book at -Z. The table is at y = -FAB (the book group is lifted by FAB).
+//
+// Knit sleeve: one fabric ribbon whose cross-section (a 2-D path in XY) is extruded along Z:
+//   back (cream) -> rounded spine (lavender) -> JOINT (lavender) -> front (cream, picture on top)
+// Opening a 4.8cm book about a fixed hinge would leave the open cover *above* the pages. Real books
+// settle lower on the left, so while the cover opens, the point where the knit leaves the spine slides
+// from the top of the spine to its left side and the cover comes to rest beside the spine, sloping
+// down to the table. The joint is a smooth Hermite curve between the spine and the cover, so the
+// fabric never tears, kinks or separates from the boards.
 
-export const W = 15;          // cover width
-export const D = 20;          // cover height (along Z)
-export const T = 3.5;         // book thickness, board outside to board outside
-export const BOARD = 0.25;    // board thickness
-export const FAB = 0.25;      // knit sleeve thickness
-export const H = FAB / 2;     // fabric half thickness (path = fabric centre line)
-export const SQUARE = 0.25;   // pages are inset this much from the boards
-export const SPINE_RX = 0.9;  // how far the rounded spine bulges out
-export const FLAP = 0.24 * W; // sleeve flap tucked inside each cover
-export const RHO = 0.35;      // bend radius of the fabric at the front joint
-export const EDGE_R = H + 0.05; // crochet edging round (tube) radius: thin, about 3.5mm across
-
-/** Pivot of the front cover: the joint bends around this point (just above the cover at the spine). */
-export const PIVOT: V2 = [-W / 2, T + H + RHO];
+export const W = 16;            // cover width   (4:5)
+export const D = 20;            // cover height
+export const T = 4.8;           // thickness, board outside to board outside (30% of the width)
+export const BOARD = 0.3;       // board thickness
+export const FAB = 0.25;        // knit thickness
+export const H = FAB / 2;
+export const SQUARE = 0.3;      // pages are inset this much from the boards
+export const SPINE_RX = 1.2;    // rounded spine bulge
+export const BORDER_R = 0.045 * W / 2; // chain border: ~4.5% of the cover width across (spec ~4%, photo ~5%)
+export const RHO = 0.3;         // bend radius of the joint while the cover lifts
+export const SHEETS = 6;        // pages that turn
+export const SHEET_GAP = 0.012; // paper thickness in the stack
+export const DIP = 0.45;        // how far the top page curls down into the gutter
+export const FORE_CONCAVE = 0.22; // fore edge of the page block is slightly hollow
 
 export type V2 = [number, number];
-
-const rot = (p: V2, a: number, c: V2 = PIVOT): V2 => {
+const rot = (p: V2, a: number, c: V2): V2 => {
   const s = Math.sin(a), k = Math.cos(a), x = p[0] - c[0], y = p[1] - c[1];
   return [c[0] + x * k - y * s, c[1] + x * s + y * k];
 };
+const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-export interface PathPoint { p: V2; n: V2; u: number; front: boolean }
+/** Joint pivot while the cover lifts (just above the cover at the spine). */
+export const P0: V2 = [-W / 2, T + H + RHO];
+/** Outer-hinge corner of the front fabric in the closed position. */
+export const Q0: V2 = [-W / 2, T + H];
+/** Where that corner comes to rest when open: beside the spine, a little above its middle. */
+export const Q_END: V2 = [-W / 2 - SPINE_RX - 0.55, T / 2 + 0.6];
+const SPINE_C: V2 = [-W / 2, T / 2];
+const SRX = SPINE_RX + H, SRY = T / 2 + H;
 
-const N_FLAP = 6, N_FOLD = 14, N_FLAT = 24, N_SPINE = 28, N_JOINT = 16;
-// The joint always gets this much texture length, whatever its real length, so stitches on the
-// front never slide while the cover opens (the fabric just bunches or stretches at the joint).
-const JOINT_U = Math.PI * RHO;
+// ---- page block ----
+export const BLOCK = { x0: -W / 2, x1: W / 2 - SQUARE, y0: BOARD, y1: T - BOARD - SHEETS * SHEET_GAP - 0.006, z0: -D / 2 + SQUARE, z1: D / 2 - SQUARE };
+/** Height of the block's top surface at x: flat, curling down into the gutter near the spine. */
+export const blockTop = (x: number) => BLOCK.y1 - DIP * (1 - smooth(0, 3, x - BLOCK.x0));
+export const SHEET_W = BLOCK.x1 - BLOCK.x0 - 0.05; // a sheet reaches from the gutter to the fore edge
+export const GUTTER_X = BLOCK.x0 + 0.04;
 
-function arc(c: V2, rx: number, ry: number, a0: number, a1: number, n: number): [V2, V2][] {
-  const out: [V2, V2][] = [];
-  for (let i = 0; i <= n; i++) {
-    const a = a0 + (a1 - a0) * i / n;
-    out.push([[c[0] + rx * Math.cos(a), c[1] + ry * Math.sin(a)], [0, 0]]);
+// ---- front cover pose ----
+/** Rigid transform of the front cover for its progress e in [0,1]: rotate by A about P0, then slide. */
+export function coverPose(e: number) {
+  const A = A_END * e, slide = smooth(0.35, 1, e);
+  const qRot = rot(Q0, A, P0), qEnd = rot(Q0, A_END, P0);
+  const dx = (Q_END[0] - qEnd[0]) * slide, dy = (Q_END[1] - qEnd[1]) * slide;
+  return { A, dx, dy, slide, apply: (p: V2): V2 => { const r = rot(p, A, P0); return [r[0] + dx, r[1] + dy]; }, q: [qRot[0] + dx, qRot[1] + dy] as V2 };
+}
+
+/** Points of the front cover outline (closed frame) that must stay above the table: far-edge border. */
+// The chain border sits on the cover's edge, proud of the surface (as in the photo), not buried in the board.
+export const BORDER_OUT = 0.12;                 // tube centre outside the board edge
+export const BORDER_Y_FRONT = T + 0.1;          // centre height of the front border (closed frame)
+export const BORDER_Y_BACK = -0.1;
+/** The picture panel ends where the border begins, so the whole roundness of the border shows. */
+export const PANEL_SIZE: V2 = [W + 2 * BORDER_OUT - 1.7 * BORDER_R, D + 2 * BORDER_OUT - 1.7 * BORDER_R];
+const farEdge: V2[] = [[W / 2 + BORDER_OUT, BORDER_Y_FRONT]]; // far-edge border centre; lowest point = centre - BORDER_R
+
+/** Fully open angle: 180 degrees plus the droop that lets the far edge rest on the table. */
+export let A_END = Math.PI;
+{
+  let lo = Math.PI * 0.95, hi = Math.PI + 0.7;
+  for (let i = 0; i < 50; i++) {
+    const m = (lo + hi) / 2;
+    // final transform = rotate about Q0 by m, then move Q0 to Q_END
+    const low = Math.min(...farEdge.map(p => { const r = rot(p, m, Q0); return r[1] - Q0[1] + Q_END[1] - BORDER_R; }));
+    if (low > -FAB + 0.01) lo = m; else hi = m;
+  }
+  A_END = lo;
+}
+
+// ---- sleeve path ----
+export interface PathPoint { p: V2; n: V2; u: number; seg: 0 | 1 | 2 } // seg: 0 back, 1 spine+joint, 2 front
+
+const N_BACK = 24, N_SPINE = 30, N_JOINT = 18, N_FRONT = 24;
+export const SEG_RANGES = { back: [0, N_BACK + 1], spine: [N_BACK + 1, N_BACK + 1 + N_SPINE + N_JOINT], front: [N_BACK + 1 + N_SPINE + N_JOINT, N_BACK + 1 + N_SPINE + N_JOINT + N_FRONT] };
+const U_FRONT = 60; // fixed texture offset of the front, so its stitches never slide
+
+/** Spine detach angle (ellipse parameter, decreasing from -90 at the bottom): -270 = top, -180 = left side. */
+const detachAngle = (e: number) => lerp(-1.5 * Math.PI, -Math.PI, smooth(0.25, 1, e));
+
+function hermite(p0: V2, t0: V2, p1: V2, t1: V2, n: number): V2[] {
+  const out: V2[] = [];
+  for (let i = 1; i <= n; i++) {
+    const s = i / n, s2 = s * s, s3 = s2 * s, h00 = 2 * s3 - 3 * s2 + 1, h10 = s3 - 2 * s2 + s, h01 = -2 * s3 + 3 * s2, h11 = s3 - s2;
+    out.push([h00 * p0[0] + h10 * t0[0] + h01 * p1[0] + h11 * t1[0], h00 * p0[1] + h10 * t0[1] + h01 * p1[1] + h11 * t1[1]]);
   }
   return out;
 }
-function line(a: V2, b: V2, n: number): [V2, V2][] {
-  const out: [V2, V2][] = [];
-  for (let i = 0; i <= n; i++) { const t = i / n; out.push([[a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], [0, 0]]); }
-  return out;
-}
 
-/** Front part (joint end -> front -> fold -> flap) in its closed position, then turned by `angle`. */
-function frontPath(angle: number): [V2, V2][] {
-  const yTop = T + H, yIn = T - BOARD - H, fc: V2 = [W / 2, T - BOARD / 2], fr = BOARD / 2 + H;
-  const pts = [
-    ...line([-W / 2, yTop], [W / 2, yTop], N_FLAT).slice(1),
-    ...arc(fc, fr, fr, Math.PI / 2, -Math.PI / 2, N_FOLD).slice(1),
-    ...line([W / 2, yIn], [W / 2 - FLAP, yIn], N_FLAP).slice(1),
-  ];
-  return withNormals(pts).map(([p, n]) => [rot(p, angle), rot(n, angle, [0, 0])]);
-}
-
-/** Right-hand normal of the travel direction = the knit's right side (outside of the sleeve). */
-function withNormals(pts: [V2, V2][]): [V2, V2][] {
-  return pts.map(([p], i) => {
-    const a = pts[Math.max(0, i - 1)][0], b = pts[Math.min(pts.length - 1, i + 1)][0];
-    const tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
-    return [p, [-ty / l, tx / l]];
-  });
-}
-
-/** Sleeve centre line for a front-cover angle (0 = closed, OPEN_ANGLE = open on the table). */
-export function sleevePath(angle: number): PathPoint[] {
-  const yIn = BOARD + H, bc: V2 = [W / 2, BOARD / 2], br = BOARD / 2 + H, sc: V2 = [-W / 2, T / 2];
-  const back = withNormals([
-    ...line([W / 2 - FLAP, yIn], [W / 2, yIn], N_FLAP),
-    ...arc(bc, br, br, Math.PI / 2, -Math.PI / 2, N_FOLD).slice(1),
-    ...line([W / 2, -H], [-W / 2, -H], N_FLAT).slice(1),
-    ...arc(sc, SPINE_RX + H, T / 2 + H, -Math.PI / 2, -1.5 * Math.PI, N_SPINE).slice(1),
-  ]);
-  // joint: circle around PIVOT, from straight below it, turning with the cover
-  const joint: [V2, V2][] = [];
-  for (let i = 1; i <= N_JOINT; i++) {
-    const a = -Math.PI / 2 + angle * i / N_JOINT, d: V2 = [Math.cos(a), Math.sin(a)];
-    joint.push([[PIVOT[0] + RHO * d[0], PIVOT[1] + RHO * d[1]], [-d[0], -d[1]]]);
-  }
-  const front = frontPath(angle);
+/** Sleeve centre line for the cover progress e (0 closed, 1 open). Same point count for every e. */
+export function sleevePath(e: number): PathPoint[] {
+  const pose = coverPose(e), pts: { p: V2; seg: 0 | 1 | 2 }[] = [];
+  for (let i = 0; i <= N_BACK; i++) pts.push({ p: [lerp(W / 2, -W / 2, i / N_BACK), -H], seg: 0 });
+  const b1 = detachAngle(e);
+  for (let i = 1; i <= N_SPINE; i++) { const a = lerp(-Math.PI / 2, b1, i / N_SPINE); pts.push({ p: [SPINE_C[0] + SRX * Math.cos(a), SPINE_C[1] + SRY * Math.sin(a)], seg: 1 }); }
+  // joint: leaves the spine along its tangent, arrives along the cover
+  const d = pts[pts.length - 1].p, tSpine: V2 = [Math.sin(b1) * SRX, -Math.cos(b1) * SRY], tl = Math.hypot(...tSpine);
+  const q = pose.q, dir: V2 = [Math.cos(pose.A), Math.sin(pose.A)], dist = Math.hypot(q[0] - d[0], q[1] - d[1]), m = Math.max(0.2, dist * 1.1);
+  for (const p of hermite(d, [tSpine[0] / tl * m, tSpine[1] / tl * m], q, [dir[0] * m, dir[1] * m], N_JOINT)) pts.push({ p, seg: 1 });
+  for (let i = 1; i <= N_FRONT; i++) pts.push({ p: pose.apply([lerp(-W / 2, W / 2, i / N_FRONT), T + H]), seg: 2 });
 
   const out: PathPoint[] = [];
   let u = 0;
-  back.forEach(([p, n], i) => { if (i) u += Math.hypot(p[0] - back[i - 1][0][0], p[1] - back[i - 1][0][1]); out.push({ p, n, u, front: false }); });
-  const u0 = u;
-  joint.forEach(([p, n], i) => out.push({ p, n, u: u0 + JOINT_U * (i + 1) / N_JOINT, front: true }));
-  let uf = u0 + JOINT_U, prev = joint[joint.length - 1][0];
-  front.forEach(([p, n]) => { uf += Math.hypot(p[0] - prev[0], p[1] - prev[1]); prev = p; out.push({ p, n, u: uf, front: true }); });
-  // the front's own arc lengths do not depend on the angle, so `u` there is constant per vertex
+  const frontStart = SEG_RANGES.front[0], jointStart = frontStart - N_JOINT;
+  pts.forEach((q, i) => {
+    const a = pts[Math.max(0, i - 1)].p, b = pts[Math.min(pts.length - 1, i + 1)].p;
+    const tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+    if (i) u += Math.hypot(q.p[0] - pts[i - 1].p[0], q.p[1] - pts[i - 1].p[1]);
+    let uu = u;
+    if (i >= frontStart) uu = U_FRONT + (i - frontStart + 1) * (W / N_FRONT);
+    else if (i >= jointStart) uu = 0; // filled below
+    out.push({ p: q.p, n: [-ty / l, tx / l], u: uu, seg: q.seg });
+  });
+  // joint texture coordinates: spread evenly between the spine end and the fixed front start
+  const uS = out[jointStart - 1].u;
+  for (let k = 0; k < N_JOINT; k++) out[jointStart + k].u = lerp(uS, U_FRONT, (k + 1) / (N_JOINT + 1));
   return out;
 }
 
-export const PATH_LENGTH = sleevePath(0).length;
+// ---- turning sheets ----
+// A sheet is a curve of arc length SHEET_W from the gutter pivot, described by its heading angle a(s).
+// Resting on the right it follows the block top (curling into the gutter); resting on the left it
+// lies on the open cover. While turning, the heading blends from one to the other; the part near
+// the spine leads and the outer part lags, so the sheet bows like paper and is flat again at rest.
+export const NS = 28;
 
-/** Rigid transform of the front cover (board, flap, panel...) for an angle: rotate about PIVOT around Z. */
-export function frontTransform(angle: number) {
-  // rotation about the Z axis through PIVOT = translate(P) * rotZ(a) * translate(-P)
-  return { pivot: PIVOT, angle };
+function curveHeadings(pts: V2[]): number[] {
+  const a: number[] = [];
+  for (let i = 0; i < pts.length - 1; i++) a.push(Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0]));
+  return a;
+}
+/** Resample a polyline into NS equal pieces of total length SHEET_W. */
+function resample(poly: V2[]): V2[] {
+  const out: V2[] = [poly[0]], step = SHEET_W / NS; let need = step, i = 0, cur = poly[0];
+  while (out.length <= NS) {
+    const nx = poly[Math.min(i + 1, poly.length - 1)], seg = Math.hypot(nx[0] - cur[0], nx[1] - cur[1]);
+    if (i >= poly.length - 1) { const a = out[out.length - 1], b = out[out.length - 2] ?? poly[0]; const dx = a[0] - b[0], dy = a[1] - b[1], l = Math.hypot(dx, dy) || 1; out.push([a[0] + dx / l * step, a[1] + dy / l * step]); continue; }
+    if (seg >= need) { const t = need / seg; cur = [cur[0] + (nx[0] - cur[0]) * t, cur[1] + (nx[1] - cur[1]) * t]; out.push(cur); need = step; }
+    else { need -= seg; cur = nx; i++; }
+  }
+  return out;
 }
 
-/** Rounded-rectangle loop in a plane (used for the panel join and the running stitch). */
-export function roundedRect(w: number, h: number, r: number, perCorner = 8): V2[] {
-  const pts: V2[] = [], cs: [number, number, number][] = [[w / 2 - r, h / 2 - r, 0], [-w / 2 + r, h / 2 - r, Math.PI / 2], [-w / 2 + r, -h / 2 + r, Math.PI], [w / 2 - r, -h / 2 + r, 1.5 * Math.PI]];
-  for (const [cx, cy, a0] of cs) for (let i = 0; i <= perCorner; i++) { const a = a0 + Math.PI / 2 * i / perCorner; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
-  return pts;
-}
+/** Stack height offset of sheet k (k = 0 is on top of the right stack and turns first). */
+const rightOffset = (k: number) => (SHEETS - k) * SHEET_GAP + 0.006;
+const leftOffset = (k: number) => (k + 1) * SHEET_GAP + 0.006;
+export const gutterPivot = (k: number): V2 => [GUTTER_X, blockTop(GUTTER_X) + rightOffset(k)];
 
-// ---- solids used by the tests (and the page block mesh) ----
-export const PAGES = { x0: -W / 2, x1: W / 2 - SQUARE, y0: BOARD + FAB, y1: T - BOARD - FAB - 0.02, z0: -D / 2 + SQUARE, z1: D / 2 - SQUARE };
-
-/** Corners of the front board (closed frame) turned by `angle`. */
-export function frontBoardCorners(angle: number): V2[] {
-  return ([[-W / 2, T - BOARD], [W / 2, T - BOARD], [W / 2, T], [-W / 2, T]] as V2[]).map(p => rot(p, angle));
-}
-
-/** Fully open angle: 180 degrees plus the droop that lets the cover's far edge rest on the table. */
-export const OPEN_ANGLE = (() => {
-  // lowest point of the front fold (outer fabric surface) must reach the table (y = -FAB)
-  const lowest = (a: number) => Math.min(...frontPath(a).map(([p, n]) => p[1] + n[1] * H));
-  let lo = Math.PI, hi = Math.PI + 0.6;
-  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (lowest(m) > -FAB + 0.02) lo = m; else hi = m; }
-  return lo;
+/** Open cover's inside surface, as a function of x (world), valid left of the joint. */
+const openCover = coverPose(1);
+const coverInside = (() => {
+  const a = openCover.apply([-W / 2, T - BOARD]), b = openCover.apply([W / 2, T - BOARD]);
+  return { a, b, y: (x: number) => a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]) };
 })();
+export const COVER_INSIDE = coverInside;
+
+function restRight(k: number): number[] {
+  const pts: V2[] = []; const g = gutterPivot(k);
+  for (let i = 0; i <= 200; i++) { const x = g[0] + (SHEET_W + 1) * i / 200; pts.push([x, blockTop(x) + rightOffset(k)]); }
+  return curveHeadings(resample(pts));
+}
+function restLeft(k: number): number[] {
+  // from the gutter down onto the open cover (leaving room for the joint), then along the cover
+  const g = gutterPivot(k), land = coverInside.a[0] - 1.2, off = leftOffset(k);
+  const p1: V2 = [land, coverInside.y(land) + off], dirC: V2 = [coverInside.b[0] - coverInside.a[0], coverInside.b[1] - coverInside.a[1]];
+  const dl = Math.hypot(...dirC), dc: V2 = [dirC[0] / dl, dirC[1] / dl], m = Math.hypot(p1[0] - g[0], p1[1] - g[1]) * 1.2;
+  const pts: V2[] = [g, ...hermite(g, [-m, 0], p1, [dc[0] * m, dc[1] * m], 60)];
+  for (let i = 1; i <= 60; i++) pts.push([p1[0] + dc[0] * SHEET_W * i / 60, p1[1] + dc[1] * SHEET_W * i / 60]);
+  return curveHeadings(resample(pts));
+}
+const REST = Array.from({ length: SHEETS + 1 }, (_, k) => ({ r: restRight(k), l: k < SHEETS ? restLeft(k) : null }));
+
+/** Sheet centre line for sheet k at turn progress p (0 = on the right, 1 = on the left). */
+export function sheetCurve(k: number, p: number): { pts: V2[]; heads: number[] } {
+  const { r, l } = REST[k], g = gutterPivot(k), pts: V2[] = [g], heads: number[] = [];
+  for (let i = 0; i < NS; i++) {
+    const s = (i + 0.5) / NS;
+    // inner part leads, outer part lags behind (cylindrical bow), flat again at both ends
+    const w = l ? Math.min(1, Math.max(0, p - 0.42 * Math.sin(Math.PI * p) * Math.pow(s, 0.9))) : 0;
+    // always turn counter-clockwise (up and over), never down through the block
+    let delta = l ? l[i] - r[i] : 0; while (delta < 0) delta += 2 * Math.PI;
+    const a = r[i] + delta * w;
+    heads.push(a);
+    const prev = pts[pts.length - 1], st = SHEET_W / NS;
+    pts.push([prev[0] + Math.cos(a) * st, prev[1] + Math.sin(a) * st]);
+  }
+  return { pts, heads };
+}

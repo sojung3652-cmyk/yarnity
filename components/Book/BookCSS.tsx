@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BookState } from "./useBookState";
 import { OpenButton } from "./OpenButton";
+import { CloseChevron } from "./CloseChevron";
 import "./Book.css";
 import { HeroDots, heroCaption } from "./HeroDots";
 import { sleeveSlices } from "./sleeve";
@@ -49,7 +50,8 @@ export function BookCSS({ open, setOpen, toggle }: BookState) {
 
   return (
     <section className={"bookstage" + (tex ? " baked" : "")} aria-label="소개">
-      <div className="scene">
+      <div className="scene" style={{ position: "relative" }}>
+        <CloseChevron open={open} onClose={() => setOpen(false)} />
         <div className={"book" + (open ? " is-open" : "")} id="book" ref={bookRef} onClick={() => { if (!open) setOpen(true); }}>
           {bookSlices.map((s, i) => <div key={i} className={s.className} style={i === bookSlices.length - 1 ? { ...s.style, ...bg(tex?.inside) } : s.style} />)}
           <div className="spine" ref={spineRef} style={bg(tex?.spine)} />

@@ -1,6 +1,6 @@
 "use client";
 // Open/close state shared by the CSS and WebGL books (same behaviour as the prototype:
-// the button toggles, clicking the closed book opens it).
+// the button toggles, clicking the closed book opens it, "<" and Esc close it).
 import { useCallback, useEffect, useState } from "react";
 
 export interface BookState {
@@ -12,6 +12,13 @@ export interface BookState {
 export function useBookState(): BookState {
   const [open, setOpen] = useState(false);
   const toggle = useCallback(() => setOpen(o => !o), []);
+  // Esc closes the open book
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
   return { open, setOpen, toggle };
 }
 
