@@ -1,0 +1,169 @@
+// Stitch / row calculation engine. Pure functions, no DOM.
+// Ported 1:1 from the prototype (legacy/index.html, "ENGINE" section).
+// tests/pattern.test.ts checks every output against a verbatim copy of the original,
+// so keep the arithmetic (including rnd()'s toFixed(6) rounding) exactly as is.
+
+export type HookKey = "2호" | "3호" | "4호" | "5호" | "6호" | "7호" | "8호" | "10호";
+export type Weight = "thin" | "medium" | "thick";
+export type Shape = "circle" | "oval" | "rect";
+export type ObjectKind = "coaster" | "bag";
+export type Handle = "short" | "long" | "none";
+export type Part = "bottom" | "body" | "rim" | "handle";
+
+export const HOOKS: [HookKey, number][] = [["2호", 2.0], ["3호", 2.3], ["4호", 2.5], ["5호", 3.0], ["6호", 3.5], ["7호", 4.0], ["8호", 5.0], ["10호", 6.0]];
+export const HOOK_MM: Record<string, number> = Object.fromEntries(HOOKS);
+export const YARN: Record<Weight, number> = { thin: 0.9, medium: 1.0, thick: 1.15 };
+export const YARN_KO: Record<Weight, string> = { thin: "가는 실", medium: "보통", thick: "굵은 실" };
+export const SHAPE_KO: Record<Shape, string> = { circle: "원형", oval: "타원", rect: "사각" };
+export const PART_KO: Record<Part, string> = { bottom: "바닥", body: "몸통", rim: "테두리", handle: "손잡이" };
+
+export const rnd = (x: number) => Math.round(+x.toFixed(6));
+export const fmt = (n: number, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toString();
+export const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+/** Everything the engine reads from a project / draft. */
+export interface PlanInput {
+  shape: Shape;
+  a: number; // diameter (circle) or length (cm)
+  b?: number; // width (cm), oval/rect
+  h?: number; // body height (cm), bag
+  hook: string;
+  weight: string;
+  object: ObjectKind;
+  handle?: Handle;
+  measuredH?: number | null; // stitch height from the 3rd-round measurement (cm)
+}
+
+export interface Gauge { h: number; w: number; measured: boolean }
+
+export interface Row {
+  part: Part;
+  n: number;
+  how: string;
+  why: string;
+  inc: number;
+  idx: number;
+  no?: number;
+  label: string;
+}
+
+export interface Plan {
+  g: Gauge;
+  c: number;
+  rows: Row[];
+  bottomRounds: number;
+  bodyRows: number;
+  last: number;
+}
+
+type RawRow = Omit<Row, "idx" | "label">;
+
+export function gauge(p: PlanInput): Gauge {
+  if (p.measuredH) return { h: p.measuredH, w: p.measuredH * 0.95, measured: true };
+  const h = (HOOK_MM[p.hook] || 3) * 0.2 * (YARN[p.weight as Weight] || 1);
+  return { h, w: h * 0.95, measured: false };
+}
+
+export function planBottom(p: PlanInput, g: Gauge): { rows: RawRow[]; c: number } {
+  const rows: RawRow[] = [];
+  if (p.shape === "circle") {
+    const R = Math.max(3, rnd((p.a / 2) / g.h));
+    for (let r = 1; r <= R; r++) {
+      const n = 6 * r, prev = 6 * (r - 1);
+      let how: string;
+      if (r === 1) how = "매직링에 짧은뜨기 6코";
+      else if (r === 2) how = "모든 코에 늘림";
+      else if (r % 2 === 0 || r < 4) how = `(짧은뜨기 ${r - 2}, 늘림 1) × 6`;
+      else { const k = Math.floor((r - 2) / 2); how = `짧은뜨기 ${k}, (늘림 1, 짧은뜨기 ${r - 2}) × 5, 늘림 1, 짧은뜨기 ${r - 2 - k}`; }
+      rows.push({ part: "bottom", n, how, why: r === 1 ? "시작" : `${prev} + 늘림 6 = ${n}${r >= 4 && r % 2 ? " · 늘림 자리를 반 칸 밀어 둥글게" : ""}`, inc: r === 1 ? 0 : 6 });
+    }
+    return { rows, c: 0 };
+  }
+  const b = p.b as number;
+  const straight = Math.max(g.w * 2, p.a - b);
+  const c = Math.max(3, rnd(straight / g.w) + 1);
+  const R = Math.max(3, rnd((b / 2) / g.h));
+  const per = p.shape === "oval" ? 6 : 8;
+  for (let r = 1; r <= R; r++) {
+    const n = 2 * (c - 1) + 6 + per * (r - 1);
+    const prev = r === 1 ? 0 : n - per;
+    let how: string;
+    if (r === 1) how = `사슬 ${c}코, 둘째 코부터 짧은뜨기 ${c - 2}코 · 끝 코에 3코 · 반대편 짧은뜨기 ${c - 2}코 · 끝 코에 3코`;
+    else if (p.shape === "oval") how = "직선은 그대로, 양 끝 반원에서 3번씩 늘림";
+    else how = "직선은 그대로, 네 모서리 코마다 3코 뜨기";
+    rows.push({ part: "bottom", n, how, why: r === 1 ? `사슬 ${c}코 기초 → ${n}코` : `${prev} + 늘림 ${per} = ${n}`, inc: r === 1 ? 0 : per });
+  }
+  return { rows, c };
+}
+
+export function plan(p: PlanInput): Plan {
+  const g = gauge(p);
+  const { rows: bottom, c } = planBottom(p, g);
+  const last = bottom[bottom.length - 1].n;
+  const rows = bottom.slice() as Row[];
+  if (p.object === "bag") {
+    const bodyRows = Math.max(2, rnd((p.h as number) / g.h));
+    for (let i = 0; i < bodyRows; i++) rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라가요" : `${last}코 그대로`, inc: 0 } as Row);
+    for (let i = 0; i < 2; i++) rows.push({ part: "rim", n: last, how: i === 0 ? `짧은뜨기 ${last}코` : `빼뜨기 ${last}코로 마무리`, why: "입구를 단단하게", inc: 0 } as Row);
+    if (p.handle !== "none") {
+      const len = p.handle === "long" ? 90 : 25, ch = rnd(len / (g.w * 0.85));
+      for (let i = 0; i < 2; i++) rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 양쪽에 연결`, why: `${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
+    }
+  }
+  let bi = 0, bo = 0, ri = 0, ha = 0;
+  rows.forEach((r, i) => {
+    r.idx = i;
+    if (r.part === "bottom") { r.no = ++bi; r.label = `${bi}단`; }
+    else if (r.part === "body") r.label = `${bottom.length + (++bo)}단`;
+    else if (r.part === "rim") r.label = `테두리 ${++ri}`;
+    else r.label = `손잡이 ${++ha}`;
+  });
+  return { g, c, rows, bottomRounds: bottom.length, bodyRows: rows.filter(r => r.part === "body").length, last };
+}
+
+export function outline(shape: Shape, r: number, g: Gauge, c: number): { at: (t: number) => [number, number] } {
+  const rad = r * g.h;
+  if (shape === "circle") return { at: (t) => { const a = -Math.PI / 2 + t * 2 * Math.PI; return [rad * Math.cos(a), rad * Math.sin(a)]; } };
+  const a = (c - 1) * g.w;
+  if (shape === "oval") {
+    const per = 2 * a + 2 * Math.PI * rad;
+    return { at: (t) => {
+      let s = t * per;
+      if (s < a) return [-a / 2 + s, -rad]; s -= a;
+      if (s < Math.PI * rad) { const ang = -Math.PI / 2 + s / rad; return [a / 2 + rad * Math.cos(ang), rad * Math.sin(ang)]; } s -= Math.PI * rad;
+      if (s < a) return [a / 2 - s, rad]; s -= a;
+      const ang = Math.PI / 2 + s / rad; return [-a / 2 + rad * Math.cos(ang), rad * Math.sin(ang)];
+    } };
+  }
+  const hx = a / 2 + rad, hy = rad, per = 4 * hx + 4 * hy;
+  return { at: (t) => {
+    let s = t * per;
+    if (s < 2 * hx) return [-hx + s, -hy]; s -= 2 * hx;
+    if (s < 2 * hy) return [hx, -hy + s]; s -= 2 * hy;
+    if (s < 2 * hx) return [hx - s, hy]; s -= 2 * hx;
+    return [-hx, hy - s];
+  } };
+}
+
+export interface Dot { x: number; y: number; inc: boolean }
+export interface DotRound { r: number; pts: Dot[] }
+
+export function dots(pp: Plan, shape: Shape, rounds: number): DotRound[] {
+  const out: DotRound[] = [];
+  for (let r = 1; r <= rounds; r++) {
+    const n = pp.rows[r - 1].n, inc = pp.rows[r - 1].inc, o = outline(shape, r, pp.g, pp.c), pts: Dot[] = [];
+    const off = shape === "circle" && r % 2 ? 0.5 / n : 0;
+    for (let i = 0; i < n; i++) { const [x, y] = o.at(((i + 0.5) / n + off) % 1); pts.push({ x, y, inc: false }); }
+    if (inc) {
+      if (shape === "circle") pts.forEach((pt, i) => { pt.inc = r === 2 || (r >= 3 && i % (r - 1) === r - 2); });
+      else {
+        const targets: [number, number][] = [], a = (pp.c - 1) * pp.g.w, rad = r * pp.g.h;
+        if (shape === "oval") for (const sx of [1, -1]) for (let k = 0; k < 3; k++) { const ang = -Math.PI / 2 + (k + 0.5) / 3 * Math.PI; targets.push([sx * (a / 2 + rad * Math.cos(ang)), sx * rad * Math.sin(ang)]); }
+        else { const hx = a / 2 + rad; for (const [cx, cy] of [[hx, -rad], [hx, rad], [-hx, rad], [-hx, -rad]]) { targets.push([cx * 0.97, cy * 0.85], [cx * 0.88, cy * 0.98]); } }
+        for (const [tx, ty] of targets) { let best: Dot | null = null, bd = 1e9; for (const pt of pts) { if (pt.inc) continue; const d = (pt.x - tx) ** 2 + (pt.y - ty) ** 2; if (d < bd) { bd = d; best = pt; } } if (best) best.inc = true; }
+      }
+    }
+    out.push({ r, pts });
+  }
+  return out;
+}

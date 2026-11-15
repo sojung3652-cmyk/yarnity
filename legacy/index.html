@@ -278,8 +278,8 @@ footer .brand{font-size:16px;color:var(--ink)}
           <div class="cover" id="cover">
             <div class="face front knit">
               <div class="panel">
-                <!-- 표지 사진/영상 자리: pic/bird.jpg 대신 다른 이미지나 <video autoplay muted loop playsinline src="..."></video> -->
-                <img src="pic/bird.jpg" alt="">
+                <!-- 표지 사진/영상 자리: pic/bird.png 대신 다른 이미지나 <video autoplay muted loop playsinline src="..."></video> -->
+                <img src="pic/bird.png" alt="">
               </div>
               <div class="label"><b>Yarnity.</b><span>Intelligent crochet</span></div>
             </div>
@@ -723,7 +723,7 @@ footer .brand{font-size:16px;color:var(--ink)}
   sleeveSlices(book, 3, book.firstChild, "sl-top");
   sleeveSlices($("#cover"), 3, $("#cover").querySelector(".front"));
 
-  const stage = $(".bookstage"), coverImg = new Image(); coverImg.src = "pic/bird.jpg";
+  const stage = $(".bookstage"), coverImg = new Image(); coverImg.src = "pic/bird.png";
   let bakedW = 0;
   async function bakeSleeve() {
     const W = book.offsetWidth, H = book.offsetHeight; if (!W || W === bakedW) return;
