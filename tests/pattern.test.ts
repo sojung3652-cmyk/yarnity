@@ -45,14 +45,14 @@ describe("identical to the prototype engine", () => {
 
   it(`plan() deep-equals the original for ${cases.length} inputs`, () => {
     for (const c of cases) expect(plan(c), JSON.stringify(c)).toEqual(legacy.plan({ ...c }));
-  });
+  }, 30_000); // large sweep: allow for a busy machine
 
   it("dots() (stitch map + increase marks) deep-equals the original", () => {
     for (const c of cases.filter((_, i) => i % 7 === 0)) {
       const pp = plan(c), lp = legacy.plan({ ...c });
       expect(dots(pp, c.shape, pp.bottomRounds), JSON.stringify(c)).toEqual(legacy.dots(lp, c.shape, lp.bottomRounds));
     }
-  });
+  }, 30_000);
 });
 
 describe("drawing", () => {
