@@ -161,3 +161,38 @@ footer .brand{font-size:16px;color:var(--ink)}
   .nav-links a.l.hide-sm{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- home hero: desk photo, logo, text button, 3D book (design comp: legacy/pic/main_background_refer.png) ---- */
+html{overflow-x:clip}
+.wrap{position:relative}
+/* home nav floats over the photo, laid out as in the comp: wider row, larger menu text */
+.nav.over{position:absolute;top:0;left:50%;width:min(1526px,calc(100vw - 40px));transform:translateX(-50%);z-index:20;padding-block:18px}
+.nav.over .nav-links{gap:22px}
+.nav.over .nav-links a.l{font-size:17px;opacity:.9}
+.nav.over .brand{visibility:hidden}
+.hero-desk{position:relative;height:100svh;width:100vw;margin-left:calc(50% - 50vw);overflow:hidden;isolation:isolate}
+.hero-bg{position:absolute;inset:0;z-index:0;transition:filter .8s ease,transform .8s ease}
+.hero-bg-img{object-fit:cover;object-position:right center}
+.hero-desk.is-open .hero-bg{filter:brightness(.92) blur(2px);transform:scale(1.02)}
+.hero-fade{position:absolute;inset:auto 0 0 0;height:22%;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(247,240,234,0),var(--bg))}
+.hero-copy-desk{--logo-w:clamp(240px,21vw,400px);position:absolute;z-index:3;left:13%;top:51%;width:var(--logo-w);transform:translateY(calc(var(--logo-w) * -647 / 1170 / 2));display:flex;flex-direction:column;align-items:center;transition:opacity .5s ease}
+.hero-desk.is-open .hero-copy-desk{opacity:0;pointer-events:none}
+.hero-logo{margin:0;line-height:0;width:100%}
+.hero-logo img{width:100%;height:auto;display:block}
+.hero-start{margin-top:44px;background:none;border:0;padding:0 0 5px;border-bottom:1.5px solid #2E2420;color:#2E2420;font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:19px;line-height:1.2;letter-spacing:-.005em;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:baseline;gap:22px}
+.hero-start .arrow{display:inline-block;transition:transform .2s ease}
+.hero-start:hover .arrow{transform:translateX(4px)}
+.hero-start:focus-visible{outline:2px solid #2E2420;outline-offset:6px;border-radius:2px}
+/* the 3D book fills the hero; its camera puts the book on the desk in the photo */
+.book3d{position:absolute;inset:0;z-index:2;opacity:0;transition:opacity .6s ease}
+.book3d.ready{opacity:1}
+.book3d canvas{display:block}
+/* CSS fallback book: roughly where the 3D book sits */
+.book-css-slot{position:absolute;z-index:2;left:59%;top:53%;transform:translate(-50%,-50%)}
+.book-css-slot .bookstage{min-height:0}
+@media (max-width:899px){
+  /* phone layout is pending: keep things readable until it is designed */
+  .hero-bg-img{object-position:78% center}
+  .hero-copy-desk{--logo-w:62vw;left:50%;top:9svh;transform:translateX(-50%)}
+  .hero-desk .hero-copy-desk .hero-start{position:absolute;top:calc(100svh - 18svh);margin:0}
+}

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { Book } from "@/components/Book/Book";
 import { useApp } from "@/components/AppProvider";
+import { Hero } from "@/components/home/Hero";
 import { plan } from "@/lib/pattern";
 
 function Resume() {
@@ -20,7 +20,7 @@ function Resume() {
 export default function Home() {
   return (
     <main id="view-home">
-      <Book />
+      <Hero />
       <div className="hero-foot"><span className="tagline">YARNITY · MAKE · TRACK · SHARE</span></div>
       <div id="homeResume"><Resume /></div>
     </main>

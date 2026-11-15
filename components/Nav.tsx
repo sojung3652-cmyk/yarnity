@@ -6,7 +6,8 @@ export function Nav() {
   const path = usePathname();
   const cur = (href: string) => (path === href ? "page" : undefined);
   return (
-    <nav className="nav" aria-label="주 메뉴">
+    // home: the nav floats over the hero photo, and the small wordmark hides behind the big logo
+    <nav className={"nav" + (path === "/" ? " over" : "")} aria-label="주 메뉴">
       <Link className="brand" href="/" aria-label="Yarnity 홈">Yarnity.</Link>
       <div className="nav-links">
         <Link className="l" href="/new" aria-current={cur("/new")}>도안 만들기</Link>

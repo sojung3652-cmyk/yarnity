@@ -5,8 +5,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BookState } from "./useBookState";
-import { OpenButton } from "./OpenButton";
-import { CloseChevron } from "./CloseChevron";
 import "./Book.css";
 import { HeroDots, heroCaption } from "./HeroDots";
 import { sleeveSlices } from "./sleeve";
@@ -16,7 +14,7 @@ const COVER_SRC = "/pic/bird.png";
 const bookSlices = sleeveSlices(3, "sl-top");
 const coverSlices = sleeveSlices(3);
 
-export function BookCSS({ open, setOpen, toggle }: BookState) {
+export function BookCSS({ open, setOpen }: BookState) {
   const [tex, setTex] = useState<{ inside: string; spine: string } | null>(null);
   const bookRef = useRef<HTMLDivElement>(null), frontRef = useRef<HTMLDivElement>(null), spineRef = useRef<HTMLDivElement>(null);
   const bakedW = useRef(0);
@@ -50,8 +48,7 @@ export function BookCSS({ open, setOpen, toggle }: BookState) {
 
   return (
     <section className={"bookstage" + (tex ? " baked" : "")} aria-label="소개">
-      <div className="scene" style={{ position: "relative" }}>
-        <CloseChevron open={open} onClose={() => setOpen(false)} />
+      <div className="scene">
         <div className={"book" + (open ? " is-open" : "")} id="book" ref={bookRef} onClick={() => { if (!open) setOpen(true); }}>
           {bookSlices.map((s, i) => <div key={i} className={s.className} style={i === bookSlices.length - 1 ? { ...s.style, ...bg(tex?.inside) } : s.style} />)}
           <div className="spine" ref={spineRef} style={bg(tex?.spine)} />
@@ -75,6 +72,7 @@ export function BookCSS({ open, setOpen, toggle }: BookState) {
             <div className="face back knit" style={bg(tex?.inside)}>
               <div className="flap knit" style={bg(tex?.inside)} />
               <div className="paper">
+                <button type="button" className="page-close" tabIndex={open ? 0 : -1} onClick={e => { e.stopPropagation(); setOpen(false); }}>‹ Close</button>
                 <HeroDots />
                 <span className="cap" id="heroCap">{heroCaption}</span>
               </div>
@@ -82,7 +80,6 @@ export function BookCSS({ open, setOpen, toggle }: BookState) {
           </div>
         </div>
       </div>
-      <OpenButton open={open} onToggle={toggle} />
     </section>
   );
 }

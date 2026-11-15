@@ -10,11 +10,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as THREE from "three";
 import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
-import { OpenButton } from "../OpenButton";
-import { CloseChevron } from "../CloseChevron";
 import { useReducedMotion, type BookState } from "../useBookState";
 import {
-  BLOCK, blockTop, BOARD, BORDER_OUT, BORDER_R, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, P0, PANEL_SIZE, sheetCurve, SHEETS, sleevePath, T, W,
+  BLOCK, blockTop, BOARD, BORDER_OUT, BORDER_R, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, P0, PANEL_SIZE, sheetCurve, SHEET_W, SHEETS, sleevePath, T, W,
 } from "./geometry";
 import { createEdge, createRibbon, createSheet, loopTube, updateEdge, updateRibbon, updateSheet } from "./meshes";
 import { useBookMaterials, type BookMaterials } from "./materials";
@@ -143,22 +141,40 @@ function Sheet({ k, anim, front, back }: { k: number; anim: Anim; front: THREE.M
 // The printed page carries the text; the button is DOM so it can be clicked and focused. drei <Html>
 // was tried in the previous 3D version: its separate React root ends up empty under Strict Mode, so the
 // DOM is rendered through a portal into the element given to CSS3DObject (keeps the Next router context).
-interface CssLayer { renderer: CSS3DRenderer; el: HTMLDivElement }
+interface CssLayer { renderer: CSS3DRenderer; start: HTMLDivElement; close: HTMLDivElement }
 const BTN = PAGE_LAYOUT.button;
 function PageButton({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   const obj = useMemo(() => {
-    const o = new CSS3DObject(layer.el);
+    const o = new CSS3DObject(layer.start);
     const x = GUTTER_X + (BTN.x + BTN.w / 2) * PX_CM, z = BLOCK.z0 + (BTN.y + BTN.h / 2) * PX_CM;
     o.position.set(x, blockTop(x) + 0.08, z); o.rotation.set(-Math.PI / 2, 0, 0); o.scale.setScalar(PX_CM);
     return o;
   }, [layer]);
   const shown = useRef<boolean | null>(null);
   useFrame(() => {
-    const o = clamp01((anim.t - 0.85) / 0.15), el = layer.el;
-    el.style.opacity = String(o);
+    const o = clamp01((anim.t - 0.85) / 0.15);
+    for (const el of [layer.start, layer.close]) el.style.opacity = String(o);
     const vis = o > 0.5;
-    if (vis !== shown.current) { shown.current = vis; el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; }
+    if (vis !== shown.current) {
+      shown.current = vis;
+      for (const el of [layer.start, layer.close]) { el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; }
+    }
   });
+  return <primitive object={obj} />;
+}
+
+/** "Close" on the first (left) page: lies on the turned sheet near its upper outer corner. */
+const CLOSE_PX: [number, number] = [96, 30];
+function PageClose({ layer }: { layer: CssLayer }) {
+  const obj = useMemo(() => {
+    const o = new CSS3DObject(layer.close), c = sheetCurve(SHEETS - 1, 1), n = c.pts.length - 1;
+    const i = Math.round(n * (SHEET_W - 2.2) / SHEET_W), p = c.pts[i], a = c.heads[Math.min(i, c.heads.length - 1)];
+    o.position.set(p[0], p[1] + 0.06, BLOCK.z0 + 1.3);
+    // lie flat on the page, then follow its slope (the left side rests on the tilted cover)
+    o.rotation.order = "ZYX"; o.rotation.set(-Math.PI / 2, 0, a - Math.PI);
+    o.scale.setScalar(PX_CM);
+    return o;
+  }, [layer]);
   return <primitive object={obj} />;
 }
 
@@ -179,35 +195,75 @@ function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void;
       <Sleeve anim={anim} m={m} />
       <FrontCover anim={anim} m={m} />
       <PageButton anim={anim} layer={layer} />
+      <PageClose layer={layer} />
     </group>
   );
 }
 
 // ---- camera ----
 const FOV = 22;
-// closed: ~33 degrees above the table (matches how much page thickness the reference photo shows), book turned ~25 degrees
+// closed: ~33 degrees above the table, book turned ~25 degrees (matches the design comp)
 const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 33), THREE.MathUtils.degToRad(25));
 // open: high and from the front, so the spread reads like a page
 const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 72), 0);
 const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2)); return Math.max(hh / t, hw / (t * aspect)); };
 
+// Where the book sits in the desk photo (legacy/pic/main_background_refer.png, 1808 x 870):
+// centre at (1075, 460), 27% of the photo wide. The photo is drawn with object-fit: cover and
+// object-position: right center, so the same scale/offset maps that spot onto the screen.
+const PHOTO = { w: 1808, h: 870, cx: 1075, cy: 460, bookW: 0.27 };
+const DESK_MIN = 900; // below this the hero uses the (pending) phone layout
+function photoSpot(vw: number, vh: number) {
+  const s = Math.max(vw / PHOTO.w, vh / PHOTO.h), offX = vw - PHOTO.w * s, offY = (vh - PHOTO.h * s) / 2;
+  return { x: offX + PHOTO.cx * s, y: offY + PHOTO.cy * s, w: PHOTO.bookW * PHOTO.w * s };
+}
+
+// closed book's bounding box (book frame, lifted by FAB)
+const BOX = (() => {
+  const ex = W / 2 + BORDER_OUT + BORDER_R, ez = D / 2 + BORDER_OUT + BORDER_R, y0 = FAB + BORDER_Y_BACK - BORDER_R, y1 = FAB + BORDER_Y_FRONT + BORDER_R;
+  const out: THREE.Vector3[] = [];
+  for (const x of [-ex, ex]) for (const y of [y0, y1]) for (const z of [-ez, ez]) out.push(new THREE.Vector3(x, y, z));
+  return out;
+})();
+
+/** Camera distance and lens shift that put the closed book at its spot in the photo. */
+function closedAnchor(vw: number, vh: number, tgt: THREE.Vector3) {
+  const cam = new THREE.PerspectiveCamera(FOV, vw / vh, 1, 1000), spot = photoSpot(vw, vh);
+  const project = (d: number) => {
+    cam.position.copy(tgt).addScaledVector(CLOSED_DIR, d); cam.up.set(0, 1, 0); cam.lookAt(tgt); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const p of BOX) { const q = p.clone().project(cam); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
+    return { w: (x1 - x0) / 2 * vw, cx: ((x0 + x1) / 2 + 1) / 2 * vw, cy: (1 - (y0 + y1) / 2) / 2 * vh };
+  };
+  let d = 100;
+  for (let i = 0; i < 4; i++) d *= project(d).w / spot.w; // projected width ~ 1/d: converges in a few steps
+  const p = project(d);
+  return { d, shiftX: p.cx - spot.x, shiftY: p.cy - spot.y };
+}
+
 function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   const { camera, size, scene } = useThree();
   useEffect(() => { layer.renderer.setSize(size.width, size.height); }, [layer, size]);
+  const cTgt = useMemo(() => new THREE.Vector3(0, FAB + T / 2, 0), []);
+  const desk = size.width >= DESK_MIN;
+  const anchor = useMemo(() => (desk ? closedAnchor(size.width, size.height, cTgt) : null), [desk, size.width, size.height, cTgt]);
   const v = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dir: new THREE.Vector3() }), []);
   useFrame(() => {
-    const aspect = size.width / size.height, narrow = aspect < 0.85, e = anim.cam;
-    const cTgt = new THREE.Vector3(0, FAB + T / 2, 0), cDist = fit(14 / 0.8, 14 / 0.8, aspect);
+    const cam = camera as THREE.PerspectiveCamera, aspect = size.width / size.height, e = anim.cam;
+    const cDist = anchor ? anchor.d : fit(14 / 0.8, 14 / 0.8, aspect);
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
-    const oTgt = narrow ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
-    const oDist = narrow ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.66, D / 2 / 0.76, aspect);
+    const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
+    const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.6, D / 2 / 0.72, aspect);
     v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).normalize();
     v.tgt.copy(cTgt).lerp(oTgt, e);
     const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
     v.pos.copy(v.tgt).addScaledVector(v.dir, THREE.MathUtils.lerp(cDist, oDist, e) * bump);
-    camera.position.copy(v.pos); camera.up.set(0, 1, 0); camera.lookAt(v.tgt);
-    camera.updateMatrixWorld(); scene.updateMatrixWorld();
-    layer.renderer.render(scene, camera); // the DOM button follows the same camera
+    cam.position.copy(v.pos); cam.up.set(0, 1, 0); cam.lookAt(v.tgt);
+    // lens shift: closed, the book sits at its spot in the photo; it glides to the centre as it opens
+    if (anchor) cam.setViewOffset(size.width, size.height, anchor.shiftX * (1 - e), anchor.shiftY * (1 - e), size.width, size.height);
+    else cam.clearViewOffset();
+    cam.updateProjectionMatrix(); cam.updateMatrixWorld(); scene.updateMatrixWorld();
+    layer.renderer.render(scene, camera); // the DOM page buttons follow the same camera
   });
   return null;
 }
@@ -241,55 +297,52 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
         <Lightformer form="ring" intensity={0.5} color="#fff3e6" position={[0, -8, 0]} scale={12} target={[0, 0, 0]} />
       </Environment>
       <hemisphereLight args={["#fffaf4", "#eadfd4", 0.8]} />
-      {/* key light top-left, weak fill opposite */}
-      <directionalLight position={[-20, 28, 14]} intensity={1.5} color="#fff6ec" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={5}>
+      {/* key light = the photo's sunlight: high, from the upper left and behind; weak fill opposite */}
+      <directionalLight position={[-26, 30, -14]} intensity={1.5} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={5}>
         <orthographicCamera attach="shadow-camera" args={[-34, 34, 34, -34, 1, 100]} />
       </directionalLight>
       <directionalLight position={[22, 12, 18]} intensity={0.35} color="#f1eeff" />
       <BookModel anim={anim} onOpen={() => setOpen(true)} layer={layer} m={m} />
-      <ContactShadows position={[0, 0.001, 0]} scale={80} blur={2.8} far={9} opacity={0.42} resolution={1024} color="#4a382e" frames={Infinity} />
+      <ContactShadows position={[0, 0.001, 0]} scale={80} blur={3.2} far={8} opacity={0.32} resolution={1024} color="#6a5046" frames={Infinity} />
     </>
   );
 }
 
-export default function Book3D({ open, setOpen, toggle, onFail }: BookState & { onFail: () => void }) {
+export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: () => void }) {
   const [ready, setReady] = useState(false);
   const reduce = useReducedMotion();
   const cssHost = useRef<HTMLDivElement>(null);
   const [layer] = useState<CssLayer>(() => {
-    const el = document.createElement("div"); el.id = "bookRight"; el.style.opacity = "0"; el.inert = true;
+    const mk = (id: string) => { const el = document.createElement("div"); el.id = id; el.style.opacity = "0"; el.inert = true; return el; };
     const renderer = new CSS3DRenderer(); renderer.domElement.className = "css3d-layer";
-    return { renderer, el };
+    return { renderer, start: mk("bookRight"), close: mk("bookClose") };
   });
   useEffect(() => { cssHost.current!.appendChild(layer.renderer.domElement); return () => { layer.renderer.domElement.remove(); }; }, [layer]);
   return (
-    <section className="bookstage" aria-label="소개">
-      <div className={"stage3d" + (ready ? " ready" : "")} id="book">
-        <Canvas
-          dpr={[1, 2]}
-          frameloop="demand"
-          shadows={{ type: THREE.PCFShadowMap }}
-          camera={{ fov: FOV, near: 1, far: 500, position: [0, 60, 80] }}
-          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-          onCreated={({ gl }) => {
-            gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.3;
-            gl.domElement.addEventListener("webglcontextlost", e => { e.preventDefault(); onFail(); });
-            requestAnimationFrame(() => setReady(true));
-          }}
-        >
-          <Scene open={open} setOpen={setOpen} reduce={reduce} layer={layer} />
-        </Canvas>
-        <div ref={cssHost} />
-        {createPortal(<Link className="btn btn-primary page3d-btn" href="/new">Start Creating</Link>, layer.el)}
-        <CloseChevron open={open} onClose={() => setOpen(false)} />
-      </div>
+    <div className={"book3d" + (ready ? " ready" : "") + (open ? " is-open" : "")} id="book">
+      <Canvas
+        dpr={[1, 2]}
+        frameloop="demand"
+        shadows={{ type: THREE.PCFShadowMap }}
+        camera={{ fov: FOV, near: 1, far: 500, position: [0, 60, 80] }}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        onCreated={({ gl }) => {
+          gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.3;
+          gl.domElement.addEventListener("webglcontextlost", e => { e.preventDefault(); onFail(); });
+          requestAnimationFrame(() => setReady(true));
+        }}
+      >
+        <Scene open={open} setOpen={setOpen} reduce={reduce} layer={layer} />
+      </Canvas>
+      <div ref={cssHost} />
+      {createPortal(<Link className="btn btn-primary page3d-btn" href="/new">Start Creating</Link>, layer.start)}
+      {createPortal(<button type="button" className="page3d-close" style={{ width: CLOSE_PX[0], height: CLOSE_PX[1] }} onClick={() => setOpen(false)}>‹ Close</button>, layer.close)}
       {/* the printed page text, for screen readers */}
       <div className="sr" lang="en">
         <p>Yarnity / Intelligent Crochet</p>
-        <h1>Your creativity. Our intelligence. Every stitch, together.</h1>
+        <p>Your creativity. Our intelligence. Every stitch, together.</p>
         <p>Generate your patterns with AI. Track every stitch. Bring your ideas to life.</p>
       </div>
-      <OpenButton open={open} onToggle={toggle} />
-    </section>
+    </div>
   );
 }

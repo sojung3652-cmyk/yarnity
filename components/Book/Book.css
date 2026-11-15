@@ -90,8 +90,9 @@
 .css3d-layer{position:absolute!important;inset:0;pointer-events:none;overflow:hidden}
 /* real "Start Creating" button laid on the printed right page (CSS3DRenderer) */
 .page3d-btn{width:148px;height:42px;min-height:42px;padding:0;background:#3A322F;color:#fff;font-size:13.5px}
-/* "<" close button on the open book */
-.close-chevron{position:absolute;left:12px;top:12px;z-index:5;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s}
-.close-chevron.on{opacity:1;pointer-events:auto}
-.scene .close-chevron{left:calc(-1 * var(--W) / 2 - 56px)}
-@media (max-width:760px){.scene .close-chevron{left:-8px;top:-52px}}
+/* "Close" on the first page of the open book (DOM laid on the page) */
+.page3d-close{display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:0;color:#776D68;font-family:"Newsreader",Georgia,serif;font-size:14px;cursor:pointer}
+.page3d-close:hover{color:#2E2420}
+.page3d-close:focus-visible{outline:2px solid #2E2420;outline-offset:3px;border-radius:4px}
+.page-close{position:absolute;left:calc(24% + 12px);top:12px;z-index:2;background:none;border:0;padding:4px;color:#776D68;font:inherit;font-size:12px;cursor:pointer}
+.page-close:hover{color:#2E2420}
