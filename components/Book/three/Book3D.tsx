@@ -141,26 +141,35 @@ function Sheet({ k, anim, front, back }: { k: number; anim: Anim; front: THREE.M
 // The printed page carries the text; the button is DOM so it can be clicked and focused. drei <Html>
 // was tried in the previous 3D version: its separate React root ends up empty under Strict Mode, so the
 // DOM is rendered through a portal into the element given to CSS3DObject (keeps the Next router context).
-interface CssLayer { renderer: CSS3DRenderer; start: HTMLDivElement; close: HTMLDivElement }
-const BTN = PAGE_LAYOUT.button;
-function PageButton({ anim, layer }: { anim: Anim; layer: CssLayer }) {
+interface CssLayer { renderer: CSS3DRenderer; start: HTMLDivElement; mine: HTMLDivElement; close: HTMLDivElement }
+type Rect = { x: number; y: number; w: number; h: number };
+/** A DOM element laid on the right page at a rect of the page layout (CSS px). */
+function PageLink({ el, rect }: { el: HTMLDivElement; rect: Rect }) {
   const obj = useMemo(() => {
-    const o = new CSS3DObject(layer.start);
-    const x = GUTTER_X + (BTN.x + BTN.w / 2) * PX_CM, z = BLOCK.z0 + (BTN.y + BTN.h / 2) * PX_CM;
+    const o = new CSS3DObject(el);
+    const x = GUTTER_X + (rect.x + rect.w / 2) * PX_CM, z = BLOCK.z0 + (rect.y + rect.h / 2) * PX_CM;
     o.position.set(x, blockTop(x) + 0.08, z); o.rotation.set(-Math.PI / 2, 0, 0); o.scale.setScalar(PX_CM);
     return o;
-  }, [layer]);
+  }, [el, rect]);
+  return <primitive object={obj} />;
+}
+
+/** Fades the page's DOM controls in at the end of opening; hidden and inert otherwise. */
+function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
+  const els = useMemo(() => [layer.start, layer.mine, layer.close], [layer]);
   const shown = useRef<boolean | null>(null);
   useFrame(() => {
     const o = clamp01((anim.t - 0.85) / 0.15);
-    for (const el of [layer.start, layer.close]) el.style.opacity = String(o);
+    for (const el of els) el.style.opacity = String(o);
     const vis = o > 0.5;
-    if (vis !== shown.current) {
-      shown.current = vis;
-      for (const el of [layer.start, layer.close]) { el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; }
-    }
+    if (vis !== shown.current) { shown.current = vis; for (const el of els) { el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; } }
   });
-  return <primitive object={obj} />;
+  return (
+    <>
+      <PageLink el={layer.start} rect={PAGE_LAYOUT.button} />
+      <PageLink el={layer.mine} rect={PAGE_LAYOUT.mine} />
+    </>
+  );
 }
 
 /** "Close" on the first (left) page: lies on the turned sheet near its upper outer corner. */
@@ -194,7 +203,7 @@ function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void;
       ))}
       <Sleeve anim={anim} m={m} />
       <FrontCover anim={anim} m={m} />
-      <PageButton anim={anim} layer={layer} />
+      <PageControls anim={anim} layer={layer} />
       <PageClose layer={layer} />
     </group>
   );
@@ -315,7 +324,7 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
   const [layer] = useState<CssLayer>(() => {
     const mk = (id: string) => { const el = document.createElement("div"); el.id = id; el.style.opacity = "0"; el.inert = true; return el; };
     const renderer = new CSS3DRenderer(); renderer.domElement.className = "css3d-layer";
-    return { renderer, start: mk("bookRight"), close: mk("bookClose") };
+    return { renderer, start: mk("bookRight"), mine: mk("bookMine"), close: mk("bookClose") };
   });
   useEffect(() => { cssHost.current!.appendChild(layer.renderer.domElement); return () => { layer.renderer.domElement.remove(); }; }, [layer]);
   return (
@@ -335,7 +344,8 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
         <Scene open={open} setOpen={setOpen} reduce={reduce} layer={layer} />
       </Canvas>
       <div ref={cssHost} />
-      {createPortal(<Link className="btn btn-primary page3d-btn" href="/new">Start Creating</Link>, layer.start)}
+      {createPortal(<Link className="btn btn-primary page3d-btn" href="/new">도안 만들기</Link>, layer.start)}
+      {createPortal(<Link className="page3d-link" href="/mine" style={{ width: PAGE_LAYOUT.mine.w, height: PAGE_LAYOUT.mine.h }}>내 작품 →</Link>, layer.mine)}
       {createPortal(<button type="button" className="page3d-close" style={{ width: CLOSE_PX[0], height: CLOSE_PX[1] }} onClick={() => setOpen(false)}>‹ Close</button>, layer.close)}
       {/* the printed page text, for screen readers */}
       <div className="sr" lang="en">

@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 export function Nav() {
   const path = usePathname();
   const cur = (href: string) => (path === href ? "page" : undefined);
+  // home: no nav bar over the photo; 도안 만들기 / 내 작품 live on the open book's page instead
+  if (path === "/") return null;
   return (
-    // home: the nav floats over the hero photo, and the small wordmark hides behind the big logo
-    <nav className={"nav" + (path === "/" ? " over" : "")} aria-label="주 메뉴">
+    <nav className="nav" aria-label="주 메뉴">
       <Link className="brand" href="/" aria-label="Yarnity 홈">Yarnity.</Link>
       <div className="nav-links">
         <Link className="l" href="/new" aria-current={cur("/new")}>도안 만들기</Link>

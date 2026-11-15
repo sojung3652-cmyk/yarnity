@@ -57,7 +57,7 @@ export function BookCSS({ open, setOpen }: BookState) {
             <span className="eyebrow">Yarnity / Intelligent Crochet</span>
             <h1><span>Your creativity.</span> <span>Our intelligence.</span> <span>Every stitch, together.</span></h1>
             <p>Generate your patterns with AI. Track every stitch. Bring your ideas to life.</p>
-            <div className="hero-cta"><Link className="btn btn-primary" href="/new">Start Creating</Link></div>
+            <div className="hero-cta"><Link className="btn btn-primary" href="/new">도안 만들기</Link><Link className="page-link" href="/mine">내 작품 →</Link></div>
           </div>
           <div className="cover" id="cover">
             {coverSlices.map((s, i) => <div key={i} className={s.className} style={s.style} />)}

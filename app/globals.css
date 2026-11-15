@@ -165,11 +165,6 @@ footer .brand{font-size:16px;color:var(--ink)}
 /* ---- home hero: desk photo, logo, text button, 3D book (design comp: legacy/pic/main_background_refer.png) ---- */
 html{overflow-x:clip}
 .wrap{position:relative}
-/* home nav floats over the photo, laid out as in the comp: wider row, larger menu text */
-.nav.over{position:absolute;top:0;left:50%;width:min(1526px,calc(100vw - 40px));transform:translateX(-50%);z-index:20;padding-block:18px}
-.nav.over .nav-links{gap:22px}
-.nav.over .nav-links a.l{font-size:17px;opacity:.9}
-.nav.over .brand{visibility:hidden}
 .hero-desk{position:relative;height:100svh;width:100vw;margin-left:calc(50% - 50vw);overflow:hidden;isolation:isolate}
 .hero-bg{position:absolute;inset:0;z-index:0;transition:filter .8s ease,transform .8s ease}
 .hero-bg-img{object-fit:cover;object-position:right center}
@@ -184,7 +179,7 @@ html{overflow-x:clip}
 .hero-desk.is-open .hero-copy-desk{opacity:0;pointer-events:none}
 .hero-logo{margin:0;line-height:0;width:100%}
 .hero-logo img{width:100%;height:auto;display:block}
-.hero-start{margin-top:36px;background:none;border:0;padding:0 0 5px;border-bottom:1.5px solid #6B5F58;color:#6B5F58;font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:16px;line-height:1.2;letter-spacing:-.005em;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:baseline;gap:18px;transition:color .2s,border-color .2s}
+.hero-start{margin-top:30px;background:none;border:0;padding:0 0 4px;border-bottom:1.2px solid #6B5F58;color:#6B5F58;font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:14px;line-height:1.2;letter-spacing:-.005em;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:baseline;gap:14px;transition:color .2s,border-color .2s}
 .hero-start:hover{color:#2E2420;border-bottom-color:#2E2420}
 .hero-start .arrow{display:inline-block;transition:transform .2s ease}
 .hero-start:hover .arrow{transform:translateX(4px)}

@@ -89,7 +89,10 @@
 @media (max-width:760px){.stage3d{height:clamp(480px,calc(100svh - 200px),700px)}}
 .css3d-layer{position:absolute!important;inset:0;pointer-events:none;overflow:hidden}
 /* real "Start Creating" button laid on the printed right page (CSS3DRenderer) */
-.page3d-btn{width:148px;height:42px;min-height:42px;padding:0;background:#3A322F;color:#fff;font-size:13.5px}
+.page3d-btn{width:128px;height:42px;min-height:42px;padding:0;background:#3A322F;color:#fff;font-size:13.5px}
+.page3d-link{display:inline-flex;align-items:center;color:#5E534D;font-family:"Newsreader","Noto Serif KR",Georgia,serif;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.page3d-link:hover{color:#2E2420}
+.page-link{font-size:13px;color:#5E534D;text-decoration:none;align-self:center}
 /* "Close" on the first page of the open book (DOM laid on the page) */
 .page3d-close{display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:0;color:#776D68;font-family:"Newsreader",Georgia,serif;font-size:14px;cursor:pointer}
 .page3d-close:hover{color:#2E2420}

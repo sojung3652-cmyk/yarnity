@@ -13,7 +13,10 @@ export const PAGE_LAYOUT = (() => {
   const eyebrow = 12, h1 = 25, h1Lead = 1.3, p = 13.5, pLead = 1.6, btnH = 42;
   const blockH = eyebrow + 14 + 3 * h1 * h1Lead + 14 + 2 * p * pLead + 22 + btnH;
   const top = Math.round((PAGE_H_PX - blockH) / 2);
-  return { pad: PAD, top, eyebrow, h1, h1Lead, p, pLead, button: { x: PAD, y: Math.round(top + blockH - btnH), w: 148, h: btnH } };
+  const button = { x: PAD, y: Math.round(top + blockH - btnH), w: 128, h: btnH };
+  // the site's nav moved onto the page: a text link to "내 작품" beside the main button
+  const mine = { x: button.x + button.w + 18, y: button.y, w: 92, h: btnH };
+  return { pad: PAD, top, eyebrow, h1, h1Lead, p, pLead, button, mine };
 })();
 
 /** Paper base: warm cream, faint mottling, soft shade towards the gutter (u = 0). */
