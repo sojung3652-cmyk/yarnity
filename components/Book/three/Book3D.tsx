@@ -218,9 +218,9 @@ const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.d
 const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2)); return Math.max(hh / t, hw / (t * aspect)); };
 
 // Where the book sits in the desk photo (legacy/pic/main_background_refer.png, 1808 x 870):
-// centre at (1075, 490) (a little lower than the comp's 460); 22% of the photo wide (the comp had 27%, trimmed for more air). The photo is drawn with object-fit: cover and
+// centre at (1075, 490) (a little lower than the comp's 460); 18% of the photo wide (the comp had 27%, trimmed for more air). The photo is drawn with object-fit: cover and
 // object-position: right center, so the same scale/offset maps that spot onto the screen.
-const PHOTO = { w: 1808, h: 870, cx: 1075, cy: 490, bookW: 0.22 };
+const PHOTO = { w: 1808, h: 870, cx: 1075, cy: 490, bookW: 0.18 };
 const DESK_MIN = 900; // below this the hero uses the (pending) phone layout
 function photoSpot(vw: number, vh: number) {
   const s = Math.max(vw / PHOTO.w, vh / PHOTO.h), offX = vw - PHOTO.w * s, offY = (vh - PHOTO.h * s) / 2;
@@ -262,7 +262,7 @@ function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
     const cDist = anchor ? anchor.d : fit(14 / 0.8, 14 / 0.8, aspect);
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
-    const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.6, D / 2 / 0.72, aspect);
+    const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.45, D / 2 / 0.56, aspect); // open spread ~45% of the width
     v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).normalize();
     v.tgt.copy(cTgt).lerp(oTgt, e);
     const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
