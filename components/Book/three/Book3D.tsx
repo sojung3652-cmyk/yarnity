@@ -218,9 +218,9 @@ const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.d
 const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2)); return Math.max(hh / t, hw / (t * aspect)); };
 
 // Where the book sits in the desk photo (legacy/pic/main_background_refer.png, 1808 x 870):
-// centre at (1075, 490) (a little lower than the comp's 460); 18% of the photo wide (the comp had 27%, trimmed for more air). The photo is drawn with object-fit: cover and
+// centre at (1075, 490) (a little lower than the comp's 460); 15% of the photo wide (the comp had 27%, trimmed for more air). The photo is drawn with object-fit: cover and
 // object-position: right center, so the same scale/offset maps that spot onto the screen.
-const PHOTO = { w: 1808, h: 870, cx: 1075, cy: 490, bookW: 0.18 };
+const PHOTO = { w: 1808, h: 870, cx: 1075, cy: 490, bookW: 0.15 };
 const DESK_MIN = 900; // below this the hero uses the (pending) phone layout
 function photoSpot(vw: number, vh: number) {
   const s = Math.max(vw / PHOTO.w, vh / PHOTO.h), offX = vw - PHOTO.w * s, offY = (vh - PHOTO.h * s) / 2;
