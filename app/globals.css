@@ -177,10 +177,10 @@ html{overflow-x:clip}
 .hero-fade{position:absolute;inset:auto 0 0 0;height:22%;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(247,240,234,0),var(--bg))}
 /* The photo is cover-scaled (right aligned), so on screens narrower than the photo's 2.08:1 the desk,
    and the book on it, slide left. Same maths as the photo: s = one photo pixel on screen, and the
-   book's left edge sits at photo x 831 (1075 - 27% of 1808 / 2). The logo keeps 13% from the left when
+   book's left edge sits at photo x 876 (1075 - 22% of 1808 / 2). The logo keeps 13% from the left when
    there is room, otherwise moves (and if needed shrinks) to stay 40px clear of the book. */
-.hero-desk{--s:max(100vw / 1808,100svh / 870);--book-left:calc(100vw - 977 * var(--s))}
-.hero-copy-desk{--logo-w:clamp(200px,min(21vw,var(--book-left) - 120px),400px);--half:max(var(--logo-w) / 2,170px);position:absolute;z-index:3;left:max(24px,min(13vw,var(--book-left) - 40px - var(--half) - var(--logo-w) / 2));top:51%;width:var(--logo-w);transform:translateY(calc(var(--logo-w) * -647 / 1170 / 2));display:flex;flex-direction:column;align-items:center;transition:opacity .5s ease}
+.hero-desk{--s:max(100vw / 1808,100svh / 870);--book-left:calc(100vw - 932 * var(--s))}
+.hero-copy-desk{--logo-w:clamp(200px,min(17vw,var(--book-left) - 120px),320px);--half:max(var(--logo-w) / 2,170px);position:absolute;z-index:3;left:max(24px,min(13vw,var(--book-left) - 40px - var(--half) - var(--logo-w) / 2));top:51%;width:var(--logo-w);transform:translateY(calc(var(--logo-w) * -647 / 1170 / 2));display:flex;flex-direction:column;align-items:center;transition:opacity .5s ease}
 .hero-desk.is-open .hero-copy-desk{opacity:0;pointer-events:none}
 .hero-logo{margin:0;line-height:0;width:100%}
 .hero-logo img{width:100%;height:auto;display:block}
