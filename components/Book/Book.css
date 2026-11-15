@@ -80,10 +80,11 @@
 .stage3d{position:relative;width:100%;height:clamp(520px,calc(100svh - 240px),780px);opacity:0;transition:opacity .6s ease}
 .stage3d.ready{opacity:1}
 .stage3d canvas{display:block;touch-action:pan-y}
-.page3d{width:360px;height:480px;padding:34px;display:flex;flex-direction:column;justify-content:center;gap:8px;color:#2B2523}
+.page3d{width:360px;padding:34px;display:flex;flex-direction:column;justify-content:center;gap:8px;color:#2B2523}
 .page3d h1{font-size:24px}
 .page3d p{font-size:13px;color:#776D68}
 .page3d .eyebrow{color:#776D68}
 .page3d .btn-primary{background:#3A322F;color:#fff}
 .page3d .hero-cta{margin-top:10px}
 @media (max-width:760px){.stage3d{height:clamp(480px,calc(100svh - 200px),700px)}}
+.css3d-layer{position:absolute!important;inset:0;pointer-events:none;overflow:hidden}

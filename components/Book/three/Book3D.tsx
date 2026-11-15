@@ -3,7 +3,10 @@
 // Geometry: geometry.ts / meshes.ts. Materials: materials.ts. Open/close state comes from useBookState.
 import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import * as THREE from "three";
 import { OpenButton } from "../OpenButton";
 import { useReducedMotion, type BookState } from "../useBookState";
@@ -128,7 +131,46 @@ function FrontCover({ anim, m, reduce }: { anim: Anim; m: BookMaterials; reduce:
   );
 }
 
-function BookModel({ anim, onOpen, m, reduce }: { anim: Anim; onOpen: () => void; m: BookMaterials; reduce: boolean }) {
+// Right page content (DOM, so "Start Creating" is a real link). 360 CSS px = the page width.
+// Placed in 3D with three's CSS3DRenderer. The content itself is rendered by React through a portal
+// into the element we hand to CSS3DObject: it stays in the normal React tree (router context, Strict
+// Mode safe). drei <Html> was tried first; its separate React root ends up empty under Strict Mode.
+const PAGE_PX = 360, PAGE_W = PAGES.x1 - PAGES.x0, PAGE_D = PAGES.z1 - PAGES.z0;
+const PAGE_H_PX = Math.round(PAGE_PX * PAGE_D / PAGE_W);
+
+interface CssLayer { renderer: CSS3DRenderer; page: HTMLDivElement }
+
+function RightPage({ anim, layer }: { anim: Anim; layer: CssLayer }) {
+  const obj = useMemo(() => {
+    const o = new CSS3DObject(layer.page);
+    o.position.set((PAGES.x0 + PAGES.x1) / 2, PAGES.y1 + 0.01, (PAGES.z0 + PAGES.z1) / 2);
+    o.rotation.set(-Math.PI / 2, 0, 0);
+    o.scale.setScalar(PAGE_W / PAGE_PX);
+    return o;
+  }, [layer]);
+  const shown = useRef<boolean | null>(null);
+  useFrame(() => {
+    // fade in over the last 20% of the opening; not focusable or clickable while hidden
+    const o = Math.min(1, Math.max(0, (anim.t - 0.8) / 0.2)), el = layer.page;
+    el.style.opacity = String(o);
+    const vis = o > 0.5;
+    if (vis !== shown.current) { shown.current = vis; el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; }
+  });
+  return <primitive object={obj} />;
+}
+
+function PageContent() {
+  return (
+    <div className="page3d hero-copy" lang="en" style={{ height: PAGE_H_PX }}>
+      <span className="eyebrow">Yarnity / Intelligent Crochet</span>
+      <h1><span>Your creativity.</span> <span>Our intelligence.</span> <span>Every stitch, together.</span></h1>
+      <p>Generate your patterns with AI. Track every stitch. Bring your ideas to life.</p>
+      <div className="hero-cta"><Link className="btn btn-primary" href="/new">Start Creating</Link></div>
+    </div>
+  );
+}
+
+function BookModel({ anim, onOpen, layer, m, reduce }: { anim: Anim; onOpen: () => void; layer: CssLayer; m: BookMaterials; reduce: boolean }) {
   const spine = useMemo(spineBoardGeometry, []);
   const [hover, setHover] = useState(false);
   useEffect(() => { document.body.style.cursor = hover ? "pointer" : ""; return () => { document.body.style.cursor = ""; }; }, [hover]);
@@ -145,6 +187,7 @@ function BookModel({ anim, onOpen, m, reduce }: { anim: Anim; onOpen: () => void
       <FlapEnd x={W / 2 - FLAP} y={BOARD + H} m={m} />
       <Sleeve anim={anim} m={m} />
       <FrontCover anim={anim} m={m} reduce={reduce} />
+      <RightPage anim={anim} layer={layer} />
     </group>
   );
 }
@@ -158,8 +201,9 @@ function fitDistance(halfW: number, halfH: number, aspect: number) {
   return Math.max(halfH / t, halfW / (t * aspect));
 }
 
-function CameraRig({ anim }: { anim: Anim }) {
-  const { camera, size } = useThree();
+function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
+  const { camera, size, scene } = useThree();
+  useEffect(() => { layer.renderer.setSize(size.width, size.height); }, [layer, size]);
   const tmp = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), up: new THREE.Vector3() }), []);
   useFrame(() => {
     const aspect = size.width / size.height, narrow = aspect < 0.85, e = ease(anim.t);
@@ -177,11 +221,13 @@ function CameraRig({ anim }: { anim: Anim }) {
     tmp.pos.copy(tmp.tgt).addScaledVector(dir, THREE.MathUtils.lerp(cDist, oDist, e) * bump);
     tmp.up.set(0, 1, 0).lerp(new THREE.Vector3(0, 0, -1), e).normalize();
     camera.position.copy(tmp.pos); camera.up.copy(tmp.up); camera.lookAt(tmp.tgt);
+    camera.updateMatrixWorld(); scene.updateMatrixWorld();
+    layer.renderer.render(scene, camera); // DOM page follows the same camera
   });
   return null;
 }
 
-function Scene({ open, setOpen, reduce }: { open: boolean; setOpen: (v: boolean) => void; reduce: boolean }) {
+function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: boolean) => void; reduce: boolean; layer: CssLayer }) {
   const anim = useMemo<Anim>(() => ({ t: open ? 1 : 0, target: open ? 1 : 0, angle: 0 }), []); // eslint-disable-line react-hooks/exhaustive-deps
   const m = useBookMaterials();
   useEffect(() => { anim.target = open ? 1 : 0; if (reduce) anim.t = anim.target; }, [open, reduce, anim]);
@@ -197,7 +243,7 @@ function Scene({ open, setOpen, reduce }: { open: boolean; setOpen: (v: boolean)
   }, -1); // before the meshes and camera read it
   return (
     <>
-      <CameraRig anim={anim} />
+      <CameraRig anim={anim} layer={layer} />
       {/* studio lighting without downloading an HDR: soft boxes rendered into a small environment map */}
       <Environment resolution={256} frames={1} background={false}>
         <Lightformer form="rect" intensity={2.4} color="#fff7ef" position={[-12, 14, 6]} scale={[18, 12, 1]} target={[0, 0, 0]} />
@@ -211,7 +257,7 @@ function Scene({ open, setOpen, reduce }: { open: boolean; setOpen: (v: boolean)
         <orthographicCamera attach="shadow-camera" args={[-30, 30, 30, -30, 1, 90]} />
       </directionalLight>
       <directionalLight position={[22, 12, 18]} intensity={0.3} color="#f1eeff" />
-      <BookModel anim={anim} onOpen={() => setOpen(true)} m={m} reduce={reduce} />
+      <BookModel anim={anim} onOpen={() => setOpen(true)} layer={layer} m={m} reduce={reduce} />
       <ContactShadows position={[0, 0.001, 0]} scale={70} blur={2.6} far={8} opacity={0.5} resolution={1024} color="#3a2a22" frames={Infinity} />
     </>
   );
@@ -220,6 +266,14 @@ function Scene({ open, setOpen, reduce }: { open: boolean; setOpen: (v: boolean)
 export default function Book3D({ open, setOpen, toggle, onFail }: BookState & { onFail: () => void }) {
   const [ready, setReady] = useState(false);
   const reduce = useReducedMotion();
+  const cssHost = useRef<HTMLDivElement>(null);
+  // CSS3D layer: created once (this component is client-only), mounted over the canvas
+  const [layer] = useState<CssLayer>(() => {
+    const page = document.createElement("div"); page.id = "bookRight"; page.style.opacity = "0"; page.inert = true;
+    const renderer = new CSS3DRenderer(); renderer.domElement.className = "css3d-layer";
+    return { renderer, page };
+  });
+  useEffect(() => { const host = cssHost.current!; host.appendChild(layer.renderer.domElement); return () => { layer.renderer.domElement.remove(); }; }, [layer]);
   return (
     <section className="bookstage" aria-label="소개">
       <div className={"stage3d" + (ready ? " ready" : "")} id="book">
@@ -234,8 +288,10 @@ export default function Book3D({ open, setOpen, toggle, onFail }: BookState & { 
             requestAnimationFrame(() => setReady(true));
           }}
         >
-          <Scene open={open} setOpen={setOpen} reduce={reduce} />
+          <Scene open={open} setOpen={setOpen} reduce={reduce} layer={layer} />
         </Canvas>
+        <div ref={cssHost} />
+        {createPortal(<PageContent />, layer.page)}
       </div>
       <OpenButton open={open} onToggle={toggle} />
     </section>
