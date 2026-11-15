@@ -11,7 +11,9 @@ export function Hero() {
   return (
     <section className={"hero-desk" + (state.open ? " is-open" : "")} aria-label="소개">
       <div className="hero-bg" aria-hidden="true">
-        <Image src="/pic/home-bg.webp" alt="" fill priority sizes="100vw" className="hero-bg-img" />
+        {/* unoptimized: the WebP is already encoded with care (q 0.97). Letting next/image re-encode it at
+            its default quality compressed it a second time and left blocky steps in the soft light. */}
+        <Image src="/pic/home-bg.webp" alt="" fill priority sizes="100vw" unoptimized className="hero-bg-img" />
       </div>
       <div className="hero-fade" aria-hidden="true" />
       <div className="hero-copy-desk" inert={state.open}>
