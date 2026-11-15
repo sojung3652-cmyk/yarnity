@@ -230,17 +230,24 @@ function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
 function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: boolean) => void; reduce: boolean; layer: CssLayer }) {
   const anim = useMemo<Anim>(() => ({ t: open ? 1 : 0, target: open ? 1 : 0, angle: 0 }), []); // eslint-disable-line react-hooks/exhaustive-deps
   const m = useBookMaterials();
-  useEffect(() => { anim.target = open ? 1 : 0; if (reduce) anim.t = anim.target; }, [open, reduce, anim]);
+  const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl);
+  const tick = useRef(0);
+  useEffect(() => { anim.target = open ? 1 : 0; if (reduce) anim.t = anim.target; invalidate(); }, [open, reduce, anim, invalidate]);
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
     if (!location.search.includes("debug")) return;
-    (window as unknown as { __book3d: object }).__book3d = { setProgress: (v: number) => { anim.t = v; anim.target = v; }, progress: () => anim.t };
-  }, [anim]);
+    (window as unknown as { __book3d: object }).__book3d = { setProgress: (v: number) => { anim.t = v; anim.target = v; invalidate(); }, progress: () => anim.t, frames: () => gl.info.render.frame };
+  }, [anim, invalidate, gl]);
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1) / DURATION; // real time, so slow devices do not stretch the 1.2s
     anim.t = anim.target > anim.t ? Math.min(anim.target, anim.t + step) : Math.max(anim.target, anim.t - step);
     anim.angle = OPEN_ANGLE * ease(anim.t);
-  }, -1); // before the meshes and camera read it
+    // frameloop="demand": render every frame while the cover moves; while open, ~30fps for the
+    // slowly turning endpaper stitch map; nothing at all when closed and still
+    if (anim.t !== anim.target) invalidate();
+    else if (anim.angle > 1.3 && !reduce && !tick.current) tick.current = window.setTimeout(() => { tick.current = 0; invalidate(); }, 33);
+  }, -1);
+  useEffect(() => () => clearTimeout(tick.current), []); // before the meshes and camera read it
   return (
     <>
       <CameraRig anim={anim} layer={layer} />
@@ -279,6 +286,7 @@ export default function Book3D({ open, setOpen, toggle, onFail }: BookState & { 
       <div className={"stage3d" + (ready ? " ready" : "")} id="book">
         <Canvas
           dpr={[1, 2]}
+          frameloop="demand"
           shadows={{ type: THREE.PCFShadowMap }}
           camera={{ fov: FOV, near: 1, far: 400, position: [0, 60, 80] }}
           gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}

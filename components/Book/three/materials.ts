@@ -44,7 +44,7 @@ function yarnMaterial(gl: THREE.WebGLRenderer, tint = "#ffffff") {
 let paperCache: { edges: HTMLCanvasElement; top: HTMLCanvasElement; label: HTMLCanvasElement } | null = null;
 
 export function useBookMaterials(): BookMaterials {
-  const gl = useThree(s => s.gl);
+  const gl = useThree(s => s.gl), invalidate = useThree(s => s.invalidate);
   const m = useMemo(() => {
     paperCache ??= (() => {
       const label = canvas(1024, Math.round(1024 * LABEL_CM[1] / LABEL_CM[0]));
@@ -61,13 +61,13 @@ export function useBookMaterials(): BookMaterials {
       normalMap: canvasTexture(weave.normal, false, gl, [PANEL[0] / 0.16, PANEL[1] / 0.16]), normalScale: new THREE.Vector2(0.22, 0.22) });
     new THREE.TextureLoader().load(COVER_SRC, t => {
       t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = gl.capabilities.getMaxAnisotropy();
-      coverFit(t, PANEL[0] / PANEL[1]); panel.map = t; panel.needsUpdate = true;
+      coverFit(t, PANEL[0] / PANEL[1]); panel.map = t; panel.needsUpdate = true; invalidate();
     });
 
     const thread = new THREE.MeshPhysicalMaterial({ color: "#F3CB76", roughness: 0.82, metalness: 0, specularIntensity: 0.2, sheen: 0.4, sheenColor: new THREE.Color("#FFF1CC"), sheenRoughness: 0.7 });
     const labelTex = canvasTexture(paperCache.label, true, gl); labelTex.wrapS = labelTex.wrapT = THREE.ClampToEdgeWrapping;
     // the label uses web fonts: redraw once they are loaded
-    document.fonts?.ready.then(() => { drawLabel(paperCache!.label); labelTex.needsUpdate = true; });
+    document.fonts?.ready.then(() => { drawLabel(paperCache!.label); labelTex.needsUpdate = true; invalidate(); });
     const label = new THREE.MeshPhysicalMaterial({ map: labelTex, roughness: 0.9, metalness: 0, specularIntensity: 0.12, sheen: 0.25, sheenColor: new THREE.Color("#ffffff"),
       normalMap: canvasTexture(weave.normal, false, gl, [LABEL_CM[0] / 0.08, LABEL_CM[1] / 0.08]), normalScale: new THREE.Vector2(0.35, 0.35) });
 
@@ -87,7 +87,7 @@ export function useBookMaterials(): BookMaterials {
       board: new THREE.MeshStandardMaterial({ color: "#E7DFD3", roughness: 0.92 }),
       pages: [pageEdge, plain, top, plain, pageEdge, pageEdge],
     };
-  }, [gl]);
+  }, [gl, invalidate]);
   useEffect(() => () => {
     Object.values(m).flat().forEach(x => { if (x instanceof THREE.Material) x.dispose(); });
   }, [m]);
