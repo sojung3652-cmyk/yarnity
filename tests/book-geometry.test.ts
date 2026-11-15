@@ -8,9 +8,9 @@ const inBlock = ([x, y]: V2, m = 0.01) => x > BLOCK.x0 + m && x < BLOCK.x1 - m &
 const inBackBoard = ([x, y]: V2) => x > -W / 2 + 0.01 && x < W / 2 - 0.01 && y > 0.01 && y < BOARD - 0.01;
 
 describe("proportions", () => {
-  it("4:5 cover, thickness 30% of the width, border 4-5% of the width", () => {
+  it("4:5 cover, thickness 16% of the width, border 4-5% of the width", () => {
     expect(W / D).toBeCloseTo(0.8, 5);
-    expect(T / W).toBeCloseTo(0.3, 5);
+    expect(T / W).toBeCloseTo(0.16, 5);
     expect((2 * BORDER_R) / W).toBeGreaterThanOrEqual(0.04);
     expect((2 * BORDER_R) / W).toBeLessThanOrEqual(0.05);
   });

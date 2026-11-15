@@ -13,12 +13,12 @@
 
 export const W = 16;            // cover width   (4:5)
 export const D = 20;            // cover height
-export const T = 4.8;           // thickness, board outside to board outside (30% of the width)
+export const T = 0.16 * W;      // thickness, board outside to board outside (16% of the width, 2.56cm)
 export const BOARD = 0.3;       // board thickness
 export const FAB = 0.25;        // knit thickness
 export const H = FAB / 2;
 export const SQUARE = 0.3;      // pages are inset this much from the boards
-export const SPINE_RX = 1.2;    // rounded spine bulge
+export const SPINE_RX = 0.25 * T; // rounded spine bulge, in proportion to the thickness
 export const BORDER_R = 0.045 * W / 2; // chain border: ~4.5% of the cover width across (spec ~4%, photo ~5%)
 export const RHO = 0.3;         // bend radius of the joint while the cover lifts
 export const SHEETS = 6;        // pages that turn
@@ -39,7 +39,7 @@ export const P0: V2 = [-W / 2, T + H + RHO];
 /** Outer-hinge corner of the front fabric in the closed position. */
 export const Q0: V2 = [-W / 2, T + H];
 /** Where that corner comes to rest when open: beside the spine, a little above its middle. */
-export const Q_END: V2 = [-W / 2 - SPINE_RX - 0.55, T / 2 + 0.6];
+export const Q_END: V2 = [-W / 2 - SPINE_RX - 0.55, T / 2 + 0.1];
 const SPINE_C: V2 = [-W / 2, T / 2];
 const SRX = SPINE_RX + H, SRY = T / 2 + H;
 
