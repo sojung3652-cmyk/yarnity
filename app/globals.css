@@ -2,17 +2,17 @@
    Thin Korean sans for everything; Latin serif italic only for the name "I Yarn". */
 :root{
   --bg:#F7F0EA; --surface:#FFFFFF; --ink:#2E2420; --muted:#73665F; --line:#EADFD6; --soft:#F2E8E0;
-  --accent:#9AACDB; --btn:#3A322F; --on-btn:#FFFFFF;
+  --accent:#B9A5DD; --btn:#3A322F; --on-btn:#FFFFFF;
   --dot:#D3CBC5; --dot-now:#2B2523; --dot-future:#EFEAE5;
   --sans:"Newsreader","Noto Serif KR",Georgia,"AppleMyungjo",serif;
   --serif:"Newsreader","Noto Serif KR",Georgia,"AppleMyungjo",serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#161616; --surface:#1F1F1F; --ink:#F2F1EF; --muted:#A3A09B; --line:#2E2D2B; --soft:#262523;
-  --accent:#9AACDB; --btn:#F2F1EF; --on-btn:#1F1B1A; --dot:#4A4845; --dot-now:#F2F1EF; --dot-future:#2B2A28; color-scheme:dark}}
+  --accent:#B9A5DD; --btn:#F2F1EF; --on-btn:#1F1B1A; --dot:#4A4845; --dot-now:#F2F1EF; --dot-future:#2B2A28; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#161616; --surface:#1F1F1F; --ink:#F2F1EF; --muted:#A3A09B; --line:#2E2D2B; --soft:#262523;
-  --accent:#9AACDB; --btn:#F2F1EF; --on-btn:#1F1B1A; --dot:#4A4845; --dot-now:#F2F1EF; --dot-future:#2B2A28; color-scheme:dark}
+  --accent:#B9A5DD; --btn:#F2F1EF; --on-btn:#1F1B1A; --dot:#4A4845; --dot-now:#F2F1EF; --dot-future:#2B2A28; color-scheme:dark}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}

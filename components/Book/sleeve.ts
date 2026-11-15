@@ -10,7 +10,7 @@ export function sleeveSlices(n: number, topClass?: string): { className: string;
       style: {
         inset: (.8 * Math.abs(2 * t - 1)).toFixed(1) + "px",
         transform: `translateZ(calc(var(--C) * ${(.15 + .7 * t).toFixed(2)}))`, // never coplanar with a face
-        backgroundColor: `hsl(225 ${36 + 4 * t}% ${(64 + 10 * t).toFixed(1)}%)`,
+        backgroundColor: `hsl(263 ${30 + 4 * t}% ${(62 + 10 * t).toFixed(1)}%)`,
       },
     };
   });

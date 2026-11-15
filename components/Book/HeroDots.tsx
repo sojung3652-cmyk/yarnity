@@ -20,8 +20,8 @@ export function HeroDots() {
         const a = reduce ? 0.9 : 0.55 + 0.4 * (0.5 + 0.5 * Math.sin(t * 0.9 - d.r * 0.45));
         for (const p of d.pts) {
           hctx.beginPath(); hctx.arc(p.x * sc, p.y * sc, 5.5, 0, Math.PI * 2);
-          if (p.inc) { hctx.lineWidth = 2.2; hctx.strokeStyle = `rgba(108,128,190,${a})`; hctx.stroke(); }
-          else { hctx.fillStyle = `rgba(158,176,222,${a})`; hctx.fill(); }
+          if (p.inc) { hctx.lineWidth = 2.2; hctx.strokeStyle = `rgba(150,122,196,${a})`; hctx.stroke(); }
+          else { hctx.fillStyle = `rgba(200,184,232,${a})`; hctx.fill(); }
         }
       }
       hctx.restore();

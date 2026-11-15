@@ -1,7 +1,7 @@
 /* 3D book. Moved verbatim from legacy/index.html (lines 65-138). Loaded after globals.css. */
 /* 3D hardcover book in a thin crochet sleeve
    back cover (sleeve + board) -> page block -> front cover (board + sleeve), front cover hinges on the spine */
-.bookstage{--W:clamp(250px,25vw,360px);--H:calc(var(--W) * 4 / 3);--P:calc(var(--W) * .15);--C:4px;--lav:#A9B7E0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(600px,calc(100svh - 180px),860px);overflow-x:clip;padding-block:8px}
+.bookstage{--W:clamp(250px,25vw,360px);--H:calc(var(--W) * 4 / 3);--P:calc(var(--W) * .15);--C:4px;--lav:#B29CD9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(600px,calc(100svh - 180px),860px);overflow-x:clip;padding-block:8px}
 .knit{background-color:var(--lav);background-image:var(--knitimg,none);background-size:12px 14px}
 .scene{width:var(--W);height:var(--H);perspective:2000px;perspective-origin:50% 30%}
 .book{position:relative;width:100%;height:100%;transform-style:preserve-3d;cursor:pointer;transform:translateY(3%) rotateX(52deg) rotateZ(24deg);transition:transform 1.2s cubic-bezier(.22,.7,.18,1)}
@@ -34,7 +34,7 @@
 .panel::before{content:"";position:absolute;inset:7px;border:2px dashed #EFC66A;border-radius:3px;z-index:1;opacity:.95}
 .panel::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 8px rgba(60,30,60,.18)}
 .label{position:absolute;left:15%;bottom:13%;z-index:2;display:flex;flex-direction:column;gap:1px;color:#2B2523;padding:7px 14px 8px;border-radius:1.5px;transform:rotate(-1.2deg);background:repeating-linear-gradient(0deg,rgba(90,70,50,.05) 0 1px,transparent 1px 2px),repeating-linear-gradient(90deg,rgba(90,70,50,.04) 0 1px,transparent 1px 2px),#F6F1E6;box-shadow:0 .5px 1px rgba(60,40,30,.3),0 1.5px 3px rgba(60,40,30,.14)}
-.label::before,.label::after{content:"";position:absolute;top:3px;bottom:3px;border-left:1.3px dashed rgba(108,128,190,.85)}
+.label::before,.label::after{content:"";position:absolute;top:3px;bottom:3px;border-left:1.3px dashed rgba(140,118,175,.85)}
 .label::before{left:4px}.label::after{right:4px}
 .label b{font-size:clamp(14px,1.35vw,18px);font-weight:700;letter-spacing:-.02em;line-height:1.1}
 .label span{font:600 clamp(7.5px,.62vw,9px)/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#4A413D}
@@ -49,10 +49,10 @@
 .baked .front .panel{display:none}
 .front-tex{position:absolute;inset:0;width:100%;height:100%;display:block}
 .baked .front::after{width:10px;background:linear-gradient(90deg,rgba(40,20,60,.16),transparent);z-index:1}
-.baked .back,.baked .flap{background-color:#A9B7E0;background-size:100% 100%;background-repeat:no-repeat}
+.baked .back,.baked .flap{background-color:#B3A0D8;background-size:100% 100%;background-repeat:no-repeat}
 .baked .flap{background-size:calc(100% / .24) 100%;background-position:left top;box-shadow:2px 0 4px rgba(40,20,60,.2)}
 .book.is-open .spine,.book.is-open .cover .sl{visibility:hidden;transition:visibility 0s .8s}
-.baked .spine{background-color:#A9B7E0;background-size:100% 100%;background-repeat:no-repeat}
+.baked .spine{background-color:#B3A0D8;background-size:100% 100%;background-repeat:no-repeat}
 .baked .sl-top{background-size:100% 100%}
 .sl{border-radius:calc(var(--W) * .035)}
 .open-btn{display:inline-flex;align-items:center;gap:8px;margin-top:26px;padding:9px 18px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer}

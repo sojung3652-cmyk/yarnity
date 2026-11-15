@@ -72,7 +72,7 @@ function rrect(x: number, y: number, w: number, h: number, rr: number): [number,
   else { d = Math.max(qx, qy) - rr; if (qx > qy) { dx = sx; dy = 0; } else { dx = 0; dy = sy; } }
   return [d, dx, dy];
 }
-const LAV = hex("#C9D3EF"), GAP = hex("#9CAAD5"), YEL = hex("#F3CB76");
+const LAV = hex("#D3C5EF"), GAP = hex("#AB97D0"), YEL = hex("#F3CB76");
 function edgeFn(w: number, h: number, rr: number, sw: number, dpr: number, roll: number): EdgeFn {
   return (x, y) => {
     const [d, dx, dy] = rrect(x + .5, y + .5, w, h, rr), u = Math.abs(dy) > Math.abs(dx) ? x : y;
