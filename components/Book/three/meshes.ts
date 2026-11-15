@@ -82,16 +82,6 @@ export function updateEdge(g: THREE.BufferGeometry, path: PathPoint[], zEdge: nu
   g.computeBoundingSphere();
 }
 
-/** Closed tube along a flat loop (panel join, running-stitch guide). Points are (x, z) at height y. */
-export function loopTube(pts: [number, number][], y: number, r: number, radial = 8) {
-  const curve = new THREE.CatmullRomCurve3(pts.map(([x, z]) => new THREE.Vector3(x, y, z)), true, "centripetal");
-  const len = curve.getLength(), g = new THREE.TubeGeometry(curve, Math.max(64, Math.round(len * 6)), r, radial, true);
-  // uv.x along the loop in cm (TubeGeometry gives 0..1)
-  const uv = g.attributes.uv.array as Float32Array;
-  for (let i = 0; i < uv.length; i += 2) { uv[i] *= len; uv[i + 1] *= 2 * Math.PI * r; }
-  return g;
-}
-
 // ---- paper sheets ----
 const SZ = 2;
 /** A sheet: NS segments along its width (spine -> fore edge), uv.x = 0 at the gutter, uv.y = 1 at the head. */
@@ -124,3 +114,47 @@ export function updateSheet(g: THREE.BufferGeometry, pts: V2[], heads: number[])
   g.attributes.position.needsUpdate = true; g.attributes.normal.needsUpdate = true; g.computeBoundingSphere();
 }
 export { SHEET_W };
+
+// ---- cover border: open "ㄷ" tube with a fixed frame ----
+/**
+ * Tube along a flat open path (x, z) at height y. The cross-section is oriented against a fixed up
+ * vector (the cover's normal) instead of three's Frenet frames, so the yarn pattern cannot twist.
+ * uv.x runs along the tube in cm, scaled so the pattern repeats a whole number of times (tileCm).
+ */
+export function flatTube(pts: [number, number][], y: number, r: number, tileCm: number, radial = 16) {
+  const n = pts.length, g = new THREE.BufferGeometry(), pos: number[] = [], nor: number[] = [], uv: number[] = [], idx: number[] = [];
+  const cum = [0]; for (let i = 1; i < n; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L = cum[n - 1], k = Math.max(1, Math.round(L / tileCm)), scale = (k * tileCm) / L, circ = 2 * Math.PI * r;
+  for (let i = 0; i < n; i++) {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)], tx = b[0] - a[0], tz = b[1] - a[1], tl = Math.hypot(tx, tz) || 1;
+    const side: [number, number] = [tz / tl, -tx / tl]; // in-plane, perpendicular to the path
+    for (let j = 0; j <= radial; j++) {
+      const f = (j / radial) * Math.PI * 2, c = Math.cos(f), s = Math.sin(f);
+      const nx = side[0] * s, ny = c, nz = side[1] * s; // ring = up * cos + side * sin
+      pos.push(pts[i][0] + nx * r, y + ny * r, pts[i][1] + nz * r); nor.push(nx, ny, nz); uv.push(cum[i] * scale, (j / radial) * circ);
+    }
+  }
+  for (let i = 0; i < n - 1; i++) for (let j = 0; j < radial; j++) {
+    const a = i * (radial + 1) + j, b = (i + 1) * (radial + 1) + j;
+    idx.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
+  // make sure the triangles face outwards (winding depends on the path direction)
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** "ㄷ" outline of a cover's border: head edge, fore edge, tail edge; open at the spine, ends tucked under it. */
+export function borderPath(w: number, d: number, out: number, corner: number, tuck: number, step = 0.2): [number, number][] {
+  const x0 = -w / 2 - tuck, x1 = w / 2 + out, z0 = -d / 2 - out, z1 = d / 2 + out, pts: [number, number][] = [];
+  const line = (a: [number, number], b: [number, number]) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.max(1, Math.ceil(L / step)); for (let i = 0; i < m; i++) pts.push([a[0] + (b[0] - a[0]) * i / m, a[1] + (b[1] - a[1]) * i / m]); };
+  const arc = (cx: number, cz: number, a0: number, a1: number) => { const m = 28; for (let i = 0; i < m; i++) { const a = a0 + (a1 - a0) * i / m; pts.push([cx + corner * Math.cos(a), cz + corner * Math.sin(a)]); } };
+  line([x0, z0], [x1 - corner, z0]);                                  // head edge, from the spine to the fore edge
+  arc(x1 - corner, z0 + corner, -Math.PI / 2, 0);                      // rounded corner
+  line([x1, z0 + corner], [x1, z1 - corner]);                          // fore edge
+  arc(x1 - corner, z1 - corner, 0, Math.PI / 2);
+  line([x1 - corner, z1], [x0, z1]);                                   // tail edge, back to the spine
+  pts.push([x0, z1]);
+  return pts;
+}

@@ -164,3 +164,6 @@ export function canvasTexture(cv: HTMLCanvasElement, srgb: boolean, gl: THREE.We
   if (repeat) t.repeat.set(repeat[0], repeat[1]);
   return t;
 }
+
+/** Length (cm) of one chain-border texture tile along the tube. */
+export const chainTileCm = () => 6 * CHAIN_LINK_CM;

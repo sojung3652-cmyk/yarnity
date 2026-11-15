@@ -12,12 +12,12 @@ import * as THREE from "three";
 import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import { useReducedMotion, type BookState } from "../useBookState";
 import {
-  BLOCK, blockTop, BOARD, BORDER_OUT, BORDER_R, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, P0, PANEL_SIZE, sheetCurve, SHEET_W, SHEETS, sleevePath, T, W,
+  BLOCK, blockTop, BOARD, BORDER_CORNER, BORDER_OUT, BORDER_R, BORDER_TUCK, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, PANEL_SIZE, Q0, sheetCurve, SHEET_W, SHEETS, sleevePath, spineYarn, T, W,
 } from "./geometry";
-import { createEdge, createRibbon, createSheet, loopTube, updateEdge, updateRibbon, updateSheet } from "./meshes";
+import { borderPath, createEdge, createRibbon, createSheet, flatTube, updateEdge, updateRibbon, updateSheet } from "./meshes";
+import { chainTileCm } from "./knitMaps";
 import { useBookMaterials, type BookMaterials } from "./materials";
 import { LABEL_CM, PAGE_D, PAGE_LAYOUT, PX_CM } from "./paperTextures";
-import { roundedRectXZ } from "./shapes";
 
 // ---- timeline (seconds) ----
 const TOTAL = 1.6;
@@ -36,18 +36,23 @@ function derive(a: Anim) {
   a.cam = ease(a.t);
 }
 
-// ---- knit sleeve: back, spine and joint (moves with the cover) ----
+// ---- knit sleeve: back, spine band and front (the band flattens as the book opens) ----
+const YARN_Z = D / 2 + BORDER_OUT; // spine-edge yarn runs in line with the cover borders
 function Sleeve({ anim, m }: { anim: Anim; m: BookMaterials }) {
   const geo = useMemo(() => {
-    const p = sleevePath(0), sp = p.filter(q => q.seg === 1);
-    return { ribbon: createRibbon(p), top: createEdge(sp, -D / 2, BORDER_R), bottom: createEdge(sp, D / 2, BORDER_R) };
+    const p = sleevePath(0), y = spineYarn(0);
+    return { ribbon: createRibbon(p), top: createEdge(y, -YARN_Z, BORDER_R), bottom: createEdge(y, YARN_Z, BORDER_R) };
   }, []);
+  const caps = useRef<(THREE.Mesh | null)[]>([]);
   const last = useRef(-1);
   useFrame(() => {
     if (Math.abs(anim.cover - last.current) < 1e-6) return;
     last.current = anim.cover;
-    const p = sleevePath(anim.cover), sp = p.filter(q => q.seg === 1);
-    updateRibbon(geo.ribbon, p); updateEdge(geo.top, sp, -D / 2, BORDER_R); updateEdge(geo.bottom, sp, D / 2, BORDER_R);
+    const p = sleevePath(anim.cover), y = spineYarn(anim.cover);
+    updateRibbon(geo.ribbon, p); updateEdge(geo.top, y, -YARN_Z, BORDER_R); updateEdge(geo.bottom, y, YARN_Z, BORDER_R);
+    // round caps on the yarn ends (hidden under the borders, but never an open tube)
+    const ends = [y[0].p, y[y.length - 1].p];
+    caps.current.forEach((c, i) => { if (c) c.position.set(ends[i % 2][0], ends[i % 2][1], i < 2 ? -YARN_Z : YARN_Z); });
   });
   useEffect(() => () => { geo.ribbon.dispose(); geo.top.dispose(); geo.bottom.dispose(); }, [geo]);
   return (
@@ -55,15 +60,25 @@ function Sleeve({ anim, m }: { anim: Anim; m: BookMaterials }) {
       <mesh geometry={geo.ribbon} material={[m.cream, m.lavender, m.cream]} castShadow receiveShadow />
       <mesh geometry={geo.top} material={m.border} castShadow />
       <mesh geometry={geo.bottom} material={m.border} castShadow />
+      {[0, 1, 2, 3].map(i => <mesh key={i} ref={el => { caps.current[i] = el; }} material={m.border}><sphereGeometry args={[BORDER_R, 16, 12]} /></mesh>)}
     </>
   );
 }
 
-/** Chain border around a cover: rounded rectangle at the board edge, 4% of the width thick. */
+/** Chain border of one cover: a "ㄷ" round the head, fore edge and tail, open at the spine where its
+ *  ends tuck under the spine cloth; rounded corners, fixed tube frame, capped ends. */
 function Border({ y, m }: { y: number; m: BookMaterials }) {
-  const g = useMemo(() => loopTube(roundedRectXZ(W + 2 * BORDER_OUT, D + 2 * BORDER_OUT, 1.0), y, BORDER_R, 16), [y]);
+  const { g, ends } = useMemo(() => {
+    const pts = borderPath(W, D, BORDER_OUT, BORDER_CORNER, BORDER_TUCK);
+    return { g: flatTube(pts, y, BORDER_R, chainTileCm()), ends: [pts[0], pts[pts.length - 1]] };
+  }, [y]);
   useEffect(() => () => g.dispose(), [g]);
-  return <mesh geometry={g} material={m.border} castShadow receiveShadow />;
+  return (
+    <>
+      <mesh geometry={g} material={m.border} castShadow receiveShadow />
+      {ends.map(([x, z], i) => <mesh key={i} material={m.border} position={[x, y, z]}><sphereGeometry args={[BORDER_R, 16, 12]} /></mesh>)}
+    </>
+  );
 }
 
 /** Two small lavender stitches at each end of the label. */
@@ -81,13 +96,13 @@ function FrontCover({ anim, m }: { anim: Anim; m: BookMaterials }) {
   useFrame(() => {
     const g = outer.current; if (!g) return;
     const pose = coverPose(anim.cover);
-    g.position.set(P0[0] + pose.dx, P0[1] + pose.dy, 0); g.rotation.z = pose.A;
+    g.position.set(pose.F[0], pose.F[1], 0); g.rotation.z = pose.A;
   });
   // label: lower left of the cover, as in the reference photo, slightly askew
   const lx = -W / 2 + 0.14 * W + LABEL_CM[0] / 2, lz = D / 2 - 0.15 * D - LABEL_CM[1] / 2;
   return (
-    <group ref={outer} position={[P0[0], P0[1], 0]}>
-      <group position={[-P0[0], -P0[1], 0]}>
+    <group ref={outer} position={[Q0[0], Q0[1], 0]}>
+      <group position={[-Q0[0], -Q0[1], 0]}>
         <mesh material={m.inside} position={[0, T - BOARD / 2, 0]} castShadow receiveShadow><boxGeometry args={[W, BOARD, D]} /></mesh>
         <mesh material={m.panel} position={[0, T + FAB + 0.004, 0]} rotation-x={-Math.PI / 2} receiveShadow><planeGeometry args={PANEL_SIZE} /></mesh>
         <Border y={BORDER_Y_FRONT} m={m} />
@@ -121,18 +136,21 @@ function useBlockGeometry() {
 /** One sheet (two faces) that turns with progress p, or the static page under them. */
 function Sheet({ k, anim, front, back }: { k: number; anim: Anim; front: THREE.Material; back: THREE.Material }) {
   const geo = useMemo(() => createSheet(PAGE_D), []);
-  const last = useRef(-1);
+  const last = useRef(-1), fm = useRef<THREE.Mesh>(null), bm = useRef<THREE.Mesh>(null);
   useFrame(() => {
     const p = k < SHEETS ? anim.sheets[k] : 0;
     if (Math.abs(p - last.current) < 1e-6) return;
     last.current = p;
     const c = sheetCurve(k, p); updateSheet(geo, c.pts, c.heads);
+    // resting sheets lie 0.12mm apart: letting them shadow each other only produced speckles
+    const moving = p > 0 && p < 1;
+    if (fm.current) fm.current.castShadow = moving; if (bm.current) bm.current.castShadow = moving;
   });
   useEffect(() => () => geo.dispose(), [geo]);
   return (
     <>
-      <mesh geometry={geo} material={front} castShadow receiveShadow />
-      <mesh geometry={geo} material={back} castShadow receiveShadow />
+      <mesh ref={fm} geometry={geo} material={front} receiveShadow />
+      <mesh ref={bm} geometry={geo} material={back} receiveShadow />
     </>
   );
 }
@@ -280,15 +298,28 @@ function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
 function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: boolean) => void; reduce: boolean; layer: CssLayer }) {
   const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0 }; derive(a); return a; }, []);
   const m = useBookMaterials();
-  const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl);
+  const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl), camera = useThree(s => s.camera), sceneRef = useThree(s => s.scene);
   useEffect(() => { anim.target = open ? 1 : 0; if (reduce) anim.t = anim.target; invalidate(); }, [open, reduce, anim, invalidate]);
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
     if (!location.search.includes("debug")) return;
     (window as unknown as { __book3d: object }).__book3d = {
       setProgress: (v: number) => { anim.t = v; anim.target = v; invalidate(); }, progress: () => anim.t, frames: () => gl.info.render.frame,
+      scene: () => sceneRef, // for isolating meshes while debugging
+      glInfo: () => { const c = gl.getContext(); const cam = camera as THREE.PerspectiveCamera; return { depthBits: c.getParameter(c.DEPTH_BITS), near: cam.near, far: cam.far, view: cam.view?.enabled ?? false }; },
+      // which meshes a ray through screen point (CSS px) hits, nearest first, with uv
+      pick: (sx: number, sy: number) => {
+        const r = gl.domElement.getBoundingClientRect(), rc = new THREE.Raycaster();
+        rc.setFromCamera(new THREE.Vector2((sx - r.left) / r.width * 2 - 1, -((sy - r.top) / r.height * 2 - 1)), camera);
+        return rc.intersectObjects(sceneRef.children, true).slice(0, 4).map(h => ({ type: (h.object as THREE.Mesh).geometry.type, verts: (h.object as THREE.Mesh).geometry.attributes.position.count, d: +h.distance.toFixed(3), uv: h.uv ? [+h.uv.x.toFixed(4), +h.uv.y.toFixed(4)] : null, point: h.point.toArray().map(v => +v.toFixed(3)) }));
+      },
+      // screen position (CSS px) of a point in the book frame, for zoomed screenshots
+      project: (x: number, y: number, z: number) => {
+        const v = new THREE.Vector3(x, y + FAB, z).project(camera), r = gl.domElement.getBoundingClientRect();
+        return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height];
+      },
     };
-  }, [anim, invalidate, gl]);
+  }, [anim, invalidate, gl, camera, sceneRef]);
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1) / TOTAL; // real time, capped, so slow devices do not stretch 1.6s
     anim.t = anim.target > anim.t ? Math.min(anim.target, anim.t + step) : Math.max(anim.target, anim.t - step);
@@ -333,8 +364,8 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
         dpr={[1, 2]}
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
-        camera={{ fov: FOV, near: 1, far: 500, position: [0, 60, 80] }}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance", logarithmicDepthBuffer: true }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.3;
           gl.domElement.addEventListener("webglcontextlost", e => { e.preventDefault(); onFail(); });
