@@ -262,7 +262,7 @@ function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
     const cDist = anchor ? anchor.d : fit(14 / 0.8, 14 / 0.8, aspect);
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
-    const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.45, D / 2 / 0.56, aspect); // open spread ~45% of the width
+    const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.52, D / 2 / 0.64, aspect); // open spread ~52% of the width
     v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).normalize();
     v.tgt.copy(cTgt).lerp(oTgt, e);
     const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
