@@ -6,16 +6,19 @@
 export type HookKey = "2호" | "3호" | "4호" | "5호" | "6호" | "7호" | "8호" | "10호";
 export type Weight = "thin" | "medium" | "thick";
 export type Shape = "circle" | "oval" | "rect";
-export type ObjectKind = "coaster" | "bag";
+/** The engine path: "coaster" = round/oval/rect bottom only, "bag" = bottom + body (+ rim, handle),
+ *  "rows" = a flat piece worked back and forth, "tube" = a ring worked in the round without a bottom.
+ *  (The 19 items in lib/items.ts map onto these four.) */
+export type ObjectKind = "coaster" | "bag" | "rows" | "tube";
 export type Handle = "short" | "long" | "none";
-export type Part = "bottom" | "body" | "rim" | "handle";
+export type Part = "bottom" | "body" | "rim" | "handle" | "start" | "rows" | "rounds";
 
 export const HOOKS: [HookKey, number][] = [["2호", 2.0], ["3호", 2.3], ["4호", 2.5], ["5호", 3.0], ["6호", 3.5], ["7호", 4.0], ["8호", 5.0], ["10호", 6.0]];
 export const HOOK_MM: Record<string, number> = Object.fromEntries(HOOKS);
 export const YARN: Record<Weight, number> = { thin: 0.9, medium: 1.0, thick: 1.15 };
 export const YARN_KO: Record<Weight, string> = { thin: "가는 실", medium: "보통", thick: "굵은 실" };
 export const SHAPE_KO: Record<Shape, string> = { circle: "원형", oval: "타원", rect: "사각" };
-export const PART_KO: Record<Part, string> = { bottom: "바닥", body: "몸통", rim: "테두리", handle: "손잡이" };
+export const PART_KO: Record<Part, string> = { bottom: "바닥", body: "몸통", rim: "테두리", handle: "손잡이", start: "시작 사슬", rows: "왕복뜨기", rounds: "둘레뜨기" };
 
 export const rnd = (x: number) => Math.round(+x.toFixed(6));
 export const fmt = (n: number, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toString();
@@ -32,6 +35,7 @@ export interface PlanInput {
   object: ObjectKind;
   handle?: Handle;
   measuredH?: number | null; // stitch height from the 3rd-round measurement (cm)
+  measuredW?: number | null; // stitch width from the 5-row measurement (rows / tube only, cm)
 }
 
 export interface Gauge { h: number; w: number; measured: boolean }
@@ -97,6 +101,8 @@ export function planBottom(p: PlanInput, g: Gauge): { rows: RawRow[]; c: number 
 }
 
 export function plan(p: PlanInput): Plan {
+  if (p.object === "rows") return planRows(p);
+  if (p.object === "tube") return planTube(p);
   const g = gauge(p);
   const { rows: bottom, c } = planBottom(p, g);
   const last = bottom[bottom.length - 1].n;
@@ -166,4 +172,38 @@ export function dots(pp: Plan, shape: Shape, rounds: number): DotRound[] {
     out.push({ r, pts });
   }
   return out;
+}
+
+// ---- flat pieces worked back and forth, and tubes worked in the round (scarf, dishcloth, neck warmer...) ----
+// Both use gauge() as is. The stitch count comes from the gauge before any measurement: once the start
+// chain is made it never changes; a measurement (after 5 rows) only corrects the number of rows.
+
+function labelFlat(rows: Row[]) {
+  let k = 0;
+  rows.forEach((r, i) => { r.idx = i; if (r.part === "start") r.label = "시작 사슬"; else { r.no = ++k; r.label = `${k}단`; } });
+}
+
+/** Flat rectangle in single crochet, back and forth. a = width, b = length (cm).
+ *  start chain = round(width / stitch width) + 1 (turning chain); every row = round(width / stitch width);
+ *  rows = round(length / stitch height); chain 1 and turn at the end of each row; no increases. */
+export function planRows(p: PlanInput): Plan {
+  const g0 = gauge({ ...p, measuredH: null }), g = p.measuredH ? { ...gauge(p), w: p.measuredW || g0.w } : g0;
+  const n = Math.max(2, rnd(p.a / g0.w)), R = Math.max(2, rnd((p.b as number) / g.h));
+  const rows = [{ part: "start", n: n + 1, how: `사슬 ${n + 1}코`, why: `폭 ${p.a}cm ÷ 코 너비 ${fmt(g0.w * 10)}mm = ${n}코, 기둥 사슬 1코 더`, inc: 0 }] as Row[];
+  rows.push({ part: "rows", n, how: `두 번째 사슬부터 짧은뜨기 ${n}코`, why: "첫 단", inc: 0 } as Row);
+  for (let r = 2; r <= R; r++) rows.push({ part: "rows", n, how: `사슬 1, 뒤집어서 짧은뜨기 ${n}코`, why: r === 2 ? `길이 ${p.b}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${R}단` : `${n}코 그대로`, inc: 0 } as Row);
+  labelFlat(rows);
+  return { g, c: n + 1, rows, bottomRounds: 0, bodyRows: R, last: n };
+}
+
+/** Tube without a bottom, in the round. a = circumference, h = height (cm).
+ *  start chain = round(circumference / stitch width), joined with a slip stitch;
+ *  rounds = round(height / stitch height); no increases. */
+export function planTube(p: PlanInput): Plan {
+  const g0 = gauge({ ...p, measuredH: null }), g = p.measuredH ? { ...gauge(p), w: p.measuredW || g0.w } : g0;
+  const n = Math.max(6, rnd(p.a / g0.w)), R = Math.max(2, rnd((p.h as number) / g.h));
+  const rows = [{ part: "start", n, how: `사슬 ${n}코, 꼬이지 않게 빼뜨기로 고리 연결`, why: `둘레 ${p.a}cm ÷ 코 너비 ${fmt(g0.w * 10)}mm = ${n}코`, inc: 0 }] as Row[];
+  for (let r = 1; r <= R; r++) rows.push({ part: "rounds", n, how: `짧은뜨기 ${n}코, 첫 코에 빼뜨기`, why: r === 1 ? `높이 ${p.h}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${R}단` : `${n}코 그대로`, inc: 0 } as Row);
+  labelFlat(rows);
+  return { g, c: n, rows, bottomRounds: 0, bodyRows: R, last: n };
 }
