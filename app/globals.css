@@ -170,7 +170,7 @@ html{overflow-x:clip}
 .wrap{position:relative}
 /* floor: one paper-coloured plane, a hair lighter at the top and darker at the bottom, with ~3% grain */
 .hero-desk{position:relative;height:100svh;width:100vw;margin-left:calc(50% - 50vw);overflow:hidden;isolation:isolate;--sun-strength:1;--shadow-strength:1;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .24 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E"),linear-gradient(to bottom,color-mix(in srgb,var(--bg),#fff 1.5%),var(--bg) 50%,color-mix(in srgb,var(--bg),#000 1.5%));background-color:var(--bg)}
+  background:radial-gradient(ellipse 70% 80% at 8% 0%,rgb(255 248 240 / .7),transparent 70%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .24 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E"),linear-gradient(to bottom,color-mix(in srgb,var(--bg),#fff 1.5%),var(--bg) 50%,color-mix(in srgb,var(--bg),#000 1.5%));background-color:var(--bg)}
 .hero-stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100svh * 1871 / 841 * 1.08));aspect-ratio:1871 / 841;container-type:inline-size}
 /* the stage's transform makes it a stacking context, so the scene and the copy live in two stage layers:
    the scene under the 3D canvas (z 2), the copy over it (pointer events only on the controls) */
@@ -181,25 +181,32 @@ html{overflow-x:clip}
    and the sunlight's strength with --shadow-strength / --sun-strength on .hero-desk (1 = as designed). */
 .hero-scene{position:absolute;inset:0;transition:filter .8s ease,transform .8s ease}
 .hero-desk.is-open .hero-scene{filter:brightness(.94) blur(2px);transform:scale(1.02)}
-.hero-objects{position:absolute;left:64%;width:33%;top:31%;aspect-ratio:1600 / 1232}
+.hero-objects{position:absolute;left:64%;width:33%;top:20%;aspect-ratio:1600 / 1232}
 .obj-img{position:absolute!important;inset:0;width:100%!important;height:100%!important;display:block}
 .obj-shadow{position:absolute;inset:0;background:#3A2530;-webkit-mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat;mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat}
 /* a) contact shadow: just under the objects */
-.obj-contact{transform:translate(6px,5px);filter:blur(6px);opacity:calc(.28 * var(--shadow-strength))}
+.obj-contact{transform:translate(7px,4px);filter:blur(6px);opacity:calc(.3 * var(--shadow-strength))}
 /* b) long shadow: the same silhouette pushed further to the lower right and stretched a little from the
    upper left (the objects lie flat, at different depths in the picture, so folding the silhouette down
    from one shared baseline read as a detached reflection); it fades with distance */
-.obj-long{transform-origin:0 0;transform:translate(1.5cqw,1.15cqw) scale(1.05,1.06);filter:blur(16px);opacity:calc(.16 * var(--shadow-strength));
-  -webkit-mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat,linear-gradient(to bottom right,#000 35%,transparent 100%);-webkit-mask-composite:source-in;
-  mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat,linear-gradient(to bottom right,#000 35%,transparent 100%);mask-composite:intersect}
-/* sunlight (components/home/SunLight.tsx): above the floor, below the objects and the book */
-.hero-sun{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
-.sun-shade{fill:#4A3040;opacity:calc(.04 * var(--sun-strength))}
-.sun-beam rect{fill:#FFF6E2;fill-opacity:calc(.55 * var(--sun-strength))}
-.sun-bar{fill:#4A3040;fill-opacity:calc(.05 * var(--sun-strength))}
-.sun-beam{animation:sunSway 26s ease-in-out infinite}
+.obj-long{transform-origin:0 0;transform:translate(3.4cqw,1.3cqw) scale(1.08,1.04);filter:blur(16px);opacity:calc(.22 * var(--shadow-strength));
+  -webkit-mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat,linear-gradient(to right,#000 30%,transparent 100%);-webkit-mask-composite:source-in;
+  mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat,linear-gradient(to right,#000 30%,transparent 100%);mask-composite:intersect}
+/* sunlight (components/home/SunLight.tsx): above the floor, below the objects and the book. The layer
+   reaches 20% past the stage at the sides and 40% above/below (the stage may not fill the screen); its
+   mask fades the light out towards the right (gone by ~75% of the stage) and dims it ~40% behind the
+   logo and button. .sun-rays is exactly the stage box, turned 24 degrees about its upper left corner. */
+.hero-sun{position:absolute;left:-20%;top:-40%;width:140%;height:180%;pointer-events:none;overflow:hidden;
+  background:radial-gradient(ellipse 34% 30% at 18% 28%,rgb(255 214 178 / calc(.4 * var(--sun-strength))),transparent 100%),rgb(150 92 92 / calc(.1 * var(--sun-strength)));
+  -webkit-mask:linear-gradient(108deg,#000 6%,rgba(0,0,0,.9) 32%,rgba(0,0,0,.6) 55%,rgba(0,0,0,.3) 78%,rgba(0,0,0,.12) 100%),radial-gradient(ellipse 11% 15% at 29.1% 47.8%,rgba(0,0,0,.78) 35%,#000 100%);-webkit-mask-composite:source-in;
+  mask:linear-gradient(108deg,#000 6%,rgba(0,0,0,.9) 32%,rgba(0,0,0,.6) 55%,rgba(0,0,0,.3) 78%,rgba(0,0,0,.12) 100%),radial-gradient(ellipse 11% 15% at 29.1% 47.8%,rgba(0,0,0,.78) 35%,#000 100%);mask-composite:intersect}
+.sun-rays{position:absolute;left:14.2857%;top:22.2222%;width:71.4286%;height:55.5556%;transform-origin:0 0;transform:rotate(27deg)}
+.sun-beam,.sun-bar{position:absolute;left:-60%;width:260%}
+.sun-beam{--c:rgb(255 245 232 / calc(.92 * var(--a) * var(--sun-strength)));background:linear-gradient(to bottom,transparent,var(--c) 42%,var(--c) 58%,transparent);will-change:transform,opacity;animation:sunSway 26s ease-in-out infinite}
+.sun-bar{background:linear-gradient(to bottom,transparent,rgb(150 92 92 / calc(.12 * var(--sun-strength))) 50%,transparent)}
+.sun-cross{position:absolute;top:-40%;height:110%;background:linear-gradient(to right,transparent,rgb(150 92 92 / calc(.06 * var(--sun-strength))) 50%,transparent);-webkit-mask:linear-gradient(to bottom,transparent,#000 35%,transparent 90%);mask:linear-gradient(to bottom,transparent,#000 35%,transparent 90%)}
 .sun-beam-1{animation-delay:-4.3s}.sun-beam-2{animation-delay:-9.1s}.sun-beam-3{animation-delay:-13s}.sun-beam-4{animation-delay:-17.4s}.sun-beam-5{animation-delay:-21.2s}
-@keyframes sunSway{0%,100%{transform:translate(-10px,0);opacity:1}50%{transform:translate(10px,0);opacity:.88}}
+@keyframes sunSway{0%,100%{transform:translate(-10px,0);opacity:1}50%{transform:translate(10px,0);opacity:.94}}
 @media (prefers-reduced-motion:reduce){.sun-beam{animation:none}}
 /* logo block (comp): mark 12.1% from the left, 17.2% wide, centred at 46% of the height; caption under
    it; the text button from 12.1%, 17.2% wide, at 63% of the height */
@@ -227,7 +234,8 @@ html{overflow-x:clip}
   /* phone: logo, caption, book, button stacked in the middle; the objects below them, 80% wide */
   .hero-stage{left:0;top:0;transform:none;width:100%;height:100%;aspect-ratio:auto}
   .hero-objects{left:10%;width:80%;top:auto;bottom:2svh}
-  .hero-sun{height:50%;-webkit-mask:linear-gradient(#000 55%,transparent);mask:linear-gradient(#000 55%,transparent)} /* sunlight on the upper half only */
+  .hero-sun{left:0;top:0;width:100%;height:50%;-webkit-mask:linear-gradient(#000 55%,transparent);mask:linear-gradient(#000 55%,transparent)} /* sunlight on the upper half only */
+  .sun-rays{left:0;top:0;width:100%;height:100%}
   .obj-long{transform:translate(3.4vw,2.6vw) scale(1.05,1.06);filter:blur(10px)}
   .obj-contact{transform:translate(4px,3px);filter:blur(4px)}
   .hero-logo{left:22%;width:56%;top:6svh}

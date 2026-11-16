@@ -350,9 +350,9 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
         <Lightformer form="ring" intensity={0.5} color="#fff3e6" position={[0, -8, 0]} scale={12} target={[0, 0, 0]} />
       </Environment>
       <hemisphereLight args={["#fffaf4", "#eadfd4", 0.8]} />
-      {/* key light = warm sun through a window at the upper left and behind, low (~36 degrees), so the book
-          casts a long soft shadow to the lower right, like the objects' CSS shadows on the floor */}
-      <directionalLight position={[-17, 22, -25]} intensity={1.7} color="#FFE8C6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={14} shadow-blurSamples={24}>
+      {/* key light = warm low sun (~24 degrees) through a window at the left, a little behind: the book casts
+          a long soft shadow mostly to the right, like the objects' CSS shadows (target: Kim's reference image) */}
+      <directionalLight position={[-32, 15, -12]} intensity={1.8} color="#FFE8C6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={14} shadow-blurSamples={24}>
         <orthographicCamera attach="shadow-camera" args={[-32, 32, 32, -32, 1, 120]} />
       </directionalLight>
       <directionalLight position={[22, 12, 18]} intensity={0.35} color="#f1eeff" />
@@ -361,7 +361,7 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
           Same colour as the objects' CSS shadows; darkness follows --shadow-strength on .hero-desk */}
       <mesh rotation-x={-Math.PI / 2} position-y={0} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <shadowMaterial transparent opacity={0.24 * shadowK} color="#3A2530" />
+        <shadowMaterial transparent opacity={0.3 * shadowK} color="#3A2530" />
       </mesh>
       {/* contact shadow where the book touches the desk */}
       <ContactShadows position={[0, 0.002, 0]} scale={80} blur={2.4} far={4} opacity={0.34 * shadowK} resolution={1024} color="#3A2530" frames={Infinity} />
