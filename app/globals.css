@@ -208,6 +208,7 @@ html{overflow-x:clip}
 .sun-beam-1{animation-delay:-4.3s}.sun-beam-2{animation-delay:-9.1s}.sun-beam-3{animation-delay:-13s}.sun-beam-4{animation-delay:-17.4s}.sun-beam-5{animation-delay:-21.2s}
 @keyframes sunSway{0%,100%{transform:translate(-10px,0);opacity:1}50%{transform:translate(10px,0);opacity:.94}}
 @media (prefers-reduced-motion:reduce){.sun-beam{animation:none}}
+.hero-desk.is-open .sun-beam{animation-play-state:paused} /* the open state blurs the scene: a moving beam under the blur would re-blur the whole screen every frame */
 /* logo block (comp): mark 12.1% from the left, 17.2% wide, centred at 46% of the height; caption under
    it; the text button from 12.1%, 17.2% wide, at 63% of the height */
 .hero-copy-desk{position:absolute;inset:0;z-index:3;pointer-events:none;transition:opacity .5s ease}
