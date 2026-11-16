@@ -63,7 +63,7 @@
   mask:url(/pic/logo-mark.svg) calc(var(--d) * -994 / 174) calc(var(--d) * -402 / 174) / calc(var(--d) * 1170 / 174) calc(var(--d) * 579 / 174) no-repeat}
 /* right page */
 /* right page: two text links between three hairlines, where the buttons were */
-.pg-actions{position:absolute;left:14%;width:72%;top:36%;border-bottom:1px solid #DDCFC3}
+.pg-actions{position:absolute;left:14%;width:72%;top:33%;display:flex;flex-direction:column;gap:calc(22px * var(--k,1))}
 .pg-link{display:flex;align-items:center;justify-content:space-between;gap:calc(14px * var(--k,1));min-height:calc(56px * var(--k,1));box-sizing:border-box;padding:calc(20px * var(--k,1)) 0;border-top:1px solid #DDCFC3;text-decoration:none;color:#3A2E29;text-align:left}
 .pg-link-text{display:flex;flex-direction:column;gap:calc(5px * var(--k,1));min-width:0}
 .pg-link-title{align-self:flex-start;font-family:"Noto Serif KR",serif;font-weight:500;font-size:max(3.4cqw,calc(18px * var(--k,1)));line-height:1.3;
@@ -80,7 +80,6 @@
 .pg-ribbon-tip{position:absolute;right:calc(100% + 1.2cqw);top:38%;white-space:nowrap;font-family:"Noto Serif KR",serif;font-size:max(2cqw,calc(12px * var(--k,1)));color:#6F5E57;opacity:0;transform:translateX(4px);transition:opacity .2s,transform .2s;pointer-events:none}
 .pg-ribbon:hover,.pg-ribbon:focus-visible{transform:translateY(4px)}
 .pg-ribbon:hover .pg-ribbon-tip,.pg-ribbon:focus-visible .pg-ribbon-tip{opacity:1;transform:none}
-.pg-motif{position:absolute;right:-7%;bottom:-2.5%;width:60%;height:auto;pointer-events:none;filter:drop-shadow(0 .25cqw .5cqw rgba(70,50,35,.06))}
 .pg-phone-brand{display:none}
 /* phones: the camera frames only the right page -> one page, stacked: logo, caption, copy, buttons, motif */
 @media (max-width:899px){
@@ -91,12 +90,12 @@
   .pg-rp .pg-rule{top:38%}
   .pg-rp .pg-tag{top:42.5%;font-size:max(4.6cqw,calc(13px * var(--k,1)))}
   .pg-rp .pg-ko{top:51%;font-size:max(4cqw,calc(13px * var(--k,1)))}
-  .pg-actions{left:9%;width:82%;top:58.5%}
-  .pg-link{padding:calc(10px * var(--k,1)) 0}
+  .pg-actions{left:9%;width:82%;top:59%;gap:calc(12px * var(--k,1))}
+  .pg-actions .pg-link{padding:calc(10px * var(--k,1)) calc(24px * var(--k,1));min-height:0}
+  .pg-actions .pg-link-desc{display:none} /* phones: title and end label only, so both labels fit the page */
   .pg-link-title{font-size:max(4.8cqw,calc(17px * var(--k,1)))}
   .pg-ribbon{width:12%}
-  .pg-motif{width:26%;right:-3%;bottom:-3%}
-}
+  }
 /* photo-matching finish for the WebGL book: its canvas a hair soft (no text in it: the page text is DOM above),
    and a faint film grain over the book and the backdrop photo (--grain, --book-soften in globals.css) */
 .book3d canvas{filter:blur(var(--book-soften,.35px)) saturate(var(--book-saturate,1))}
@@ -108,3 +107,16 @@
 .pg-ribbon-tab{position:relative}
 .pg-ribbon-tab .rib-gold{position:absolute;inset:0;width:100%!important;height:100%}
 .pg-ribbon-tab:has(.rib-gold-full){background:transparent;box-shadow:none;filter:drop-shadow(0 1px 1.5px rgba(70,50,30,.28))} /* the whole ribbon is gold leaf */
+/* the two actions as pastel woven labels (like the book's label buttons): weave, stitches inside both ends
+   in a deeper shade of the same colour, a slight tilt that straightens on hover */
+.pg-link.pg-link-lav{--lb:#E9E1F4;--ls:#B7A6D6}
+.pg-link.pg-link-rose{--lb:#F5E2E0;--ls:#D9AFAA}
+.pg-actions .pg-link{position:relative;border:0;border-radius:2px;padding:calc(16px * var(--k,1)) calc(30px * var(--k,1));
+  background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lb);
+  box-shadow:0 1px 2px rgba(70,50,40,.14),0 5px 12px rgba(70,50,40,.07);transform:rotate(-.7deg);transition:transform .2s ease}
+.pg-actions .pg-link-rose{transform:rotate(.6deg)}
+.pg-actions .pg-link::before,.pg-actions .pg-link::after{content:"";position:absolute;top:calc(8px * var(--k,1));bottom:calc(8px * var(--k,1));border-left:1.5px dashed var(--ls);pointer-events:none}
+.pg-actions .pg-link::before{left:calc(12px * var(--k,1))}.pg-actions .pg-link::after{right:calc(12px * var(--k,1))}
+.pg-actions .pg-link:hover,.pg-actions .pg-link:focus-visible{transform:rotate(0) translateY(-1px)}
+.pg-actions .pg-link-desc{color:#8C7B72}
+@media (prefers-reduced-motion:reduce){.pg-actions .pg-link{transition:none}}

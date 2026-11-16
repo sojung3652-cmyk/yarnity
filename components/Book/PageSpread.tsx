@@ -57,17 +57,15 @@ export function RightPage({ onClose }: { onClose: () => void }) {
       <div className="pg-phone-brand"><Brand phone /></div>
       {/* two text links divided by hairlines (whole row = one link) */}
       <nav className="pg-actions" aria-label="시작하기">
-        <Link className="pg-link" href="/new">
+        <Link className="pg-link pg-link-lav" href="/new">
           <span className="pg-link-text"><span className="pg-link-title">도안 만들기</span><span className="pg-link-desc">실과 크기만 정하면 코 수를 계산해요</span></span>
           <span className="pg-link-end">시작하기</span>
         </Link>
-        <Link className="pg-link" href="/mine">
+        <Link className="pg-link pg-link-rose" href="/mine">
           <span className="pg-link-text"><span className="pg-link-title">내 작품</span><span className="pg-link-desc">뜨던 곳부터 이어서</span></span>
           <span className="pg-link-end">{workCount ? `${workCount}개` : "아직 없어요"}</span>
         </Link>
       </nav>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="pg-motif" src="/pic/cro-motif.webp" alt="" width={1000} height={633} />
     </div>
   );
 }
