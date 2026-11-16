@@ -27,6 +27,11 @@ a{color:inherit}
 
 .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:22px}
 .brand{font-family:var(--sans);font-weight:700;font-size:18px;text-decoration:none;letter-spacing:-.02em;line-height:1}
+.brand-logo{display:inline-flex;line-height:0}
+.brand-logo img{height:48px;width:auto;display:block}
+.pcard-wrap{position:relative}
+.pcard-edit{position:absolute;top:14px;right:14px;font-size:12.5px;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.pcard-edit:hover{color:var(--ink)}
 .nav-links{display:flex;gap:4px;align-items:center}
 .nav-links a.l{text-decoration:none;color:var(--ink);opacity:.72;font-size:13px;padding:8px 10px}
 .nav-links a.l:hover,.nav-links a.l[aria-current="page"]{color:var(--ink)}

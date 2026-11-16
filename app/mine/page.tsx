@@ -12,12 +12,16 @@ function Cards() {
       {projects.map(p => {
         const pp = plan(p), total = pp.rows.length, cur = p.current || 0;
         return (
-          <Link key={p.id} className="pcard" href="/track" onClick={() => setActive(p.id)}>
+          <div key={p.id} className="pcard-wrap">
+          <Link className="pcard" href="/track" onClick={() => setActive(p.id)}>
             <span className="small muted">{`${SHAPE_KO[p.shape]} 바닥 · ${p.hook} · ${YARN_KO[p.weight]}`}</span>
             <h3>{p.name}</h3>
             <div className="bar"><i style={{ width: `${Math.round(cur / total * 100)}%` }} /></div>
             <span className="small muted">{cur >= total ? "완성" : `${cur} / ${total} · 다음 ${pp.rows[cur].label}`}</span>
           </Link>
+          {/* edit: opens 도안 만들기 at step 3 with this work's values; saving overwrites it */}
+          <Link className="pcard-edit" href={`/new?edit=${p.id}`}>고치기</Link>
+          </div>
         );
       })}
     </div>

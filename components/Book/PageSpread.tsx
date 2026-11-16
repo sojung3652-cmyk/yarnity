@@ -5,6 +5,7 @@
 // Phones (< 900px) see only the right page: it then carries everything, stacked (see .pg-* in Book.css).
 import Link from "next/link";
 import { FoilLogo } from "../FoilLogo";
+import { useApp } from "@/components/AppProvider";
 
 const ICON = { fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -75,6 +76,8 @@ export function LeftPage() {
 /** Right page: the two actions, the ribbon tab that closes the book, the crochet motif. On phones it
  *  also carries the brand block above the actions. */
 export function RightPage({ onClose }: { onClose: () => void }) {
+  // number of saved works (shown on the 내 작품 button; hidden when there are none)
+  const { ready, projects } = useApp(), workCount = ready ? projects.length : 0;
   return (
     <div className="pg-page pg-rp">
       <button type="button" className="pg-ribbon" aria-label="책 덮기" onClick={e => { e.stopPropagation(); onClose(); }}>
@@ -84,7 +87,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
       <div className="pg-phone-brand"><Brand phone /></div>
       <nav className="pg-actions" aria-label="시작하기">
         <Link className="pg-act pg-act-primary" href="/new"><DocPencilIcon /><span className="pg-sep" /><span className="pg-label">도안 만들기</span><Arrow /></Link>
-        <Link className="pg-act" href="/mine"><FolderHeartIcon /><span className="pg-sep" /><span className="pg-label">내 작품</span><Arrow /></Link>
+        <Link className="pg-act" href="/mine"><FolderHeartIcon /><span className="pg-sep" /><span className="pg-label">{workCount ? `내 작품 · ${workCount}` : "내 작품"}</span><Arrow /></Link>
       </nav>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="pg-motif" src="/pic/cro-motif.webp" alt="" width={1000} height={633} />

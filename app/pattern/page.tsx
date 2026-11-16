@@ -39,7 +39,7 @@ export default function PatternPage() {
     <main id="view-pattern">
       <div className="app-head">
         <div><div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div><h1 id="patTitle">{p.name}</h1></div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><Link className="btn btn-line" href="/new">고치기</Link><Link className="btn btn-primary" id="startBtn" href="/track">뜨기 시작</Link></div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><Link className="btn btn-line" href={`/new?edit=${p.id}`}>고치기</Link><Link className="btn btn-primary" id="startBtn" href="/track">뜨기 시작</Link></div>
       </div>
       <div className="grid-pattern">
         <aside style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>

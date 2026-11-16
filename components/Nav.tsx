@@ -9,7 +9,11 @@ export function Nav() {
   if (path === "/") return null;
   return (
     <nav className="nav" aria-label="주 메뉴">
-      <Link className="brand" href="/" aria-label="Yarnity 홈">Yarnity.</Link>
+      <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈">
+        {/* the home wordmark (dark brown) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/pic/logo-mark.svg" alt="" width={1170} height={579} />
+      </Link>
       <div className="nav-links">
         <Link className="l" href="/new" aria-current={cur("/new")}>도안 만들기</Link>
         <Link className="l hide-sm" href="/mine" aria-current={cur("/mine")}>내 작품</Link>
