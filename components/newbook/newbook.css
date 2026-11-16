@@ -1,0 +1,100 @@
+/* "도안 만들기" as an open book (components/newbook/NewBook.tsx). Pure CSS, no 3D canvas.
+   Cover: the home book's pastel lavender (--book-lav); paper #FBF3EA with a faint grain. */
+.nb-main{display:flex;justify-content:center;padding:18px 0 72px}
+.nb-book{--w:min(92vw,1320px);--paper:#FBF3EA;--ink2:#3A2E29;--accent:#6E5350;--rule:#CDBFB4;position:relative;width:var(--w);min-height:max(620px,calc(var(--w) * .55));
+  display:grid;grid-template-columns:1fr 1fr;padding:16px 18px 18px;box-sizing:border-box;border-radius:16px;background:var(--book-lav);
+  box-shadow:inset 0 0 0 1px rgba(90,70,110,.12),0 2px 3px rgba(80,55,50,.12),0 30px 60px -28px rgba(80,55,50,.42),0 12px 40px rgba(80,55,50,.1)}
+/* paper: grain, gutter shade (inner ~8%), lighter outer edge, 2-3 sheets peeking out to the side and below */
+.nb-page{--grainimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .28 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  position:relative;display:flex;flex-direction:column;min-width:0;padding:40px clamp(28px,4vw,56px) 26px;color:var(--ink2)}
+.nb-left{border-radius:8px 3px 3px 8px;background:var(--grainimg),linear-gradient(to left,rgba(90,62,40,.2),rgba(90,62,40,.05) 5%,transparent 9%),linear-gradient(to right,rgba(255,255,255,.5),transparent 12%),var(--paper);
+  box-shadow:-2px 3px 0 #F1E6D6,-4px 6px 0 #EADDCA,-6px 8px 0 #E2D4BF}
+.nb-right{border-radius:3px 8px 8px 3px;background:var(--grainimg),linear-gradient(to right,rgba(90,62,40,.2),rgba(90,62,40,.05) 5%,transparent 9%),linear-gradient(to left,rgba(255,255,255,.5),transparent 12%),var(--paper);
+  box-shadow:2px 3px 0 #F1E6D6,4px 6px 0 #EADDCA,6px 8px 0 #E2D4BF}
+/* ribbon tab (top right) and the bookmark hanging out at the bottom centre */
+.nb-ribbon{position:absolute;top:10px;right:7%;z-index:2;width:30px;height:62px;background:var(--book-lav-shade);clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%);box-shadow:inset -2px 0 3px rgba(60,40,90,.15)}
+.nb-marker{position:absolute;left:calc(50% - 22px);bottom:-30px;z-index:-1;width:14px;height:50px;background:var(--book-lav-shade);clip-path:polygon(0 0,100% 0,100% 100%,50% 86%,0 100%)}
+/* type */
+.nb-page h1:focus{outline:none}
+.nb-page h1{font-size:29px;font-weight:500;letter-spacing:-.02em;line-height:1.25;margin:0 0 26px}
+.nb-page h3{font-size:20px;font-weight:500;margin:0}
+/* progress */
+.nb-progress{display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;margin:0 0 30px;padding:0}
+.nb-progress button{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:4px 0;font:inherit;font-size:13.5px;color:#9A8B83;cursor:pointer}
+.nb-progress button:disabled{cursor:default}
+.nb-progress .on button{color:var(--ink2);font-weight:500}
+.nb-progress .done button{color:var(--accent)}
+.nb-progress .done button:hover{text-decoration:underline;text-underline-offset:3px}
+.nb-dot{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid currentColor;font-size:12px;line-height:1}
+.nb-progress .on .nb-dot{background:var(--ink2);border-color:var(--ink2);color:var(--paper)}
+.nb-progress .done .nb-dot{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+/* fields */
+.nb-field{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.nb-field label,.nb-lbl{font-size:13px;color:#7A6C66}
+.nb-input{width:100%;max-width:420px;height:40px;border:0;border-bottom:1.5px solid var(--rule);border-radius:0;background:transparent;padding:0 2px;font:inherit;font-size:17px;color:var(--ink2);outline:none;transition:border-color .2s}
+.nb-input:focus{border-bottom-color:var(--accent)}
+.nb-input[aria-invalid="true"]{border-bottom-color:#B4574A}
+.nb-input::placeholder{color:#B8A9A0}
+.nb-short{max-width:160px}
+.nb-two{display:grid;grid-template-columns:repeat(2,minmax(0,170px));gap:0 28px}
+.nb-err{margin:0;font-size:12.5px;color:#A44D41}
+.nb-help{font-size:13px;color:#8C7D76;margin:4px 0 0;line-height:1.6}
+/* chips and cards (radio groups) */
+.nb-chips{display:flex;flex-wrap:wrap;gap:8px}
+.nb-chip{min-height:36px;padding:0 15px;border:1px solid var(--rule);border-radius:999px;background:transparent;font:inherit;font-size:14px;color:var(--ink2);cursor:pointer;transition:background-color .15s,color .15s,border-color .15s}
+.nb-chip:hover{border-color:#B4A397}
+.nb-chip[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.nb-cards{display:grid;grid-template-columns:repeat(2,minmax(0,190px));gap:14px;margin-bottom:26px}
+.nb-card{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 12px 14px;border:1px solid var(--rule);border-radius:14px;background:rgba(255,255,255,.35);font:inherit;font-size:15px;color:var(--ink2);cursor:pointer}
+.nb-card[aria-checked="true"]{border:2px solid var(--accent);padding:17px 11px 13px;background:rgba(255,255,255,.6)}
+.nb-chip:focus-visible,.nb-card:focus-visible,.nb-next:focus-visible,.nb-prev:focus-visible,.nb-progress button:focus-visible{outline:2px solid var(--ink2);outline-offset:3px}
+.nb-art{width:64px;height:64px;color:var(--accent)}
+.nb-art-big{width:min(220px,60%);height:auto}
+/* right page */
+.nb-show,.nb-summary,.nb-preview{display:flex;flex-direction:column;gap:14px}
+.nb-show{align-items:center;text-align:center;margin-top:8%}
+.nb-show p{margin:0;color:#7A6C66}
+.nb-summary dl{margin:6px 0 0}
+.nb-summary dl div{display:flex;gap:18px;padding:11px 0;border-bottom:1px solid rgba(205,191,180,.6)}
+.nb-summary dt{width:64px;flex:none;color:#8C7D76;font-size:13.5px}
+.nb-summary dd{margin:0}
+.nb-big{font-size:19px;margin:18px 0 0}
+.nb-big b{font-weight:500;color:var(--accent)}
+.nb-big span{font-size:13px;color:#8C7D76}
+.nb-drawing{max-width:460px}
+.nb-counts{display:flex;flex-direction:column;gap:4px;margin:0}
+.nb-counts span{font-size:13px;color:#8C7D76}
+.nb-counts b{font-weight:500;font-size:17px}
+/* footers: previous / page numbers / next */
+.nb-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:24px}
+.nb-folio{font-size:12px;color:#A99A92;font-variant-numeric:oldstyle-nums}
+.nb-prev{border:0;background:none;padding:6px 0;font:inherit;font-size:14px;color:#7A6C66;cursor:pointer;text-decoration:none}
+.nb-prev:hover{color:var(--ink2)}
+.nb-next{min-height:48px;padding:0 24px;border:0;border-radius:12px;background:var(--accent);color:var(--paper);font:inherit;font-size:15px;cursor:pointer;box-shadow:0 6px 14px -8px rgba(70,45,40,.6)}
+.nb-next:hover{background:#634946}
+.nb-next:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+/* page turn between steps */
+.nb-turn{animation:nbIn .35s cubic-bezier(.2,.7,.2,1) both}
+.nb-turn.back{animation-name:nbBack}
+@keyframes nbIn{from{opacity:0;transform:translateX(14px)}}
+@keyframes nbBack{from{opacity:0;transform:translateX(-14px)}}
+@media (prefers-reduced-motion:reduce){.nb-turn{animation:none}}
+/* phones: one page; progress, question and inputs, then the preview, the next button fixed at the bottom */
+@media (max-width:899px){
+  .nb-main{padding:8px 0 96px}
+  .nb-book{--w:100%;min-height:0;grid-template-columns:1fr;padding:8px;border-radius:14px}
+  .nb-left,.nb-right{box-shadow:none;background:var(--grainimg),var(--paper)}
+  .nb-left{border-radius:8px 8px 0 0;padding-bottom:8px}
+  .nb-right{border-radius:0 0 8px 8px;padding-top:8px;box-shadow:0 3px 0 #F1E6D6,0 6px 0 #EADDCA}
+  .nb-page{padding-inline:22px}
+  .nb-page h1{font-size:24px;margin-bottom:20px}
+  .nb-ribbon{right:10%;width:24px;height:48px}
+  .nb-progress{padding-right:44px;gap:6px 12px} /* clear of the ribbon */
+  .nb-progress button{font-size:12.5px}
+  .nb-marker{display:none}
+  .nb-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nb-left .nb-foot{padding-top:4px}
+  .nb-show{margin-top:0}
+  .nb-art-big{width:150px}
+  .nb-next{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:20}
+}
