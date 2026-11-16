@@ -49,7 +49,7 @@
 .pg-page{position:relative;width:100%;height:100%;container-type:size;color:#3A2E29;font-family:"Newsreader","Noto Serif KR",Georgia,serif;text-align:center;overflow:hidden} /* the motif is cut by the page edge */
 .pg-page p{margin:0}
 .pg-logo{position:absolute;left:28%;width:44%;top:21%;margin:0;line-height:0}
-.pg-logo img{width:100%;height:auto;display:block}
+.pg-logo .pg-foil{width:100%;height:auto;display:block;overflow:visible}
 .pg-cap{position:absolute;left:0;right:0;top:44.5%;transform:translateY(-50%);font-size:max(2.1cqw,calc(9px * var(--k,1)));font-weight:500;letter-spacing:.3em;padding-left:.3em;text-transform:uppercase;color:#3A2E29}
 .pg-rule{position:absolute;left:calc(50% - 3.5cqw);width:7cqw;top:50.5%;border-top:1px solid rgba(111,94,87,.45)}
 .pg-tag{position:absolute;left:0;right:0;top:57%;transform:translateY(-50%);font-style:italic;font-size:max(2.9cqw,calc(14px * var(--k,1)));color:#6F5E57}
@@ -75,7 +75,7 @@
 .pg-ribbon-tip{position:absolute;right:calc(100% + 1.2cqw);top:38%;white-space:nowrap;font-family:"Noto Serif KR",serif;font-size:max(2cqw,calc(12px * var(--k,1)));color:#6F5E57;opacity:0;transform:translateX(4px);transition:opacity .2s,transform .2s;pointer-events:none}
 .pg-ribbon:hover,.pg-ribbon:focus-visible{transform:translateY(4px)}
 .pg-ribbon:hover .pg-ribbon-tip,.pg-ribbon:focus-visible .pg-ribbon-tip{opacity:1;transform:none}
-.pg-motif{position:absolute;right:-3%;bottom:-2.5%;width:60%;height:auto;pointer-events:none;filter:drop-shadow(0 .5cqw .8cqw rgba(70,50,35,.14))}
+.pg-motif{position:absolute;right:-7%;bottom:-2.5%;width:60%;height:auto;pointer-events:none;filter:drop-shadow(0 .25cqw .5cqw rgba(70,50,35,.06))}
 .pg-phone-brand{display:none}
 /* phones: the camera frames only the right page -> one page, stacked: logo, caption, copy, buttons, motif */
 @media (max-width:899px){
