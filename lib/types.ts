@@ -48,4 +48,4 @@ export interface Project extends Draft {
   created: number;
 }
 
-export const DEFAULT_DRAFT: Draft = { name: "", item: "minibag", object: "bag", yarn: "면 혼방 합사", weight: "medium", hook: "5호", shape: "circle", a: 15, b: 10, h: 15, handle: "short" };
+export const DEFAULT_DRAFT: Draft = { name: "", item: "minibag", yarnMode: "mm", yarnMm: null, object: "bag", yarn: "", weight: "medium", hook: "5호", shape: "circle", a: 15, b: 10, h: 15, handle: "short" };

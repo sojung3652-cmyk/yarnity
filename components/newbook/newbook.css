@@ -56,7 +56,9 @@
 .nb-tp-rule{width:64px;height:1px;background:#D8CABD}
 .nb-tp-blank{display:block;width:min(260px,70%);height:1px;margin:22px 0;background:#E2D6CB}
 /* ② items: grouped cards, 4 per row, scrolling inside the page */
-.nb-scroll{max-height:calc(max(620px,var(--w) * .55) - 250px);overflow-y:auto;margin-right:-10px;padding-right:10px;scrollbar-width:thin;scrollbar-color:#D8CABD transparent}
+/* the scroll box fills the page down to its footer; contain:size keeps its content from growing the book */
+.nb-left-scroll .nb-turn{flex:1;min-height:0;display:flex;flex-direction:column}
+.nb-scroll{flex:1 1 auto;min-height:0;contain:size;overflow-y:auto;margin-right:-10px;padding-right:10px;scrollbar-width:thin;scrollbar-color:#D8CABD transparent}
 .nb-scroll::-webkit-scrollbar{width:6px}.nb-scroll::-webkit-scrollbar-thumb{background:#D8CABD;border-radius:3px}
 .nb-group{margin-bottom:18px}
 .nb-group h2{margin:0 0 10px;font-size:13px;font-weight:500;color:#8C7D76;letter-spacing:.02em}
@@ -74,6 +76,34 @@
 .nb-picker{position:relative;width:30px;height:30px;border-radius:50%;overflow:hidden;box-shadow:inset 0 0 0 1px var(--rule);cursor:pointer;flex:none}
 .nb-picker input{position:absolute;inset:-8px;width:46px;height:46px;border:0;padding:0;cursor:pointer;background:none}
 .nb-picker:focus-within{outline:2px solid var(--ink2);outline-offset:3px}
+/* ③ yarn (left) and hook (right): every choice has its own "직접 입력" */
+.nb-yarn .nb-field{margin-bottom:20px}
+.nb-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.nb-chip-add{border-style:dashed;color:#7A6C66}
+.nb-chip-own{display:inline-flex;align-items:center;gap:6px;padding-right:6px}
+.nb-chip-own button{display:inline-grid;place-items:center;width:20px;height:20px;border:0;border-radius:50%;background:rgba(251,243,234,.25);color:inherit;font:inherit;font-size:14px;line-height:1;cursor:pointer}
+.nb-chip-own button:focus-visible{outline:2px solid var(--paper);outline-offset:1px}
+.nb-addbox{display:inline-flex;align-items:flex-end;gap:6px}
+.nb-colorname{max-width:210px}
+.nb-input-sm{height:34px;font-size:14.5px;max-width:220px}
+.nb-blend{margin-top:6px;max-width:300px}
+.nb-req{margin-left:6px;padding:1px 7px;border-radius:999px;background:#F1E4DE;color:#8A5446;font-size:11px;font-weight:500}
+.nb-mm{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.nb-mm > span{padding-bottom:9px;color:#7A6C66}
+.nb-mm .nb-help{margin:0 0 9px}
+.nb-link{align-self:flex-start;border:0;background:none;padding:2px 0;font:inherit;font-size:13px;color:var(--accent);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.nb-link:focus-visible{outline:2px solid var(--ink2);outline-offset:3px}
+.nb-warn{margin:2px 0 0;padding:8px 12px;border-radius:10px;background:#F6E8DC;color:#7D4F35;font-size:13px;line-height:1.5}
+.nb-more{margin:2px 0 8px;border-top:1px solid rgba(205,191,180,.6);padding-top:12px}
+.nb-more summary{cursor:pointer;font-size:13.5px;color:#7A6C66;margin-bottom:12px}
+.nb-more summary:focus-visible{outline:2px solid var(--ink2);outline-offset:3px}
+.nb-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}
+.nb-hook .nb-field{margin-bottom:18px}
+.nb-summary-sm{gap:8px;margin-top:6px;padding-top:14px;border-top:1px solid rgba(205,191,180,.6)}
+.nb-summary-sm h3{font-size:15px}
+.nb-summary-sm dl div{padding:6px 0;font-size:13.5px}
+.nb-summary-sm .nb-big{font-size:16px;margin-top:8px}
+.nb-lot{font-weight:600;letter-spacing:.03em;color:var(--accent)}
 /* ④ the chosen item above its fields */
 .nb-itemline{display:flex;align-items:center;gap:10px;margin:-8px 0 18px;font-size:15px;color:#6F5E57}
 .nb-itemline .nb-art{width:34px;height:34px}
@@ -121,7 +151,7 @@
   .nb-progress button{font-size:12.5px}
   .nb-marker{display:none}
   .nb-items{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .nb-scroll{max-height:none;overflow:visible;margin-right:0;padding-right:0} /* one long page on phones: no inner scroll */
+  .nb-scroll{contain:none;overflow:visible;margin-right:0;padding-right:0} /* one long page on phones: no inner scroll */
   .nb-input-big{font-size:22px}
     .nb-left .nb-foot{padding-top:4px}
   .nb-show{margin-top:0}

@@ -12,20 +12,17 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type R
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
 import { engineDims, ENGINE, fieldsFor, GROUPS, ITEM, ITEMS, itemIdOf, type FieldKey, type Item, type ItemId } from "@/lib/items";
-import { fmt, gauge, HOOKS, plan, SHAPE_KO, YARN_KO, type Handle, type PlanInput, type Shape, type Weight } from "@/lib/pattern";
+import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
 import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
+import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
 import "./newbook.css";
 
 type Step = 1 | 2 | 3 | 4;
 const STEP_KEY = "iyarn.newstep";
 const NO_NAME = "이름 없는 작품";
 const HANDLE_KO: Record<Handle, string> = { short: "짧은 끈 25cm", long: "긴 끈 90cm", none: "없음" };
-export const COLORS: [string, string][] = [
-  ["크림", "#F3E9D2"], ["라벤더", "#C9B8E0"], ["연핑크", "#F2C4CC"], ["하늘", "#BCD8EC"], ["세이지 그린", "#B5C4A8"],
-  ["버터 노랑", "#F3DE98"], ["살구", "#F5C3A0"], ["모카 브라운", "#9C7A62"], ["차콜", "#4E4A4C"], ["흰색", "#FFFFFF"],
-];
 
 /** The draft as the engine reads it (item -> engine path, beanie conversion, handle only where offered). */
 export function engineInput(d: Draft): PlanInput {
@@ -82,8 +79,9 @@ export function NewBook() {
     let d = draft;
     if (p) {
       const it = ITEM[itemIdOf(p)];
-      d = { name: p.name === NO_NAME ? "" : p.name, item: it.id, object: p.object, yarn: p.yarn, weight: p.weight, hook: p.hook, shape: p.shape, a: p.a, b: p.b, h: p.h, handle: p.handle,
-        color: p.color, colorName: p.colorName, circ: p.circ ?? it.defaults.circ, depth: p.depth ?? it.defaults.depth };
+      const { id: _id, measuredH: _mh, measuredW: _mw, current: _cur, created: _cr, ...saved } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
+      d = { ...saved, name: p.name === NO_NAME ? "" : p.name, item: it.id, circ: p.circ ?? it.defaults.circ, depth: p.depth ?? it.defaults.depth,
+        yarnMode: p.yarnMode ?? (p.yarnMm ? "mm" : "level") }; // older works: their thin/medium/thick stays
       setDraft(d); setEditId(p.id); setStep(4);
     } else {
       const s = store.get<number>(STEP_KEY, 1); setStep((s >= 1 && s <= 4 ? s : 1) as Step);
@@ -130,7 +128,7 @@ export function NewBook() {
   const input = useMemo(() => engineInput(draft), [draft]);
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
-  const stepOk = step < 4 || Object.keys(errors).length === 0;
+  const stepOk = step === 3 ? yarnStepOk(draft) : step < 4 || Object.keys(errors).length === 0;
 
   const go = (s: Step) => { setDir(s > step ? 1 : -1); setStep(s); moved.current = true; };
   // after a step change, keyboard focus goes to the new question (the field that had it is gone)
@@ -158,8 +156,6 @@ export function NewBook() {
 
   const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇인가요?", 2: "무엇을 뜰까요?", 3: "어떤 실과 바늘을 쓰나요?", 4: "어떤 모양, 어떤 크기로 뜰까요?" };
   const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 모양과 크기 →", 4: "도안 보기 →" };
-  const chosen = draft.color ? COLORS.find(([n, hex]) => hex === draft.color && n === draft.colorName)?.[0] : undefined;
-  const colorLabel = draft.colorName || (draft.color ? "직접 고른 색" : "고르지 않음");
 
   const progress = (
     <ol className="nb-progress" aria-label="진행 단계">
@@ -218,45 +214,9 @@ export function NewBook() {
       </div>
     );
   } else if (step === 3) {
-    left = (
-      <>
-        <Field label="실 이름 (선택)">{id => <input id={id} className="nb-input" autoComplete="off" placeholder="예: 면 혼방 합사" value={draft.yarn} onChange={e => patch({ yarn: e.target.value })} />}</Field>
-        <div className="nb-field"><span className="nb-lbl">실 굵기</span>
-          <Radios label="실 굵기" value={draft.weight} onPick={v => patch({ weight: v as Weight })} options={(["thin", "medium", "thick"] as Weight[]).map(w => [w, YARN_KO[w]])} />
-        </div>
-        <div className="nb-field"><span className="nb-lbl">코바늘 호수</span>
-          <Radios label="코바늘 호수" value={draft.hook} onPick={v => patch({ hook: v })} options={HOOKS.map(([k, mm]) => [k, `${k} · ${mm}mm`])} />
-        </div>
-        <div className="nb-field"><span className="nb-lbl">실 색 (선택)</span>
-          <Radios label="실 색" value={chosen ?? (draft.colorName || draft.color ? "custom" : "none")}
-            onPick={v => { if (v === "none") patch({ color: undefined, colorName: undefined }); else if (v !== "custom") { const c = COLORS.find(([n]) => n === v)!; patch({ color: c[1], colorName: c[0] }); } }}
-            options={[["none", "고르지 않음"], ...COLORS.map(([n, hex]): [string, ReactNode] => [n, <><i className="nb-swatch" style={{ background: hex }} />{n}</>])]} />
-          {/* a colour of your own: its name, and a swatch (the swatch is what tints the preview and the stitch map) */}
-          <div className="nb-custom">
-            <label htmlFor="nbColorName" className="sr">직접 입력한 색 이름</label>
-            <input id="nbColorName" className="nb-input nb-short" autoComplete="off" placeholder="직접 입력 (예: 올리브)" value={chosen ? "" : draft.colorName ?? ""}
-              onChange={e => patch({ colorName: e.target.value || undefined, color: chosen ? undefined : draft.color })} />
-            <label className="nb-picker" title="색 고르기">
-              <span className="sr">직접 고른 색</span>
-              <input type="color" value={!chosen && draft.color ? draft.color : "#C9B8E0"} onChange={e => patch({ color: e.target.value, colorName: chosen ? undefined : draft.colorName })} />
-            </label>
-          </div>
-        </div>
-        <p className="nb-help">잘 모르겠으면 보통으로 두세요. 색은 고르지 않아도 돼요.</p>
-      </>
-    );
-    right = (
-      <div className="nb-summary">
-        <h3>지금까지 고른 것</h3>
-        <dl>
-          <div><dt>작품</dt><dd>{item.name}{draft.name.trim() ? ` · ${draft.name.trim()}` : ""}</dd></div>
-          <div><dt>실</dt><dd>{(draft.yarn.trim() || "실 이름 없음") + " · " + YARN_KO[draft.weight]}</dd></div>
-          <div><dt>코바늘</dt><dd>{draft.hook}</dd></div>
-          <div><dt>색</dt><dd>{draft.color && <i className="nb-swatch" style={{ background: draft.color }} />}{colorLabel}</dd></div>
-        </dl>
-        <p className="nb-big">한 코 크기 약 <b>{fmt(g.h * 10)}mm</b> <span>(예상)</span></p>
-      </div>
-    );
+    left = <YarnPage draft={draft} patch={patch} />;
+    right = <HookPage draft={draft} patch={patch} item={item} stitchMm={g.h * 10}
+      measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춰요." : "3단을 뜬 뒤 재서 정확하게 맞춰요."} />;
   } else {
     const shapes = item.shapes ?? [];
     const sizeText = input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm` : input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`;
@@ -314,7 +274,7 @@ export function NewBook() {
         }}>
         <span className="nb-ribbon" aria-hidden="true" />
         <span className="nb-marker" aria-hidden="true" />
-        <section className={"nb-page nb-left" + (step === 2 ? " nb-left-scroll" : "")} aria-labelledby="nbTitle">
+        <section className={"nb-page nb-left" + (step === 2 || step === 3 ? " nb-left-scroll" : "")} aria-labelledby="nbTitle">
           {progress}
           <div key={"l" + step} className={"nb-turn " + (dir > 0 ? "fwd" : "back")}>
             <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>
@@ -325,7 +285,7 @@ export function NewBook() {
             <span className="nb-folio">{step * 2 - 1}</span>
           </div>
         </section>
-        <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : "지금까지"}>
+        <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "코바늘과 요약" : "지금까지"}>
           <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "fwd" : "back")}>{right}</div>
           <div className="nb-foot">
             <span className="nb-folio">{step * 2}</span>

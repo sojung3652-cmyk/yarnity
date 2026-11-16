@@ -1,6 +1,6 @@
 // Yarn and hook details for the 실과 바늘 step: constants, conversions and checks. The engine (lib/pattern
 // gauge) keeps taking the yarn as three levels; a thickness typed in mm is converted with YARN_MM_LEVELS.
-import { HOOK_MM, type Weight } from "./pattern";
+import { HOOK_MM, YARN_KO, type Weight } from "./pattern";
 
 /** Yarn thickness (mm) -> engine level: below `thinBelow` = 가는 실, above `thickAbove` = 굵은 실, else 보통. */
 export const YARN_MM_LEVELS = { thinBelow: 2.5, thickAbove: 4 };
@@ -14,6 +14,10 @@ export const MATERIALS = ["코튼", "울", "메리노", "캐시미어", "알파�
 export const HOOK_MATERIALS = ["알루미늄", "스틸", "대나무", "나무", "플라스틱"];
 /** Common hook sizes shown as chips (the engine's own HOOKS table is unchanged; 7.5호 is display only). */
 export const HOOK_CHIPS: [string, number][] = [["2호", 2.0], ["3호", 2.3], ["4호", 2.5], ["5호", 3.0], ["6호", 3.5], ["7호", 4.0], ["7.5호", 4.5], ["8호", 5.0], ["10호", 6.0]];
+
+/** "3.2mm (보통)" when typed in mm, else the level ("보통"). */
+export const yarnWeightText = (d: { yarnMode?: string; yarnMm?: number | null; weight: Weight }) =>
+  d.yarnMode !== "level" && d.yarnMm ? `${d.yarnMm}mm (${YARN_KO[d.weight]})` : d.yarnMode === "mm" ? "—" : YARN_KO[d.weight];
 
 export function weightFromMm(mm: number): Weight {
   return mm < YARN_MM_LEVELS.thinBelow ? "thin" : mm > YARN_MM_LEVELS.thickAbove ? "thick" : "medium";
