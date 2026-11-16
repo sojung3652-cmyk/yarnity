@@ -85,3 +85,4 @@
 @media (prefers-reduced-motion:reduce){.mc{transition:none}}
 @media (max-width:640px){.mine-cards{gap:20px}}
 .mc .lot-copy{background:transparent;border-color:rgba(110,83,80,.3);color:var(--m-accent);padding:2px 9px} /* on the cloth: no white pill */
+.mine-head h1{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-weight:500;font-size:28px;letter-spacing:0}

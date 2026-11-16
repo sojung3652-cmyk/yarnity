@@ -166,7 +166,7 @@ function List() {
 export default function MinePage() {
   return (
     <main id="view-mine" className="mine">
-      <div className="mine-head"><h1>내 작품</h1><Link className="mine-link" href="/new">새 도안 →</Link></div>
+      <div className="mine-head"><h1 lang="en">My Patterns</h1><Link className="mine-link" href="/new">새 도안 →</Link></div>
       <List />
       <p className="mine-note">작품은 이 브라우저에만 저장돼요.</p>
     </main>
