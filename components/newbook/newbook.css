@@ -137,6 +137,92 @@
 @keyframes nbIn{from{opacity:0;transform:translateX(14px)}}
 @keyframes nbBack{from{opacity:0;transform:translateX(-14px)}}
 @media (prefers-reduced-motion:reduce){.nb-turn{animation:none}}
+/* ---- readability: one type and spacing scale for the book pages (small type, generous room) ---- */
+.nb-book{--nb-title:22px;--nb-label:12px;--nb-body:15px;--nb-chip:13px;--nb-help:12px;--nb-c-label:#8C7B72;--nb-c-help:#A08F86;--nb-gap:28px;--nb-line:#E6DACF}
+.nb-page{padding:48px 56px 40px}
+.nb-left{padding-right:64px}
+.nb-right{padding-left:64px}
+.nb-page h1{font-size:var(--nb-title);font-weight:500;margin:0 0 32px}
+.nb-page h3{font-size:17px}
+.nb-progress{margin-bottom:26px;gap:6px 16px}
+.nb-progress button{font-size:12px;gap:7px}
+.nb-dot{width:18px;height:18px;font-size:10px}
+.nb-field{margin-bottom:var(--nb-gap);gap:8px}
+.nb-field label,.nb-lbl,.nb-mini label{font-size:var(--nb-label);color:var(--nb-c-label);letter-spacing:.02em}
+.nb-input{font-size:var(--nb-body);height:36px}
+.nb-input-sm{font-size:14px;height:32px}
+.nb-chips{gap:8px}
+.nb-chip{min-height:30px;height:30px;padding:0 12px;font-size:var(--nb-chip)}
+.nb-help,.nb-hint{font-size:var(--nb-help);color:var(--nb-c-help)}
+.nb-err{font-size:12px}
+.nb-warn{font-size:12px}
+.nb-next{min-height:40px;height:40px;padding:0 20px;font-size:14px;box-shadow:0 2px 6px -4px rgba(70,45,40,.3)}
+.nb-prev{font-size:13px}
+/* folded rows */
+.nb-folds{display:flex;flex-direction:column;border-top:1px solid var(--nb-line)}
+.nb-fold{border-bottom:1px solid var(--nb-line)}
+.nb-fold-row{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:0 2px;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:var(--ink2)}
+.nb-fold-row:focus-visible{outline:2px solid var(--ink2);outline-offset:2px;border-radius:4px}
+.nb-fold-label{flex:none;font-size:13px;color:#6F5E57}
+.nb-fold-value{flex:1;min-width:0;text-align:right;font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nb-fold-value.nb-none{color:#C4B6AD} /* not ".empty": that is the global empty-state box */
+.nb-fold-chev{flex:none;display:inline-block;width:12px;text-align:center;font-size:16px;line-height:1;color:var(--nb-c-help);transition:transform .2s ease}
+.nb-fold.open > .nb-fold-row .nb-fold-chev{transform:rotate(90deg)}
+.nb-fold-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .2s ease}
+.nb-fold.open > .nb-fold-body{grid-template-rows:1fr}
+.nb-fold-inner{min-height:0;overflow:hidden}
+.nb-fold-inner > :first-child{margin-top:4px}
+.nb-fold-inner > :last-child{margin-bottom:18px}
+@media (prefers-reduced-motion:reduce){.nb-fold-body,.nb-fold-chev{transition:none}}
+/* 실과 바늘 */
+.nb-field-open{margin-bottom:24px}
+.nb-mm{display:flex;align-items:flex-end;flex-wrap:wrap;gap:8px 12px}
+.nb-unit{padding-bottom:8px;font-size:13px;color:var(--nb-c-label)}
+.nb-mm .nb-hint{padding-bottom:9px}
+.nb-mm .nb-link{padding-bottom:8px}
+.nb-link{font-size:12px}
+.nb-sub{margin-top:12px}
+.nb-wide{max-width:none}
+.nb-dots{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.nb-dot-color{width:22px;height:22px;padding:0;border:0;border-radius:50%;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(60,40,30,.16)}
+.nb-dot-color[aria-checked="true"]{box-shadow:0 0 0 2px var(--paper),0 0 0 3.5px var(--accent)}
+.nb-dot-color:focus-visible{outline:2px solid var(--ink2);outline-offset:3px}
+.nb-chip-more{color:#7A6C66;border-style:dotted}
+.nb-grid2{gap:0 20px}
+.nb-mini{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+/* hook select box */
+.nb-select{position:relative}
+.nb-select-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:18px;min-width:200px;height:36px;padding:0 2px;border:0;border-bottom:1.5px solid var(--rule);background:none;font:inherit;font-size:var(--nb-body);color:var(--ink2);cursor:pointer}
+.nb-select-btn[aria-invalid="true"]{border-bottom-color:#B4574A}
+.nb-select-btn .nb-fold-chev{transform:rotate(90deg)}
+.nb-select-btn[aria-expanded="true"] .nb-fold-chev{transform:rotate(-90deg)}
+.nb-select-btn:focus-visible{outline:2px solid var(--ink2);outline-offset:3px}
+.nb-select-list{position:absolute;left:0;top:calc(100% + 6px);z-index:10;min-width:220px;max-height:min(280px,46vh);overflow-y:auto;margin:0;padding:6px 0;list-style:none;border-radius:12px;background:#FFFBF6;box-shadow:0 12px 30px -12px rgba(70,45,40,.35),0 0 0 1px rgba(205,191,180,.6)}
+.nb-select-list:focus{outline:none}
+.nb-select-list li{padding:8px 16px;font-size:14px;color:var(--ink2);cursor:pointer}
+.nb-select-list li.cur{background:#F3E9E1}
+.nb-select-list li[aria-selected="true"]{color:var(--accent);font-weight:500}
+.nb-select-list li.custom{margin-top:4px;border-top:1px solid #EDE2D8;padding-top:10px}
+/* the short summary at the bottom of the hook page */
+.nb-recap{display:flex;flex-direction:column;gap:6px;margin-top:44px}
+.nb-recap p{margin:0}
+.nb-recap-1{font-size:15px;color:var(--ink2)}
+.nb-recap-2{font-size:13px;color:var(--nb-c-label)}
+.nb-recap-st{margin-top:16px!important;font-size:18px;color:var(--ink2)}
+.nb-recap-st b{font-weight:500;color:var(--accent)}
+/* 품목: groups as folded rows, small cards */
+.nb-groups .nb-items{margin-bottom:4px}
+.nb-item{font-size:13px;padding:10px 6px 9px;gap:5px}
+.nb-item[aria-checked="true"]{padding:9px 5px 8px}
+.nb-item .nb-art{width:48px;height:48px}
+.nb-show h3{font-size:18px}
+.nb-show p{font-size:14px}
+.nb-facts dd{font-size:14px}
+.nb-input-big{font-size:24px;height:50px}
+.nb-itemline{font-size:13px}
+.nb-counts b{font-size:15px}
+.nb-counts span{font-size:12px}
+
 /* phones: one page; progress, question and inputs, then the preview, the next button fixed at the bottom */
 @media (max-width:899px){
   .nb-main{padding:8px 0 96px}
@@ -144,7 +230,9 @@
   .nb-left,.nb-right{box-shadow:none;background:var(--grainimg),var(--paper)}
   .nb-left{border-radius:8px 8px 0 0;padding-bottom:8px}
   .nb-right{border-radius:0 0 8px 8px;padding-top:8px;box-shadow:0 3px 0 #F1E6D6,0 6px 0 #EADDCA}
-  .nb-page{padding-inline:22px}
+  .nb-page,.nb-left,.nb-right{padding:30px 22px 22px}
+  .nb-right{padding-top:8px}
+  .nb-select-list{max-height:min(260px,40vh)}
   .nb-page h1{font-size:24px;margin-bottom:20px}
   .nb-ribbon{right:10%;width:24px;height:48px}
   .nb-progress{padding-right:44px;gap:6px 12px} /* clear of the ribbon */

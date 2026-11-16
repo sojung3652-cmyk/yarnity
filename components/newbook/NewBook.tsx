@@ -17,6 +17,7 @@ import { store } from "@/lib/store";
 import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
 import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
+import { Fold, useOneOpen } from "./Fold";
 import "./newbook.css";
 
 type Step = 1 | 2 | 3 | 4;
@@ -68,6 +69,9 @@ export function NewBook() {
   const [editId, setEditId] = useState<string | null>(null);
   const [nums, setNums] = useState<Record<FieldKey, string>>(numsOf(draft));
   const [dir, setDir] = useState<1 | -1>(1);
+  const [tried, setTried] = useState(false); // step 3: required messages only after trying to move on
+  const [groupOpen, toggleGroup] = useOneOpen("납작한 것");
+  const [fold4, toggle4] = useOneOpen();
   const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), moved = useRef(false);
 
   // enter: a saved work to edit (?edit=id, step 4) or the saved draft and step
@@ -129,8 +133,9 @@ export function NewBook() {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   const stepOk = step === 3 ? yarnStepOk(draft) : step < 4 || Object.keys(errors).length === 0;
+  const blockNext = step === 4 && !stepOk; // step 3 is never disabled: pressing it shows what is missing
 
-  const go = (s: Step) => { setDir(s > step ? 1 : -1); setStep(s); moved.current = true; };
+  const go = (s: Step) => { setDir(s > step ? 1 : -1); setStep(s); setTried(false); moved.current = true; };
   // after a step change, keyboard focus goes to the new question (the field that had it is gone)
   useEffect(() => { if (moved.current) { moved.current = false; titleRef.current?.focus(); } }, [step]);
 
@@ -150,7 +155,10 @@ export function NewBook() {
     }
     router.push("/pattern");
   };
-  const next = () => { if (!stepOk) return; if (step < 4) go((step + 1) as Step); else save(); };
+  const next = () => {
+    if (!stepOk) { if (step === 3) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"]') as HTMLElement | null)?.focus()); } return; }
+    if (step < 4) go((step + 1) as Step); else save();
+  };
 
   if (!ready) return <main id="view-new" className="nb-main" />;
 
@@ -190,13 +198,12 @@ export function NewBook() {
     );
   } else if (step === 2) {
     left = (
-      <div className="nb-scroll">
+      <div className="nb-folds nb-groups">
         {GROUPS.map(gname => (
-          <section key={gname} className="nb-group" aria-label={gname}>
-            <h2>{gname}</h2>
+          <Fold key={gname} label={gname} value={item.group === gname ? item.name : ""} open={groupOpen === gname} onToggle={() => toggleGroup(gname)}>
             <Radios kind="item" label={gname} value={item.group === gname ? item.id : ("" as ItemId)} onPick={pickItem}
               options={ITEMS.filter(i => i.group === gname).map(i => [i.id, <><ItemArt id={i.id} /><span>{i.name}{i.beta && <em className="nb-beta">베타</em>}</span></>])} />
-          </section>
+          </Fold>
         ))}
       </div>
     );
@@ -214,8 +221,8 @@ export function NewBook() {
       </div>
     );
   } else if (step === 3) {
-    left = <YarnPage draft={draft} patch={patch} />;
-    right = <HookPage draft={draft} patch={patch} item={item} stitchMm={g.h * 10}
+    left = <YarnPage draft={draft} patch={patch} tried={tried} />;
+    right = <HookPage draft={draft} patch={patch} item={item} stitchMm={g.h * 10} tried={tried}
       measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춰요." : "3단을 뜬 뒤 재서 정확하게 맞춰요."} />;
   } else {
     const shapes = item.shapes ?? [];
@@ -237,8 +244,10 @@ export function NewBook() {
           ))}
         </div>
         {item.handles && (
-          <div className="nb-field"><span className="nb-lbl">손잡이</span>
-            <Radios label="손잡이" value={draft.handle} onPick={v => patch({ handle: v as Handle })} options={(["short", "long", "none"] as Handle[]).map(h => [h, HANDLE_KO[h]])} />
+          <div className="nb-folds">
+            <Fold label="손잡이" value={HANDLE_KO[draft.handle]} open={fold4 === "handle"} onToggle={() => toggle4("handle")}>
+              <Radios label="손잡이" value={draft.handle} onPick={v => patch({ handle: v as Handle })} options={(["short", "long", "none"] as Handle[]).map(h => [h, HANDLE_KO[h]])} />
+            </Fold>
           </div>
         )}
         {item.note && <p className="nb-help">{item.note}</p>}
@@ -274,7 +283,7 @@ export function NewBook() {
         }}>
         <span className="nb-ribbon" aria-hidden="true" />
         <span className="nb-marker" aria-hidden="true" />
-        <section className={"nb-page nb-left" + (step === 2 || step === 3 ? " nb-left-scroll" : "")} aria-labelledby="nbTitle">
+        <section className="nb-page nb-left" aria-labelledby="nbTitle">
           {progress}
           <div key={"l" + step} className={"nb-turn " + (dir > 0 ? "fwd" : "back")}>
             <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>
@@ -289,7 +298,7 @@ export function NewBook() {
           <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "fwd" : "back")}>{right}</div>
           <div className="nb-foot">
             <span className="nb-folio">{step * 2}</span>
-            <button type="submit" className="nb-next" disabled={!stepOk}>{nextLabel[step]}</button>
+            <button type="submit" className="nb-next" disabled={blockNext}>{nextLabel[step]}</button>
           </div>
         </section>
       </form>
