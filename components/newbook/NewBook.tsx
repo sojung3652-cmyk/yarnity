@@ -17,6 +17,7 @@ import { store } from "@/lib/store";
 import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
 import { TitlePage } from "./TitlePage";
+import { ClothLabel } from "./ClothLabel";
 import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
@@ -177,7 +178,7 @@ export function NewBook() {
     router.push("/pattern");
   };
   const next = () => {
-    if (!stepOk) { if (step === 3) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"]') as HTMLElement | null)?.focus()); } return; }
+    if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
     if (step < 4) go((step + 1) as Step); else save();
   };
 
@@ -302,7 +303,7 @@ export function NewBook() {
             {left}
           </div>
           <div className="nb-foot">
-            {step > 1 ? <button type="button" className="nb-prev" onClick={() => go((step - 1) as Step)}>← 이전</button> : editId ? <Link className="nb-prev" href="/mine">← 내 작품</Link> : <span />}
+            {step > 1 ? <ClothLabel side="back" type="button" onClick={() => go((step - 1) as Step)}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" href="/mine">← 내 작품</ClothLabel> : <span />}
             <span className="nb-folio">{step * 2 - 1}</span>
           </div>
         </section>
@@ -310,7 +311,7 @@ export function NewBook() {
           <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
           <div className="nb-foot">
             <span className="nb-folio">{step * 2}</span>
-            <button type="submit" className="nb-next" disabled={blockNext}>{nextLabel[step]}</button>
+            <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !stepOk)}>{nextLabel[step]}</ClothLabel>
           </div>
         </section>
       </form>

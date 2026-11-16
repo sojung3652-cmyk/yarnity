@@ -44,7 +44,7 @@
 .nb-chip{min-height:36px;padding:0 15px;border:1px solid var(--rule);border-radius:999px;background:transparent;font:inherit;font-size:14px;color:var(--ink2);cursor:pointer;transition:background-color .15s,color .15s,border-color .15s}
 .nb-chip:hover{border-color:#B4A397}
 .nb-chip[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
-.nb-chip:focus-visible,.nb-item:focus-visible,.nb-next:focus-visible,.nb-prev:focus-visible,.nb-progress button:focus-visible{outline:2px solid var(--ink2);outline-offset:3px}
+.nb-chip:focus-visible,.nb-item:focus-visible,.nb-progress button:focus-visible{outline:2px solid var(--ink2);outline-offset:3px}
 .nb-art{width:64px;height:64px;color:var(--accent)}
 .nb-art-big{width:min(220px,60%);height:auto}
 /* ① name: one big line; the right page as a title page */
@@ -126,11 +126,6 @@
 /* footers: previous / page numbers / next */
 .nb-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:24px}
 .nb-folio{font-size:12px;color:#A99A92;font-variant-numeric:oldstyle-nums}
-.nb-prev{border:0;background:none;padding:6px 0;font:inherit;font-size:14px;color:#7A6C66;cursor:pointer;text-decoration:none}
-.nb-prev:hover{color:var(--ink2)}
-.nb-next{min-height:48px;padding:0 24px;border:0;border-radius:12px;background:var(--accent);color:var(--paper);font:inherit;font-size:15px;cursor:pointer;box-shadow:0 6px 14px -8px rgba(70,45,40,.6)}
-.nb-next:hover{background:#634946}
-.nb-next:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 /* page turn between steps */
 /* direction classes are nb-dir-*: a bare .back / .front would also match the home CSS book's global
    .back{transform:rotateY(180deg)} (Book.css) and mirror the page once that stylesheet is loaded.
@@ -175,8 +170,6 @@
 .nb-help,.nb-hint{font-size:var(--nb-help);color:var(--nb-c-help)}
 .nb-err{font-size:12px}
 .nb-warn{font-size:12px}
-.nb-next{min-height:40px;height:40px;padding:0 20px;font-size:14px;box-shadow:0 2px 6px -4px rgba(70,45,40,.3)}
-.nb-prev{font-size:13px}
 /* folded rows */
 .nb-folds{display:flex;flex-direction:column;border-top:1px solid var(--nb-line)}
 .nb-fold{border-bottom:1px solid var(--nb-line)}
@@ -263,7 +256,6 @@
     .nb-left .nb-foot{padding-top:4px}
   .nb-show{margin-top:0}
   .nb-art-big{width:150px}
-  .nb-next{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:20}
 }
 /* ① title page (TitlePage.tsx) */
 .tp{position:relative;display:flex;flex-direction:column;align-items:center;min-height:calc(max(620px,var(--w) * .55) - 150px);text-align:center}
@@ -281,3 +273,20 @@
 .tp-sub{margin:0;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-style:italic;font-weight:500;font-size:15px;color:#8C7B72}
 .tp-month{margin:0 0 4px;font-size:10px;letter-spacing:.3em;padding-left:.3em;color:#A08F86}
 @media (max-width:899px){.tp{min-height:520px}.tp-head{margin-top:20px}}
+/* buttons as small woven labels (ClothLabel.tsx), like the label on the book's cover */
+.cloth-label{--tilt:0deg;position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:3px 2px;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cloth-next{--tilt:-1deg}.cloth-back{--tilt:1deg}
+.cloth-face{position:relative;display:inline-flex;align-items:center;height:38px;padding:0 22px;border-radius:2px;font-size:13px;font-weight:500;color:#3A2E29;white-space:nowrap;
+  background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
+  box-shadow:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.08);transform:rotate(var(--tilt));transition:transform .18s ease,opacity .18s ease} /* the shadow changes without animating: only transform and opacity animate */
+/* lavender stitches inside both ends */
+.cloth-face::before,.cloth-face::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed var(--book-lav,#C4B5DD)}
+.cloth-face::before{left:7px}.cloth-face::after{right:7px}
+.cloth-label:hover .cloth-face{transform:rotate(0) translateY(-1px);box-shadow:0 2px 3px rgba(70,50,40,.16),0 6px 14px rgba(70,50,40,.1)}
+.cloth-label:active .cloth-face{transform:rotate(0) translateY(.5px);box-shadow:0 1px 1px rgba(70,50,40,.18)}
+.cloth-label:focus-visible{outline:none}
+.cloth-label:focus-visible .cloth-face{outline:2px solid #3A2E29;outline-offset:3px}
+.cloth-label.is-blocked .cloth-face{opacity:.5;box-shadow:0 1px 1px rgba(70,50,40,.1)}
+.cloth-label.is-blocked:hover .cloth-face{transform:rotate(var(--tilt))}
+@media (prefers-reduced-motion:reduce){.cloth-face{transition:none}}
+@media (max-width:899px){.cloth-next{position:fixed;right:16px;bottom:max(14px,env(safe-area-inset-bottom));z-index:20}}
