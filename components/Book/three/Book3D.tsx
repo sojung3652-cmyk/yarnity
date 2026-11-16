@@ -5,7 +5,6 @@
 // on the spread. Geometry: geometry.ts / meshes.ts. Materials: materials.ts. Cover art: ../coverArt.ts.
 import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as THREE from "three";
@@ -16,7 +15,8 @@ import {
 } from "./geometry";
 import { createRibbon, createSheet, updateRibbon, updateSheet } from "./meshes";
 import { LABEL_CM, useBookMaterials, type BookMaterials } from "./materials";
-import { PAGE_D, PAGE_LAYOUT, PX_CM } from "./paperTextures";
+import { PAGE_D, PAGE_H_PX, PAGE_PX, PX_CM } from "./paperTextures";
+import { LeftPage, RightPage } from "../PageSpread";
 
 // ---- timeline (seconds) ----
 const TOTAL = 1.6;
@@ -151,62 +151,63 @@ function Sheet({ k, anim, front, back }: { k: number; anim: Anim; front: THREE.M
   );
 }
 
-// ---- the real "Start Creating" button, laid on the right page with CSS3DRenderer ----
-// The printed page carries the text; the button is DOM so it can be clicked and focused. drei <Html>
-// was tried in the previous 3D version: its separate React root ends up empty under Strict Mode, so the
-// DOM is rendered through a portal into the element given to CSS3DObject (keeps the Next router context).
-interface CssLayer { renderer: CSS3DRenderer; start: HTMLDivElement; mine: HTMLDivElement; close: HTMLDivElement }
-type Rect = { x: number; y: number; w: number; h: number };
-/** A DOM element laid on the right page at a rect of the page layout (CSS px). */
-function PageLink({ el, rect }: { el: HTMLDivElement; rect: Rect }) {
+// ---- page content: one real DOM box per page (PageSpread.tsx), laid on the open spread with CSS3DRenderer ----
+// drei <Html> was tried in an earlier 3D version: its separate React root ends up empty under Strict Mode,
+// so the DOM is rendered through a portal into the element given to CSS3DObject (keeps the Next router).
+// The boxes sit flat on the pages: the right page is flat past the gutter; the left page (back of the
+// last turned sheet) is flat from ~4cm out, and its content is centred, away from the curl.
+interface CssLayer { renderer: CSS3DRenderer; left: HTMLDivElement; right: HTMLDivElement }
+const LEFT_Y = (() => { const c = sheetCurve(SHEETS - 1, 1); return c.pts[c.pts.length - 1][1]; })();
+const PAGE_LIFT = 0.06;
+function PageBox({ el, x, y }: { el: HTMLDivElement; x: number; y: number }) {
   const obj = useMemo(() => {
+    el.style.width = PAGE_PX + "px"; el.style.height = PAGE_H_PX + "px";
     const o = new CSS3DObject(el);
-    const x = GUTTER_X + (rect.x + rect.w / 2) * PX_CM, z = BLOCK.z0 + (rect.y + rect.h / 2) * PX_CM;
-    o.position.set(x, blockTop(x) + 0.08, z); o.rotation.set(-Math.PI / 2, 0, 0); o.scale.setScalar(PX_CM);
+    o.position.set(x, y, (BLOCK.z0 + BLOCK.z1) / 2); o.rotation.set(-Math.PI / 2, 0, 0); o.scale.setScalar(PX_CM);
     return o;
-  }, [el, rect]);
+  }, [el, x, y]);
   return <primitive object={obj} />;
 }
 
-/** Fades the page's DOM controls in at the end of opening; hidden and inert otherwise. */
+/** Shows the page content only once the book is fully open (hidden, inert and out of the tab order
+ *  otherwise), and keeps --k = page px per screen px so text never drops below its minimum size. */
 function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
-  const els = useMemo(() => [layer.start, layer.mine, layer.close], [layer]);
-  const shown = useRef<boolean | null>(null);
+  const els = useMemo(() => [layer.left, layer.right], [layer]);
+  const shown = useRef<boolean | null>(null), lastK = useRef(0);
+  const camera = useThree(s => s.camera), size = useThree(s => s.size);
+  const a = useMemo(() => new THREE.Vector3(), []), b = useMemo(() => new THREE.Vector3(), []);
   useFrame(() => {
-    const o = clamp01((anim.t - 0.85) / 0.15);
+    const o = clamp01((anim.t - 0.9) / 0.1);
     for (const el of els) el.style.opacity = String(o);
-    const vis = o > 0.5;
+    const vis = anim.t >= 0.999;
     if (vis !== shown.current) { shown.current = vis; for (const el of els) { el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; } }
+    if (o > 0) {
+      const y = FAB + blockTop(BLOCK.x1);
+      a.set(GUTTER_X, y, 0).project(camera); b.set(GUTTER_X + SHEET_W, y, 0).project(camera);
+      const px = Math.abs(b.x - a.x) / 2 * size.width, k = px > 1 ? PAGE_PX / px : 1;
+      if (Math.abs(k - lastK.current) > 0.01) { lastK.current = k; for (const el of els) el.style.setProperty("--k", k.toFixed(3)); }
+    }
   });
   return (
     <>
-      <PageLink el={layer.start} rect={PAGE_LAYOUT.button} />
-      <PageLink el={layer.mine} rect={PAGE_LAYOUT.mine} />
+      <PageBox el={layer.left} x={GUTTER_X - SHEET_W / 2} y={LEFT_Y + PAGE_LIFT} />
+      <PageBox el={layer.right} x={GUTTER_X + SHEET_W / 2} y={blockTop(BLOCK.x1) + PAGE_LIFT} />
     </>
   );
 }
 
-/** "Close" on the first page you see: the left page on wide screens; on phones, where the camera frames
- *  only the right page, its upper left corner (phones have no Esc key, so it must stay reachable). */
-const CLOSE_PX: [number, number] = [30, 30];
-function PageClose({ layer }: { layer: CssLayer }) {
-  const desk = useThree(s => s.size.width) >= DESK_MIN;
-  const obj = useMemo(() => {
-    const o = new CSS3DObject(layer.close);
-    if (desk) {
-      const c = sheetCurve(SHEETS - 1, 1), n = c.pts.length - 1;
-      const i = Math.round(n * (SHEET_W - 2.2) / SHEET_W), p = c.pts[i], a = c.heads[Math.min(i, c.heads.length - 1)];
-      o.position.set(p[0], p[1] + 0.06, BLOCK.z0 + 1.3);
-      // lie flat on the page, then follow its slope
-      o.rotation.order = "ZYX"; o.rotation.set(-Math.PI / 2, 0, a - Math.PI);
-    } else {
-      const x = GUTTER_X + (PAGE_LAYOUT.pad + CLOSE_PX[0] / 2) * PX_CM, z = BLOCK.z0 + (28 + CLOSE_PX[1] / 2) * PX_CM;
-      o.position.set(x, blockTop(x) + 0.08, z); o.rotation.set(-Math.PI / 2, 0, 0);
-    }
-    o.scale.setScalar(PX_CM);
-    return o;
-  }, [layer, desk]);
-  return <primitive object={obj} />;
+/** Lavender ribbon bookmark: from the gutter, out past the tail of the book; seen only when open. */
+function Bookmark({ anim }: { anim: Anim }) {
+  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#B3A0C8", roughness: 0.8, metalness: 0, transparent: true, opacity: 0, side: THREE.DoubleSide }), []);
+  const mesh = useRef<THREE.Mesh>(null);
+  useFrame(() => { const o = clamp01((anim.t - 0.9) / 0.1); mat.opacity = o; if (mesh.current) mesh.current.visible = o > 0; });
+  useEffect(() => () => mat.dispose(), [mat]);
+  const len = 4.2, z0 = BLOCK.z1 - 2.4;
+  return (
+    <mesh ref={mesh} material={mat} position={[GUTTER_X - 0.45, LEFT_Y + 0.02, z0 + len / 2]} rotation-x={-Math.PI / 2} rotation-z={0.03} receiveShadow>
+      <planeGeometry args={[0.55, len]} />
+    </mesh>
+  );
 }
 
 function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void; layer: CssLayer; m: BookMaterials }) {
@@ -225,7 +226,7 @@ function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void;
       <SpineCloth anim={anim} m={m} />
       <FrontCover anim={anim} m={m} />
       <PageControls anim={anim} layer={layer} />
-      <PageClose layer={layer} />
+      <Bookmark anim={anim} />
     </group>
   );
 }
@@ -236,8 +237,9 @@ const FOV = 22;
 // from the granny square (a true square): corners at (1152,542) (1382,632) (1260,802) (1020,692) in
 // hero-bg.webp -> seen from ~45 degrees above the table. The book is turned ~15 degrees on the table.
 const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 45), THREE.MathUtils.degToRad(15));
-// open: high and from the front, so the spread reads like a page
-const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 72), 0);
+// open: nearly straight down (86 degrees), like the design comp (legacy/pic/book_refer.png), so the pages
+// read flat; not exactly 90, where lookAt with up = +y degenerates
+const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 86), 0);
 const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2)); return Math.max(hh / t, hw / (t * aspect)); };
 
 // The hero is laid out on a "stage" with the design comp's proportions (1871 x 841), centred on screen,
@@ -290,7 +292,7 @@ function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
     const cDist = anchor.d;
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
-    const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.52, D / 2 / 0.64, aspect); // open spread ~52% of the width
+    const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / Math.min(0.78, 1500 / size.width), D / 2 / 0.94, aspect); // open spread: 78% of the width (max 1500px), at most 94% of the height
     v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).normalize();
     v.tgt.copy(cTgt).lerp(oTgt, e);
     const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
@@ -371,7 +373,7 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
   const [layer] = useState<CssLayer>(() => {
     const mk = (id: string) => { const el = document.createElement("div"); el.id = id; el.style.opacity = "0"; el.inert = true; return el; };
     const renderer = new CSS3DRenderer(); renderer.domElement.className = "css3d-layer";
-    return { renderer, start: mk("bookRight"), mine: mk("bookMine"), close: mk("bookClose") };
+    return { renderer, left: mk("bookLeft"), right: mk("bookRight") };
   });
   useEffect(() => { cssHost.current!.appendChild(layer.renderer.domElement); return () => { layer.renderer.domElement.remove(); }; }, [layer]);
   return (
@@ -391,15 +393,8 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
         <Scene open={open} setOpen={setOpen} reduce={reduce} layer={layer} />
       </Canvas>
       <div ref={cssHost} />
-      {createPortal(<Link className="btn btn-primary page3d-btn" href="/new">도안 만들기</Link>, layer.start)}
-      {createPortal(<Link className="page3d-link" href="/mine" style={{ width: PAGE_LAYOUT.mine.w, height: PAGE_LAYOUT.mine.h }}>내 작품 →</Link>, layer.mine)}
-      {createPortal(<button type="button" className="page3d-close" style={{ width: CLOSE_PX[0], height: CLOSE_PX[1] }} onClick={() => setOpen(false)} aria-label="Close the book">‹</button>, layer.close)}
-      {/* the printed page text, for screen readers */}
-      <div className="sr" lang="en">
-        <p>Yarnity / Intelligent Crochet</p>
-        <p>Your creativity. Our intelligence. Every stitch, together.</p>
-        <p>Generate your patterns with AI. Track every stitch. Bring your ideas to life.</p>
-      </div>
+      {createPortal(<LeftPage />, layer.left)}
+      {createPortal(<RightPage onClose={() => setOpen(false)} />, layer.right)}
     </div>
   );
 }

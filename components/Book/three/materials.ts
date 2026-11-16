@@ -60,8 +60,6 @@ export function useBookMaterials(): BookMaterials {
     const pageFront = paper(P.blank, THREE.FrontSide), pageBack = paper(P.blank, THREE.BackSide, true);
     // printed pages: right = the page under the turning sheets; left = back of the last turned sheet
     const rightPage = paper(P.right, THREE.FrontSide), leftPage = paper(P.left, THREE.BackSide, true);
-    // web fonts may arrive after the first draw: reprint once they are ready
-    document.fonts?.ready.then(() => { drawRightPage(P.right); drawLeftPage(P.left); rightPage.map!.needsUpdate = true; leftPage.map!.needsUpdate = true; invalidate(); });
 
     // page block faces: [+x fore edge, -x spine side, +y top, -y, +z tail, -z head]
     const edge = (cv: HTMLCanvasElement) => new THREE.MeshStandardMaterial({ map: canvasTexture(cv, true, gl, [1, 1]), roughness: 0.97, metalness: 0 });

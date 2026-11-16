@@ -19,12 +19,7 @@
 /* spine: lavender cloth, gently rounded (a soft highlight across, darker at both joints) */
 .spine{position:absolute;pointer-events:none;left:0;top:0;height:100%;width:calc(var(--P) + var(--C) * 2);transform-origin:left center;transform:rotateY(-90deg);border-radius:calc(var(--R) * 2) / var(--R);background:linear-gradient(90deg,rgba(40,25,60,.26),rgba(255,255,255,.12) 45%,rgba(255,255,255,.04) 60%,rgba(40,25,60,.26)),var(--lav)}
 .pg-right,.cover,.face{position:absolute;inset:0;border-radius:var(--R)}
-.pg-right{inset:var(--I) var(--I) var(--I) 0;border-radius:1px 3px 3px 1px;align-self:stretch;justify-self:stretch;background:#FBF8F2;color:#2B2523;transform:translateZ(calc(var(--C) + var(--P) - .5px));padding:clamp(20px,2.4vw,34px);display:flex;flex-direction:column;justify-content:center;gap:8px;box-shadow:inset 18px 0 22px -18px rgba(0,0,0,.22)}
-.pg-right h1{font-size:clamp(19px,1.75vw,24px)}
-.pg-right p{font-size:13px;color:#776D68}
-.pg-right .eyebrow{color:#776D68}
-.pg-right .btn-primary{background:#3A322F;color:#fff}
-.pg-right .hero-cta{margin-top:10px}
+.pg-right{inset:var(--I) var(--I) var(--I) 0;border-radius:1px 3px 3px 1px;background:#FBF3EA;transform:translateZ(calc(var(--C) + var(--P) - .5px));box-shadow:inset calc(var(--W) * .08) 0 calc(var(--W) * .07) calc(var(--W) * -.06) rgba(70,50,30,.2);overflow:hidden}
 .cover{transform-style:preserve-3d;transform-origin:left center;transform:translateZ(calc(var(--C) + var(--P)));transition:transform 1.2s .12s cubic-bezier(.5,.05,.2,1)}
 .book.is-open .cover{transform:translateZ(calc(var(--C) + var(--P))) rotateY(-180deg)}
 .face{backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
@@ -33,46 +28,69 @@
 .front canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 /* inside of the front cover: cream endpaper */
 .back{transform:rotateY(180deg);background:var(--lav)}
-.back .paper{position:absolute;inset:1px;border-radius:var(--R);background:#F6EFE2;display:grid;place-items:center;box-shadow:inset -18px 0 22px -18px rgba(0,0,0,.22)}
-.back canvas{width:82%;aspect-ratio:1;height:auto}
-.back .cap{position:absolute;left:14px;bottom:14px;font-size:12px;color:#7A706B}
+.back .paper{position:absolute;inset:1px;border-radius:var(--R);background:#FBF3EA;box-shadow:inset calc(var(--W) * -.08) 0 calc(var(--W) * .07) calc(var(--W) * -.06) rgba(70,50,30,.2);container-type:inline-size}
 .book.is-open .spine{visibility:hidden;transition:visibility 0s .8s}
 @media (max-width:760px){
   .bookstage{--W:min(54vw,232px);min-height:clamp(540px,calc(100svh - 160px),740px)}
   .book.is-open{transform:translateX(0) translateZ(calc(-1 * (var(--P) + var(--C)))) rotateX(0) rotateZ(0) scale(1.22)}
   .book.is-open::before{inset:5% -1% -3% -1%}
-  .bookstage .pg-right{padding:14px 15px;gap:6px}
-  .bookstage .pg-right .eyebrow{font-size:9.5px;margin-bottom:2px}
-  .bookstage .pg-right h1{font-size:16px}
-  .bookstage .pg-right p{font-size:11.5px;line-height:1.5}
-  .bookstage .pg-right .hero-cta{margin-top:6px}
-  .bookstage .pg-right .btn{min-height:32px;padding:0 13px;font-size:12px;border-radius:8px}
-  .back .cap{left:8px;bottom:9px;font-size:9.5px}
 }
 @media (prefers-reduced-motion:reduce){.book,.cover,.book::before{transition:none}}
-/* In the prototype this globals.css rule came after the book rules and won the cascade
-   (.pg-right also has .hero-copy). Repeated here so the 761-900px layout stays identical. */
-@media (max-width:900px){.hero-copy{padding-top:24px}}
 /* WebGL book (components/Book/three). The canvas is transparent so the page background shows through. */
 .stage3d{position:relative;width:100%;height:clamp(520px,calc(100svh - 240px),780px);opacity:0;transition:opacity .6s ease}
 .stage3d.ready{opacity:1}
 .stage3d canvas{display:block;touch-action:pan-y}
-.page3d{width:360px;padding:34px;display:flex;flex-direction:column;justify-content:center;gap:8px;color:#2B2523}
-.page3d h1{font-size:24px}
-.page3d p{font-size:13px;color:#776D68}
-.page3d .eyebrow{color:#776D68}
-.page3d .btn-primary{background:#3A322F;color:#fff}
-.page3d .hero-cta{margin-top:10px}
 @media (max-width:760px){.stage3d{height:clamp(480px,calc(100svh - 200px),700px)}}
 .css3d-layer{position:absolute!important;inset:0;pointer-events:none;overflow:hidden}
-/* real "Start Creating" button laid on the printed right page (CSS3DRenderer) */
-.page3d-btn{width:128px;height:42px;min-height:42px;padding:0;background:#3A322F;color:#fff;font-size:13.5px}
-.page3d-link{display:inline-flex;align-items:center;color:#5E534D;font-family:"Newsreader","Noto Serif KR",Georgia,serif;font-size:13.5px;text-decoration:none;white-space:nowrap}
-.page3d-link:hover{color:#2E2420}
-.page-link{font-size:13px;color:#5E534D;text-decoration:none;align-self:center}
-/* "Close" on the first page of the open book (DOM laid on the page) */
-.page3d-close{display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:0;color:#7A5A45;font-family:"Newsreader",Georgia,serif;font-size:24px;line-height:1;cursor:pointer}
-.page3d-close:hover{color:#2E2420}
-.page3d-close:focus-visible{outline:2px solid #2E2420;outline-offset:3px;border-radius:4px}
-.page-close{position:absolute;left:10px;top:8px;z-index:2;background:none;border:0;padding:2px 6px;color:#7A5A45;font-family:"Newsreader",Georgia,serif;font-size:22px;line-height:1;cursor:pointer}
-.page-close:hover{color:#2E2420}
+/* ---- open book: page content (components/Book/PageSpread.tsx; design comp legacy/pic/book_refer.png) ----
+   Each page box is a size container: positions in % of the page, type in cqw (page width). --k converts
+   screen px to page px (the WebGL book lays a 720px-wide box on a page that may be ~540px on screen), so
+   max(..., 13px * --k) keeps body text at least 13 screen px. */
+.pg-page{position:relative;width:100%;height:100%;container-type:size;color:#3A2E29;font-family:"Newsreader","Noto Serif KR",Georgia,serif;text-align:center;overflow:hidden} /* the motif is cut by the page edge */
+.pg-page p{margin:0}
+.pg-logo{position:absolute;left:18.5%;width:63%;top:16.5%;margin:0;line-height:0}
+.pg-logo img{width:100%;height:auto;display:block}
+.pg-cap{position:absolute;left:0;right:0;top:44%;transform:translateY(-50%);font-size:max(2.85cqw,calc(9px * var(--k,1)));font-weight:500;letter-spacing:.3em;padding-left:.3em;text-transform:uppercase;color:#3A2E29}
+.pg-rule{position:absolute;left:calc(50% - 4.85cqw);width:9.7cqw;top:50%;border-top:1px solid rgba(111,94,87,.45)}
+.pg-tag{position:absolute;left:0;right:0;top:57%;transform:translateY(-50%);font-style:italic;font-size:max(4.1cqw,calc(14px * var(--k,1)));color:#6F5E57}
+.pg-ko{position:absolute;left:0;right:0;top:64.6%;transform:translateY(-50%);font-family:"Noto Serif KR",serif;font-size:max(2.75cqw,calc(13px * var(--k,1)));line-height:1.75;color:#5A4A44}
+.pg-yarn{position:absolute;left:25%;width:55%;top:75%;height:auto;overflow:visible}
+/* right page */
+.pg-actions{position:absolute;left:14.6%;width:70.8%;top:0;height:100%}
+.pg-act{position:absolute;left:0;width:100%;height:13.2cqh;transform:translateY(-50%);display:flex;align-items:center;box-sizing:border-box;border-radius:2.4cqw;text-decoration:none;font-family:"Noto Serif KR",serif;font-size:max(3.9cqw,calc(14px * var(--k,1)));font-weight:500;color:#3A2E29;border:1px solid #B9A79C;background:rgba(251,243,234,.4);transition:background-color .2s,box-shadow .2s}
+.pg-act:first-child{top:37.1%}
+.pg-act:last-child{top:54.3%}
+.pg-act svg{flex:none;width:8.6cqw;height:8.6cqw;margin-left:9.5%}
+.pg-sep{flex:none;width:1px;align-self:center;height:46%;background:currentColor;opacity:.35;margin:0 5.6% 0 8.5%}
+.pg-label{flex:1;text-align:left;white-space:nowrap}
+.pg-arrow{flex:none;margin-right:6.5%;font-family:system-ui,sans-serif;font-size:1.05em;transition:transform .2s ease}
+.pg-act:hover .pg-arrow,.pg-act:focus-visible .pg-arrow{transform:translateX(4px)}
+.pg-act:hover{background:rgba(251,243,234,.9)}
+.pg-act-primary{background:#6E5350;border-color:#6E5350;color:#FBF3EA;box-shadow:0 .4cqw 1.2cqw rgba(70,45,40,.18)}
+.pg-act-primary:hover{background:#634946}
+.pg-act:focus-visible,.pg-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
+.pg-ribbon{position:absolute;right:5.8%;top:0;width:10.6%;background:none;border:0;padding:0;cursor:pointer;display:block;transition:transform .2s ease}
+.pg-ribbon-tab{display:grid;place-items:start center;padding-top:28%;aspect-ratio:78 / 107;background:#B3A0C8;clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);color:#FBF3EA;box-shadow:inset -2px 0 3px rgba(60,40,90,.15)}
+.pg-ribbon-tab svg{width:52%;height:auto}
+.pg-ribbon-tip{position:absolute;right:calc(100% + 1.2cqw);top:38%;white-space:nowrap;font-family:"Noto Serif KR",serif;font-size:max(2cqw,calc(12px * var(--k,1)));color:#6F5E57;opacity:0;transform:translateX(4px);transition:opacity .2s,transform .2s;pointer-events:none}
+.pg-ribbon:hover,.pg-ribbon:focus-visible{transform:translateY(4px)}
+.pg-ribbon:hover .pg-ribbon-tip,.pg-ribbon:focus-visible .pg-ribbon-tip{opacity:1;transform:none}
+.pg-motif{position:absolute;right:-9%;bottom:-8%;width:66%;height:auto;pointer-events:none;filter:drop-shadow(0 .5cqw .8cqw rgba(70,50,35,.14))}
+.pg-phone-brand{display:none}
+/* phones: the camera frames only the right page -> one page, stacked: logo, caption, copy, buttons, motif */
+@media (max-width:899px){
+  .pg-lp{display:none}
+  .pg-phone-brand{display:block}
+  .pg-rp .pg-logo{left:19%;width:62%;top:6.5%}
+  .pg-rp .pg-cap{top:34%;font-size:max(3.4cqw,calc(10px * var(--k,1)))}
+  .pg-rp .pg-rule{top:38%}
+  .pg-rp .pg-tag{top:42.5%;font-size:max(4.6cqw,calc(13px * var(--k,1)))}
+  .pg-rp .pg-ko{top:51%;font-size:max(4cqw,calc(13px * var(--k,1)))}
+  .pg-actions{left:10%;width:80%}
+  .pg-act{height:10.5cqh;font-size:max(4.6cqw,calc(14px * var(--k,1)));border-radius:3.2cqw}
+  .pg-act:first-child{top:64%}
+  .pg-act:last-child{top:76.5%}
+  .pg-act svg{width:9.5cqw;height:9.5cqw;margin-left:7%}
+  .pg-ribbon{width:12%}
+  .pg-motif{width:44%;right:-8%;bottom:-8%}
+}
