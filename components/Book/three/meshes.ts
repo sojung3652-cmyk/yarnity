@@ -48,42 +48,6 @@ export function updateRibbon(g: THREE.BufferGeometry, path: PathPoint[]) {
   g.computeBoundingSphere();
 }
 
-const RADIAL = 12;
-
-/** Crochet edging round along the sleeve's raw edge (z = zEdge), following the same path. */
-export function createEdge(path: PathPoint[], zEdge: number, r: number, rz = r) {
-  const n = path.length, g = new THREE.BufferGeometry(), verts = n * (RADIAL + 1);
-  g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(verts * 3), 3));
-  g.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(verts * 3), 3));
-  g.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(verts * 2), 2));
-  const idx: number[] = [];
-  for (let i = 0; i < n - 1; i++) for (let j = 0; j < RADIAL; j++) {
-    const a = i * (RADIAL + 1) + j, b = (i + 1) * (RADIAL + 1) + j;
-    idx.push(a, a + 1, b, b, a + 1, b + 1); // outward-facing (ring runs n -> z around the tangent)
-  }
-  g.setIndex(idx);
-  updateEdge(g, path, zEdge, r, rz);
-  return g;
-}
-
-/** r: half size across the fabric (along its normal), rz: half size along Z (a flat tape when r < rz). */
-export function updateEdge(g: THREE.BufferGeometry, path: PathPoint[], zEdge: number, r: number, rz = r) {
-  const pos = g.attributes.position.array as Float32Array, nor = g.attributes.normal.array as Float32Array, uv = g.attributes.uv.array as Float32Array;
-  const circ = 2 * Math.PI * r;
-  path.forEach(({ p, n, u }, i) => {
-    for (let j = 0; j <= RADIAL; j++) {
-      const f = (j / RADIAL) * Math.PI * 2, c = Math.cos(f), s = Math.sin(f), k = i * (RADIAL + 1) + j;
-      pos[k * 3] = p[0] + n[0] * c * r; pos[k * 3 + 1] = p[1] + n[1] * c * r; pos[k * 3 + 2] = zEdge + s * rz;
-      // ellipse normal: gradient of (a/r)^2 + (b/rz)^2
-      let nx = n[0] * c / r, ny = n[1] * c / r, nz = s / rz; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
-      nor[k * 3] = nx; nor[k * 3 + 1] = ny; nor[k * 3 + 2] = nz;
-      uv[k * 2] = u; uv[k * 2 + 1] = (j / RADIAL) * circ;
-    }
-  });
-  g.attributes.position.needsUpdate = true; g.attributes.normal.needsUpdate = true; g.attributes.uv.needsUpdate = true;
-  g.computeBoundingSphere();
-}
-
 // ---- paper sheets ----
 const SZ = 2;
 /** A sheet: NS segments along its width (spine -> fore edge), uv.x = 0 at the gutter, uv.y = 1 at the head. */
@@ -116,49 +80,3 @@ export function updateSheet(g: THREE.BufferGeometry, pts: V2[], heads: number[])
   g.attributes.position.needsUpdate = true; g.attributes.normal.needsUpdate = true; g.computeBoundingSphere();
 }
 export { SHEET_W };
-
-// ---- cover border: open "ㄷ" tube with a fixed frame ----
-/**
- * Tube along a flat open path (x, z) at height y. The cross-section is oriented against a fixed up
- * vector (the cover's normal) instead of three's Frenet frames, so the yarn pattern cannot twist.
- * uv.x runs along the tube in cm, scaled so the pattern repeats a whole number of times (tileCm).
- */
-export function flatTube(pts: [number, number][], y: number, r: number, tileCm: number, radial = 16, rUp = r) {
-  const n = pts.length, g = new THREE.BufferGeometry(), pos: number[] = [], nor: number[] = [], uv: number[] = [], idx: number[] = [];
-  const cum = [0]; for (let i = 1; i < n; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
-  const L = cum[n - 1], k = Math.max(1, Math.round(L / tileCm)), scale = (k * tileCm) / L, circ = Math.PI * (r + rUp);
-  for (let i = 0; i < n; i++) {
-    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)], tx = b[0] - a[0], tz = b[1] - a[1], tl = Math.hypot(tx, tz) || 1;
-    const side: [number, number] = [tz / tl, -tx / tl]; // in-plane, perpendicular to the path
-    for (let j = 0; j <= radial; j++) {
-      const f = (j / radial) * Math.PI * 2, c = Math.cos(f), s = Math.sin(f);
-      // ring = up * cos * rUp + side * sin * r (an ellipse: a flat tape when rUp < r)
-      pos.push(pts[i][0] + side[0] * s * r, y + c * rUp, pts[i][1] + side[1] * s * r);
-      let nx = side[0] * s / r, ny = c / rUp, nz = side[1] * s / r; const l = Math.hypot(nx, ny, nz) || 1; nor.push(nx / l, ny / l, nz / l);
-      uv.push(cum[i] * scale, (j / radial) * circ);
-    }
-  }
-  for (let i = 0; i < n - 1; i++) for (let j = 0; j < radial; j++) {
-    const a = i * (radial + 1) + j, b = (i + 1) * (radial + 1) + j;
-    idx.push(a, b, a + 1, b, b + 1, a + 1);
-  }
-  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
-  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
-  // make sure the triangles face outwards (winding depends on the path direction)
-  g.computeBoundingSphere();
-  return g;
-}
-
-/** "ㄷ" outline of a cover's border: head edge, fore edge, tail edge; open at the spine, ends tucked under it. */
-export function borderPath(w: number, d: number, out: number, corner: number, tuck: number, step = 0.2): [number, number][] {
-  const x0 = -w / 2 - tuck, x1 = w / 2 + out, z0 = -d / 2 - out, z1 = d / 2 + out, pts: [number, number][] = [];
-  const line = (a: [number, number], b: [number, number]) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.max(1, Math.ceil(L / step)); for (let i = 0; i < m; i++) pts.push([a[0] + (b[0] - a[0]) * i / m, a[1] + (b[1] - a[1]) * i / m]); };
-  const arc = (cx: number, cz: number, a0: number, a1: number) => { const m = 28; for (let i = 0; i < m; i++) { const a = a0 + (a1 - a0) * i / m; pts.push([cx + corner * Math.cos(a), cz + corner * Math.sin(a)]); } };
-  line([x0, z0], [x1 - corner, z0]);                                  // head edge, from the spine to the fore edge
-  arc(x1 - corner, z0 + corner, -Math.PI / 2, 0);                      // rounded corner
-  line([x1, z0 + corner], [x1, z1 - corner]);                          // fore edge
-  arc(x1 - corner, z1 - corner, 0, Math.PI / 2);
-  line([x1 - corner, z1], [x0, z1]);                                   // tail edge, back to the spine
-  pts.push([x0, z1]);
-  return pts;
-}

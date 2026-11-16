@@ -1,23 +1,25 @@
-/* 3D book. Moved verbatim from legacy/index.html (lines 65-138). Loaded after globals.css. */
-/* 3D hardcover book in a thin crochet sleeve
-   back cover (sleeve + board) -> page block -> front cover (board + sleeve), front cover hinges on the spine */
-.bookstage{--W:clamp(250px,25vw,360px);--H:calc(var(--W) * 4 / 3);--P:calc(var(--W) * .15);--C:4px;--lav:#B29CD9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(600px,calc(100svh - 180px),860px);overflow-x:clip;padding-block:8px}
-.knit{background-color:var(--lav);background-image:var(--knitimg,none);background-size:12px 14px}
+/* CSS 3D cloth hardcover: fallback when WebGL is unavailable (components/Book/BookCSS.tsx).
+   back board -> page block -> front board; the front board hinges on the spine. Proportions follow the
+   WebGL book (three/geometry.ts): cover 4:5, thickness 15% of the width, 3mm boards, pages inset 3mm. */
+.bookstage{--W:clamp(250px,25vw,360px);--H:calc(var(--W) * 5 / 4);--P:calc(var(--W) * .15);--C:calc(var(--W) * .019);--I:calc(var(--W) * .019);--R:calc(var(--W) * .016);--lav:#B9A6DC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(600px,calc(100svh - 180px),860px);overflow-x:clip;padding-block:8px}
 .scene{width:var(--W);height:var(--H);perspective:2000px;perspective-origin:50% 30%}
-.book{position:relative;width:100%;height:100%;transform-style:preserve-3d;cursor:pointer;transform:translateY(3%) rotateX(52deg) rotateZ(24deg);transition:transform 1.2s cubic-bezier(.22,.7,.18,1)}
+.book{position:relative;width:100%;height:100%;transform-style:preserve-3d;cursor:pointer;transform:translateY(3%) rotateX(54deg) rotateZ(15deg);transition:transform 1.2s cubic-bezier(.22,.7,.18,1)}
 .book.is-open{cursor:default;transform:translateX(calc(var(--W) / 2)) translateZ(calc(-1 * (var(--P) + var(--C)))) rotateX(0) rotateZ(0)}
-.book::before{content:"";position:absolute;inset:4% 1% -4% 5%;background:rgba(43,30,26,.34);filter:blur(24px);transform:translateZ(-2px);border-radius:18px;transition:inset 1.2s cubic-bezier(.22,.7,.18,1),opacity 1.2s}
-.book.is-open::before{inset:5% -1% -3% -101%;opacity:.45}
-.sl{position:absolute;border-radius:13px;pointer-events:none}
-/* page block: three visible sides with fine page lines */
+/* cast shadow on the desk: light from the upper left (as in the backdrop photo) -> soft, short, to the lower right */
+.book::before{content:"";position:absolute;inset:2% -5% -5% 4%;background:rgba(74,49,40,.42);filter:blur(14px);transform:translateZ(-2px);border-radius:var(--R);transition:inset 1.2s cubic-bezier(.22,.7,.18,1),opacity 1.2s}
+.book::after{content:"";position:absolute;inset:0;background:rgba(74,49,40,.35);filter:blur(4px);transform:translateZ(-1px);border-radius:var(--R)} /* contact shadow */
+.book.is-open::before{inset:4% -2% -3% -100%;opacity:.5}
+.book.is-open::after{left:-100%}
+.bd{position:absolute;inset:0;border-radius:var(--R);background:var(--lav);pointer-events:none}
+/* page block: three visible sides with fine page lines, darker towards the boards */
 .pages-r,.pages-b,.pages-t{position:absolute;pointer-events:none}
-.pages-r{left:calc(100% - 7px);top:7px;width:var(--P);height:calc(100% - 14px);transform-origin:left center;transform:translateZ(var(--C)) rotateY(-90deg);background:linear-gradient(90deg,rgba(90,70,50,.18),transparent 18%,transparent 82%,rgba(90,70,50,.12)),repeating-linear-gradient(90deg,#E6DDCF 0 .7px,#FCF8F1 .7px 2.1px)}
-.pages-b{top:calc(100% - 7px);left:3px;width:calc(100% - 10px);height:var(--P);transform-origin:center top;transform:translateZ(var(--C)) rotateX(90deg);background:linear-gradient(0deg,rgba(90,70,50,.16),transparent 18%,transparent 82%,rgba(90,70,50,.12)),repeating-linear-gradient(0deg,#E6DDCF 0 .7px,#FCF8F1 .7px 2.1px)}
-.pages-t{top:7px;left:3px;width:calc(100% - 10px);height:var(--P);transform-origin:center top;transform:translateZ(var(--C)) rotateX(90deg);background:repeating-linear-gradient(0deg,#E6DDCF 0 .7px,#FCF8F1 .7px 2.1px)}
-/* spine: sleeve wraps the rounded spine from back cover to front cover */
-.spine{position:absolute;pointer-events:none;left:0;top:2px;height:calc(100% - 4px);width:calc(var(--P) + var(--C) * 2);transform-origin:left center;transform:rotateY(-90deg);border-radius:10px;background-image:linear-gradient(90deg,rgba(40,20,60,.28),rgba(255,255,255,.14) 45%,rgba(40,20,60,.28)),var(--knitimg,none);background-size:auto,12px 14px;background-color:var(--lav)}
-.pg-right,.cover,.face{position:absolute;inset:0;border-radius:12px}
-.pg-right{inset:7px 7px 7px 3px;border-radius:2px 5px 5px 2px;align-self:stretch;justify-self:stretch;background:#FBF8F2;color:#2B2523;transform:translateZ(calc(var(--C) + var(--P) - .5px));padding:clamp(20px,2.4vw,34px);display:flex;flex-direction:column;justify-content:center;gap:8px;box-shadow:inset 18px 0 22px -18px rgba(0,0,0,.22)}
+.pages-r{left:calc(100% - var(--I));top:var(--I);width:var(--P);height:calc(100% - 2 * var(--I));transform-origin:left center;transform:translateZ(var(--C)) rotateY(-90deg);background:linear-gradient(90deg,rgba(70,50,35,.2),transparent 12%,transparent 88%,rgba(70,50,35,.2)),repeating-linear-gradient(90deg,#E7DCC9 0 .6px,#F6EFE2 .6px 2px)}
+.pages-b{top:calc(100% - var(--I));left:0;width:calc(100% - var(--I));height:var(--P);transform-origin:center top;transform:translateZ(var(--C)) rotateX(90deg);background:linear-gradient(0deg,rgba(70,50,35,.2),transparent 12%,transparent 88%,rgba(70,50,35,.2)),linear-gradient(90deg,rgba(70,50,35,.25),transparent 10%),repeating-linear-gradient(0deg,#E7DCC9 0 .6px,#F6EFE2 .6px 2px)}
+.pages-t{top:var(--I);left:0;width:calc(100% - var(--I));height:var(--P);transform-origin:center top;transform:translateZ(var(--C)) rotateX(90deg);background:linear-gradient(90deg,rgba(70,50,35,.25),transparent 10%),repeating-linear-gradient(0deg,#E7DCC9 0 .6px,#F6EFE2 .6px 2px)}
+/* spine: lavender cloth, gently rounded (a soft highlight across, darker at both joints) */
+.spine{position:absolute;pointer-events:none;left:0;top:0;height:100%;width:calc(var(--P) + var(--C) * 2);transform-origin:left center;transform:rotateY(-90deg);border-radius:calc(var(--R) * 2) / var(--R);background:linear-gradient(90deg,rgba(40,25,60,.26),rgba(255,255,255,.12) 45%,rgba(255,255,255,.04) 60%,rgba(40,25,60,.26)),var(--lav)}
+.pg-right,.cover,.face{position:absolute;inset:0;border-radius:var(--R)}
+.pg-right{inset:var(--I) var(--I) var(--I) 0;border-radius:1px 3px 3px 1px;align-self:stretch;justify-self:stretch;background:#FBF8F2;color:#2B2523;transform:translateZ(calc(var(--C) + var(--P) - .5px));padding:clamp(20px,2.4vw,34px);display:flex;flex-direction:column;justify-content:center;gap:8px;box-shadow:inset 18px 0 22px -18px rgba(0,0,0,.22)}
 .pg-right h1{font-size:clamp(19px,1.75vw,24px)}
 .pg-right p{font-size:13px;color:#776D68}
 .pg-right .eyebrow{color:#776D68}
@@ -26,51 +28,26 @@
 .cover{transform-style:preserve-3d;transform-origin:left center;transform:translateZ(calc(var(--C) + var(--P)));transition:transform 1.2s .12s cubic-bezier(.5,.05,.2,1)}
 .book.is-open .cover{transform:translateZ(calc(var(--C) + var(--P))) rotateY(-180deg)}
 .face{backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
-/* outside of the front cover */
-.front{transform:translateZ(var(--C));box-shadow:inset 3px 4px 6px rgba(255,255,255,.35),inset -4px -5px 8px rgba(50,20,80,.32),inset 0 0 0 1px rgba(70,40,100,.25)}
-.front::after{content:"";position:absolute;left:0;top:0;bottom:0;width:16px;background:linear-gradient(90deg,rgba(40,20,60,.26),rgba(255,255,255,.1) 55%,transparent);pointer-events:none}
-.panel{position:absolute;inset:6.5%;border-radius:4px;overflow:hidden;box-shadow:0 0 0 1.5px rgba(80,50,110,.35),0 1px 3px rgba(40,20,60,.35)}
-.panel img{width:100%;height:100%;object-fit:cover;display:block}
-.panel::before{content:"";position:absolute;inset:7px;border:2px dashed #EFC66A;border-radius:3px;z-index:1;opacity:.95}
-.panel::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 8px rgba(60,30,60,.18)}
-.label{position:absolute;left:15%;bottom:13%;z-index:2;display:flex;flex-direction:column;gap:1px;color:#2B2523;padding:7px 14px 8px;border-radius:1.5px;transform:rotate(-1.2deg);background:repeating-linear-gradient(0deg,rgba(90,70,50,.05) 0 1px,transparent 1px 2px),repeating-linear-gradient(90deg,rgba(90,70,50,.04) 0 1px,transparent 1px 2px),#F6F1E6;box-shadow:0 .5px 1px rgba(60,40,30,.3),0 1.5px 3px rgba(60,40,30,.14)}
-.label::before,.label::after{content:"";position:absolute;top:3px;bottom:3px;border-left:1.3px dashed rgba(140,118,175,.85)}
-.label::before{left:4px}.label::after{right:4px}
-.label b{font-size:clamp(14px,1.35vw,18px);font-weight:700;letter-spacing:-.02em;line-height:1.1}
-.label span{font:600 clamp(7.5px,.62vw,9px)/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#4A413D}
-/* inside of the front cover: board edge, sleeve flap, endpaper */
-.back{transform:rotateY(180deg)}
-.back .paper{position:absolute;inset:5px;border-radius:3px 9px 9px 3px;background:#FBF8F2;display:grid;place-items:center;padding-left:22%;box-shadow:inset -18px 0 22px -18px rgba(0,0,0,.22)}
-.flap{position:absolute;left:0;top:0;bottom:0;width:24%;z-index:1;border-radius:12px 6px 6px 12px;box-shadow:3px 0 5px rgba(40,20,60,.22),inset -3px 0 4px rgba(255,255,255,.22)}
+/* outside of the front cover: the shared cover art (band, hinge groove, picture, label) on cloth */
+.front{transform:translateZ(var(--C));background:var(--lav);box-shadow:inset 0 0 0 .5px rgba(60,40,90,.25)}
+.front canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* inside of the front cover: cream endpaper */
+.back{transform:rotateY(180deg);background:var(--lav)}
+.back .paper{position:absolute;inset:1px;border-radius:var(--R);background:#F6EFE2;display:grid;place-items:center;box-shadow:inset -18px 0 22px -18px rgba(0,0,0,.22)}
 .back canvas{width:82%;aspect-ratio:1;height:auto}
-.back .cap{position:absolute;left:calc(24% + 12px);bottom:14px;font-size:12px;color:#7A706B}
-/* baked crochet surfaces (replace the fallback tile, glossy overlays and bumper shadows) */
-.baked .front{background:none;box-shadow:none}
-.baked .front .panel{display:none}
-.front-tex{position:absolute;inset:0;width:100%;height:100%;display:block}
-.baked .front::after{width:10px;background:linear-gradient(90deg,rgba(40,20,60,.16),transparent);z-index:1}
-.baked .back,.baked .flap{background-color:#B3A0D8;background-size:100% 100%;background-repeat:no-repeat}
-.baked .flap{background-size:calc(100% / .24) 100%;background-position:left top;box-shadow:2px 0 4px rgba(40,20,60,.2)}
-.book.is-open .spine,.book.is-open .cover .sl{visibility:hidden;transition:visibility 0s .8s}
-.baked .spine{background-color:#B3A0D8;background-size:100% 100%;background-repeat:no-repeat}
-.baked .sl-top{background-size:100% 100%}
-.sl{border-radius:calc(var(--W) * .035)}
-.open-btn{display:inline-flex;align-items:center;gap:8px;margin-top:26px;padding:9px 18px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;cursor:pointer}
-.open-btn:hover{border-color:var(--muted)}
+.back .cap{position:absolute;left:14px;bottom:14px;font-size:12px;color:#7A706B}
+.book.is-open .spine{visibility:hidden;transition:visibility 0s .8s}
 @media (max-width:760px){
   .bookstage{--W:min(54vw,232px);min-height:clamp(540px,calc(100svh - 160px),740px)}
   .book.is-open{transform:translateX(0) translateZ(calc(-1 * (var(--P) + var(--C)))) rotateX(0) rotateZ(0) scale(1.22)}
   .book.is-open::before{inset:5% -1% -3% -1%}
-  .open-btn{margin-top:56px}
-  .panel::before{inset:5px;border-width:1.5px}
-  .label{padding:6px 9px 7px}
   .bookstage .pg-right{padding:14px 15px;gap:6px}
   .bookstage .pg-right .eyebrow{font-size:9.5px;margin-bottom:2px}
   .bookstage .pg-right h1{font-size:16px}
   .bookstage .pg-right p{font-size:11.5px;line-height:1.5}
   .bookstage .pg-right .hero-cta{margin-top:6px}
   .bookstage .pg-right .btn{min-height:32px;padding:0 13px;font-size:12px;border-radius:8px}
-  .back .cap{left:calc(24% + 8px);bottom:9px;font-size:9.5px}
+  .back .cap{left:8px;bottom:9px;font-size:9.5px}
 }
 @media (prefers-reduced-motion:reduce){.book,.cover,.book::before{transition:none}}
 /* In the prototype this globals.css rule came after the book rules and won the cascade
@@ -94,8 +71,8 @@
 .page3d-link:hover{color:#2E2420}
 .page-link{font-size:13px;color:#5E534D;text-decoration:none;align-self:center}
 /* "Close" on the first page of the open book (DOM laid on the page) */
-.page3d-close{display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:0;color:#776D68;font-family:"Newsreader",Georgia,serif;font-size:14px;cursor:pointer}
+.page3d-close{display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:0;color:#7A5A45;font-family:"Newsreader",Georgia,serif;font-size:24px;line-height:1;cursor:pointer}
 .page3d-close:hover{color:#2E2420}
 .page3d-close:focus-visible{outline:2px solid #2E2420;outline-offset:3px;border-radius:4px}
-.page-close{position:absolute;left:calc(24% + 12px);top:12px;z-index:2;background:none;border:0;padding:4px;color:#776D68;font:inherit;font-size:12px;cursor:pointer}
+.page-close{position:absolute;left:10px;top:8px;z-index:2;background:none;border:0;padding:2px 6px;color:#7A5A45;font-family:"Newsreader",Georgia,serif;font-size:22px;line-height:1;cursor:pointer}
 .page-close:hover{color:#2E2420}

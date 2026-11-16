@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  B, BAND_L, BLOCK, blockTop, BOARD, BORDER_HW, BORDER_TUCK, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, COVER_INSIDE, D, FAB, H, N_BAND,
-  sheetCurve, SHEETS, sleevePath, spineBand, spineYarn, T, W, type V2,
+  B, BAND_L, BLOCK, blockTop, BOARD, coverPose, COVER_INSIDE, D, FAB, H, N_BAND,
+  sheetCurve, SHEETS, sleevePath, spineBand, spineCloth, SPINE_TURN, T, W, type V2,
 } from "@/components/Book/three/geometry";
 
 const ws = Array.from({ length: 51 }, (_, i) => i / 50);
@@ -18,10 +18,10 @@ const distToPolyline = (q: V2, pts: V2[]) => {
 };
 
 describe("proportions", () => {
-  it("4:5 cover, thickness 16% of the width, binding tape 2.5% of the width", () => {
+  it("4:5 cover, thickness 15% of the width, thin book cloth", () => {
     expect(W / D).toBeCloseTo(0.8, 5);
-    expect(T / W).toBeCloseTo(0.16, 5);
-    expect((2 * BORDER_HW) / W).toBeCloseTo(0.025, 5);
+    expect(T / W).toBeCloseTo(0.15, 5);
+    expect(FAB).toBeLessThan(0.1);
   });
 });
 
@@ -33,10 +33,11 @@ describe("spine band", () => {
       expect(L, `w=${w}`).toBeCloseTo(BAND_L, 1);
     }
   });
-  it("is a half round around the block when closed, ending exactly at the front cover", () => {
+  it("is a gentle curve round the block when closed (not a half round), ending exactly at the front cover", () => {
     const { F, A, pts } = spineBand(0);
     expect(F[0]).toBeCloseTo(-W / 2, 6); expect(F[1]).toBeCloseTo(T + H, 6); expect(A).toBe(0);
-    expect(Math.min(...pts.map(p => p[0]))).toBeLessThan(-W / 2 - 0.5); // bulges out
+    const bulge = -W / 2 - Math.min(...pts.map(p => p[0]));
+    expect(bulge).toBeGreaterThan(0.15); expect(bulge).toBeLessThan(T / 4); // a half round would bulge T / 2
   });
   it("lies flat on the table when fully open, the cover beside it", () => {
     const { pts, A } = spineBand(1);
@@ -85,20 +86,17 @@ describe("sleeve", () => {
   });
 });
 
-describe("borders meet the spine yarn", () => {
-  it("at every angle both ends of the spine yarn overlap the cover borders (no gap)", () => {
+describe("spine cloth", () => {
+  it("turns onto both boards at every angle (no seam at the joints)", () => {
     for (const w of ws) {
-      const yarn = spineYarn(w).map(q => q.p), pose = coverPose(w);
-      // border ends (centre line) tuck BORDER_TUCK past each cover's spine edge
-      const backEnd: V2 = [-W / 2 - BORDER_TUCK, BORDER_Y_BACK];
-      const frontEnd = pose.apply([-W / 2 - BORDER_TUCK, BORDER_Y_FRONT]);
-      expect(distToPolyline(backEnd, yarn), `w=${w} back`).toBeLessThan(BORDER_HW * 0.6);
-      expect(distToPolyline(frontEnd, yarn), `w=${w} front`).toBeLessThan(BORDER_HW * 0.6);
+      const c = spineCloth(w), pose = coverPose(w);
+      expect(c.length).toBe(N_BAND + 3);
+      // first point lies under the back board, last on the front board, SPINE_TURN in from the spine edge
+      expect(c[0].p[0]).toBeCloseTo(-W / 2 + SPINE_TURN, 6); expect(c[0].p[1]).toBeCloseTo(B[1], 6);
+      const onFront = pose.apply([-W / 2 + SPINE_TURN, T + H]);
+      expect(c[c.length - 1].p[0]).toBeCloseTo(onFront[0], 5); expect(c[c.length - 1].p[1]).toBeCloseTo(onFront[1], 5);
+      for (let i = 1; i < c.length; i++) expect(Math.hypot(c[i].p[0] - c[i - 1].p[0], c[i].p[1] - c[i - 1].p[1]), `w=${w} i=${i}`).toBeLessThan(0.75);
     }
-  });
-  it("spine yarn has the band's points plus a tuck at each end", () => {
-    expect(spineYarn(0).length).toBe(N_BAND + 2 + 2);
-    expect(spineYarn(0)[1].p).toEqual([B[0], B[1]]);
   });
 });
 

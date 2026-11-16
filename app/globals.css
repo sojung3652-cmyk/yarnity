@@ -201,9 +201,10 @@ html{overflow-x:clip}
 .book3d{position:absolute;inset:0;z-index:2;opacity:0;transition:opacity .6s ease}
 .book3d.ready{opacity:1}
 .book3d canvas{display:block}
-/* CSS fallback book: roughly where the 3D book sits */
-.book-css-slot{position:absolute;z-index:2;left:52%;top:52%;transform:translate(-50%,-50%)}
-.book-css-slot .bookstage{min-height:0;overflow:visible} /* the open left page extends past the slot */
+/* CSS fallback book: at the 3D book's spot on the stage (centre 54% / 50.5%, ~25% of the stage wide
+   as seen; the cover itself is ~0.19 of the stage, the rest is the tilt and thickness) */
+.book-css-slot{--sw:min(100vw,calc(100svh * 1871 / 841 * 1.08));position:absolute;z-index:2;left:calc(50% + .04 * var(--sw));top:calc(50% + .005 * var(--sw) * 841 / 1871);transform:translate(-50%,-50%)}
+.book-css-slot .bookstage{--W:calc(var(--sw) * .19);min-height:0;overflow:visible} /* the open left page extends past the slot */
 @media (max-width:899px){
   /* phone: logo, caption, book, button stacked in the middle; the backdrop only under the lower 42% so
      the yarn and motif sit below the book instead of under it */
@@ -215,4 +216,5 @@ html{overflow-x:clip}
   .hero-caption{left:22%;width:56%;top:calc(6svh + 56vw * 579 / 1170 + 10px);transform:none;font-size:11px}
   .hero-start{left:50%;width:auto;transform:translateX(-50%);gap:18px;font-size:13px;top:63svh} /* sized to its text, centred */
   .book-css-slot{left:50%;top:46%}
+  .book-css-slot .bookstage{--W:48vw} /* matches the 3D book: 62% of the screen wide as seen */
 }

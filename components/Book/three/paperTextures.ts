@@ -68,27 +68,12 @@ export function drawLeftPage(cv: HTMLCanvasElement) {
   ctx.fillText(heroCaption, w * 0.09, h - w * 0.09); ctx.globalAlpha = 1;
 }
 
-// ---- cloth label "Yarnity. / INTELLIGENT CROCHET", two lavender stitches at each end ----
-export const LABEL_CM: [number, number] = [6.0, 2.3];
-export function drawLabel(cv: HTMLCanvasElement) {
-  const ctx = cv.getContext("2d")!, w = cv.width, h = cv.height;
-  ctx.fillStyle = "#F6EEE1"; ctx.fillRect(0, 0, w, h);
-  ctx.globalAlpha = 0.05; ctx.fillStyle = "#5A4632";
-  for (let y = 0; y < h; y += 3) ctx.fillRect(0, y, w, 1);
-  for (let x = 0; x < w; x += 3) ctx.fillRect(x, 0, 1, h);
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = "#3A2A22"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-  ctx.font = `700 ${Math.round(h * 0.33)}px Newsreader, Georgia, serif`;
-  ctx.fillText("Yarnity.", w / 2, h * 0.46);
-  ctx.fillStyle = "#4A3A30"; ctx.font = `600 ${Math.round(h * 0.15)}px system-ui, -apple-system, "Segoe UI", sans-serif`;
-  const txt = "INTELLIGENT CROCHET", sp = h * 0.02; let tw = 0; for (const ch of txt) tw += ctx.measureText(ch).width + sp;
-  ctx.textAlign = "left"; let x = (w - tw) / 2; for (const ch of txt) { ctx.fillText(ch, x, h * 0.74); x += ctx.measureText(ch).width + sp; }
-}
-
 // ---- page block edges: hundreds of sheets, lines stacked along v ----
-export function drawPageEdges(cv: HTMLCanvasElement) {
+/** Page block edges: fine page lines stacked along v; darker where the edges meet the boards (top and
+ *  bottom of v) and, on the head/tail faces, towards the spine (u = 0). */
+export function drawPageEdges(cv: HTMLCanvasElement, spineSide: boolean) {
   const ctx = cv.getContext("2d")!, w = cv.width, h = cv.height;
-  ctx.fillStyle = "#FAF3E7"; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#F6EFE2"; ctx.fillRect(0, 0, w, h);
   // ~150 visible lines over the block: finer than this only averages to grey on screen
   let y = 0, i = 0;
   while (y < h) {
@@ -96,4 +81,9 @@ export function drawPageEdges(cv: HTMLCanvasElement) {
     ctx.fillStyle = `rgba(150,120,85,${a})`; ctx.fillRect(0, y, w, 1.6);
     y += 5.5 + ((i * 104729) % 5) * 0.7; i++;
   }
+  for (const [y0, y1] of [[0, h * 0.12], [h, h * 0.88]]) {
+    const g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, "rgba(70,50,35,.22)"); g.addColorStop(1, "rgba(70,50,35,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, Math.min(y0, y1), w, Math.abs(y1 - y0));
+  }
+  if (spineSide) { const g = ctx.createLinearGradient(0, 0, w * 0.1, 0); g.addColorStop(0, "rgba(70,50,35,.28)"); g.addColorStop(1, "rgba(70,50,35,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, w * 0.1, h); }
 }

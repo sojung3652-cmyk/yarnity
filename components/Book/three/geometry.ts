@@ -3,9 +3,8 @@
 // Units: cm. Book frame: lying on a table (y up), front cover facing +Y, spine on the left (-X),
 // top edge of the book at -Z. The table is at y = -FAB (the book group is lifted by FAB).
 //
-// Knit sleeve = one fabric ribbon whose cross-section (a 2-D path in XY) is extruded along Z:
-//   back (cream) -> SPINE BAND (lavender) -> front (cream, picture on top)
-// The spine band is a strip of fixed length from the back board's spine edge (B, fixed) to the front
+// Cloth hardcover: two boards wrapped in book cloth, a page block, and the spine cloth between the boards.
+// The spine cloth is a band (cross-section = a 2-D path in XY, extruded along Z) of fixed length from the back board's spine edge (B, fixed) to the front
 // board's spine edge (F). Closed, it follows a half ellipse around the page block; while the book
 // opens its curvature relaxes in proportion, until at 180 degrees it lies flat on the table. The front
 // cover is attached rigidly at the band's far end, along the band's direction there, so cover and
@@ -13,31 +12,18 @@
 
 export const W = 16;            // cover width   (4:5)
 export const D = 20;            // cover height
-export const T = 0.16 * W;      // thickness, board outside to board outside (16% of the width, 2.56cm)
+export const T = 0.15 * W;      // thickness, board outside to board outside (15% of the width, 2.4cm)
 export const BOARD = 0.3;       // board thickness
-export const FAB = 0.25;        // knit thickness
+export const FAB = 0.08;        // book cloth thickness (spine)
 export const H = FAB / 2;
 export const SQUARE = 0.3;      // pages are inset this much from the boards
-export const SPINE_RX = 0.25 * T; // rounded spine bulge, in proportion to the thickness
-// Cover border: a flat lavender binding tape (design comp), 2.5% of the cover width across.
-export const BORDER_HW = 0.025 * W / 2;   // half width (in the cover plane)
-export const BORDER_HT = H + 0.04;         // half thickness (wraps the knit's raw edge)
-export const BORDER_R = BORDER_HW;        // overall half extent (bounding boxes, caps)
+export const SPINE_RX = 0.12 * T; // gently rounded spine (not a half round)
+export const CORNER_R = 0.25;   // board corners, very slightly rounded
 export const SHEETS = 6;        // pages that turn
 export const SHEET_GAP = 0.012; // paper thickness in the stack
 export const DIP = 0.45;        // how far the top page curls down into the gutter
 export const FORE_CONCAVE = 0.22; // fore edge of the page block is slightly hollow
-
-// The tape is centred on the fabric's edge so it wraps the raw edge neatly.
-export const BORDER_OUT = 0.04;                 // tape centre just outside the board edge
-export const BORDER_Y_FRONT = T + H;            // centre height of the front tape (closed frame) = fabric centre
-export const BORDER_Y_BACK = -H;
-export const BORDER_CORNER = 0.6;               // corner radius (>= 2x the tape's thickness)
-export const BORDER_TUCK = 0.25;                // border ends run this far under the spine cloth
-
 export type V2 = [number, number];
-/** The picture panel ends where the border begins, so the whole roundness of the border shows. */
-export const PANEL_SIZE: V2 = [W + 2 * BORDER_OUT - 1.7 * BORDER_HW, D + 2 * BORDER_OUT - 1.7 * BORDER_HW];
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const rotV = (v: V2, a: number): V2 => [v[0] * Math.cos(a) - v[1] * Math.sin(a), v[0] * Math.sin(a) + v[1] * Math.cos(a)];
@@ -116,15 +102,15 @@ export function sleevePath(w: number): PathPoint[] {
   });
 }
 
-/** Spine-edge yarn path: the band, extended a little under both covers' borders so they overlap. */
-export function spineYarn(w: number): PathPoint[] {
-  const all = sleevePath(w), pts = all.slice(N_BACK, N_BACK + N_BAND + 2); // back's spine end .. front's spine end
-  const first = pts[0], last = pts[pts.length - 1];
-  const t0: V2 = [pts[1].p[0] - first.p[0], pts[1].p[1] - first.p[1]], l0 = Math.hypot(...t0);
-  const t1: V2 = [last.p[0] - pts[pts.length - 2].p[0], last.p[1] - pts[pts.length - 2].p[1]], l1 = Math.hypot(...t1);
-  const pre: PathPoint = { ...first, p: [first.p[0] - t0[0] / l0 * BORDER_TUCK, first.p[1] - t0[1] / l0 * BORDER_TUCK], u: first.u - BORDER_TUCK };
-  const post: PathPoint = { ...last, p: [last.p[0] + t1[0] / l1 * BORDER_TUCK, last.p[1] + t1[1] / l1 * BORDER_TUCK], u: last.u + BORDER_TUCK };
-  return [pre, ...pts, post];
+/** The spine cloth for opening progress w: the band from the back board to the front board, carried
+ *  4mm on past each end so it turns onto both boards (no seam at the joint, whatever the angle). */
+export const SPINE_TURN = 0.4;
+export function spineCloth(w: number): PathPoint[] {
+  const all = sleevePath(w), pts = all.slice(N_BACK, N_BACK + N_BAND + 1); // B .. F
+  const first = pts[0], last = pts[pts.length - 1], A = coverPose(w).A;
+  const pre: PathPoint = { ...first, p: [first.p[0] + SPINE_TURN, first.p[1]], n: [0, -1], u: first.u - SPINE_TURN, seg: 1 };
+  const post: PathPoint = { ...last, p: [last.p[0] + Math.cos(A) * SPINE_TURN, last.p[1] + Math.sin(A) * SPINE_TURN], n: [-Math.sin(A), Math.cos(A)], u: last.u + SPINE_TURN, seg: 1 };
+  return [pre, { ...first, seg: 1 }, ...pts.slice(1, -1), { ...last, seg: 1 }, post];
 }
 
 // ---- turning sheets ----
