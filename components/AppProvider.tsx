@@ -3,6 +3,7 @@
 // (projects, activeId, draft, chat turns) so they survive client-side navigation
 // between /new, /pattern, /track the same way they survived hash changes.
 import { itemIdOf } from "@/lib/items";
+import { withStatus } from "@/lib/status";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { store } from "@/lib/store";
 import { DEFAULT_DRAFT, type Draft, type Project } from "@/lib/types";
@@ -20,11 +21,16 @@ interface AppCtx {
   setDraft: (d: Draft, persist?: boolean) => void;
   addProject: (p: Project) => void;
   updateProject: (id: string, patch: Partial<Project>) => void;
+  /** remove works; returns them (with their positions) so they can be put back */
+  removeProjects: (ids: string[]) => Removed;
+  restoreProjects: (r: Removed) => void;
   setActive: (id: string) => void;
   chat: ChatState;
   setChat: (fn: (c: ChatState) => ChatState) => void;
   turns: React.MutableRefObject<ChatTurn[]>;
 }
+
+export interface Removed { items: { p: Project; at: number }[]; active: string | null }
 
 const Ctx = createContext<AppCtx | null>(null);
 
@@ -49,7 +55,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // localStorage is only available in the browser, so load after mount.
     // older saves have no item id: a bag was the mini bag, a coaster the coaster
-    const p = store.get<Project[]>("iyarn.projects", []).map(x => (x.item ? x : { ...x, item: itemIdOf(x) }));
+    // ... and no status: 100% = 완성, else 뜨는 중
+    const p = store.get<Project[]>("iyarn.projects", []).map(x => withStatus(x.item ? x : { ...x, item: itemIdOf(x) }));
     const a = store.get<string | null>("iyarn.active", null);
     pr.current = p; ar.current = a;
     setProjects(p); setActiveId(a);
@@ -66,15 +73,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProjects(pr.current); setActiveId(p.id);
   }, [save]);
   const updateProject = useCallback((id: string, patch: Partial<Project>) => {
-    pr.current = pr.current.map(p => (p.id === id ? { ...p, ...patch } : p)); save();
+    pr.current = pr.current.map(p => (p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p)); save();
     setProjects(pr.current);
+  }, [save]);
+  const removeProjects = useCallback((ids: string[]): Removed => {
+    const items = pr.current.map((p, at) => ({ p, at })).filter(x => ids.includes(x.p.id)), active = ar.current;
+    pr.current = pr.current.filter(p => !ids.includes(p.id));
+    if (ar.current && ids.includes(ar.current)) ar.current = pr.current[0]?.id ?? null;
+    save(); setProjects(pr.current); setActiveId(ar.current);
+    return { items, active };
+  }, [save]);
+  const restoreProjects = useCallback((r: Removed) => {
+    const list = pr.current.filter(p => !r.items.some(x => x.p.id === p.id));
+    for (const { p, at } of [...r.items].sort((a, b) => a.at - b.at)) list.splice(Math.min(at, list.length), 0, p);
+    pr.current = list; if (r.active && list.some(p => p.id === r.active)) ar.current = r.active;
+    save(); setProjects(pr.current); setActiveId(ar.current);
   }, [save]);
   const setActive = useCallback((id: string) => { ar.current = id; save(); setActiveId(id); }, [save]);
   const setChat = useCallback((fn: (c: ChatState) => ChatState) => setChatState(fn), []);
 
   const active = useMemo(() => projects.find(p => p.id === activeId) || null, [projects, activeId]);
 
-  const value: AppCtx = { ready, projects, activeId, active, draft, setDraft, addProject, updateProject, setActive, chat, setChat, turns };
+  const value: AppCtx = { ready, projects, activeId, active, draft, setDraft, addProject, updateProject, removeProjects, restoreProjects, setActive, chat, setChat, turns };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

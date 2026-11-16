@@ -83,7 +83,11 @@ export default function TrackPage() {
   // persist the clamped position (prototype renderTrack() ended with save())
   useEffect(() => { if (p && p.current !== current) updateProject(p.id, { current }); }, [p, current, updateProject]);
 
-  const step = useCallback((d: number) => { if (!p) return; updateProject(p.id, { current: clamp((p.current || 0) + d, 0, plan(p).rows.length) }); }, [p, updateProject]);
+  // knitting a row makes the work 뜨는 중 again (or 완성 at the last row)
+  const step = useCallback((d: number) => {
+    if (!p) return; const total = plan(p).rows.length, cur = clamp((p.current || 0) + d, 0, total);
+    updateProject(p.id, { current: cur, status: cur >= total ? "done" : "knitting", pausedAt: null });
+  }, [p, updateProject]);
 
   // canvas: redraw on change and on resize (120ms debounce)
   const redraw = useCallback(() => { if (p && pp && cvRef.current) drawTrack(cvRef.current, { ...p, current }, pp); }, [p, pp, current]);

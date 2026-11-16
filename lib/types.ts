@@ -42,6 +42,10 @@ export interface Draft {
 export interface Project extends Draft {
   id: string;
   measuredH: number | null;
+  /** 뜨는 중 / 중단 / 완성; when it was paused; when it last changed (knitting progress included) */
+  status?: "knitting" | "paused" | "done";
+  pausedAt?: number | null;
+  updatedAt?: number;
   /** stitch width from the 5-row measurement (rows / tube items) */
   measuredW?: number | null;
   current: number;

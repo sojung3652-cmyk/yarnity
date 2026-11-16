@@ -1,0 +1,69 @@
+/* 내 작품: the book pages' type and spacing (small type, room, hairlines), paper menus without rounded
+   boxes or heavy shadows */
+.mine{--m-label:#8C7B72;--m-help:#A08F86;--m-line:#E6DACF;--m-ink:#3A2E29;--m-accent:#6E5350;color:var(--m-ink);padding-bottom:80px}
+.mine-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:8px 0 26px}
+.mine-head h1{margin:0;font-size:22px;font-weight:500;letter-spacing:-.01em}
+.mine-link{border:0;background:none;padding:6px 0;font:inherit;font-size:13px;color:var(--m-accent);text-decoration:none;cursor:pointer}
+.mine-link:hover{text-decoration:underline;text-underline-offset:3px}
+.mine-link:disabled{color:#C4B6AD;cursor:default;text-decoration:none}
+.mine-link.muted{color:var(--m-label)}
+.mine-link:focus-visible,.mine-tab:focus-visible,.mc-more:focus-visible,.mc-text:focus-visible,.mc-menu button:focus-visible,.mine-undo button:focus-visible,.mc-name a:focus-visible{outline:2px solid var(--m-ink);outline-offset:3px}
+/* search, filters, sort */
+.mine-tools{display:flex;flex-direction:column;gap:14px;margin-bottom:22px}
+.mine-search{width:100%;max-width:420px;height:38px;border:0;border-bottom:1.5px solid #CDBFB4;border-radius:0;background:transparent;padding:0 2px;font:inherit;font-size:15px;color:var(--m-ink);outline:none}
+.mine-search:focus{border-bottom-color:var(--m-accent)}
+.mine-search::placeholder{color:#C4B5AA}
+.mine-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px;border-bottom:1px solid var(--m-line);padding-bottom:6px}
+.mine-tabs{display:flex;gap:18px}
+.mine-tab{border:0;background:none;padding:6px 0;font:inherit;font-size:13px;color:var(--m-label);cursor:pointer;border-bottom:1.5px solid transparent;margin-bottom:-7px}
+.mine-tab span{font-size:11px;color:var(--m-help)}
+.mine-tab[aria-selected="true"]{color:var(--m-ink);border-bottom-color:var(--m-ink)}
+.mine-right{display:flex;align-items:center;gap:16px}
+.mine-sort{border:0;background:none;font:inherit;font-size:13px;color:var(--m-label);cursor:pointer;padding:4px 2px}
+.mine-ask{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:12px 0;border-bottom:1px solid var(--m-line);font-size:14px}
+.mine-ask p{margin:0;flex:1}
+.mine-ask span,.mc-confirm span{color:var(--m-help);font-size:12px;margin-left:4px}
+/* cards: paper with a hairline, no rounded box */
+.mine-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0 28px}
+.mc{position:relative;display:flex;flex-direction:column;gap:6px;padding:20px 2px 18px;border-bottom:1px solid var(--m-line);transition:opacity .2s}
+.mc-paused{opacity:.62}
+.mc-paused:hover,.mc-paused:focus-within{opacity:.9}
+.mc-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mc-item{font-size:12px;color:var(--m-label);letter-spacing:.02em}
+.mc-badge{margin-left:8px;font-style:normal;font-size:11px;color:var(--m-accent);border-bottom:1px solid currentColor}
+.mc-badge.done{color:#6F7F5C}
+.mc-more{width:32px;height:28px;border:0;background:none;font-size:18px;line-height:1;color:var(--m-label);cursor:pointer;margin:-6px -4px -6px 0}
+.mc-more:hover{color:var(--m-ink)}
+.mc-name{margin:0;font-size:17px;font-weight:500}
+.mc-name a{color:inherit;text-decoration:none}
+.mc-name a:hover{text-decoration:underline;text-underline-offset:3px}
+.mc-rename{height:32px;border:0;border-bottom:1.5px solid var(--m-accent);background:none;font:inherit;font-size:17px;font-weight:500;color:var(--m-ink);outline:none;padding:0 2px}
+.mc-bar{height:2px;background:#EFE6DE;margin:4px 0 2px}
+.mc-bar i{display:block;height:100%;background:var(--m-accent)}
+.mc-where{margin:0;font-size:12.5px;color:var(--m-label)}
+.mc-yarn{margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;font-size:12px;color:var(--m-help);line-height:1.5}
+.mc-lot{display:inline-flex;align-items:center;gap:6px;color:var(--m-ink)}
+.mc-lot b{font-weight:600;letter-spacing:.04em}
+.mc.picked{background:linear-gradient(#F6EEE6,#F6EEE6) 0 0 / 100% 100% no-repeat}
+.mc-check{position:absolute;left:-26px;top:22px}
+.mc-check input{width:16px;height:16px;accent-color:var(--m-accent)}
+/* ⋯ menu: paper, a hairline, no rounded box */
+.mc-menu{position:absolute;right:0;top:46px;z-index:5;display:flex;flex-direction:column;min-width:170px;padding:4px 0;background:#FFFBF6;border:1px solid var(--m-line);box-shadow:0 1px 0 rgba(70,50,40,.04)}
+.mc-menu button{border:0;background:none;padding:9px 16px;text-align:left;font:inherit;font-size:13.5px;color:var(--m-ink);cursor:pointer}
+.mc-menu button:hover{background:#F6EEE6}
+.mc-menu button.danger,.mc-text.danger{color:#A44D41}
+.mc-menu button.danger{border-top:1px solid var(--m-line);margin-top:4px}
+/* delete asked in place */
+.mc-confirm{justify-content:center;min-height:132px;gap:14px}
+.mc-confirm p{margin:0;font-size:14px}
+.mc-actions{display:flex;gap:20px}
+.mc-text{border:0;background:none;padding:6px 0;font:inherit;font-size:13.5px;color:var(--m-label);cursor:pointer;border-bottom:1px solid transparent}
+.mc-text:hover{border-bottom-color:currentColor}
+.mine-none{margin:28px 0;font-size:14px;color:var(--m-label)}
+.mine-empty{display:flex;align-items:baseline;gap:18px;padding:28px 0;border-top:1px solid var(--m-line);border-bottom:1px solid var(--m-line);font-size:14px}
+.mine-empty p{margin:0}
+.mine-note{margin-top:22px;font-size:12px;color:var(--m-help)}
+/* undo bar: a thin paper strip at the bottom of the screen for 6 seconds */
+.mine-undo{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:18px;padding:11px 20px;background:#FFFBF6;border:1px solid var(--m-line);font-size:13.5px;color:var(--m-ink);box-shadow:0 2px 0 rgba(70,50,40,.04)}
+.mine-undo button{border:0;background:none;padding:2px 0;font:inherit;font-size:13.5px;color:var(--m-accent);border-bottom:1px solid currentColor;cursor:pointer}
+@media (max-width:640px){.mc-check{left:auto;right:0;top:20px}.mine-cards{gap:0}}
