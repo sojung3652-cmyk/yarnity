@@ -28,7 +28,9 @@ export function Hero() {
           </h1>
           <p className="hero-caption">Intelligent Crochet</p>
           <button type="button" className="hero-start" onClick={() => state.setOpen(true)}>
-            <span>Start Making My Own Pattern Book</span><span className="arrow" aria-hidden="true">→</span>
+            <span>Start making my own pattern book</span>
+            {/* thin drawn arrow: the latin subset of the font has no → glyph */}
+            <svg className="arrow" viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h21M17 1.5 22 6l-5 4.5" fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
         </div>
       </div>
