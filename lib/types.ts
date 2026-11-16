@@ -18,6 +18,22 @@ export interface Draft {
   /** yarn colour: hex (tints the preview and the stitch map) and its name */
   color?: string;
   colorName?: string;
+  /** yarn details (stored, not used by the engine except yarnMm -> weight level) */
+  materials?: string[];
+  blend?: string;
+  colorNo?: string;
+  lot?: string;
+  /** yarn thickness in mm as typed; weight is derived from it (lib/yarn.ts); "level" = picked thin/medium/thick */
+  yarnMm?: number | null;
+  yarnMode?: "mm" | "level";
+  skeinG?: number | null;
+  skeinM?: number | null;
+  skeins?: number | null;
+  shop?: string;
+  memo?: string;
+  /** hook size in mm (the size name stays in `hook` for display) and its material */
+  hookMm?: number | null;
+  hookMaterial?: string;
   /** beanie inputs (converted to a / h by engineDims) */
   circ?: number;
   depth?: number;

@@ -31,6 +31,7 @@ export interface PlanInput {
   b?: number; // width (cm), oval/rect
   h?: number; // body height (cm), bag
   hook: string;
+  hookMm?: number | null; // hook size in mm (wins over the size name in `hook` when set)
   weight: string;
   object: ObjectKind;
   handle?: Handle;
@@ -64,7 +65,7 @@ type RawRow = Omit<Row, "idx" | "label">;
 
 export function gauge(p: PlanInput): Gauge {
   if (p.measuredH) return { h: p.measuredH, w: p.measuredH * 0.95, measured: true };
-  const h = (HOOK_MM[p.hook] || 3) * 0.2 * (YARN[p.weight as Weight] || 1);
+  const h = (p.hookMm || HOOK_MM[p.hook] || 3) * 0.2 * (YARN[p.weight as Weight] || 1);
   return { h, w: h * 0.95, measured: false };
 }
 
