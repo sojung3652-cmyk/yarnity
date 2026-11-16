@@ -192,8 +192,8 @@ html{overflow-x:clip}
 .hero-logo{position:absolute;margin:0;line-height:0;left:12.1%;width:17.2%;top:calc(46% - 17.2cqw * 579 / 1170 / 2)}
 .hero-logo img,.hero-logo .hero-foil{width:100%;height:auto;display:block;overflow:visible}
 .hero-caption{position:absolute;left:12.1%;width:17.2%;top:57.4%;transform:translateY(-50%);margin:0;text-align:center;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif;font-size:max(10px,.72cqw);font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:#3A2E29;padding-left:.3em;white-space:nowrap}
-.hero-start{position:absolute;left:12.1%;width:17.2%;top:63%;transform:translateY(-50%);margin:0;background:none;border:0;padding:0 0 .5em;border-bottom:1px solid #2E2420;color:#2E2420;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif;font-weight:400;font-size:max(13px,.95cqw);line-height:1.3;cursor:pointer;white-space:nowrap;display:flex;align-items:baseline;justify-content:space-between;gap:.6em;transition:color .2s,border-color .2s}
-.hero-start:hover{color:#000;border-bottom-color:#000}
+.hero-start{position:absolute;left:12.1%;width:17.2%;top:63%;transform:translateY(-50%);margin:0;background:none;border:0;padding:0 0 .5em;border-bottom:1px solid rgba(110,98,92,.55);color:#6E625C;font-family:"Inter Tight",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:300;letter-spacing:.035em;font-size:max(13px,.95cqw);line-height:1.3;cursor:pointer;white-space:nowrap;display:flex;align-items:baseline;justify-content:space-between;gap:.6em;transition:color .2s,border-color .2s}
+.hero-start:hover{color:#3A2E29;border-bottom-color:#3A2E29} /* urban, light: Inter Tight 300, muted grey-brown */
 .hero-start .arrow{display:inline-block;transition:transform .2s ease}
 .hero-start:hover .arrow{transform:translateX(4px)}
 .hero-start:focus-visible{outline:2px solid #2E2420;outline-offset:6px;border-radius:2px}
