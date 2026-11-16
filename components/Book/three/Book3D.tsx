@@ -244,18 +244,16 @@ const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils
 const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 72), 0);
 const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2)); return Math.max(hh / t, hw / (t * aspect)); };
 
-// Where the book sits in the backdrop photo (legacy/pic/main_backgrond.png, 1870 x 841). The design comp
-// puts it just up-left of the lavender motif; the backdrop's props sit ~220px further left than in the
-// comp, so the book follows the motif rather than the comp's 58% (which would cover the motif).
-// centre at (1075, 490) (a little lower than the comp's 460); 22% of the photo wide (the comp had 27%, trimmed for more air). The photo is drawn with object-fit: cover and
-// object-position: right center, so the same scale/offset maps that spot onto the screen.
-const PHOTO = { w: 1870, h: 841, cx: 830, cy: 445, bookW: 0.28 };
+// The hero is laid out on a "stage" with the design comp's proportions (1871 x 841), centred on screen,
+// width = min(screen width, screen height x 2.225 x 1.08) (see .hero-stage in globals.css). The book sits
+// at a fixed spot on that stage: 28% of its width, its lower right corner just touching the backdrop's
+// lavender motif (the backdrop is drawn at 0.732x, so the motif lands ~3% left of the comp's, and the
+// comp's 58% / 56% would cover it).
+const STAGE = { w: 1871, h: 841, crop: 1.08, cx: 0.54, cy: 0.505, bookW: 0.28 };
 const DESK_MIN = 900; // below this the hero uses the phone layout
-// The backdrop is fitted to the screen width and centred vertically (the plain backdrop colour fills
-// any space above/below), so the comp's left-to-right composition holds on every aspect ratio.
 function photoSpot(vw: number, vh: number) {
-  const s = vw / PHOTO.w, offX = 0, offY = (vh - PHOTO.h * s) / 2;
-  return { x: offX + PHOTO.cx * s, y: offY + PHOTO.cy * s, w: PHOTO.bookW * PHOTO.w * s };
+  const sw = Math.min(vw, vh * STAGE.w / STAGE.h * STAGE.crop), sh = sw * STAGE.h / STAGE.w, x0 = (vw - sw) / 2, y0 = (vh - sh) / 2;
+  return { x: x0 + STAGE.cx * sw, y: y0 + STAGE.cy * sh, w: STAGE.bookW * sw };
 }
 
 // closed book's bounding box (book frame, lifted by FAB)
