@@ -6,7 +6,13 @@
 // asks for it baked in. Browser-only.
 
 export const COVER_W = 1600, COVER_H = 2000;
-export const LAVENDER = "#B9A6DC";
+/** A CSS custom property from :root (globals.css), with a fallback for SSR / tests. */
+export function cssVar(name: string, fallback: string) {
+  if (typeof document === "undefined") return fallback;
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+/** Book cloth lavender: --book-lav (pastel, matched against the photo's crochet motif). */
+export const lavender = () => cssVar("--book-lav", "#C4B5DD");
 export const BAND = 0.07;                       // spine cloth turned onto the cover (fraction of the width)
 /** Label rect as fractions of the cover: 42% wide, height 38% of its width, 15% from the left, 8% from the bottom. */
 export const LABEL = { x: 0.15, w: 0.42, aspect: 0.38, bottom: 0.08 };
@@ -36,7 +42,7 @@ export function drawLabel(cv: HTMLCanvasElement, logo: HTMLImageElement) {
   const ctx = cv.getContext("2d")!, w = cv.width, h = cv.height;
   ctx.fillStyle = "#FAF4EA"; ctx.fillRect(0, 0, w, h);
   // a whisper of paper tooth
-  for (let i = 0; i < 1400; i++) { ctx.fillStyle = `rgba(120,95,70,${Math.random() * 0.035})`; ctx.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1); }
+  for (let i = 0; i < 2600; i++) { ctx.fillStyle = `rgba(120,95,70,${Math.random() * 0.045})`; ctx.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1); }
   // wordmark: draw the SVG, then recolour it to #3A2E29 (source-in keeps its shape)
   const lw = w * 0.66, lh = lw * logo.naturalHeight / logo.naturalWidth;
   const t = document.createElement("canvas"); t.width = Math.round(lw); t.height = Math.round(lh);
@@ -49,10 +55,11 @@ export function drawLabel(cv: HTMLCanvasElement, logo: HTMLImageElement) {
 /** The front cover. withLabel: bake the label in (CSS book); otherwise only its soft shadow is baked. */
 export function drawCover(cv: HTMLCanvasElement, a: { bird: HTMLImageElement; logo: HTMLImageElement }, opts: { withLabel: boolean; weave: boolean }) {
   const ctx = cv.getContext("2d")!, w = cv.width, h = cv.height, bx = Math.round(BAND * w);
-  ctx.fillStyle = LAVENDER; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = lavender(); ctx.fillRect(0, 0, w, h);
   // picture: object-fit cover over the area right of the band, centred
   const pw = w - bx, ph = h, s = Math.max(pw / a.bird.naturalWidth, ph / a.bird.naturalHeight), iw = a.bird.naturalWidth * s, ih = a.bird.naturalHeight * s;
-  ctx.save(); ctx.beginPath(); ctx.rect(bx, 0, pw, ph); ctx.clip(); ctx.drawImage(a.bird, bx + (pw - iw) / 2, (ph - ih) / 2, iw, ih); ctx.restore();
+  // printed on cloth: a touch less saturated and warmer than the source picture, like the photo's tones
+  ctx.save(); ctx.beginPath(); ctx.rect(bx, 0, pw, ph); ctx.clip(); ctx.filter = "saturate(0.95) sepia(0.05)"; ctx.drawImage(a.bird, bx + (pw - iw) / 2, (ph - ih) / 2, iw, ih); ctx.restore();
   if (opts.weave) { weave(ctx, 0, 0, bx, h, 0.07); weave(ctx, bx, 0, pw, h, 0.035); }
   // hinge groove where the cloth meets the picture: a thin dark line with a soft fall-off on both sides
   const g = ctx.createLinearGradient(bx - w * 0.012, 0, bx + w * 0.012, 0);

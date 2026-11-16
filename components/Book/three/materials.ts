@@ -5,10 +5,10 @@
 import { useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
-import { COVER_H, COVER_W, drawCover, drawLabel, LABEL, LAVENDER, loadCoverAssets } from "../coverArt";
+import { COVER_H, COVER_W, drawCover, drawLabel, LABEL, lavender, loadCoverAssets } from "../coverArt";
 import { D, W } from "./geometry";
 import { canvas, drawBlankPage, drawLeftPage, drawPageEdges, drawRightPage, PAGE_D } from "./paperTextures";
-import { canvasTexture, clothNormal, paperNormal } from "./textures";
+import { canvasTexture, clothNormal, mottleMap, paperNormal } from "./textures";
 
 export interface BookMaterials {
   cloth: THREE.MeshStandardMaterial;
@@ -38,12 +38,13 @@ export function useBookMaterials(): BookMaterials {
 
     // book cloth: very fine weave, matte. uv in cm on the spine and the boards (ExtrudeGeometry world uv)
     const weave = (rep: [number, number], scale = 0.35) => ({ normalMap: canvasTexture(clothNormal(), false, gl, rep), normalScale: new THREE.Vector2(scale, scale) });
-    const cloth = new THREE.MeshStandardMaterial({ color: LAVENDER, roughness: 0.85, metalness: 0, ...weave([1 / (16 * THREAD_CM), 1 / (16 * THREAD_CM)]) });
+    // matte book cloth: weave twice as pronounced as before, faint colour mottling, almost no specular
+    const cloth = new THREE.MeshStandardMaterial({ color: lavender(), roughness: 0.92, metalness: 0, envMapIntensity: 0.7, map: canvasTexture(mottleMap(), true, gl, [1 / 9, 1 / 9]), ...weave([1 / (16 * THREAD_CM), 1 / (16 * THREAD_CM)], 0.7) });
     const fibre = (rep: [number, number]) => canvasTexture(paperNormal(), false, gl, rep);
     const inside = new THREE.MeshStandardMaterial({ color: "#F6EFE2", roughness: 0.97, metalness: 0, normalMap: fibre([W / 3, D / 3]), normalScale: new THREE.Vector2(0.2, 0.2) });
     // front cover: the cover art (band, hinge groove, picture, label shadow), the same fine weave on top
     const coverTex = canvasTexture(P.cover, true, gl); coverTex.wrapS = coverTex.wrapT = THREE.ClampToEdgeWrapping;
-    const cover = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.85, metalness: 0, ...weave([W / (16 * THREAD_CM), D / (16 * THREAD_CM)], 0.18) });
+    const cover = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.92, metalness: 0, envMapIntensity: 0.7, ...weave([W / (16 * THREAD_CM), D / (16 * THREAD_CM)], 0.36) });
     const labelTex = canvasTexture(P.label, true, gl); labelTex.wrapS = labelTex.wrapT = THREE.ClampToEdgeWrapping;
     const label = new THREE.MeshStandardMaterial({ map: labelTex, roughness: 0.97, metalness: 0, normalMap: fibre([2, 1]), normalScale: new THREE.Vector2(0.15, 0.15) });
     loadCoverAssets().then(a => {
@@ -63,7 +64,7 @@ export function useBookMaterials(): BookMaterials {
 
     // page block faces: [+x fore edge, -x spine side, +y top, -y, +z tail, -z head]
     const edge = (cv: HTMLCanvasElement) => new THREE.MeshStandardMaterial({ map: canvasTexture(cv, true, gl, [1, 1]), roughness: 0.97, metalness: 0 });
-    const plain = new THREE.MeshStandardMaterial({ color: "#F6EFE2", roughness: 0.97 });
+    const plain = new THREE.MeshStandardMaterial({ color: "#EFE4D2", roughness: 0.97 });
     const ends = edge(P.edgeEnds);
     return { cloth, cover, label, inside, pageFront, pageBack, rightPage, leftPage, block: [edge(P.edgeFore), plain, plain, plain, ends, ends] };
   }, [gl, invalidate]);

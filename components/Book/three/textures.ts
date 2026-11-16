@@ -47,6 +47,25 @@ export function paperNormal() {
   return (paperCache = normalFromHeight(S, n, 0.6));
 }
 
+let mottleCache: HTMLCanvasElement | null = null;
+/** Cloth mottling: soft, low-frequency brightness variation of about +-3% (multiplied into the colour),
+ *  so a cloth face is never a flat single colour. Wraps. */
+export function mottleMap() {
+  if (mottleCache) return mottleCache;
+  const n = 256, cv = document.createElement("canvas"); cv.width = cv.height = n;
+  const ctx = cv.getContext("2d")!, R = rnd(41);
+  ctx.fillStyle = "rgb(247,247,247)"; ctx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 90; i++) {
+    const x = R() * n, y = R() * n, r = 10 + R() * 38, v = R() < 0.5 ? 255 : 239, a = 0.25 + R() * 0.35;
+    for (const dx of [-n, 0, n]) for (const dy of [-n, 0, n]) {
+      const g = ctx.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, r);
+      g.addColorStop(0, `rgba(${v},${v},${v},${a})`); g.addColorStop(1, `rgba(${v},${v},${v},0)`);
+      ctx.fillStyle = g; ctx.fillRect(x + dx - r, y + dy - r, 2 * r, 2 * r);
+    }
+  }
+  return (mottleCache = cv);
+}
+
 export function canvasTexture(cv: HTMLCanvasElement, srgb: boolean, gl: THREE.WebGLRenderer, repeat?: [number, number]) {
   const t = new THREE.CanvasTexture(cv);
   t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;

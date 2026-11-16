@@ -1,7 +1,7 @@
 /* CSS 3D cloth hardcover: fallback when WebGL is unavailable (components/Book/BookCSS.tsx).
    back board -> page block -> front board; the front board hinges on the spine. Proportions follow the
    WebGL book (three/geometry.ts): cover 4:5, thickness 15% of the width, 3mm boards, pages inset 3mm. */
-.bookstage{--W:clamp(250px,25vw,360px);--H:calc(var(--W) * 5 / 4);--P:calc(var(--W) * .15);--C:calc(var(--W) * .019);--I:calc(var(--W) * .019);--R:calc(var(--W) * .016);--lav:#B9A6DC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(600px,calc(100svh - 180px),860px);overflow-x:clip;padding-block:8px}
+.bookstage{--W:clamp(250px,25vw,360px);--H:calc(var(--W) * 5 / 4);--P:calc(var(--W) * .15);--C:calc(var(--W) * .019);--I:calc(var(--W) * .019);--R:calc(var(--W) * .016);--lav:var(--book-lav);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(600px,calc(100svh - 180px),860px);overflow-x:clip;padding-block:8px}
 .scene{width:var(--W);height:var(--H);perspective:2000px;perspective-origin:50% 30%}
 .book{position:relative;width:100%;height:100%;transform-style:preserve-3d;cursor:pointer;transform:translateY(3%) rotateX(45deg) rotateZ(15deg);transition:transform 1.2s cubic-bezier(.22,.7,.18,1)}
 .book.is-open{cursor:default;transform:translateX(calc(var(--W) / 2)) translateZ(calc(-1 * (var(--P) + var(--C)))) rotateX(0) rotateZ(0)}
@@ -70,7 +70,7 @@
 .pg-act-primary:hover{background:#634946}
 .pg-act:focus-visible,.pg-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .pg-ribbon{position:absolute;right:6%;top:0;width:7.6%;background:none;border:0;padding:0;cursor:pointer;display:block;transition:transform .2s ease}
-.pg-ribbon-tab{display:grid;place-items:start center;padding-top:28%;aspect-ratio:78 / 107;background:#B3A0C8;clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);color:#FBF3EA;box-shadow:inset -2px 0 3px rgba(60,40,90,.15)}
+.pg-ribbon-tab{display:grid;place-items:start center;padding-top:28%;aspect-ratio:78 / 107;background:var(--book-lav);clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);color:#FBF3EA;box-shadow:inset -2px 0 3px rgba(60,40,90,.15)}
 .pg-ribbon-tab svg{width:52%;height:auto}
 .pg-ribbon-tip{position:absolute;right:calc(100% + 1.2cqw);top:38%;white-space:nowrap;font-family:"Noto Serif KR",serif;font-size:max(2cqw,calc(12px * var(--k,1)));color:#6F5E57;opacity:0;transform:translateX(4px);transition:opacity .2s,transform .2s;pointer-events:none}
 .pg-ribbon:hover,.pg-ribbon:focus-visible{transform:translateY(4px)}
@@ -94,3 +94,8 @@
   .pg-ribbon{width:12%}
   .pg-motif{width:38%;right:-4%;bottom:-4%}
 }
+/* photo-matching finish for the WebGL book: its canvas a hair soft (no text in it: the page text is DOM above),
+   and a faint film grain over the book and the backdrop photo (--grain, --book-soften in globals.css) */
+.book3d canvas{filter:blur(var(--book-soften,.35px))}
+.book-grain{position:absolute;inset:0;pointer-events:none;opacity:var(--grain,.035);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")}

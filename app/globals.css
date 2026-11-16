@@ -1,6 +1,10 @@
 /* Layout: colourless and quiet. One blush media card is the only colour on the page.
    Thin Korean sans for everything; Latin serif italic only for the name "I Yarn". */
 :root{
+  /* home book: tune here. Lavender book cloth (pastel, no more saturated than the photo's crochet motif),
+     its shaded tone, shadow darkness (1 = as designed), film grain over the book and the photo, and the
+     softening of the book's rendered edges */
+  --book-lav:#C4B5DD; --book-lav-shade:#AFA0CB; --book-shadow:1; --grain:.035; --book-soften:.35px;
   --bg:#F7ECEA; --surface:#FFFFFF; --ink:#2E2420; --muted:#73665F; --line:#EADFD6; --soft:#F2E8E0;
   --accent:#B9A5DD; --btn:#3A322F; --on-btn:#FFFFFF;
   --dot:#D3CBC5; --dot-now:#2B2523; --dot-future:#EFEAE5; color-scheme:light;

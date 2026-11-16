@@ -17,6 +17,7 @@ import { createRibbon, createSheet, updateRibbon, updateSheet } from "./meshes";
 import { LABEL_CM, useBookMaterials, type BookMaterials } from "./materials";
 import { PAGE_D, PAGE_H_PX, PAGE_PX, PX_CM } from "./paperTextures";
 import { LeftPage, RightPage } from "../PageSpread";
+import { cssVar } from "../coverArt";
 
 // ---- timeline (seconds) ----
 const TOTAL = 1.6;
@@ -198,7 +199,7 @@ function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
 
 /** Lavender ribbon bookmark: from the gutter, out past the tail of the book; seen only when open. */
 function Bookmark({ anim }: { anim: Anim }) {
-  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#B3A0C8", roughness: 0.8, metalness: 0, transparent: true, opacity: 0, side: THREE.DoubleSide }), []);
+  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: cssVar("--book-lav", "#C4B5DD"), roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: THREE.DoubleSide }), []);
   const mesh = useRef<THREE.Mesh>(null);
   useFrame(() => { const o = clamp01((anim.t - 0.9) / 0.1); mat.opacity = o; if (mesh.current) mesh.current.visible = o > 0; });
   useEffect(() => () => mat.dispose(), [mat]);
@@ -230,6 +231,8 @@ function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void;
     </group>
   );
 }
+
+const SHADOW_COLOR = "#6E5A52"; // warm grey-brown, from the floor beside the skeins in the photo
 
 // ---- camera ----
 const FOV = 22;
@@ -310,6 +313,7 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
   const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0 }; derive(a); return a; }, []);
   const m = useBookMaterials();
   const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl), camera = useThree(s => s.camera), sceneRef = useThree(s => s.scene);
+  const [shadowK] = useState(() => { const v = parseFloat(cssVar("--book-shadow", "1")); return Number.isFinite(v) ? v : 1; });
   useEffect(() => { anim.target = open ? 1 : 0; if (reduce) anim.t = anim.target; invalidate(); }, [open, reduce, anim, invalidate]);
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
@@ -341,27 +345,29 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
     <>
       <CameraRig anim={anim} layer={layer} />
       {/* soft studio light without an HDR download: soft boxes baked into a small environment map */}
+      {/* Light matched to the photo's objects: a broad, soft studio light from above (a big white softbox in
+          the environment + sky/ground fill), with only a weak directional light from the upper left for
+          direction and self-shadowing inside the book. Low contrast between the cover and the page edges. */}
       <Environment resolution={256} frames={1} background={false}>
-        <Lightformer form="rect" intensity={3} color="#fff8f0" position={[-12, 16, 8]} scale={[20, 14, 1]} target={[0, 0, 0]} />
-        <Lightformer form="rect" intensity={1.1} color="#f6f2ff" position={[14, 8, 12]} scale={[16, 10, 1]} target={[0, 0, 0]} />
-        <Lightformer form="rect" intensity={0.8} color="#ffffff" position={[0, 8, -18]} scale={[24, 8, 1]} target={[0, 0, 0]} />
-        <Lightformer form="ring" intensity={0.5} color="#fff3e6" position={[0, -8, 0]} scale={12} target={[0, 0, 0]} />
+        <Lightformer form="rect" intensity={2.4} color="#fffaf3" position={[-4, 30, 2]} rotation-x={Math.PI / 2} scale={[46, 40, 1]} />
+        <Lightformer form="rect" intensity={1.1} color="#fff6ee" position={[-16, 14, 10]} scale={[24, 16, 1]} target={[0, 0, 0]} />
+        <Lightformer form="rect" intensity={0.7} color="#ffffff" position={[14, 10, 14]} scale={[22, 12, 1]} target={[0, 0, 0]} />
       </Environment>
-      <hemisphereLight args={["#fffaf4", "#eadfd4", 0.8]} />
-      {/* key light = the backdrop photo's light: from the upper left and behind, so shadows fall soft and short
-          to the lower right on screen, like the hook's and the granny square's in the photo; weak fill opposite */}
-      <directionalLight position={[-26, 42, -14]} intensity={1.5} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={18} shadow-blurSamples={24}>
+      <hemisphereLight args={["#fffaf4", "#eadcd2", 1.05]} />
+      <directionalLight position={[-26, 42, -14]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={20} shadow-blurSamples={32}>
         <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
       </directionalLight>
-      <directionalLight position={[22, 12, 18]} intensity={0.35} color="#f1eeff" />
       <BookModel anim={anim} onOpen={() => setOpen(true)} layer={layer} m={m} />
-      {/* the desk: invisible except for the book's cast shadow (the canvas is transparent over the photo) */}
+      {/* the book's shadow on the desk, in two layers like the photo's skeins: a narrow dark contact line where
+          it touches, and a broad very soft shadow spreading to the lower right. Warm grey-brown (sampled
+          beside the skeins), not black; darkness follows --book-shadow */}
+      {/* broad soft layer: the key light's shadow map, falling to the lower right (follows the book as it opens) */}
       <mesh rotation-x={-Math.PI / 2} position-y={0} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <shadowMaterial transparent opacity={0.2} color="#4a3128" />
+        <shadowMaterial transparent opacity={0.42 * shadowK} color={SHADOW_COLOR} />
       </mesh>
-      {/* contact shadow where the book touches the desk */}
-      <ContactShadows position={[0, 0.002, 0]} scale={80} blur={2.4} far={4} opacity={0.38} resolution={1024} color="#5a3e33" frames={Infinity} />
+      {/* narrow dark contact line where the book touches the desk */}
+      <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={0.55 * shadowK} resolution={1024} color={SHADOW_COLOR} frames={Infinity} />
     </>
   );
 }
@@ -388,13 +394,15 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance", logarithmicDepthBuffer: true }}
         onCreated={({ gl }) => {
-          gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.3;
+          gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.12; // outputColorSpace stays sRGB (default); exposure set so the lit cloth reads close to its hex (--book-lav)
           gl.domElement.addEventListener("webglcontextlost", e => { e.preventDefault(); onFail(); });
           requestAnimationFrame(() => setReady(true));
         }}
       >
         <Scene open={open} setOpen={setOpen} reduce={reduce} layer={layer} />
       </Canvas>
+      {/* film grain over the book and the photo (not over any text: the page DOM and the hero copy sit above) */}
+      <div className="book-grain" aria-hidden="true" />
       <div ref={cssHost} />
       {createPortal(<LeftPage />, layer.left)}
       {createPortal(<RightPage onClose={() => setOpen(false)} />, layer.right)}

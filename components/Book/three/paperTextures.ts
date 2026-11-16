@@ -46,17 +46,18 @@ export const drawLeftPage = (cv: HTMLCanvasElement) => spreadPage(cv, false);
  *  bottom of v) and, on the head/tail faces, towards the spine (u = 0). */
 export function drawPageEdges(cv: HTMLCanvasElement, spineSide: boolean) {
   const ctx = cv.getContext("2d")!, w = cv.width, h = cv.height;
-  ctx.fillStyle = "#F6EFE2"; ctx.fillRect(0, 0, w, h);
-  // ~150 visible lines over the block: finer than this only averages to grey on screen
+  ctx.fillStyle = "#EFE4D2"; ctx.fillRect(0, 0, w, h);
+  // dense, irregular page lines (spacing and darkness vary like real paper)
   let y = 0, i = 0;
   while (y < h) {
-    const a = 0.1 + ((i * 7919) % 17) / 120; // irregular, like real paper
-    ctx.fillStyle = `rgba(150,120,85,${a})`; ctx.fillRect(0, y, w, 1.6);
-    y += 5.5 + ((i * 104729) % 5) * 0.7; i++;
+    const a = 0.05 + ((i * 7919) % 23) / 190;
+    ctx.fillStyle = `rgba(140,108,78,${a})`; ctx.fillRect(0, y, w, 0.9 + ((i * 31) % 3) * 0.35);
+    y += 2.6 + ((i * 104729) % 7) * 0.45; i++;
   }
-  for (const [y0, y1] of [[0, h * 0.12], [h, h * 0.88]]) {
-    const g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, "rgba(70,50,35,.22)"); g.addColorStop(1, "rgba(70,50,35,0)");
-    ctx.fillStyle = g; ctx.fillRect(0, Math.min(y0, y1), w, Math.abs(y1 - y0));
-  }
-  if (spineSide) { const g = ctx.createLinearGradient(0, 0, w * 0.1, 0); g.addColorStop(0, "rgba(70,50,35,.28)"); g.addColorStop(1, "rgba(70,50,35,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, w * 0.1, h); }
+  // brighter middle, darker where the block meets the boards (top and bottom of v)
+  const mid = ctx.createLinearGradient(0, 0, 0, h);
+  mid.addColorStop(0, "rgba(90,64,42,.3)"); mid.addColorStop(0.16, "rgba(90,64,42,0)"); mid.addColorStop(0.5, "rgba(255,250,240,.16)");
+  mid.addColorStop(0.84, "rgba(90,64,42,0)"); mid.addColorStop(1, "rgba(90,64,42,.3)");
+  ctx.fillStyle = mid; ctx.fillRect(0, 0, w, h);
+  if (spineSide) { const g = ctx.createLinearGradient(0, 0, w * 0.14, 0); g.addColorStop(0, "rgba(90,64,42,.34)"); g.addColorStop(1, "rgba(90,64,42,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, w * 0.14, h); }
 }
