@@ -310,6 +310,8 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
   const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0 }; derive(a); return a; }, []);
   const m = useBookMaterials();
   const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl), camera = useThree(s => s.camera), sceneRef = useThree(s => s.scene);
+  // --shadow-strength on the hero (CSS), so the book's shadow is tuned together with the objects'
+  const [shadowK] = useState(() => { const v = parseFloat(getComputedStyle(gl.domElement.closest(".hero-desk") ?? document.documentElement).getPropertyValue("--shadow-strength")); return Number.isFinite(v) ? v : 1; });
   useEffect(() => { anim.target = open ? 1 : 0; if (reduce) anim.t = anim.target; invalidate(); }, [open, reduce, anim, invalidate]);
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
@@ -348,20 +350,21 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
         <Lightformer form="ring" intensity={0.5} color="#fff3e6" position={[0, -8, 0]} scale={12} target={[0, 0, 0]} />
       </Environment>
       <hemisphereLight args={["#fffaf4", "#eadfd4", 0.8]} />
-      {/* key light = the backdrop photo's light: from the upper left and behind, so shadows fall soft and short
-          to the lower right on screen, like the hook's and the granny square's in the photo; weak fill opposite */}
-      <directionalLight position={[-26, 42, -14]} intensity={1.5} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={18} shadow-blurSamples={24}>
-        <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
+      {/* key light = warm sun through a window at the upper left and behind, low (~36 degrees), so the book
+          casts a long soft shadow to the lower right, like the objects' CSS shadows on the floor */}
+      <directionalLight position={[-17, 22, -25]} intensity={1.7} color="#FFE8C6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={14} shadow-blurSamples={24}>
+        <orthographicCamera attach="shadow-camera" args={[-32, 32, 32, -32, 1, 120]} />
       </directionalLight>
       <directionalLight position={[22, 12, 18]} intensity={0.35} color="#f1eeff" />
       <BookModel anim={anim} onOpen={() => setOpen(true)} layer={layer} m={m} />
-      {/* the desk: invisible except for the book's cast shadow (the canvas is transparent over the photo) */}
+      {/* the desk: invisible except for the book's cast shadow (the canvas is transparent over the floor).
+          Same colour as the objects' CSS shadows; darkness follows --shadow-strength on .hero-desk */}
       <mesh rotation-x={-Math.PI / 2} position-y={0} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <shadowMaterial transparent opacity={0.2} color="#4a3128" />
+        <shadowMaterial transparent opacity={0.24 * shadowK} color="#3A2530" />
       </mesh>
       {/* contact shadow where the book touches the desk */}
-      <ContactShadows position={[0, 0.002, 0]} scale={80} blur={2.4} far={4} opacity={0.38} resolution={1024} color="#5a3e33" frames={Infinity} />
+      <ContactShadows position={[0, 0.002, 0]} scale={80} blur={2.4} far={4} opacity={0.34 * shadowK} resolution={1024} color="#3A2530" frames={Infinity} />
     </>
   );
 }
