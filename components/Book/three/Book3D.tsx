@@ -190,18 +190,26 @@ function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   );
 }
 
-/** "Close" on the first (left) page: lies on the turned sheet near its upper outer corner. */
+/** "Close" on the first page you see: the left page on wide screens; on phones, where the camera frames
+ *  only the right page, its upper left corner (phones have no Esc key, so it must stay reachable). */
 const CLOSE_PX: [number, number] = [96, 30];
 function PageClose({ layer }: { layer: CssLayer }) {
+  const desk = useThree(s => s.size.width) >= DESK_MIN;
   const obj = useMemo(() => {
-    const o = new CSS3DObject(layer.close), c = sheetCurve(SHEETS - 1, 1), n = c.pts.length - 1;
-    const i = Math.round(n * (SHEET_W - 2.2) / SHEET_W), p = c.pts[i], a = c.heads[Math.min(i, c.heads.length - 1)];
-    o.position.set(p[0], p[1] + 0.06, BLOCK.z0 + 1.3);
-    // lie flat on the page, then follow its slope (the left side rests on the tilted cover)
-    o.rotation.order = "ZYX"; o.rotation.set(-Math.PI / 2, 0, a - Math.PI);
+    const o = new CSS3DObject(layer.close);
+    if (desk) {
+      const c = sheetCurve(SHEETS - 1, 1), n = c.pts.length - 1;
+      const i = Math.round(n * (SHEET_W - 2.2) / SHEET_W), p = c.pts[i], a = c.heads[Math.min(i, c.heads.length - 1)];
+      o.position.set(p[0], p[1] + 0.06, BLOCK.z0 + 1.3);
+      // lie flat on the page, then follow its slope
+      o.rotation.order = "ZYX"; o.rotation.set(-Math.PI / 2, 0, a - Math.PI);
+    } else {
+      const x = GUTTER_X + (PAGE_LAYOUT.pad + CLOSE_PX[0] / 2) * PX_CM, z = BLOCK.z0 + (28 + CLOSE_PX[1] / 2) * PX_CM;
+      o.position.set(x, blockTop(x) + 0.08, z); o.rotation.set(-Math.PI / 2, 0, 0);
+    }
     o.scale.setScalar(PX_CM);
     return o;
-  }, [layer]);
+  }, [layer, desk]);
   return <primitive object={obj} />;
 }
 
@@ -242,7 +250,7 @@ const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THR
 // centre at (1075, 490) (a little lower than the comp's 460); 22% of the photo wide (the comp had 27%, trimmed for more air). The photo is drawn with object-fit: cover and
 // object-position: right center, so the same scale/offset maps that spot onto the screen.
 const PHOTO = { w: 1870, h: 841, cx: 830, cy: 445, bookW: 0.28 };
-const DESK_MIN = 900; // below this the hero uses the (pending) phone layout
+const DESK_MIN = 900; // below this the hero uses the phone layout
 // The backdrop is fitted to the screen width and centred vertically (the plain backdrop colour fills
 // any space above/below), so the comp's left-to-right composition holds on every aspect ratio.
 function photoSpot(vw: number, vh: number) {
@@ -258,9 +266,12 @@ const BOX = (() => {
   return out;
 })();
 
-/** Camera distance and lens shift that put the closed book at its spot in the photo. */
-function closedAnchor(vw: number, vh: number, tgt: THREE.Vector3) {
-  const cam = new THREE.PerspectiveCamera(FOV, vw / vh, 1, 1000), spot = photoSpot(vw, vh);
+/** Phones: the book sits centred, 62% of the screen wide, at 46% of the height (logo above, button below). */
+function phoneSpot(vw: number, vh: number) { return { x: vw / 2, y: vh * 0.46, w: vw * 0.62 }; }
+
+/** Camera distance and lens shift that put the closed book at its spot (in the photo, or the phone layout). */
+function closedAnchor(vw: number, vh: number, tgt: THREE.Vector3, spot: { x: number; y: number; w: number }) {
+  const cam = new THREE.PerspectiveCamera(FOV, vw / vh, 1, 1000);
   const project = (d: number) => {
     cam.position.copy(tgt).addScaledVector(CLOSED_DIR, d); cam.up.set(0, 1, 0); cam.lookAt(tgt); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
@@ -278,11 +289,11 @@ function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   useEffect(() => { layer.renderer.setSize(size.width, size.height); }, [layer, size]);
   const cTgt = useMemo(() => new THREE.Vector3(0, FAB + T / 2, 0), []);
   const desk = size.width >= DESK_MIN;
-  const anchor = useMemo(() => (desk ? closedAnchor(size.width, size.height, cTgt) : null), [desk, size.width, size.height, cTgt]);
+  const anchor = useMemo(() => closedAnchor(size.width, size.height, cTgt, desk ? photoSpot(size.width, size.height) : phoneSpot(size.width, size.height)), [desk, size.width, size.height, cTgt]);
   const v = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dir: new THREE.Vector3() }), []);
   useFrame(() => {
     const cam = camera as THREE.PerspectiveCamera, aspect = size.width / size.height, e = anim.cam;
-    const cDist = anchor ? anchor.d : fit(14 / 0.8, 14 / 0.8, aspect);
+    const cDist = anchor.d;
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
     const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / 0.52, D / 2 / 0.64, aspect); // open spread ~52% of the width
@@ -292,8 +303,7 @@ function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
     v.pos.copy(v.tgt).addScaledVector(v.dir, THREE.MathUtils.lerp(cDist, oDist, e) * bump);
     cam.position.copy(v.pos); cam.up.set(0, 1, 0); cam.lookAt(v.tgt);
     // lens shift: closed, the book sits at its spot in the photo; it glides to the centre as it opens
-    if (anchor) cam.setViewOffset(size.width, size.height, anchor.shiftX * (1 - e), anchor.shiftY * (1 - e), size.width, size.height);
-    else cam.clearViewOffset();
+    cam.setViewOffset(size.width, size.height, anchor.shiftX * (1 - e), anchor.shiftY * (1 - e), size.width, size.height);
     cam.updateProjectionMatrix(); cam.updateMatrixWorld(); scene.updateMatrixWorld();
     layer.renderer.render(scene, camera); // the DOM page buttons follow the same camera
   });

@@ -198,8 +198,13 @@ html{overflow-x:clip}
 .book-css-slot{position:absolute;z-index:2;left:44%;top:53%;transform:translate(-50%,-50%)}
 .book-css-slot .bookstage{min-height:0;overflow:visible} /* the open left page extends past the slot */
 @media (max-width:899px){
-  /* phone layout is pending: keep things readable until it is designed */
-  .hero-bg-img{object-position:78% center}
-  .hero-copy-desk{--logo-w:62vw;left:50%;top:9svh;transform:translateX(-50%)}
-  .hero-desk .hero-copy-desk .hero-start{position:absolute;top:calc(100svh - 18svh);margin:0}
+  /* phone: logo, caption, book, button stacked in the middle; the backdrop only under the lower 42% so
+     the yarn and motif sit below the book instead of under it */
+  .hero-bg{top:auto;height:42svh}
+  .hero-bg .hero-bg-img{top:auto!important;bottom:0!important;height:100%!important;transform:none;object-fit:cover;object-position:70% center;
+    -webkit-mask-image:linear-gradient(to bottom,transparent,#000 30%);mask-image:linear-gradient(to bottom,transparent,#000 30%)}
+  .hero-copy-desk{--logo-w:56vw;left:50%;top:6svh;transform:translateX(-50%);width:var(--logo-w)}
+  .hero-desk .hero-copy-desk .hero-start{position:absolute;left:50%;transform:translateX(-50%);width:auto;gap:18px;font-size:13px;top:calc(63svh - 6svh);margin:0} /* phones: sized to its text, centred */
+  .book-css-slot{left:50%;top:46%}
 }
+
