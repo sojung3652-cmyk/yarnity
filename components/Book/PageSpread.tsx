@@ -5,17 +5,11 @@
 // Phones (< 900px) see only the right page: it then carries everything, stacked (see .pg-* in Book.css).
 import Link from "next/link";
 import { FoilLogo } from "../FoilLogo";
+import { RibbonGold } from "../RibbonGold";
 import { useApp } from "@/components/AppProvider";
 
 const ICON = { fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
-/** Ball of yarn (ribbon tab). */
-const YarnBallIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" {...ICON}>
-    <circle cx="12" cy="12" r="8" />
-    <path d="M6.2 6.6c4 1.6 7.6 5.6 8.8 12.8M4.6 10.4c4.4.6 8.6 3.6 11.4 8.4M9.6 4.4c3.6 2.4 7 6.8 8.2 11.6M14.4 4.3c-2.6 3.6-6.4 6.6-10.2 8.8" />
-  </svg>
-);
 /** Printer's ornament under the left page's copy: the yarn ball from the logo (cut out of logo-mark.svg
  *  with a circular mask, not redrawn) between two hairlines. */
 const Ornament = () => (
@@ -57,7 +51,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
   return (
     <div className="pg-page pg-rp">
       <button type="button" className="pg-ribbon" aria-label="책 덮기" onClick={e => { e.stopPropagation(); onClose(); }}>
-        <span className="pg-ribbon-tab"><YarnBallIcon /></span>
+        <span className="pg-ribbon-tab"><RibbonGold w={78} h={107} ball={30} ballY={44} lineInset={9} lineEnd={84} /></span>
         <span className="pg-ribbon-tip" aria-hidden="true">책 덮기</span>
       </button>
       <div className="pg-phone-brand"><Brand phone /></div>

@@ -18,6 +18,7 @@ import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
 import { TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
+import { RibbonGold } from "@/components/RibbonGold";
 import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
@@ -294,7 +295,7 @@ export function NewBook() {
           const t = e.target as HTMLElement;
           if (e.key === "Enter" && !e.nativeEvent.isComposing && (t.getAttribute("role") === "radio" || t === titleRef.current)) { e.preventDefault(); next(); }
         }}>
-        <span className="nb-ribbon" aria-hidden="true" />
+        <span className="nb-ribbon" aria-hidden="true"><RibbonGold w={30} h={62} ball={18} ballY={27} lineInset={4} lineEnd={47} /></span>
         <span className="nb-marker" aria-hidden="true" />
         <section className="nb-page nb-left" aria-labelledby="nbTitle">
           {step !== 1 && progress}
