@@ -5,6 +5,7 @@
      its shaded tone, shadow darkness (1 = as designed), film grain over the book and the photo, and the
      softening of the book's rendered edges */
   --book-lav:#C4B5DD; --book-lav-shade:#AFA0CB; --book-shadow:1; --grain:.035; --book-soften:.35px;
+  --book-saturate:.68; /* the whole closed book's colour strength (1 = as rendered) */
   --bg:#F7ECEA; --surface:#FFFFFF; --ink:#2E2420; --muted:#73665F; --line:#EADFD6; --soft:#F2E8E0;
   --accent:#B9A5DD; --btn:#3A322F; --on-btn:#FFFFFF;
   --dot:#D3CBC5; --dot-now:#2B2523; --dot-future:#EFEAE5; color-scheme:light;

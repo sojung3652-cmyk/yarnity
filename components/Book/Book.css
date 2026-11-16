@@ -96,6 +96,7 @@
 }
 /* photo-matching finish for the WebGL book: its canvas a hair soft (no text in it: the page text is DOM above),
    and a faint film grain over the book and the backdrop photo (--grain, --book-soften in globals.css) */
-.book3d canvas{filter:blur(var(--book-soften,.35px))}
+.book3d canvas{filter:blur(var(--book-soften,.35px)) saturate(var(--book-saturate,1))}
+.bookstage .book{filter:saturate(var(--book-saturate,1))}
 .book-grain{position:absolute;inset:0;pointer-events:none;opacity:var(--grain,.035);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")}
