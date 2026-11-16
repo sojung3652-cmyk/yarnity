@@ -6,7 +6,7 @@
 .book{position:relative;width:100%;height:100%;transform-style:preserve-3d;cursor:pointer;transform:translateY(3%) rotateX(54deg) rotateZ(15deg);transition:transform 1.2s cubic-bezier(.22,.7,.18,1)}
 .book.is-open{cursor:default;transform:translateX(calc(var(--W) / 2)) translateZ(calc(-1 * (var(--P) + var(--C)))) rotateX(0) rotateZ(0)}
 /* cast shadow on the desk: light from the upper left (as in the backdrop photo) -> soft, short, to the lower right */
-.book::before{content:"";position:absolute;inset:2% -5% -5% 4%;background:rgba(74,49,40,.42);filter:blur(14px);transform:translateZ(-2px);border-radius:var(--R);transition:inset 1.2s cubic-bezier(.22,.7,.18,1),opacity 1.2s}
+.book::before{content:"";position:absolute;inset:2% -3% -3% 3%;background:rgba(74,49,40,.4);filter:blur(20px);transform:translateZ(-2px);border-radius:var(--R);transition:inset 1.2s cubic-bezier(.22,.7,.18,1),opacity 1.2s}
 .book::after{content:"";position:absolute;inset:0;background:rgba(74,49,40,.35);filter:blur(4px);transform:translateZ(-1px);border-radius:var(--R)} /* contact shadow */
 .book.is-open::before{inset:4% -2% -3% -100%;opacity:.5}
 .book.is-open::after{left:-100%}

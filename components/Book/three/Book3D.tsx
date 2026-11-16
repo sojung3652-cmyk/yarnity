@@ -347,7 +347,7 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
       <hemisphereLight args={["#fffaf4", "#eadfd4", 0.8]} />
       {/* key light = the backdrop photo's light: from the upper left and behind, so shadows fall soft and short
           to the lower right on screen, like the hook's and the granny square's in the photo; weak fill opposite */}
-      <directionalLight position={[-26, 30, -14]} intensity={1.5} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={9} shadow-blurSamples={16}>
+      <directionalLight position={[-26, 42, -14]} intensity={1.5} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={18} shadow-blurSamples={24}>
         <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
       </directionalLight>
       <directionalLight position={[22, 12, 18]} intensity={0.35} color="#f1eeff" />
