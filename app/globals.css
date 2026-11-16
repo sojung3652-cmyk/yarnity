@@ -32,6 +32,15 @@ a{color:inherit}
 .pcard-wrap{position:relative}
 .pcard-edit{position:absolute;top:14px;right:14px;font-size:12.5px;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
 .pcard-edit:hover{color:var(--ink)}
+.pcard-yarn{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;padding:10px 4px 0;line-height:1.5}
+.pcard-lot{display:inline-flex;align-items:center;gap:6px;color:var(--ink)}
+.pcard-lot b,.lot-box b{font-weight:600;letter-spacing:.04em}
+.lot-box{display:flex;align-items:center;gap:10px;margin:2px 0 8px;padding:10px 12px;border-radius:12px;background:var(--soft)}
+.lot-box b{font-size:17px;color:var(--ink)}
+.lot-copy{margin-left:auto;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;cursor:pointer}
+.pcard-lot .lot-copy{margin-left:2px}
+.lot-copy:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.sw-dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(60,40,30,.18)}
 .nav-links{display:flex;gap:4px;align-items:center}
 .nav-links a.l{text-decoration:none;color:var(--ink);opacity:.72;font-size:13px;padding:8px 10px}
 .nav-links a.l:hover,.nav-links a.l[aria-current="page"]{color:var(--ink)}

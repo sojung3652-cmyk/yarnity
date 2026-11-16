@@ -2,7 +2,9 @@
 import Link from "next/link";
 import { useApp } from "@/components/AppProvider";
 import { ITEM, itemIdOf } from "@/lib/items";
-import { plan, YARN_KO } from "@/lib/pattern";
+import { CopyLot } from "@/components/YarnInfo";
+import { plan } from "@/lib/pattern";
+import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 
 function Cards() {
   const { ready, projects, setActive } = useApp();
@@ -15,13 +17,18 @@ function Cards() {
         return (
           <div key={p.id} className="pcard-wrap">
           <Link className="pcard" href="/track" onClick={() => setActive(p.id)}>
-            <span className="small muted">{`${ITEM[itemIdOf(p)].name} · ${p.hook} · ${YARN_KO[p.weight]}`}</span>
+            <span className="small muted">{ITEM[itemIdOf(p)].name}</span>
             <h3>{p.name}</h3>
             <div className="bar"><i style={{ width: `${Math.round(cur / total * 100)}%` }} /></div>
             <span className="small muted">{cur >= total ? "완성" : `${cur} / ${total} · 다음 ${pp.rows[cur].label}`}</span>
           </Link>
           {/* edit: opens 도안 만들기 at step 3 with this work's values; saving overwrites it */}
           <Link className="pcard-edit" href={`/new?edit=${p.id}`}>고치기</Link>
+          {/* 실 정보 (outside the card link so the copy button is its own control) */}
+          <div className="pcard-yarn small muted">
+            <span>{[p.yarn, p.materials?.join("·"), p.colorName ? p.colorName + (p.colorNo ? ` ${p.colorNo}` : "") : "", yarnWeightText(p), hookLabel(hookMmOf(p))].filter(Boolean).join(" · ")}</span>
+            {p.lot && <span className="pcard-lot">LOT <b>{p.lot}</b><CopyLot lot={p.lot} /></span>}
+          </div>
           </div>
         );
       })}

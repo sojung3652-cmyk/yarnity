@@ -5,7 +5,8 @@ import { Fragment, useEffect } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
 import { ITEM, itemIdOf } from "@/lib/items";
-import { fmt, HOOK_MM, PART_KO, plan, SHAPE_KO, YARN_KO } from "@/lib/pattern";
+import { YarnInfo } from "@/components/YarnInfo";
+import { fmt, PART_KO, plan, SHAPE_KO } from "@/lib/pattern";
 
 export default function PatternPage() {
   const { ready, active: p } = useApp();
@@ -38,7 +39,8 @@ export default function PatternPage() {
   const it = ITEM[itemIdOf(p)], size = p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`;
   const dims: [string, string][] = p.object === "rows" ? [["크기", `폭 ${p.a} × 길이 ${p.b}cm`]] : p.object === "tube" ? [["크기", `둘레 ${p.a} · ${it.id === "headband" ? "폭" : "높이"} ${p.h}cm`]]
     : [["바닥", `${SHAPE_KO[p.shape]} · ${size}`], ...(p.object === "bag" ? [["몸통 높이", p.h + "cm"] as [string, string]] : [])];
-  const stats: [string, string][] = [["작품", it.name], ...dims, ...(p.colorName || p.color ? [["색", p.colorName || "직접 고른 색"] as [string, string]] : []), ["실", `${p.yarn || "실"} · ${YARN_KO[p.weight]}`], ["코바늘", `${p.hook} · ${HOOK_MM[p.hook]}mm`], ["코 크기", `${fmt(pp.g.h * 10)}mm · ${pp.g.measured ? "실측" : "예상"}`]];
+  // yarn and hook have their own card (YarnInfo)
+  const stats: [string, string][] = [["작품", it.name], ...dims, ["코 크기", `${fmt(pp.g.h * 10)}mm · ${pp.g.measured ? "실측" : "예상"}`]];
 
   return (
     <main id="view-pattern">
@@ -53,6 +55,7 @@ export default function PatternPage() {
           <div className="card" id="patStats" style={{ gap: 0 }}>
             {stats.map(([k, v]) => <div key={k} className="stat"><span>{k}</span><b style={{ fontWeight: 400 }}>{v}</b></div>)}
           </div>
+          <YarnInfo p={p} />
         </aside>
         <div className="card" style={{ gap: 0 }}><div id="patRows">{blocks}</div></div>
       </div>
