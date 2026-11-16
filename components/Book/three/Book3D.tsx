@@ -354,7 +354,7 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
         <Lightformer form="rect" intensity={0.7} color="#ffffff" position={[14, 10, 14]} scale={[22, 12, 1]} target={[0, 0, 0]} />
       </Environment>
       <hemisphereLight args={["#fffaf4", "#eadcd2", 1.05]} />
-      <directionalLight position={[-26, 42, -14]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={20} shadow-blurSamples={32}>
+      <directionalLight position={[-22, 52, -22]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
         <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
       </directionalLight>
       <BookModel anim={anim} onOpen={() => setOpen(true)} layer={layer} m={m} />
@@ -364,7 +364,7 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
       {/* broad soft layer: the key light's shadow map, falling to the lower right (follows the book as it opens) */}
       <mesh rotation-x={-Math.PI / 2} position-y={0} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <shadowMaterial transparent opacity={0.42 * shadowK} color={SHADOW_COLOR} />
+        <shadowMaterial transparent opacity={0.38 * shadowK} color={SHADOW_COLOR} />
       </mesh>
       {/* narrow dark contact line where the book touches the desk */}
       <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={0.55 * shadowK} resolution={1024} color={SHADOW_COLOR} frames={Infinity} />
