@@ -50,9 +50,14 @@ export function useBookMaterials(): BookMaterials {
     })();
     const P = printed;
 
-    const cream = yarn(gl, knit("cream"), "#FFF6EE");
-    const lavender = yarn(gl, knit("lavender"), "#D9CCF2");
-    const border = yarn(gl, chainBorder(2 * Math.PI * BORDER_R), "#D9CCF2", 1.8);
+    // design comp: a cream linen cover with a flat lavender binding (spine and edge tape)
+    const linen = (color: string, sheen: string) => new THREE.MeshPhysicalMaterial({
+      color, roughness: 0.94, metalness: 0, specularIntensity: 0.1, sheen: 0.25, sheenColor: new THREE.Color(sheen), sheenRoughness: 0.85,
+      normalMap: canvasTexture(weaveNormal(), false, gl, [1 / 0.8, 1 / 0.8]), normalScale: new THREE.Vector2(0.45, 0.45), // uv in cm: ~20 threads/cm
+    });
+    const cream = linen("#F3EAD9", "#FFF8EE");
+    const lavender = linen("#B8A6E0", "#E2D8F6");
+    const border = linen("#AF9CDB", "#E2D8F6");
 
     // front picture: colour from bird.png, relief from its brightness so the stitches stand out
     const panel = new THREE.MeshPhysicalMaterial({ roughness: 0.93, metalness: 0, specularIntensity: 0.1, sheen: 0.25, sheenColor: new THREE.Color("#FFF6EE"), sheenRoughness: 0.85, normalScale: new THREE.Vector2(0.9, 0.9) });

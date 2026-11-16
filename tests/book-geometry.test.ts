@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  B, BAND_L, BLOCK, blockTop, BOARD, BORDER_R, BORDER_TUCK, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, COVER_INSIDE, D, FAB, H, N_BAND,
+  B, BAND_L, BLOCK, blockTop, BOARD, BORDER_HW, BORDER_TUCK, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, COVER_INSIDE, D, FAB, H, N_BAND,
   sheetCurve, SHEETS, sleevePath, spineBand, spineYarn, T, W, type V2,
 } from "@/components/Book/three/geometry";
 
@@ -18,11 +18,10 @@ const distToPolyline = (q: V2, pts: V2[]) => {
 };
 
 describe("proportions", () => {
-  it("4:5 cover, thickness 16% of the width, border 4-5% of the width", () => {
+  it("4:5 cover, thickness 16% of the width, binding tape 2.5% of the width", () => {
     expect(W / D).toBeCloseTo(0.8, 5);
     expect(T / W).toBeCloseTo(0.16, 5);
-    expect((2 * BORDER_R) / W).toBeGreaterThanOrEqual(0.04);
-    expect((2 * BORDER_R) / W).toBeLessThanOrEqual(0.05);
+    expect((2 * BORDER_HW) / W).toBeCloseTo(0.025, 5);
   });
 });
 
@@ -93,8 +92,8 @@ describe("borders meet the spine yarn", () => {
       // border ends (centre line) tuck BORDER_TUCK past each cover's spine edge
       const backEnd: V2 = [-W / 2 - BORDER_TUCK, BORDER_Y_BACK];
       const frontEnd = pose.apply([-W / 2 - BORDER_TUCK, BORDER_Y_FRONT]);
-      expect(distToPolyline(backEnd, yarn), `w=${w} back`).toBeLessThan(BORDER_R * 0.6);
-      expect(distToPolyline(frontEnd, yarn), `w=${w} front`).toBeLessThan(BORDER_R * 0.6);
+      expect(distToPolyline(backEnd, yarn), `w=${w} back`).toBeLessThan(BORDER_HW * 0.6);
+      expect(distToPolyline(frontEnd, yarn), `w=${w} front`).toBeLessThan(BORDER_HW * 0.6);
     }
   });
   it("spine yarn has the band's points plus a tuck at each end", () => {

@@ -51,7 +51,7 @@ export function updateRibbon(g: THREE.BufferGeometry, path: PathPoint[]) {
 const RADIAL = 12;
 
 /** Crochet edging round along the sleeve's raw edge (z = zEdge), following the same path. */
-export function createEdge(path: PathPoint[], zEdge: number, r: number) {
+export function createEdge(path: PathPoint[], zEdge: number, r: number, rz = r) {
   const n = path.length, g = new THREE.BufferGeometry(), verts = n * (RADIAL + 1);
   g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(verts * 3), 3));
   g.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(verts * 3), 3));
@@ -62,18 +62,20 @@ export function createEdge(path: PathPoint[], zEdge: number, r: number) {
     idx.push(a, a + 1, b, b, a + 1, b + 1); // outward-facing (ring runs n -> z around the tangent)
   }
   g.setIndex(idx);
-  updateEdge(g, path, zEdge, r);
+  updateEdge(g, path, zEdge, r, rz);
   return g;
 }
 
-export function updateEdge(g: THREE.BufferGeometry, path: PathPoint[], zEdge: number, r: number) {
+/** r: half size across the fabric (along its normal), rz: half size along Z (a flat tape when r < rz). */
+export function updateEdge(g: THREE.BufferGeometry, path: PathPoint[], zEdge: number, r: number, rz = r) {
   const pos = g.attributes.position.array as Float32Array, nor = g.attributes.normal.array as Float32Array, uv = g.attributes.uv.array as Float32Array;
   const circ = 2 * Math.PI * r;
   path.forEach(({ p, n, u }, i) => {
     for (let j = 0; j <= RADIAL; j++) {
       const f = (j / RADIAL) * Math.PI * 2, c = Math.cos(f), s = Math.sin(f), k = i * (RADIAL + 1) + j;
-      const nx = n[0] * c, ny = n[1] * c, nz = s;
-      pos[k * 3] = p[0] + nx * r; pos[k * 3 + 1] = p[1] + ny * r; pos[k * 3 + 2] = zEdge + nz * r;
+      pos[k * 3] = p[0] + n[0] * c * r; pos[k * 3 + 1] = p[1] + n[1] * c * r; pos[k * 3 + 2] = zEdge + s * rz;
+      // ellipse normal: gradient of (a/r)^2 + (b/rz)^2
+      let nx = n[0] * c / r, ny = n[1] * c / r, nz = s / rz; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
       nor[k * 3] = nx; nor[k * 3 + 1] = ny; nor[k * 3 + 2] = nz;
       uv[k * 2] = u; uv[k * 2 + 1] = (j / RADIAL) * circ;
     }
@@ -121,17 +123,19 @@ export { SHEET_W };
  * vector (the cover's normal) instead of three's Frenet frames, so the yarn pattern cannot twist.
  * uv.x runs along the tube in cm, scaled so the pattern repeats a whole number of times (tileCm).
  */
-export function flatTube(pts: [number, number][], y: number, r: number, tileCm: number, radial = 16) {
+export function flatTube(pts: [number, number][], y: number, r: number, tileCm: number, radial = 16, rUp = r) {
   const n = pts.length, g = new THREE.BufferGeometry(), pos: number[] = [], nor: number[] = [], uv: number[] = [], idx: number[] = [];
   const cum = [0]; for (let i = 1; i < n; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
-  const L = cum[n - 1], k = Math.max(1, Math.round(L / tileCm)), scale = (k * tileCm) / L, circ = 2 * Math.PI * r;
+  const L = cum[n - 1], k = Math.max(1, Math.round(L / tileCm)), scale = (k * tileCm) / L, circ = Math.PI * (r + rUp);
   for (let i = 0; i < n; i++) {
     const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)], tx = b[0] - a[0], tz = b[1] - a[1], tl = Math.hypot(tx, tz) || 1;
     const side: [number, number] = [tz / tl, -tx / tl]; // in-plane, perpendicular to the path
     for (let j = 0; j <= radial; j++) {
       const f = (j / radial) * Math.PI * 2, c = Math.cos(f), s = Math.sin(f);
-      const nx = side[0] * s, ny = c, nz = side[1] * s; // ring = up * cos + side * sin
-      pos.push(pts[i][0] + nx * r, y + ny * r, pts[i][1] + nz * r); nor.push(nx, ny, nz); uv.push(cum[i] * scale, (j / radial) * circ);
+      // ring = up * cos * rUp + side * sin * r (an ellipse: a flat tape when rUp < r)
+      pos.push(pts[i][0] + side[0] * s * r, y + c * rUp, pts[i][1] + side[1] * s * r);
+      let nx = side[0] * s / r, ny = c / rUp, nz = side[1] * s / r; const l = Math.hypot(nx, ny, nz) || 1; nor.push(nx / l, ny / l, nz / l);
+      uv.push(cum[i] * scale, (j / radial) * circ);
     }
   }
   for (let i = 0; i < n - 1; i++) for (let j = 0; j < radial; j++) {

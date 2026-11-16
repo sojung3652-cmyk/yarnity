@@ -12,7 +12,7 @@ import * as THREE from "three";
 import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import { useReducedMotion, type BookState } from "../useBookState";
 import {
-  BLOCK, blockTop, BOARD, BORDER_CORNER, BORDER_OUT, BORDER_R, BORDER_TUCK, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, PANEL_SIZE, Q0, sheetCurve, SHEET_W, SHEETS, sleevePath, spineYarn, T, W,
+  BLOCK, blockTop, BOARD, BORDER_CORNER, BORDER_HT, BORDER_HW, BORDER_OUT, BORDER_R, BORDER_TUCK, BORDER_Y_BACK, BORDER_Y_FRONT, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, PANEL_SIZE, Q0, sheetCurve, SHEET_W, SHEETS, sleevePath, spineYarn, T, W,
 } from "./geometry";
 import { borderPath, createEdge, createRibbon, createSheet, flatTube, updateEdge, updateRibbon, updateSheet } from "./meshes";
 import { chainTileCm } from "./knitMaps";
@@ -41,7 +41,7 @@ const YARN_Z = D / 2 + BORDER_OUT; // spine-edge yarn runs in line with the cove
 function Sleeve({ anim, m }: { anim: Anim; m: BookMaterials }) {
   const geo = useMemo(() => {
     const p = sleevePath(0), y = spineYarn(0);
-    return { ribbon: createRibbon(p), top: createEdge(y, -YARN_Z, BORDER_R), bottom: createEdge(y, YARN_Z, BORDER_R) };
+    return { ribbon: createRibbon(p), top: createEdge(y, -YARN_Z, BORDER_HT, BORDER_HW), bottom: createEdge(y, YARN_Z, BORDER_HT, BORDER_HW) };
   }, []);
   const caps = useRef<(THREE.Mesh | null)[]>([]);
   const last = useRef(-1);
@@ -49,7 +49,7 @@ function Sleeve({ anim, m }: { anim: Anim; m: BookMaterials }) {
     if (Math.abs(anim.cover - last.current) < 1e-6) return;
     last.current = anim.cover;
     const p = sleevePath(anim.cover), y = spineYarn(anim.cover);
-    updateRibbon(geo.ribbon, p); updateEdge(geo.top, y, -YARN_Z, BORDER_R); updateEdge(geo.bottom, y, YARN_Z, BORDER_R);
+    updateRibbon(geo.ribbon, p); updateEdge(geo.top, y, -YARN_Z, BORDER_HT, BORDER_HW); updateEdge(geo.bottom, y, YARN_Z, BORDER_HT, BORDER_HW);
     // round caps on the yarn ends (hidden under the borders, but never an open tube)
     const ends = [y[0].p, y[y.length - 1].p];
     caps.current.forEach((c, i) => { if (c) c.position.set(ends[i % 2][0], ends[i % 2][1], i < 2 ? -YARN_Z : YARN_Z); });
@@ -60,7 +60,7 @@ function Sleeve({ anim, m }: { anim: Anim; m: BookMaterials }) {
       <mesh geometry={geo.ribbon} material={[m.cream, m.lavender, m.cream]} castShadow receiveShadow />
       <mesh geometry={geo.top} material={m.border} castShadow />
       <mesh geometry={geo.bottom} material={m.border} castShadow />
-      {[0, 1, 2, 3].map(i => <mesh key={i} ref={el => { caps.current[i] = el; }} material={m.border}><sphereGeometry args={[BORDER_R, 16, 12]} /></mesh>)}
+      {[0, 1, 2, 3].map(i => <mesh key={i} ref={el => { caps.current[i] = el; }} material={m.border}><sphereGeometry args={[BORDER_HT, 16, 12]} /></mesh>)}
     </>
   );
 }
@@ -70,13 +70,13 @@ function Sleeve({ anim, m }: { anim: Anim; m: BookMaterials }) {
 function Border({ y, m }: { y: number; m: BookMaterials }) {
   const { g, ends } = useMemo(() => {
     const pts = borderPath(W, D, BORDER_OUT, BORDER_CORNER, BORDER_TUCK);
-    return { g: flatTube(pts, y, BORDER_R, chainTileCm()), ends: [pts[0], pts[pts.length - 1]] };
+    return { g: flatTube(pts, y, BORDER_HW, chainTileCm(), 16, BORDER_HT), ends: [pts[0], pts[pts.length - 1]] };
   }, [y]);
   useEffect(() => () => g.dispose(), [g]);
   return (
     <>
       <mesh geometry={g} material={m.border} castShadow receiveShadow />
-      {ends.map(([x, z], i) => <mesh key={i} material={m.border} position={[x, y, z]}><sphereGeometry args={[BORDER_R, 16, 12]} /></mesh>)}
+      {ends.map(([x, z], i) => <mesh key={i} material={m.border} position={[x, y, z]}><sphereGeometry args={[BORDER_HT, 16, 12]} /></mesh>)}
     </>
   );
 }
@@ -229,19 +229,24 @@ function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void;
 
 // ---- camera ----
 const FOV = 22;
-// closed: ~33 degrees above the table, book turned ~25 degrees (matches the design comp)
-const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 33), THREE.MathUtils.degToRad(25));
+// closed: ~36 degrees above the table, book turned ~15 degrees (matched to the design comp: cover
+// foreshortened to ~0.7 of its width, top edge sloping ~13 degrees)
+const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 36), THREE.MathUtils.degToRad(15));
 // open: high and from the front, so the spread reads like a page
 const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 72), 0);
 const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2)); return Math.max(hh / t, hw / (t * aspect)); };
 
-// Where the book sits in the desk photo (legacy/pic/main_background_refer.png, 1808 x 870):
+// Where the book sits in the backdrop photo (legacy/pic/main_backgrond.png, 1870 x 841). The design comp
+// puts it just up-left of the lavender motif; the backdrop's props sit ~220px further left than in the
+// comp, so the book follows the motif rather than the comp's 58% (which would cover the motif).
 // centre at (1075, 490) (a little lower than the comp's 460); 22% of the photo wide (the comp had 27%, trimmed for more air). The photo is drawn with object-fit: cover and
 // object-position: right center, so the same scale/offset maps that spot onto the screen.
-const PHOTO = { w: 1808, h: 870, cx: 1075, cy: 490, bookW: 0.22 };
+const PHOTO = { w: 1870, h: 841, cx: 830, cy: 445, bookW: 0.28 };
 const DESK_MIN = 900; // below this the hero uses the (pending) phone layout
+// The backdrop is fitted to the screen width and centred vertically (the plain backdrop colour fills
+// any space above/below), so the comp's left-to-right composition holds on every aspect ratio.
 function photoSpot(vw: number, vh: number) {
-  const s = Math.max(vw / PHOTO.w, vh / PHOTO.h), offX = vw - PHOTO.w * s, offY = (vh - PHOTO.h * s) / 2;
+  const s = vw / PHOTO.w, offX = 0, offY = (vh - PHOTO.h * s) / 2;
   return { x: offX + PHOTO.cx * s, y: offY + PHOTO.cy * s, w: PHOTO.bookW * PHOTO.w * s };
 }
 

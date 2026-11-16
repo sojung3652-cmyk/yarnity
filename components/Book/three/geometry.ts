@@ -19,22 +19,25 @@ export const FAB = 0.25;        // knit thickness
 export const H = FAB / 2;
 export const SQUARE = 0.3;      // pages are inset this much from the boards
 export const SPINE_RX = 0.25 * T; // rounded spine bulge, in proportion to the thickness
-export const BORDER_R = 0.045 * W / 2; // chain border: ~4.5% of the cover width across
+// Cover border: a flat lavender binding tape (design comp), 2.5% of the cover width across.
+export const BORDER_HW = 0.025 * W / 2;   // half width (in the cover plane)
+export const BORDER_HT = H + 0.04;         // half thickness (wraps the knit's raw edge)
+export const BORDER_R = BORDER_HW;        // overall half extent (bounding boxes, caps)
 export const SHEETS = 6;        // pages that turn
 export const SHEET_GAP = 0.012; // paper thickness in the stack
 export const DIP = 0.45;        // how far the top page curls down into the gutter
 export const FORE_CONCAVE = 0.22; // fore edge of the page block is slightly hollow
 
-// The chain border sits on the cover's edge, proud of the surface (as in the photo).
-export const BORDER_OUT = 0.12;                 // tube centre outside the board edge
-export const BORDER_Y_FRONT = T + 0.1;          // centre height of the front border (closed frame)
-export const BORDER_Y_BACK = -0.1;
-export const BORDER_CORNER = 1.6;               // corner radius of the border (>= 2x the tube's thickness)
+// The tape is centred on the fabric's edge so it wraps the raw edge neatly.
+export const BORDER_OUT = 0.04;                 // tape centre just outside the board edge
+export const BORDER_Y_FRONT = T + H;            // centre height of the front tape (closed frame) = fabric centre
+export const BORDER_Y_BACK = -H;
+export const BORDER_CORNER = 0.6;               // corner radius (>= 2x the tape's thickness)
 export const BORDER_TUCK = 0.25;                // border ends run this far under the spine cloth
 
 export type V2 = [number, number];
 /** The picture panel ends where the border begins, so the whole roundness of the border shows. */
-export const PANEL_SIZE: V2 = [W + 2 * BORDER_OUT - 1.7 * BORDER_R, D + 2 * BORDER_OUT - 1.7 * BORDER_R];
+export const PANEL_SIZE: V2 = [W + 2 * BORDER_OUT - 1.7 * BORDER_HW, D + 2 * BORDER_OUT - 1.7 * BORDER_HW];
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const rotV = (v: V2, a: number): V2 => [v[0] * Math.cos(a) - v[1] * Math.sin(a), v[0] * Math.sin(a) + v[1] * Math.cos(a)];
