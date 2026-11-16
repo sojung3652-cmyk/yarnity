@@ -8,7 +8,7 @@
 // The AI chat (components/Chat.tsx, /api/chat) is not shown here for now; the code is kept.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
 import { engineDims, ENGINE, fieldsFor, GROUPS, ITEM, ITEMS, itemIdOf, type FieldKey, type Item, type ItemId } from "@/lib/items";
@@ -18,6 +18,7 @@ import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
 import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
+import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
 import "./newbook.css";
 
 type Step = 1 | 2 | 3 | 4;
@@ -73,6 +74,7 @@ export function NewBook() {
   const [groupOpen, toggleGroup] = useOneOpen("납작한 것");
   const [fold4, toggle4] = useOneOpen();
   const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), moved = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null), turn = useRef<Turn | null>(null), pending = useRef<Snapshot | null>(null);
 
   // enter: a saved work to edit (?edit=id, step 4) or the saved draft and step
   useEffect(() => {
@@ -135,9 +137,27 @@ export function NewBook() {
   const stepOk = step === 3 ? yarnStepOk(draft) : step < 4 || Object.keys(errors).length === 0;
   const blockNext = step === 4 && !stepOk; // step 3 is never disabled: pressing it shows what is missing
 
-  const go = (s: Step) => { setDir(s > step ? 1 : -1); setStep(s); setTried(false); moved.current = true; };
-  // after a step change, keyboard focus goes to the new question (the field that had it is gone)
-  useEffect(() => { if (moved.current) { moved.current = false; titleRef.current?.focus(); } }, [step]);
+  // Changing step: a turn still running is finished first (never two at once); on the desktop book the
+  // current pages are snapshotted for the page turn, which starts once the new step is rendered.
+  // Jumping several steps from the progress indicator is one turn.
+  const go = (s: Step) => {
+    if (s === step) return;
+    turn.current?.finish();
+    const d = s > step ? 1 : -1;
+    pending.current = formRef.current && canTurn() ? snapshot(formRef.current, d) : null;
+    setDir(d); setStep(s); setTried(false); moved.current = true;
+  };
+  useLayoutEffect(() => {
+    if (!moved.current) return;
+    moved.current = false;
+    const book = formRef.current; if (!book) return;
+    // focus: the new step's first field (the one that had focus is gone)
+    const focusFirst = () => (book.querySelector<HTMLElement>('.nb-left .nb-turn input:not([type="color"]), .nb-left .nb-turn [role="radio"][tabindex="0"], .nb-left .nb-turn button') ?? titleRef.current)?.focus({ preventScroll: true });
+    const snap = pending.current; pending.current = null;
+    if (!snap) { requestAnimationFrame(focusFirst); return; }
+    turn.current = startTurn(book, snap, () => { turn.current = null; focusFirst(); });
+  }, [step]);
+  useEffect(() => () => turn.current?.finish(), []);
 
   const save = () => {
     const e = engineInput(draft);
@@ -274,7 +294,7 @@ export function NewBook() {
 
   return (
     <main id="view-new" className="nb-main">
-      <form className="nb-book" noValidate onSubmit={e => { e.preventDefault(); next(); }}
+      <form ref={formRef} className="nb-book" noValidate onSubmit={e => { e.preventDefault(); next(); }}
         onKeyDown={e => {
           // Enter = next step from anywhere in the book (inputs submit by themselves; chips, cards and the
           // title too); other buttons and links keep their own Enter

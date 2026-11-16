@@ -133,13 +133,29 @@
 .nb-next:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 /* page turn between steps */
 /* direction classes are nb-dir-*: a bare .back / .front would also match the home CSS book's global
-   .back{transform:rotateY(180deg)} (Book.css) and mirror the page once that stylesheet is loaded */
+   .back{transform:rotateY(180deg)} (Book.css) and mirror the page once that stylesheet is loaded.
+   Desktop: the page turn (pageTurn.ts) is the transition, so the content itself does not animate.
+   Phones slide (next: in from the right, back: from the left); reduced motion fades for 0.15s. */
 .nb-turn{transform:none}
-.nb-turn.nb-dir-fwd{animation:nbIn .35s cubic-bezier(.2,.7,.2,1)}
-.nb-turn.nb-dir-back{animation:nbBack .35s cubic-bezier(.2,.7,.2,1)}
-@keyframes nbIn{from{opacity:0;transform:translateX(14px)}}
-@keyframes nbBack{from{opacity:0;transform:translateX(-14px)}}
-@media (prefers-reduced-motion:reduce){.nb-turn{animation:none}}
+@media (max-width:899px){
+  .nb-turn.nb-dir-fwd{animation:nbSlideL .3s cubic-bezier(.2,.7,.2,1)}
+  .nb-turn.nb-dir-back{animation:nbSlideR .3s cubic-bezier(.2,.7,.2,1)}
+}
+/* !important + two classes: beats the site-wide reduced-motion *{animation:none!important} (globals.css); an opacity-only 0.15s fade is fine there */
+@media (prefers-reduced-motion:reduce){.nb-turn.nb-dir-fwd,.nb-turn.nb-dir-back{animation:nbFade .15s linear!important}}
+@keyframes nbSlideL{from{opacity:0;transform:translateX(36px)}}
+@keyframes nbSlideR{from{opacity:0;transform:translateX(-36px)}}
+@keyframes nbFade{from{opacity:0}}
+/* page turn layer (pageTurn.ts): temporary, removed when the turn ends */
+.nb-turn-layer{position:absolute;inset:0;z-index:4;pointer-events:none;perspective:2400px}
+.nb-turn-stay,.nb-turn-shade,.nb-turn-cast,.nb-leaf{position:absolute}
+.nb-turn-cast{overflow:hidden}
+.nb-turn-band{position:absolute;top:0;bottom:0;left:0;background:linear-gradient(to right,transparent,rgba(60,40,30,.22) 55%,transparent);will-change:transform,opacity}
+.nb-leaf{transform-style:preserve-3d;will-change:transform}
+.nb-leaf-face{position:absolute;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.nb-leaf-back{transform:rotateY(180deg)}
+.nb-leaf-face > .nb-page,.nb-turn-stay > .nb-page{position:absolute;inset:0;margin:0;height:100%;box-sizing:border-box}
+.nb-leaf-shade{position:absolute;inset:0;opacity:0;will-change:opacity}
 /* ---- readability: one type and spacing scale for the book pages (small type, generous room) ---- */
 .nb-book{--nb-title:22px;--nb-label:12px;--nb-body:15px;--nb-chip:13px;--nb-help:12px;--nb-c-label:#8C7B72;--nb-c-help:#A08F86;--nb-gap:28px;--nb-line:#E6DACF}
 .nb-page{padding:48px 56px 40px}
