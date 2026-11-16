@@ -18,8 +18,8 @@ import "./newbook.css";
 
 type Step = 1 | 2 | 3;
 const STEP_KEY = "iyarn.newstep";
-const OBJECT_KO: Record<ObjectKind, string> = { coaster: "미니 코스터", bag: "미니 손가방" };
-const OBJECT_NOTE: Record<ObjectKind, string> = { coaster: "한두 시간이면 완성하는 작은 받침이에요.", bag: "주말 하루면 완성하는 작은 손가방이에요." };
+const OBJECT_KO: Record<string, string> = { coaster: "미니 코스터", bag: "미니 손가방" };
+const OBJECT_NOTE: Record<string, string> = { coaster: "한두 시간이면 완성하는 작은 받침이에요.", bag: "주말 하루면 완성하는 작은 손가방이에요." };
 const HANDLE_KO: Record<Handle, string> = { short: "짧은 끈 25cm", long: "긴 끈 90cm", none: "없음" };
 // size limits: the same as the existing form (readForm in components/PrepForm.tsx)
 const LIMIT = { a: [4, 40], b: [4, 30], h: [2, 40] } as const;

@@ -2,6 +2,7 @@
 // App-wide client state. Mirrors the prototype's module-level variables
 // (projects, activeId, draft, chat turns) so they survive client-side navigation
 // between /new, /pattern, /track the same way they survived hash changes.
+import { itemIdOf } from "@/lib/items";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { store } from "@/lib/store";
 import { DEFAULT_DRAFT, type Draft, type Project } from "@/lib/types";
@@ -47,11 +48,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // localStorage is only available in the browser, so load after mount.
-    const p = store.get<Project[]>("iyarn.projects", []);
+    // older saves have no item id: a bag was the mini bag, a coaster the coaster
+    const p = store.get<Project[]>("iyarn.projects", []).map(x => (x.item ? x : { ...x, item: itemIdOf(x) }));
     const a = store.get<string | null>("iyarn.active", null);
     pr.current = p; ar.current = a;
     setProjects(p); setActiveId(a);
-    setDraftState(Object.assign({}, DEFAULT_DRAFT, store.get<Partial<Draft>>("iyarn.draft", {})));
+    const d = Object.assign({}, DEFAULT_DRAFT, store.get<Partial<Draft>>("iyarn.draft", {}));
+    setDraftState(d.item ? d : { ...d, item: itemIdOf(d) });
     setReady(true);
   }, []);
 
