@@ -5,6 +5,7 @@
 // and Esc close it.
 import Image from "next/image";
 import { Book } from "@/components/Book/Book";
+import { FoilLogo } from "@/components/FoilLogo";
 import { useBookState } from "@/components/Book/useBookState";
 
 export function Hero() {
@@ -23,7 +24,7 @@ export function Hero() {
         <div className="hero-copy-desk" inert={state.open}>
           <h1 className="hero-logo">
             <span className="sr">Yarnity</span>
-            <Image src="/pic/logo-mark.svg" alt="" width={1170} height={579} unoptimized priority />
+            <FoilLogo className="hero-foil" />
           </h1>
           <p className="hero-caption">Intelligent Crochet</p>
           <button type="button" className="hero-start" onClick={() => state.setOpen(true)}>
