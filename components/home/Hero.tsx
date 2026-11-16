@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Book } from "@/components/Book/Book";
 import { FoilLogo } from "@/components/FoilLogo";
 import { useBookState } from "@/components/Book/useBookState";
+import { SunLight } from "./SunLight";
 
 export function Hero() {
   const state = useBookState();
@@ -16,6 +17,7 @@ export function Hero() {
           3D canvas, the copy above it */}
       <div className="hero-stage hero-stage-bg">
         <div className="hero-scene" aria-hidden="true">
+          <SunLight />
           <div className="hero-objects">
             {/* shadows from the objects' own silhouette (mask-image), light from the upper left */}
             <div className="obj-shadow obj-long" />
