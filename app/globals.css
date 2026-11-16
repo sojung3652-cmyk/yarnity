@@ -162,27 +162,36 @@ footer .brand{font-size:16px;color:var(--ink)}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* ---- home hero v2 (design comp: legacy/pic/main_backgrond_refer.png, 1871 x 841) ----
+/* ---- home hero (design comp: legacy/pic/main_backgrond_refer.png, 1871 x 841) ----
    Everything sits on one "stage" with the comp's proportions; positions and type are % / cqw of the stage,
    so the composition is the comp's at every screen size. The stage always shows whole (wide screens may
-   crop up to 8% top and bottom); outside it the page colour continues the photo's plain backdrop. */
+   crop up to 8% top and bottom); outside it the floor colour continues. */
 html{overflow-x:clip}
 .wrap{position:relative}
-.hero-desk{position:relative;height:100svh;width:100vw;margin-left:calc(50% - 50vw);overflow:hidden;isolation:isolate;background:var(--bg)}
+/* floor: one paper-coloured plane, a hair lighter at the top and darker at the bottom, with ~3% grain */
+.hero-desk{position:relative;height:100svh;width:100vw;margin-left:calc(50% - 50vw);overflow:hidden;isolation:isolate;--sun-strength:1;--shadow-strength:1;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .24 0 0 0 1.4 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E"),linear-gradient(to bottom,color-mix(in srgb,var(--bg),#fff 1.5%),var(--bg) 50%,color-mix(in srgb,var(--bg),#000 1.5%));background-color:var(--bg)}
 .hero-stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100svh * 1871 / 841 * 1.08));aspect-ratio:1871 / 841;container-type:inline-size}
-/* the stage's transform makes it a stacking context, so the photo and the copy live in two stage layers:
-   the photo under the 3D canvas (z 2), the copy over it (pointer events only on the controls) */
+/* the stage's transform makes it a stacking context, so the scene and the copy live in two stage layers:
+   the scene under the 3D canvas (z 2), the copy over it (pointer events only on the controls) */
 .hero-stage-bg{z-index:0}
 .hero-stage-copy{z-index:3;pointer-events:none}
-/* The supplied backdrop is framed ~1.37x tighter than the comp. Drawn at 0.732x and offset (442, 112)
-   comp px, its yarn lands where the comp has it (registered against the comp image). Its plain colour
-   (#F7ECEA = --bg) fades out at each edge (6% left and bottom; 3% top and 4% right, where the yarn
-   comes close to the photo's border), so no seam shows. */
-.hero-bg{position:absolute;left:23.624%;top:13.317%;width:73.165%;z-index:0;transition:filter .8s ease,transform .8s ease}
-.hero-bg-img{position:static!important;width:100%!important;height:auto!important;display:block;
-  -webkit-mask-image:linear-gradient(to right,transparent,#000 6%,#000 96%,transparent),linear-gradient(to bottom,transparent,#000 3%,#000 94%,transparent);
-  -webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 6%,#000 96%,transparent),linear-gradient(to bottom,transparent,#000 3%,#000 94%,transparent);mask-composite:intersect}
-.hero-desk.is-open .hero-bg{filter:brightness(.94) blur(2px);transform:scale(1.02)}
+/* ---- scene: objects and their shadows (light from the upper left, shadows to the lower right) ----
+   The object group (object-noback.webp, 1600 x 1232) spans 64%-97% of the stage width. Tune the shadows'
+   and the sunlight's strength with --shadow-strength / --sun-strength on .hero-desk (1 = as designed). */
+.hero-scene{position:absolute;inset:0;transition:filter .8s ease,transform .8s ease}
+.hero-desk.is-open .hero-scene{filter:brightness(.94) blur(2px);transform:scale(1.02)}
+.hero-objects{position:absolute;left:64%;width:33%;top:31%;aspect-ratio:1600 / 1232}
+.obj-img{position:absolute!important;inset:0;width:100%!important;height:100%!important;display:block}
+.obj-shadow{position:absolute;inset:0;background:#3A2530;-webkit-mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat;mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat}
+/* a) contact shadow: just under the objects */
+.obj-contact{transform:translate(6px,5px);filter:blur(6px);opacity:calc(.28 * var(--shadow-strength))}
+/* b) long shadow: the same silhouette pushed further to the lower right and stretched a little from the
+   upper left (the objects lie flat, at different depths in the picture, so folding the silhouette down
+   from one shared baseline read as a detached reflection); it fades with distance */
+.obj-long{transform-origin:0 0;transform:translate(1.5cqw,1.15cqw) scale(1.05,1.06);filter:blur(16px);opacity:calc(.16 * var(--shadow-strength));
+  -webkit-mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat,linear-gradient(to bottom right,#000 35%,transparent 100%);-webkit-mask-composite:source-in;
+  mask:url(/pic/object-noback.webp) center / 100% 100% no-repeat,linear-gradient(to bottom right,#000 35%,transparent 100%);mask-composite:intersect}
 /* logo block (comp): mark 12.1% from the left, 17.2% wide, centred at 46% of the height; caption under
    it; the text button from 12.1%, 17.2% wide, at 63% of the height */
 .hero-copy-desk{position:absolute;inset:0;z-index:3;pointer-events:none;transition:opacity .5s ease}
@@ -206,12 +215,11 @@ html{overflow-x:clip}
 .book-css-slot{--sw:min(100vw,calc(100svh * 1871 / 841 * 1.08));position:absolute;z-index:2;left:calc(50% + .04 * var(--sw));top:calc(50% + .005 * var(--sw) * 841 / 1871);transform:translate(-50%,-50%)}
 .book-css-slot .bookstage{--W:calc(var(--sw) * .19);min-height:0;overflow:visible} /* the open left page extends past the slot */
 @media (max-width:899px){
-  /* phone: logo, caption, book, button stacked in the middle; the backdrop only under the lower 42% so
-     the yarn and motif sit below the book instead of under it */
+  /* phone: logo, caption, book, button stacked in the middle; the objects below them, 80% wide */
   .hero-stage{left:0;top:0;transform:none;width:100%;height:100%;aspect-ratio:auto}
-  .hero-bg{left:0;top:auto;bottom:0;width:100%;height:42svh}
-  .hero-bg-img{height:100%!important;object-fit:cover;object-position:70% center;
-    -webkit-mask-image:linear-gradient(to bottom,transparent,#000 30%);-webkit-mask-composite:source-over;mask-image:linear-gradient(to bottom,transparent,#000 30%);mask-composite:add}
+  .hero-objects{left:10%;width:80%;top:auto;bottom:2svh}
+  .obj-long{transform:translate(3.4vw,2.6vw) scale(1.05,1.06);filter:blur(10px)}
+  .obj-contact{transform:translate(4px,3px);filter:blur(4px)}
   .hero-logo{left:22%;width:56%;top:6svh}
   .hero-caption{left:22%;width:56%;top:calc(6svh + 56vw * 579 / 1170 + 8px);font-size:11px}
   .hero-start{left:50%;width:auto;transform:translateX(-50%);gap:16px;font-size:18px;top:63svh} /* sized to its text, centred */

@@ -1,7 +1,7 @@
 "use client";
-// Home hero after the design comp (legacy/pic/main_backgrond_refer.png): a plain backdrop with yarn
-// props across the first screen, the logo, caption and a text button on the left, and the 3D book set
-// in the empty spot of the photo. The text button and the book both open it; Close on the first page
+// Home hero after the design comp (legacy/pic/main_backgrond_refer.png): a plain paper-coloured floor
+// with yarn objects (object-noback.webp) and sunlight from a window at the upper left, the logo, caption
+// and a text button on the left, and the 3D book next to the objects. The text button and the book both open it; Close on the first page
 // and Esc close it.
 import Image from "next/image";
 import { Book } from "@/components/Book/Book";
@@ -12,12 +12,16 @@ export function Hero() {
   const state = useBookState();
   return (
     <section className={"hero-desk" + (state.open ? " is-open" : "")} aria-label="소개">
-      {/* two stage layers with the same geometry: the photo below the 3D canvas, the copy above it */}
+      {/* two stage layers with the same geometry: the scene (floor light, objects, their shadows) below the
+          3D canvas, the copy above it */}
       <div className="hero-stage hero-stage-bg">
-        <div className="hero-bg" aria-hidden="true">
-          {/* unoptimized: the WebP is already encoded with care (q 0.92); a second re-encode by next/image
-              softened the paper texture of the backdrop */}
-          <Image src="/pic/hero-bg.webp" alt="" width={1870} height={841} priority unoptimized className="hero-bg-img" />
+        <div className="hero-scene" aria-hidden="true">
+          <div className="hero-objects">
+            {/* shadows from the objects' own silhouette (mask-image), light from the upper left */}
+            <div className="obj-shadow obj-long" />
+            <div className="obj-shadow obj-contact" />
+            <Image src="/pic/object-noback.webp" alt="" width={1600} height={1232} priority unoptimized className="obj-img" />
+          </div>
         </div>
       </div>
       <div className="hero-stage hero-stage-copy">

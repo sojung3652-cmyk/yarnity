@@ -235,7 +235,7 @@ function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void;
 const FOV = 22;
 // closed: the backdrop photo's camera height, so the book sits on the same table as the yarn. Measured
 // from the granny square (a true square): corners at (1152,542) (1382,632) (1260,802) (1020,692) in
-// hero-bg.webp -> seen from ~45 degrees above the table. The book is turned ~15 degrees on the table.
+// the former backdrop photo (hero-bg.webp, since replaced by the sunlit floor) -> seen from ~45 degrees above the table. The book is turned ~15 degrees on the table.
 const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 45), THREE.MathUtils.degToRad(15));
 // open: nearly straight down (86 degrees), like the design comp (legacy/pic/book_refer.png), so the pages
 // read flat; not exactly 90, where lookAt with up = +y degenerates
