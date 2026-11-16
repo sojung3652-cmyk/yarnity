@@ -16,6 +16,7 @@ import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "
 import { store } from "@/lib/store";
 import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
+import { TitlePage } from "./TitlePage";
 import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
@@ -152,7 +153,7 @@ export function NewBook() {
     moved.current = false;
     const book = formRef.current; if (!book) return;
     // focus: the new step's first field (the one that had focus is gone)
-    const focusFirst = () => (book.querySelector<HTMLElement>('.nb-left .nb-turn input:not([type="color"]), .nb-left .nb-turn [role="radio"][tabindex="0"], .nb-left .nb-turn button') ?? titleRef.current)?.focus({ preventScroll: true });
+    const focusFirst = () => (book.querySelector<HTMLElement>('.nb-page .nb-turn input:not([type="color"]), .nb-page .nb-turn textarea, .nb-page .nb-turn [role="radio"][tabindex="0"], .nb-page .nb-turn button') ?? titleRef.current)?.focus({ preventScroll: true });
     const snap = pending.current; pending.current = null;
     if (!snap) { requestAnimationFrame(focusFirst); return; }
     turn.current = startTurn(book, snap, () => { turn.current = null; focusFirst(); });
@@ -202,20 +203,11 @@ export function NewBook() {
 
   let left: ReactNode, right: ReactNode;
   if (step === 1) {
-    left = (
-      <div className="nb-name">
-        <label htmlFor="nbName" className="sr">작품 이름</label>
-        <input id="nbName" className="nb-input nb-input-big" autoComplete="off" placeholder="예: 엄마에게 줄 코스터" value={draft.name} onChange={e => patch({ name: e.target.value })} />
-        <p className="nb-help">비워 두면 &quot;{NO_NAME}&quot;으로 저장해요. 이름은 나중에 내 작품에서 고칠 수 있어요.</p>
-      </div>
-    );
-    right = (
-      <div className="nb-titlepage">
-        <span className="nb-tp-rule" aria-hidden="true" />
-        {draft.name.trim() ? <h2>{draft.name}</h2> : <span className="nb-tp-blank" aria-label="이름 없음" />}
-        <span className="nb-tp-rule" aria-hidden="true" />
-      </div>
-    );
+    // ① the left page stays blank paper; the right page is the title page (progress moves there)
+    const when = editId ? projects.find(x => x.id === editId)?.created ?? Date.now() : Date.now();
+    left = null;
+    right = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress}
+      month={new Date(when).toLocaleString("en-US", { month: "long", year: "numeric" }).toUpperCase()} />;
   } else if (step === 2) {
     left = (
       <div className="nb-folds nb-groups">
@@ -304,9 +296,9 @@ export function NewBook() {
         <span className="nb-ribbon" aria-hidden="true" />
         <span className="nb-marker" aria-hidden="true" />
         <section className="nb-page nb-left" aria-labelledby="nbTitle">
-          {progress}
+          {step !== 1 && progress}
           <div key={"l" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
-            <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>
+            <h1 id="nbTitle" ref={titleRef} tabIndex={-1} className={step === 1 ? "sr" : undefined}>{titles[step]}</h1>
             {left}
           </div>
           <div className="nb-foot">

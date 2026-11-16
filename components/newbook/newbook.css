@@ -265,3 +265,19 @@
   .nb-art-big{width:150px}
   .nb-next{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:20}
 }
+/* ① title page (TitlePage.tsx) */
+.tp{position:relative;display:flex;flex-direction:column;align-items:center;min-height:calc(max(620px,var(--w) * .55) - 150px);text-align:center}
+.tp-progress{align-self:stretch}
+.tp-progress .nb-progress{justify-content:flex-start}
+.tp-head{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:8%}
+.tp-logo{width:130px;height:auto;display:block;overflow:visible}
+.tp-cap{margin:0;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-weight:500;font-size:10px;letter-spacing:.34em;padding-left:.34em;text-transform:uppercase;color:#8C7B72}
+.tp-name{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;margin:auto 0}
+.tp-rule{width:36px;height:1px;background:#C9B48A}
+.tp-input{display:block;width:100%;max-width:360px;padding:2px 4px;border:0;background:none;outline:none;resize:none;overflow:hidden;text-align:center;font:inherit;font-weight:500;line-height:1.3;color:#2E2420;word-break:keep-all;overflow-wrap:anywhere}
+.tp-input::placeholder{color:#C4B5AA;opacity:1}
+.tp-rule{transition:width .2s ease,background-color .2s ease}
+.tp-name:focus-within .tp-rule{width:56px;background:#B08F4E} /* focus: the gold rules widen (no box, no underline) */
+.tp-sub{margin:0;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-style:italic;font-weight:500;font-size:15px;color:#8C7B72}
+.tp-month{margin:0 0 4px;font-size:10px;letter-spacing:.3em;padding-left:.3em;color:#A08F86}
+@media (max-width:899px){.tp{min-height:520px}.tp-head{margin-top:20px}}
