@@ -380,6 +380,9 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
     <div className={"book3d" + (ready ? " ready" : "") + (open ? " is-open" : "")} id="book">
       <Canvas
         dpr={[1, 2]}
+        // open: a click on the empty desk around the book closes it. R3F calls this when a click hits none of
+        // the objects with handlers (the book's meshes have one; the page content is DOM above the canvas)
+        onPointerMissed={() => { if (open) setOpen(false); }}
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}

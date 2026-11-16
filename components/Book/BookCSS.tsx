@@ -25,6 +25,14 @@ export function BookCSS({ open, setOpen }: BookState) {
     return () => { live = false; };
   }, []);
 
+  // open: a click anywhere outside the book closes it
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => { if (!(e.target as Element).closest?.("#book")) setOpen(false); };
+    const t = setTimeout(() => document.addEventListener("click", onClick)); // not the click that opened it
+    return () => { clearTimeout(t); document.removeEventListener("click", onClick); };
+  }, [open, setOpen]);
+
   return (
     <section className="bookstage" aria-label="소개">
       <div className="scene">
