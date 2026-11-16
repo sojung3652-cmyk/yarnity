@@ -75,7 +75,7 @@
 .pg-ribbon-tip{position:absolute;right:calc(100% + 1.2cqw);top:38%;white-space:nowrap;font-family:"Noto Serif KR",serif;font-size:max(2cqw,calc(12px * var(--k,1)));color:#6F5E57;opacity:0;transform:translateX(4px);transition:opacity .2s,transform .2s;pointer-events:none}
 .pg-ribbon:hover,.pg-ribbon:focus-visible{transform:translateY(4px)}
 .pg-ribbon:hover .pg-ribbon-tip,.pg-ribbon:focus-visible .pg-ribbon-tip{opacity:1;transform:none}
-.pg-motif{position:absolute;right:-7%;bottom:-7%;width:44%;height:auto;pointer-events:none;filter:drop-shadow(0 .5cqw .8cqw rgba(70,50,35,.14))}
+.pg-motif{position:absolute;right:-3%;bottom:-2.5%;width:60%;height:auto;pointer-events:none;filter:drop-shadow(0 .5cqw .8cqw rgba(70,50,35,.14))}
 .pg-phone-brand{display:none}
 /* phones: the camera frames only the right page -> one page, stacked: logo, caption, copy, buttons, motif */
 @media (max-width:899px){
@@ -92,5 +92,5 @@
   .pg-act:last-child{top:76.5%}
   .pg-act svg{width:9.5cqw;height:9.5cqw;margin-left:7%}
   .pg-ribbon{width:12%}
-  .pg-motif{width:44%;right:-8%;bottom:-8%}
+  .pg-motif{width:38%;right:-4%;bottom:-4%}
 }
