@@ -50,7 +50,7 @@
 .pg-page p{margin:0}
 .pg-logo{position:absolute;left:28%;width:44%;top:21%;margin:0;line-height:0}
 .pg-logo .pg-foil{width:100%;height:auto;display:block;overflow:visible}
-.pg-cap{position:absolute;left:0;right:0;top:44.5%;transform:translateY(-50%);font-family:var(--font-jost),"Jost",sans-serif;font-size:max(2.1cqw,calc(9px * var(--k,1)));font-weight:400;letter-spacing:.34em;padding-left:.34em;text-transform:uppercase;color:#4A3F3A}
+.pg-cap{position:absolute;left:0;right:0;top:calc(21% + 44cqw * 579 / 1170 + 8px * var(--k,1));font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-style:normal;font-size:max(2.4cqw,calc(13.5px * var(--k,1)));font-weight:500;line-height:1;letter-spacing:.3em;padding-left:.3em;text-transform:uppercase;color:#3F3531}
 .pg-rule{position:absolute;left:calc(50% - 3.5cqw);width:7cqw;top:50.5%;border-top:1px solid rgba(111,94,87,.45)}
 .pg-tag{position:absolute;left:0;right:0;top:57%;transform:translateY(-50%);font-style:italic;font-size:max(2.9cqw,calc(14px * var(--k,1)));color:#6F5E57}
 .pg-ko{position:absolute;left:0;right:0;top:64.6%;transform:translateY(-50%);font-family:"Noto Serif KR",serif;font-size:max(2.35cqw,calc(13.5px * var(--k,1)));line-height:1.8;color:#5A4A44}
@@ -82,7 +82,7 @@
   .pg-lp{display:none}
   .pg-phone-brand{display:block}
   .pg-rp .pg-logo{left:19%;width:62%;top:6.5%}
-  .pg-rp .pg-cap{top:34%;font-size:max(3.4cqw,calc(10px * var(--k,1)))}
+  .pg-rp .pg-cap{top:calc(6.5% + 62cqw * 579 / 1170 + 8px * var(--k,1));font-size:max(3.4cqw,calc(13px * var(--k,1)))}
   .pg-rp .pg-rule{top:38%}
   .pg-rp .pg-tag{top:42.5%;font-size:max(4.6cqw,calc(13px * var(--k,1)))}
   .pg-rp .pg-ko{top:51%;font-size:max(4cqw,calc(13px * var(--k,1)))}

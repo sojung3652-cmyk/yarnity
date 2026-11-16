@@ -1,20 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/components/AppProvider";
 import { Nav } from "@/components/Nav";
 
-// Home hero: the start button (Cormorant Garamond italic) and the "INTELLIGENT CROCHET" captions (Jost).
-// Self-hosted by next/font; both OFL. Exposed as CSS variables, used in globals.css / Book.css.
-const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: "500", style: "italic", variable: "--font-cormorant", display: "swap" });
-const jost = Jost({ subsets: ["latin"], weight: "400", variable: "--font-jost", display: "swap" });
+// Home hero and the open book: the start button (Cormorant Garamond italic) and the "INTELLIGENT CROCHET"
+// captions (Cormorant Garamond upright). Self-hosted by next/font (OFL), exposed as a CSS variable.
+const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: "500", style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
 
 export const metadata: Metadata = { title: "Yarnity" };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={`${cormorant.variable} ${jost.variable}`}>
+    <html lang="ko" className={cormorant.variable}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
