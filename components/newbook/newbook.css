@@ -132,8 +132,11 @@
 .nb-next:hover{background:#634946}
 .nb-next:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 /* page turn between steps */
-.nb-turn{animation:nbIn .35s cubic-bezier(.2,.7,.2,1) both}
-.nb-turn.back{animation-name:nbBack}
+/* direction classes are nb-dir-*: a bare .back / .front would also match the home CSS book's global
+   .back{transform:rotateY(180deg)} (Book.css) and mirror the page once that stylesheet is loaded */
+.nb-turn{transform:none}
+.nb-turn.nb-dir-fwd{animation:nbIn .35s cubic-bezier(.2,.7,.2,1)}
+.nb-turn.nb-dir-back{animation:nbBack .35s cubic-bezier(.2,.7,.2,1)}
 @keyframes nbIn{from{opacity:0;transform:translateX(14px)}}
 @keyframes nbBack{from{opacity:0;transform:translateX(-14px)}}
 @media (prefers-reduced-motion:reduce){.nb-turn{animation:none}}

@@ -285,7 +285,7 @@ export function NewBook() {
         <span className="nb-marker" aria-hidden="true" />
         <section className="nb-page nb-left" aria-labelledby="nbTitle">
           {progress}
-          <div key={"l" + step} className={"nb-turn " + (dir > 0 ? "fwd" : "back")}>
+          <div key={"l" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
             <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>
             {left}
           </div>
@@ -295,7 +295,7 @@ export function NewBook() {
           </div>
         </section>
         <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "코바늘과 요약" : "지금까지"}>
-          <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "fwd" : "back")}>{right}</div>
+          <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
           <div className="nb-foot">
             <span className="nb-folio">{step * 2}</span>
             <button type="submit" className="nb-next" disabled={blockNext}>{nextLabel[step]}</button>
