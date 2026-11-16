@@ -36,6 +36,38 @@ function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
   );
 }
 
+/** Flat pieces and tubes: after 5 rows, measure the width (circumference) and the height of those 5 rows.
+ *  Stitch width / height are recalculated and the remaining rows corrected; the stitch count already on
+ *  the hook stays. A width more than 10% off the plan is better started over. */
+function MeasureRows({ p, onApply }: { p: Project; onApply: (h: number, w: number) => void }) {
+  const pp = plan(p), tube = p.object === "tube", n = pp.last, target = p.a;
+  const [wv, setW] = useState(fmt(n * pp.g.w)), [hv, setH] = useState(fmt(5 * pp.g.h));
+  const w = +wv, h = +hv;
+  let preview: React.ReactNode = null;
+  if (w > 0 && h > 0) {
+    const q = plan({ ...p, measuredH: h / 5, measuredW: w / n }), off = Math.round((w / target - 1) * 100);
+    preview = <>
+      <p className="small muted" style={{ marginBottom: 8 }}>{`${tube ? "둘레" : "폭"} ${off === 0 ? "계획과 같아요" : `계획보다 ${Math.abs(off)}% ${off > 0 ? "넓어요" : "좁아요"}`} · 한 코 ${fmt((h / 5) * 10)}mm 높이`}</p>
+      <div className="compare"><span>{`${tube ? "높이" : "길이"} ${tube ? p.h : p.b}cm까지`}</span><s>{pp.bodyRows}단</s><span className="muted">→</span><span>{q.bodyRows}단</span></div>
+      {Math.abs(off) >= 10 && <p className="flag" style={{ marginTop: 8 }}>{tube ? "둘레" : "폭"}가 10% 넘게 달라요. 바늘이나 실을 바꿔서 다시 시작하는 걸 추천해요.</p>}
+    </>;
+  }
+  return (
+    <div className="measure">
+      <b>5단을 떴어요. {tube ? "둘레" : "폭"}와 5단 높이를 재 주세요</b>
+      <span className="small muted">{`예상 ${tube ? "둘레" : "폭"} ${fmt(n * pp.g.w)}cm · 5단 높이 ${fmt(5 * pp.g.h)}cm (코 수 ${n}코는 그대로 둬요)`}</span>
+      <div className="m-row">
+        <label htmlFor="mW" className="sr">{tube ? "둘레" : "폭"} cm</label>
+        <input id="mW" className="txt" type="number" inputMode="decimal" step={0.1} min={1} value={wv} onChange={e => setW(e.target.value)} /><span className="muted">cm</span>
+        <label htmlFor="mH" className="sr">5단 높이 cm</label>
+        <input id="mH" className="txt" type="number" inputMode="decimal" step={0.1} min={0.5} value={hv} onChange={e => setH(e.target.value)} /><span className="muted">cm</span>
+        <button className="btn btn-primary" id="mApplyRows" type="button" onClick={() => { if (w > 0 && h > 0) onApply(h / 5, w / n); }}>다시 계산</button>
+      </div>
+      <div id="mPrev">{preview}</div>
+    </div>
+  );
+}
+
 export default function TrackPage() {
   const { ready, active: p, updateProject } = useApp();
   const router = useRouter();
@@ -94,9 +126,13 @@ export default function TrackPage() {
 
   const done = current >= total, r = pp.rows[Math.min(current, total - 1)];
   const nx = pp.rows[current + 1];
-  const flag = !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? "여기부터 늘림 없이 위로."
+  const flag = !done && r.part === "rounds" && r.no === 1 ? "고리로 둥글게 이어 떠요. 단마다 첫 코에 빼뜨기로 닫아요."
+    : !done && r.part === "rows" && r.no === 2 ? "단 끝마다 사슬 1코를 세우고 뒤집어요."
+    : !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? "여기부터 늘림 없이 위로."
     : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리해요." : "";
-  const showMeasure = current === 3 && !p.measuredH && pp.bottomRounds > 3;
+  const flat = p.object === "rows" || p.object === "tube";
+  const showMeasure = !flat && current === 3 && !p.measuredH && pp.bottomRounds > 3;
+  const showMeasureRows = flat && current === 6 && !p.measuredH && pp.bodyRows > 5; // start chain + 5 rows done
 
   return (
     <main id="view-track">
@@ -114,12 +150,13 @@ export default function TrackPage() {
           </div>
         </div>
         <div className="card">
-          <div className="meta"><span id="trPart">{done ? "완성" : `${PART_KO[r.part]} · ${r.label}`}</span><span id="trCount">{done ? "" : (r.part === "bottom" && (r.no as number) > 1 ? `${pp.rows[r.idx - 1].n} → ${r.n}코` : `${r.n}코`)}</span></div>
+          <div className="meta"><span id="trPart">{done ? "완성" : r.part === "start" ? "시작 사슬" : `${PART_KO[r.part]} · ${r.label}`}</span><span id="trCount">{done ? "" : (r.part === "bottom" && (r.no as number) > 1 ? `${pp.rows[r.idx - 1].n} → ${r.n}코` : `${r.n}코`)}</span></div>
           <p className="now-row" id="trHow">{done ? "마지막 단까지 다 떴어요." : r.how}</p>
           <p className="small muted" id="trWhy">{done ? "" : r.why}</p>
           <div className="bar" aria-hidden="true"><i id="trBar" style={{ width: (current / total * 100) + "%" }} /></div>
           <div id="trFlag">{flag && <p className="flag">{flag}</p>}</div>
-          <div id="trMeasure">{showMeasure && <Measure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} />}</div>
+          <div id="trMeasure">{showMeasure && <Measure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} />}
+            {showMeasureRows && <MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} />}</div>
           <div className="acts">
             <button className="big undo" id="undoBtn" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>−1</button>
             <button className="big done" id="doneBtn" type="button" disabled={done} onClick={() => step(1)}><span>한 단 끝</span><small id="doneNext">{done ? "" : (nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단")}</small></button>

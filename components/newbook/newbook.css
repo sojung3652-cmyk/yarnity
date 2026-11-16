@@ -120,6 +120,9 @@
   .nb-progress{padding-right:44px;gap:6px 12px} /* clear of the ribbon */
   .nb-progress button{font-size:12.5px}
   .nb-marker{display:none}
+  .nb-items{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .nb-scroll{max-height:none;overflow:visible;margin-right:0;padding-right:0} /* one long page on phones: no inner scroll */
+  .nb-input-big{font-size:22px}
     .nb-left .nb-foot{padding-top:4px}
   .nb-show{margin-top:0}
   .nb-art-big{width:150px}

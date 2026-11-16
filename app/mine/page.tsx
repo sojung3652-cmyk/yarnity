@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useApp } from "@/components/AppProvider";
-import { plan, SHAPE_KO, YARN_KO } from "@/lib/pattern";
+import { ITEM, itemIdOf } from "@/lib/items";
+import { plan, YARN_KO } from "@/lib/pattern";
 
 function Cards() {
   const { ready, projects, setActive } = useApp();
@@ -14,7 +15,7 @@ function Cards() {
         return (
           <div key={p.id} className="pcard-wrap">
           <Link className="pcard" href="/track" onClick={() => setActive(p.id)}>
-            <span className="small muted">{`${SHAPE_KO[p.shape]} 바닥 · ${p.hook} · ${YARN_KO[p.weight]}`}</span>
+            <span className="small muted">{`${ITEM[itemIdOf(p)].name} · ${p.hook} · ${YARN_KO[p.weight]}`}</span>
             <h3>{p.name}</h3>
             <div className="bar"><i style={{ width: `${Math.round(cur / total * 100)}%` }} /></div>
             <span className="small muted">{cur >= total ? "완성" : `${cur} / ${total} · 다음 ${pp.rows[cur].label}`}</span>

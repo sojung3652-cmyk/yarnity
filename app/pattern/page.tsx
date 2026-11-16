@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Fragment, useEffect } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
+import { ITEM, itemIdOf } from "@/lib/items";
 import { fmt, HOOK_MM, PART_KO, plan, SHAPE_KO, YARN_KO } from "@/lib/pattern";
 
 export default function PatternPage() {
@@ -19,21 +20,25 @@ export default function PatternPage() {
     const r = pp.rows[i];
     if (r.part !== lastPart) {
       const cnt = pp.rows.filter(x => x.part === r.part).length;
-      blocks.push(<div key={"t" + i} className="part-title"><h3>{PART_KO[r.part]}</h3><span className="small muted">{r.part === "handle" ? cnt + "개" : cnt + "단"}</span></div>);
+      blocks.push(<div key={"t" + i} className="part-title"><h3>{PART_KO[r.part]}</h3><span className="small muted">{r.part === "handle" ? cnt + "개" : r.part === "start" ? "" : cnt + "단"}</span></div>);
       lastPart = r.part;
     }
     let label = r.label, j = i;
-    if (r.part === "body") { while (j + 1 < pp.rows.length && pp.rows[j + 1].part === "body") j++; if (j > i) label = `${r.label.replace("단", "")}–${pp.rows[j].label}`; }
+    // runs of identical rows read as one line ("26–50단", "2–250단")
+    if (r.part === "body" || r.part === "rows" || r.part === "rounds") { while (j + 1 < pp.rows.length && pp.rows[j + 1].part === r.part && pp.rows[j + 1].how === r.how) j++; if (j > i) label = `${r.label.replace("단", "")}–${pp.rows[j].label}`; }
     blocks.push(
       <Fragment key={"r" + i}>
         <div className="row"><span className="no">{label}</span><span className="how">{r.how}<span className="why">{r.why}</span></span><span className="cnt">{r.n + "코"}</span></div>
         {r.part === "bottom" && r.no === 3 && <p className="note">여기서 한 번 재면 남은 단을 다시 계산해요.</p>}
+        {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <p className="note">5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드려요.</p>}
       </Fragment>
     );
     i = j;
   }
-  const size = p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`;
-  const stats: [string, string][] = [["작품", p.object === "bag" ? "미니 손가방" : "미니 코스터"], ["바닥", `${SHAPE_KO[p.shape]} · ${size}`], ...(p.object === "bag" ? [["몸통 높이", p.h + "cm"] as [string, string]] : []), ["실", `${p.yarn || "실"} · ${YARN_KO[p.weight]}`], ["코바늘", `${p.hook} · ${HOOK_MM[p.hook]}mm`], ["코 크기", `${fmt(pp.g.h * 10)}mm · ${pp.g.measured ? "실측" : "예상"}`]];
+  const it = ITEM[itemIdOf(p)], size = p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`;
+  const dims: [string, string][] = p.object === "rows" ? [["크기", `폭 ${p.a} × 길이 ${p.b}cm`]] : p.object === "tube" ? [["크기", `둘레 ${p.a} · ${it.id === "headband" ? "폭" : "높이"} ${p.h}cm`]]
+    : [["바닥", `${SHAPE_KO[p.shape]} · ${size}`], ...(p.object === "bag" ? [["몸통 높이", p.h + "cm"] as [string, string]] : [])];
+  const stats: [string, string][] = [["작품", it.name], ...dims, ...(p.colorName || p.color ? [["색", p.colorName || "직접 고른 색"] as [string, string]] : []), ["실", `${p.yarn || "실"} · ${YARN_KO[p.weight]}`], ["코바늘", `${p.hook} · ${HOOK_MM[p.hook]}mm`], ["코 크기", `${fmt(pp.g.h * 10)}mm · ${pp.g.measured ? "실측" : "예상"}`]];
 
   return (
     <main id="view-pattern">
@@ -44,7 +49,7 @@ export default function PatternPage() {
       <div className="grid-pattern">
         <aside style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
           {/* drawing() only interpolates numbers and fixed labels */}
-          <div className="card drawing" id="drawing" aria-label="완성 모양 도면" dangerouslySetInnerHTML={{ __html: drawing(p, pp) }} />
+          <div className="card drawing" id="drawing" aria-label="완성 모양 도면" dangerouslySetInnerHTML={{ __html: drawing(p, pp, p.color) }} />
           <div className="card" id="patStats" style={{ gap: 0 }}>
             {stats.map(([k, v]) => <div key={k} className="stat"><span>{k}</span><b style={{ fontWeight: 400 }}>{v}</b></div>)}
           </div>
