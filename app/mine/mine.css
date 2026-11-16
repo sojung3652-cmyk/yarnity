@@ -67,3 +67,21 @@
 .mine-undo{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:18px;padding:11px 20px;background:#FFFBF6;border:1px solid var(--m-line);font-size:13.5px;color:var(--m-ink);box-shadow:0 2px 0 rgba(70,50,40,.04)}
 .mine-undo button{border:0;background:none;padding:2px 0;font:inherit;font-size:13.5px;color:var(--m-accent);border-bottom:1px solid currentColor;cursor:pointer}
 @media (max-width:640px){.mc-check{left:auto;right:0;top:20px}.mine-cards{gap:0}}
+/* each work as a small woven label (like the book's buttons, ClothLabel): cream weave, lavender stitches
+   inside both ends, a light lifted shadow, a very slight alternating tilt that straightens on hover */
+.mine-cards{gap:26px 26px;padding:6px 4px}
+.mc{--tilt:-.6deg;padding:18px 30px 16px;border:0;border-radius:2px;
+  background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
+  box-shadow:0 1px 2px rgba(70,50,40,.14),0 6px 14px rgba(70,50,40,.07);transform:rotate(var(--tilt));transition:transform .2s ease,opacity .2s ease}
+.mc:nth-child(even){--tilt:.6deg}
+.mc::before,.mc::after{content:"";position:absolute;top:10px;bottom:10px;border-left:1.5px dashed var(--book-lav,#C4B5DD);pointer-events:none}
+.mc::before{left:12px}.mc::after{right:12px}
+.mc:hover,.mc:focus-within{transform:rotate(0) translateY(-1px)}
+.mc.picked{background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#EFE3D6;box-shadow:0 0 0 1.5px var(--m-accent),0 6px 14px rgba(70,50,40,.07)}
+.mc-bar{background:rgba(110,83,80,.12)}
+.mc-check{left:auto;right:34px;top:16px}
+.mc-menu{right:22px}
+.mc-confirm{min-height:150px}
+@media (prefers-reduced-motion:reduce){.mc{transition:none}}
+@media (max-width:640px){.mine-cards{gap:20px}}
+.mc .lot-copy{background:transparent;border-color:rgba(110,83,80,.3);color:var(--m-accent);padding:2px 9px} /* on the cloth: no white pill */
