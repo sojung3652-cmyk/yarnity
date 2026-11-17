@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import { useReducedMotion } from "../useBookState";
 import { useBook } from "../BookProvider";
-import { WizardSpread } from "../WizardSpread";
+import { REF_W, WizardSpread } from "../WizardSpread";
 import {
   BLOCK, blockTop, BOARD, CORNER_R, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, Q0, sheetCurve, SHEET_W, SHEETS, spineCloth, T, W,
 } from "./geometry";
@@ -30,12 +30,17 @@ const SHEET_SPEED = [1.04, 0.93, 1.08, 0.97, 1.1, 0.91];
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
-interface Anim { t: number; target: number; cover: number; sheets: number[]; cam: number }
+// wizard: the open book grows and the camera moves straight above it (0.9s, together with the first turn)
+const WIZ_TOTAL = 0.9;
+
+// t: opening (0 closed .. 1 open). w: open menu (0) .. wizard pose (1).
+interface Anim { t: number; target: number; cover: number; sheets: number[]; cam: number; w: number; wTarget: number; wcam: number }
 function derive(a: Anim) {
   const s = a.t * TOTAL;
   a.cover = ease(clamp01(s / COVER_END));
   a.sheets = SHEET_SPEED.map((f, k) => ease(clamp01((s - SHEET_START - k * SHEET_STAGGER) / (SHEET_DUR / f))));
   a.cam = ease(a.t);
+  a.wcam = ease(a.w);
 }
 
 // ---- spine cloth: a gently rounded band between the boards; it flattens as the book opens ----
@@ -159,7 +164,13 @@ function Sheet({ k, anim, front, back }: { k: number; anim: Anim; front: THREE.M
 // so the DOM is rendered through a portal into the element given to CSS3DObject (keeps the Next router).
 // The boxes sit flat on the pages: the right page is flat past the gutter; the left page (back of the
 // last turned sheet) is flat from ~4cm out, and its content is centred, away from the curl.
-interface CssLayer { renderer: CSS3DRenderer; left: HTMLDivElement; right: HTMLDivElement }
+interface CssLayer {
+  renderer: CSS3DRenderer; left: HTMLDivElement; right: HTMLDivElement;
+  /** wizard pages: plain screen-aligned boxes (no CSS 3D transform), laid exactly over the pages */
+  flatLeft: HTMLDivElement; flatRight: HTMLDivElement;
+  /** called by the camera rig each frame after the camera moved */
+  afterCamera?: () => void;
+}
 const LEFT_Y = (() => { const c = sheetCurve(SHEETS - 1, 1); return c.pts[c.pts.length - 1][1]; })();
 const PAGE_LIFT = 0.06;
 function PageBox({ el, x, y }: { el: HTMLDivElement; x: number; y: number }) {
@@ -180,9 +191,10 @@ function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   const camera = useThree(s => s.camera), size = useThree(s => s.size);
   const a = useMemo(() => new THREE.Vector3(), []), b = useMemo(() => new THREE.Vector3(), []);
   useFrame(() => {
-    const o = clamp01((anim.t - 0.9) / 0.1);
+    // the menu shows once the book is open and the camera is back from the wizard pose
+    const home = anim.w <= 0.001, o = home ? clamp01((anim.t - 0.9) / 0.1) : 0;
     for (const el of els) el.style.opacity = String(o);
-    const vis = anim.t >= 0.999;
+    const vis = anim.t >= 0.999 && home;
     if (vis !== shown.current) { shown.current = vis; for (const el of els) { el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; } }
     if (o > 0) {
       const y = FAB + blockTop(BLOCK.x1);
@@ -197,6 +209,36 @@ function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
       <PageBox el={layer.right} x={GUTTER_X + SHEET_W / 2} y={blockTop(BLOCK.x1) + PAGE_LIFT} />
     </>
   );
+}
+
+/** Wizard pages as flat DOM: once the camera looks straight down on the book (wizard pose reached),
+ *  each page is a rectangle on screen, so its DOM box is placed there with left/top/width/height
+ *  (whole pixels) and laid out at the original /new page width, zoomed to fit (WizardSpread.tsx):
+ *  no CSS 3D transform, so the text is as sharp as any page text. Hidden while the camera moves. */
+function FlatPages({ anim, layer }: { anim: Anim; layer: CssLayer }) {
+  const camera = useThree(s => s.camera), size = useThree(s => s.size);
+  const shown = useRef<boolean | null>(null);
+  const v = useMemo(() => new THREE.Vector3(), []);
+  useEffect(() => {
+    const els = [layer.flatLeft, layer.flatRight];
+    const place = (el: HTMLDivElement, cx: number, y: number) => {
+      const p = (x: number, z: number) => { v.set(x, FAB + y, z).project(camera); return [(v.x + 1) / 2 * size.width, (1 - v.y) / 2 * size.height]; };
+      const [x0, y0] = p(cx - SHEET_W / 2, BLOCK.z0), [x1, y1] = p(cx + SHEET_W / 2, BLOCK.z1);
+      const l = Math.round(Math.min(x0, x1)), t = Math.round(Math.min(y0, y1)), w = Math.round(Math.abs(x1 - x0)), h = Math.round(Math.abs(y1 - y0));
+      const z = w / REF_W;
+      Object.assign(el.style, { left: l + "px", top: t + "px", width: w + "px", height: h + "px" });
+      el.style.setProperty("--z", z.toFixed(4)); el.style.setProperty("--hz", (h / z).toFixed(2));
+    };
+    layer.afterCamera = () => {
+      const vis = anim.t >= 0.999 && anim.w >= 0.999;
+      if (vis !== shown.current) { shown.current = vis; for (const el of els) { el.classList.toggle("is-shown", vis); el.inert = !vis; } }
+      if (!vis) return;
+      place(layer.flatLeft, GUTTER_X - SHEET_W / 2, LEFT_Y + PAGE_LIFT);
+      place(layer.flatRight, GUTTER_X + SHEET_W / 2, blockTop(BLOCK.x1) + PAGE_LIFT);
+    };
+    return () => { layer.afterCamera = undefined; };
+  }, [anim, layer, camera, size, v]);
+  return null;
 }
 
 /** Lavender ribbon bookmark: from the gutter, out past the tail of the book; seen only when open. */
@@ -229,6 +271,7 @@ function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void;
       <SpineCloth anim={anim} m={m} />
       <FrontCover anim={anim} m={m} />
       <PageControls anim={anim} layer={layer} />
+      <FlatPages anim={anim} layer={layer} />
       <Bookmark anim={anim} />
     </group>
   );
@@ -245,6 +288,7 @@ const CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils
 // open: nearly straight down (86 degrees), like the design comp (legacy/pic/book_refer.png), so the pages
 // read flat; not exactly 90, where lookAt with up = +y degenerates
 const OPEN_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 86), 0);
+const STRAIGHT_DOWN = new THREE.Vector3(0, 1, 0), HEAD_UP = new THREE.Vector3(0, 0, -1);
 const fit = (hw: number, hh: number, aspect: number) => { const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2)); return Math.max(hh / t, hw / (t * aspect)); };
 
 // The hero is laid out on a "stage" with the design comp's proportions (1871 x 841), centred on screen,
@@ -285,39 +329,55 @@ function closedAnchor(vw: number, vh: number, tgt: THREE.Vector3, spot: { x: num
   return { d, shiftX: p.cx - spot.x, shiftY: p.cy - spot.y };
 }
 
-function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
+function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizard: boolean }) {
   const { camera, size, scene } = useThree();
   useEffect(() => { layer.renderer.setSize(size.width, size.height); }, [layer, size]);
   const cTgt = useMemo(() => new THREE.Vector3(0, FAB + T / 2, 0), []);
   const desk = size.width >= DESK_MIN;
   const anchor = useMemo(() => closedAnchor(size.width, size.height, cTgt, desk ? photoSpot(size.width, size.height) : phoneSpot(size.width, size.height)), [desk, size.width, size.height, cTgt]);
-  const v = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dir: new THREE.Vector3() }), []);
+  const v = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dir: new THREE.Vector3(), up: new THREE.Vector3(), wTgt: new THREE.Vector3() }), []);
+  // wizard: the top nav stays visible, so the book is fitted (and centred) in the space under it
+  const [navH, setNavH] = useState(0);
+  useEffect(() => { setNavH(wizard ? Math.round(document.querySelector(".nav")?.getBoundingClientRect().bottom ?? 0) : 0); }, [size, wizard]);
   useFrame(() => {
-    const cam = camera as THREE.PerspectiveCamera, aspect = size.width / size.height, e = anim.cam;
+    const cam = camera as THREE.PerspectiveCamera, aspect = size.width / size.height, e = anim.cam, we = anim.wcam;
     const cDist = anchor.d;
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
     const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / Math.min(0.68, 1320 / size.width), D / 2 / 0.88, aspect); // open spread: 68% of the width (max 1320px), at most 88% of the height
-    v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).normalize();
-    v.tgt.copy(cTgt).lerp(oTgt, e);
+    // wizard pose: straight down, so the pages read flat and square; the spread 80% of the screen wide
+    // (max 1400px), and whole in the height under the nav (24px room above and below)
+    const room = Math.max(200, size.height - navH - 48);
+    const wDist = fit((rightEdge - leftEdge) / 2 / Math.min(0.8, 1400 / size.width), D / 2 / (room / size.height), aspect);
+    v.wTgt.set((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0);
+    v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).lerp(STRAIGHT_DOWN, we).normalize();
+    v.tgt.copy(cTgt).lerp(oTgt, e).lerp(v.wTgt, we);
     const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
-    v.pos.copy(v.tgt).addScaledVector(v.dir, THREE.MathUtils.lerp(cDist, oDist, e) * bump);
-    cam.position.copy(v.pos); cam.up.set(0, 1, 0); cam.lookAt(v.tgt);
-    // lens shift: closed, the book sits at its spot in the photo; it glides to the centre as it opens
-    cam.setViewOffset(size.width, size.height, anchor.shiftX * (1 - e), anchor.shiftY * (1 - e), size.width, size.height);
+    v.pos.copy(v.tgt).addScaledVector(v.dir, THREE.MathUtils.lerp(THREE.MathUtils.lerp(cDist, oDist, e) * bump, wDist, we));
+    // up: +y for the tilted views; the book's head (-z) when looking straight down (lookAt degenerates with +y there)
+    v.up.set(0, 1, 0).lerp(HEAD_UP, we).normalize();
+    cam.position.copy(v.pos); cam.up.copy(v.up); cam.lookAt(v.tgt);
+    // lens shift: closed, the book sits at its spot in the photo; it glides to the centre as it opens;
+    // in the wizard it moves down by half the nav, to the middle of the space under it
+    cam.setViewOffset(size.width, size.height, anchor.shiftX * (1 - e), anchor.shiftY * (1 - e) - (navH / 2) * we, size.width, size.height);
     cam.updateProjectionMatrix(); cam.updateMatrixWorld(); scene.updateMatrixWorld();
     layer.renderer.render(scene, camera); // the DOM page buttons follow the same camera
+    layer.afterCamera?.(); // ... and the wizard's flat pages
   });
   return null;
 }
 
-function Scene({ open, instant, onOpen, reduce, layer }: { open: boolean; instant: boolean; onOpen: () => void; reduce: boolean; layer: CssLayer }) {
-  const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0 }; derive(a); return a; }, []);
+function Scene({ open, wizard, instant, onOpen, reduce, layer }: { open: boolean; wizard: boolean; instant: boolean; onOpen: () => void; reduce: boolean; layer: CssLayer }) {
+  const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0, w: 0, wTarget: 0, wcam: 0 }; derive(a); return a; }, []);
   const m = useBookMaterials();
   const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl), camera = useThree(s => s.camera), sceneRef = useThree(s => s.scene);
   const [shadowK] = useState(() => { const v = parseFloat(cssVar("--book-shadow", "1")); return Number.isFinite(v) ? v : 1; });
   // instant: refresh, typed address, or arriving from a page without the book -> no opening motion
-  useEffect(() => { anim.target = open ? 1 : 0; if (reduce || instant) { anim.t = anim.target; derive(anim); } invalidate(); }, [open, instant, reduce, anim, invalidate]);
+  useEffect(() => {
+    anim.target = open ? 1 : 0; anim.wTarget = wizard ? 1 : 0;
+    if (reduce || instant) { anim.t = anim.target; anim.w = anim.wTarget; derive(anim); }
+    invalidate();
+  }, [open, wizard, instant, reduce, anim, invalidate]);
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
     if (!location.search.includes("debug")) return;
@@ -341,12 +401,14 @@ function Scene({ open, instant, onOpen, reduce, layer }: { open: boolean; instan
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1) / TOTAL; // real time, capped, so slow devices do not stretch 1.6s
     anim.t = anim.target > anim.t ? Math.min(anim.target, anim.t + step) : Math.max(anim.target, anim.t - step);
+    const wStep = Math.min(dt, 0.1) / WIZ_TOTAL;
+    anim.w = anim.wTarget > anim.w ? Math.min(anim.wTarget, anim.w + wStep) : Math.max(anim.wTarget, anim.w - wStep);
     derive(anim);
-    if (anim.t !== anim.target) invalidate(); // frameloop="demand": render only while moving
+    if (anim.t !== anim.target || anim.w !== anim.wTarget) invalidate(); // frameloop="demand": render only while moving
   }, -1);
   return (
     <>
-      <CameraRig anim={anim} layer={layer} />
+      <CameraRig anim={anim} layer={layer} wizard={wizard} />
       {/* soft studio light without an HDR download: soft boxes baked into a small environment map */}
       {/* Light matched to the photo's objects: a broad, soft studio light from above (a big white softbox in
           the environment + sky/ground fill), with only a weak directional light from the upper left for
@@ -379,13 +441,18 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
   const b = useBook(), open = b.view === "home" || b.view === "wizard";
   const [ready, setReady] = useState(false);
   const reduce = useReducedMotion();
-  const cssHost = useRef<HTMLDivElement>(null);
+  const cssHost = useRef<HTMLDivElement>(null), flatHost = useRef<HTMLDivElement>(null);
   const [layer] = useState<CssLayer>(() => {
     const mk = (id: string) => { const el = document.createElement("div"); el.id = id; el.style.opacity = "0"; el.inert = true; return el; };
     const renderer = new CSS3DRenderer(); renderer.domElement.className = "css3d-layer";
-    return { renderer, left: mk("bookLeft"), right: mk("bookRight") };
+    const flat = (id: string) => { const el = document.createElement("div"); el.id = id; el.className = "book-flat-page"; el.inert = true; return el; };
+    return { renderer, left: mk("bookLeft"), right: mk("bookRight"), flatLeft: flat("wizLeft"), flatRight: flat("wizRight") };
   });
-  useEffect(() => { cssHost.current!.appendChild(layer.renderer.domElement); return () => { layer.renderer.domElement.remove(); }; }, [layer]);
+  useEffect(() => {
+    cssHost.current!.appendChild(layer.renderer.domElement);
+    flatHost.current!.append(layer.flatLeft, layer.flatRight);
+    return () => { layer.renderer.domElement.remove(); layer.flatLeft.remove(); layer.flatRight.remove(); };
+  }, [layer]);
   return (
     <div className={"book3d" + (ready ? " ready" : "") + (open ? " is-open" : "")} id="book">
       <Canvas
@@ -403,13 +470,15 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
           requestAnimationFrame(() => setReady(true));
         }}
       >
-        <Scene open={open} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} />
+        <Scene open={open} wizard={b.view === "wizard"} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} />
       </Canvas>
       {/* film grain over the book and the photo (not over any text: the page DOM and the hero copy sit above) */}
       <div className="book-grain" aria-hidden="true" />
       <div ref={cssHost} />
-      {/* the page DOM: the menu spread at home, the wizard spread on /new */}
-      {b.view === "wizard" ? <WizardSpread left={layer.left} right={layer.right} /> : <>
+      <div ref={flatHost} className="book-flat" />
+      {/* the page DOM: the menu spread at home (CSS 3D, on the tilted pages), the wizard spread on /new
+          (flat boxes over the pages, the camera straight above) */}
+      {b.view === "wizard" ? <WizardSpread left={layer.flatLeft} right={layer.flatRight} /> : <>
         {createPortal(<LeftPage />, layer.left)}
         {createPortal(<RightPage onClose={b.close} />, layer.right)}
       </>}
