@@ -146,6 +146,9 @@ export async function paintPage(src: HTMLElement, box: PaintBox, side: "left" | 
       const el = n.parentElement!; const s = n.data;
       if (!s.trim() || el.closest("svg,textarea,input,style,script") || hidden(el)) continue;
       const cs = getComputedStyle(el), upper = cs.textTransform === "uppercase", under = cs.textDecorationLine.includes("underline");
+      // a rotated glyph (the select box's chevron is a rotated "›"): drawn turned about its box's centre
+      const tf = getComputedStyle(el).transform, mm = tf.startsWith("matrix(") ? tf.slice(7, -1).split(",").map(parseFloat) : null;
+      const angle = mm ? Math.atan2(mm[1], mm[0]) : 0;
       const re = /\S+/g; let m: RegExpExecArray | null;
       while ((m = re.exec(s))) {
         range.setStart(n, m.index); range.setEnd(n, m.index + m[0].length);
@@ -156,7 +159,12 @@ export async function paintPage(src: HTMLElement, box: PaintBox, side: "left" | 
           if (!r || r.width < 0.1) continue;
           const word = upper ? t.toUpperCase() : t;
           ops.push(clipped(el, () => {
-            ctx.font = fontOf(cs); ctx.letterSpacing = spacing(cs); ctx.fillStyle = cs.color; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+            ctx.font = fontOf(cs); ctx.letterSpacing = spacing(cs); ctx.fillStyle = cs.color;
+            if (Math.abs(angle) > 0.01) {
+              ctx.translate(X(r.left + r.width / 2), Y(r.top + r.height / 2)); ctx.rotate(angle);
+              ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(word, 0, 0); return;
+            }
+            ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
             const base = Y(r.bottom) - ctx.measureText(word).fontBoundingBoxDescent;
             ctx.fillText(word, X(r.left), base);
             if (under) { ctx.fillRect(X(r.left), base + 2.5 * S, r.width * S, Math.max(1, S)); }

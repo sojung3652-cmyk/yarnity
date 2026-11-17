@@ -200,7 +200,10 @@ body:has(#view-new .book-stage-space){overflow:hidden}
 body:has(#view-new .book-stage-space) footer{display:none}
 .nav{position:relative;z-index:5}
 /* wizard: the same open book as the menu, so the same backdrop as the open menu (.is-open rules below);
-   no nav either (Nav.tsx), the book takes the whole screen */
+   no nav either (Nav.tsx), the book takes the whole screen. The book's soft 0.35px blur is off here: the
+   pages are flat paper, and the blur thinned the text pictured on a turning leaf (it then read lighter
+   than the live page it turns into) */
+.hero-desk.is-wizard .book3d canvas{filter:saturate(var(--book-saturate,1))}
 .hero-stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100svh * 1871 / 841 * 1.08));aspect-ratio:1871 / 841;container-type:inline-size}
 /* the stage's transform makes it a stacking context, so the photo and the copy live in two stage layers:
    the photo under the 3D canvas (z 2), the copy over it (pointer events only on the controls) */

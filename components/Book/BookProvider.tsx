@@ -70,6 +70,13 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (closing) setClosing(false);
     setInstant(!bookPage(seenPath));
   }
+  // a step change on the same page (next / previous / Back / Forward) always turns the page, also after
+  // the wizard was opened by a typed address or a refresh (which only skips the motion of that first view)
+  const [seenStep, setSeenStep] = useState<WizStep | null>(null);
+  if (urlStep !== seenStep) {
+    if (seenStep !== null && urlStep !== null && seenPath === path) setInstant(false);
+    setSeenStep(urlStep);
+  }
 
   useEffect(() => {
     const forced = new URLSearchParams(location.search).get("book"); // ?book=css to compare

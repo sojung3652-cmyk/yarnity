@@ -319,7 +319,9 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 /* the flat page boxes (Book3D FlatPages): screen rectangles over the pages; shown once the camera is
    straight above the book, with a short fade to hide the seam */
 .book-flat{position:absolute;inset:0;pointer-events:none}
-.book-flat-page{position:absolute;visibility:hidden;opacity:0;transition:opacity .12s linear,visibility 0s .12s}
+/* hiding is instant (no fade-out): by then the paper already carries a picture of the page, and a page
+   fading out over a leaf that starts to lift left an afterimage of the old text */
+.book-flat-page{position:absolute;visibility:hidden;opacity:0;transition:none}
 .book-flat-page.is-shown{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .12s linear}
 /* reduced motion: no page turn, the new pages fade in over 0.15s (beats the site-wide transition:none) */
 @media (prefers-reduced-motion:reduce){.book-flat-page.is-shown{transition:opacity .15s linear!important}}

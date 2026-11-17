@@ -408,19 +408,61 @@ const spreadKey = (s: Spread) => (s.view === "wizard" ? "w" + s.step : s.view);
 const isSpread = (s: Spread) => s.view === "home" || s.view === "wizard";
 const order = (s: Spread) => (s.view === "wizard" ? s.step : 0); // menu, then the four steps
 const frames = (n: number) => new Promise<void>(res => { const f = () => (--n <= 0 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); });
-const LEAF_RES = 1280; // texture width of a page picture
+/** Texture width of a page picture: the page's size on screen x pixel ratio, so a texel is about a screen
+ *  pixel (a 2x bigger picture, minified, came out blurred and lighter than the live text). */
+function leafRes(layer: CssLayer, wiz: boolean) {
+  const w = wiz ? layer.flatRight.getBoundingClientRect().width : PAGE_PX / (parseFloat(layer.left.style.getPropertyValue("--k")) || 1);
+  return Math.round(Math.min(2048, Math.max(512, (w || 640) * Math.min(2, devicePixelRatio || 1))));
+}
+
+// The page DOM is a flat box from the gutter out, but the paper it lies on curls down into the gutter, so
+// along the paper (texture u) the page is a little longer than across the box. The pictures are warped
+// column by column so every point lands under the same spot of the live page (else the text doubled up
+// for a moment when the DOM faded back in). Curves: the right page (the sheet under the turning ones) and
+// the left page (the last turned sheet), as the spread's meshes use them.
+const RIGHT_CURVE = sheetCurve(SHEETS, 0).pts, LEFT_CURVE = sheetCurve(SHEETS - 1, 1).pts;
+function warpToPaper(src: HTMLCanvasElement, side: "left" | "right") {
+  const W = src.width, H = src.height, out = document.createElement("canvas"); out.width = W; out.height = H;
+  const ctx = out.getContext("2d")!, pts = side === "right" ? RIGHT_CURVE : LEFT_CURVE, n = pts.length - 1;
+  // where along the box (0..1, as the box is drawn on screen) the paper point x lies
+  const at = (x: number) => Math.min(1, Math.max(0, side === "right" ? (x - GUTTER_X) / SHEET_W : (x - (GUTTER_X - SHEET_W)) / SHEET_W));
+  for (let i = 0; i < n; i++) {
+    const u0 = i / n, u1 = (i + 1) / n, s0 = at(pts[i][0]) * W, s1 = at(pts[i + 1][0]) * W;
+    // right: texture u reads canvas u. left: un-mirrored on the back face, texture u reads canvas 1 - u
+    const d0 = side === "right" ? u0 * W : (1 - u1) * W, d1 = side === "right" ? u1 * W : (1 - u0) * W;
+    const sa = Math.min(s0, s1), sw = Math.max(0.5, Math.abs(s1 - s0));
+    ctx.drawImage(src, sa, 0, sw, H, d0, 0, d1 - d0 + 0.5, H); // +0.5: no hairline seams between columns
+  }
+  inkForLight(ctx, W, H);
+  return out;
+}
+
+/** The book's light (soft environment + tone mapping) lifts dark colours on the paper a little: ink came out
+ *  ~30 levels lighter than the same text as DOM. Darken what is darker than the paper by that much
+ *  (v -> paper * (v / paper)^1.5), leave the paper itself as it is, so picture and live page match. */
+const PAPER = [251, 243, 234]; // #FBF3EA, paperTextures.ts
+function inkForLight(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  const img = ctx.getImageData(0, 0, W, H), d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      const r = d[i + c] / PAPER[c];
+      if (r < 0.9) d[i + c] = PAPER[c] * Math.pow(r, 1.5);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
 
 /** Pictures of the two pages of a spread as it is now (pagePaint.ts), at the page's own layout size. */
 async function paintSpread(layer: CssLayer, s: Spread) {
-  const wiz = s.view === "wizard";
+  const wiz = s.view === "wizard", res = leafRes(layer, wiz);
   const [L, R] = wiz ? [layer.flatLeft, layer.flatRight] : [layer.left, layer.right];
   const box = wiz ? (() => { const h = REF_W * PAGE_H_PX / PAGE_PX; return { w: REF_W, h, vars: { "--z": "1", "--hz": h.toFixed(2) } }; })()
     : { w: PAGE_PX, h: PAGE_H_PX, vars: { "--k": layer.left.style.getPropertyValue("--k") || "1" } };
-  const one = (host: HTMLElement, side: "left" | "right") => {
+  const one = async (host: HTMLElement, side: "left" | "right") => {
     const src = host.firstElementChild as HTMLElement | null;
-    if (src) return paintPage(src, box, side, LEAF_RES);
-    const cv = document.createElement("canvas"); cv.width = LEAF_RES; cv.height = Math.round(LEAF_RES * box.h / box.w);
-    (side === "left" ? drawLeftPage : drawRightPage)(cv); return Promise.resolve(cv);
+    if (src) return warpToPaper(await paintPage(src, box, side, res), side);
+    const cv = document.createElement("canvas"); cv.width = res; cv.height = Math.round(res * box.h / box.w);
+    (side === "left" ? drawLeftPage : drawRightPage)(cv); return cv;
   };
   const [l, r] = await Promise.all([one(L, "left"), one(R, "right")]);
   return { l, r };
@@ -459,15 +501,26 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
     const texOf = (cv: HTMLCanvasElement, left: boolean) => {
       const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = gl.capabilities.getMaxAnisotropy();
       t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+      // the picture is made at the page's screen size: sample it directly (a mipmap level blurred small type)
+      t.generateMipmaps = false; t.minFilter = THREE.LinearFilter;
       if (left) { t.wrapS = THREE.RepeatWrapping; t.repeat.x = -1; t.offset.x = 1; } // back face: un-mirror, as materials.ts does
       return t;
     };
     const keep = { r: m.rightPage.map, l: m.leftPage.map };
-    let made: THREE.Texture[] = [];
+    let made: THREE.Texture[] = [], landed: { l: THREE.Texture; r: THREE.Texture } | null = null;
     const end = () => {
-      m.rightPage.map = keep.r; m.leftPage.map = keep.l;
-      made.forEach(t => t.dispose()); made = [];
-      anim.turn = null; layer.turning = false; busy.current = false; invalidate();
+      // landed: the paper shows the pictures of the new pages and the page DOM fades in over them (the same
+      // picture under the same text: no blank paper, no flicker). The plain paper comes back once the fade
+      // is done; until then the next turn waits.
+      if (landed) { m.leftPage.map = landed.l; m.rightPage.map = landed.r; }
+      anim.turn = null; layer.turning = false; invalidate();
+      setTimeout(() => {
+        if ((window as unknown as { __book3dKeepPictures?: boolean }).__book3dKeepPictures) return; // ?debug: compare picture vs DOM
+        m.rightPage.map = keep.r; m.leftPage.map = keep.l;
+        made.forEach(t => t.dispose()); made = [];
+        busy.current = false; invalidate();
+        setRound(r => r + 1); // a change asked for during the turn goes next
+      }, 260);
       // focus: the new step's first field (or the menu's first action) once the pages are back
       frames(3).then(() => {
         // a field to type in first (the name is on the right page), then a choice, then a button
@@ -476,7 +529,6 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
         const el = qs.map(q => hosts.map(h => h.querySelector<HTMLElement>(q)).find(Boolean)).find(Boolean) ?? document.getElementById("nbTitle");
         el?.focus({ preventScroll: true });
       });
-      setRound(r => r + 1); // a change asked for during the turn goes next
     };
     (async () => {
       try {
@@ -490,7 +542,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
         await frames(3); // the new spread rendered (and its layout effects settled), still hidden
         const neu = await paintSpread(layer, want);
         const nL = texOf(neu.l, true), nR = texOf(neu.r, false);
-        made.push(nL, nR);
+        made.push(nL, nR); landed = { l: nL, r: nR };
         // under the leaf: forward, the old left page (until covered) and the new right page (revealed)
         m.leftPage.map = fwd ? oL : nL; m.rightPage.map = fwd ? nR : oR;
         leaf.front.map = fwd ? oR : nR; leaf.back.map = fwd ? nL : oL;
