@@ -66,10 +66,10 @@
 .pg-actions{position:absolute;left:14%;width:72%;top:33%;display:flex;flex-direction:column;gap:calc(22px * var(--k,1))}
 .pg-link{display:flex;align-items:center;justify-content:space-between;gap:calc(14px * var(--k,1));min-height:calc(56px * var(--k,1));box-sizing:border-box;padding:calc(20px * var(--k,1)) 0;border-top:1px solid #DDCFC3;text-decoration:none;color:#3A2E29;text-align:left}
 .pg-link-text{display:flex;flex-direction:column;gap:calc(5px * var(--k,1));min-width:0}
-.pg-link-title{align-self:flex-start;font-family:"Noto Serif KR",serif;font-weight:500;font-size:max(3.4cqw,calc(18px * var(--k,1)));line-height:1.3;
+.pg-link-title{align-self:flex-start;font-family:"Noto Serif KR",serif;font-weight:500;font-size:max(3cqw,calc(16px * var(--k,1)));line-height:1.3;
   background:linear-gradient(currentColor,currentColor) 0 100% / 0 1px no-repeat;transition:background-size .3s ease}
 .pg-link-desc{font-family:"Noto Serif KR",serif;font-size:calc(12px * var(--k,1));color:#A08F86;line-height:1.45} /* the book pages' help-text size (newbook.css --nb-help) */
-.pg-link-end{flex:none;font-family:var(--font-cormorant),"Cormorant Garamond","Noto Serif KR",serif;font-style:italic;font-weight:500;font-size:calc(17px * var(--k,1));color:#6E5350;transition:transform .2s ease}
+.pg-link-end{flex:none;font-family:var(--font-cormorant),"Cormorant Garamond","Noto Serif KR",serif;font-style:italic;font-weight:500;font-size:calc(15px * var(--k,1));color:#6E5350;transition:transform .2s ease}
 .pg-link:hover .pg-link-title,.pg-link:focus-visible .pg-link-title{background-size:100% 1px}
 .pg-link:hover .pg-link-end,.pg-link:focus-visible .pg-link-end{transform:translateX(3px)}
 .pg-link:focus-visible{outline:2px solid #3A2E29;outline-offset:4px;border-radius:2px}
@@ -93,7 +93,7 @@
   .pg-actions{left:9%;width:82%;top:59%;gap:calc(12px * var(--k,1))}
   .pg-actions .pg-link{padding:calc(10px * var(--k,1)) calc(24px * var(--k,1));min-height:0}
   .pg-actions .pg-link-desc{display:none} /* phones: title and end label only, so both labels fit the page */
-  .pg-link-title{font-size:max(4.8cqw,calc(17px * var(--k,1)))}
+  .pg-link-title{font-size:max(4.2cqw,calc(15px * var(--k,1)))}
   .pg-ribbon{width:12%}
   }
 /* photo-matching finish for the WebGL book: its canvas a hair soft (no text in it: the page text is DOM above),
