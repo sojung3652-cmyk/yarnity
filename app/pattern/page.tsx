@@ -44,7 +44,7 @@ export default function PatternPage() {
     : `${SHAPE_KO[p.shape]} ${p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`}${p.object === "bag" ? ` · 높이 ${p.h}cm` : ""}`;
   const colors = [{ hex: p.color, name: p.colorName, no: p.colorNo, lot: p.lot }, ...(p.moreColors ?? [])].filter(c => c.hex || c.name);
   const mm = hookMmOf(p);
-  const use = yarnUse(pp, { weight: p.weight, yarnMm: p.yarnMm, yarnMode: p.yarnMode, skeinG: p.skeinG, skeinM: p.skeinM, colors: Math.max(1, colors.length) });
+  const use = yarnUse(pp, { weight: p.weight, yarnMm: p.yarnMm, yarnMode: p.yarnMode, skeinG: p.skeinG, skeinM: p.skeinM, colors: Math.max(1, colors.length), materials: p.materials });
   const made = new Date(p.created).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 
   return (

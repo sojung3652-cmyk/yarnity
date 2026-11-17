@@ -266,7 +266,7 @@ function ColorList({ draft, patch, open, toggle }: { draft: Draft; patch: Patch;
 export function SuppliesPage({ draft, item, pp, stitchMm, measureNote }: { draft: Draft; item: Item; pp: Plan; stitchMm: number; measureNote: string }) {
   const colors = colorsOf(draft).filter(c => c.hex || c.name);
   const mm = draft.hook ? hookMmOf(draft) : NaN;
-  const use = yarnUse(pp, { weight: draft.weight, yarnMm: draft.yarnMm, yarnMode: draft.yarnMode, skeinG: draft.skeinG, skeinM: draft.skeinM, skeins: draft.skeins, colors: Math.max(1, colors.length) });
+  const use = yarnUse(pp, { weight: draft.weight, yarnMm: draft.yarnMm, yarnMode: draft.yarnMode, skeinG: draft.skeinG, skeinM: draft.skeinM, skeins: draft.skeins, colors: Math.max(1, colors.length), materials: draft.materials });
   const basisText = use.basis === "label" ? "실 라벨" : use.basis === "mm" ? `실 굵기 ${draft.yarnMm}mm` : "실 굵기";
   const yarnLine = [draft.yarn, draft.materials?.join(" · ")].filter(Boolean).join(" · ");
   const label = draft.skeinG && draft.skeinM ? `한 타래 ${draft.skeinG}g · ${draft.skeinM}m 기준` : draft.skeinG ? `한 타래 ${draft.skeinG}g 기준` : draft.skeinM ? `한 타래 ${draft.skeinM}m 기준` : "";
