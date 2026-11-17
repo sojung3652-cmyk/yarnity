@@ -1,0 +1,8 @@
+// "AI와 상의" lines under the step titles (components/AskAiLine.tsx): the words shown and the question
+// put into the AI sheet's box (not sent: the user sends it). One place to edit them.
+export const AI_LINES = {
+  item: { text: "고민된다면, AI와 상의해 보세요", prompt: "초보인데 뭘 떠 보면 좋을까요?" },
+  yarn: { text: "실 굵기를 모르겠다면, AI에게 물어보세요", prompt: "실 라벨 사진으로 굵기를 알려 줄 수 있나요?" },
+  size: { text: "어떤 크기가 좋을지 AI와 정해 보세요", prompt: "이 품목은 보통 몇 cm로 만들어요?" },
+} as const;
+export type AiLineKey = keyof typeof AI_LINES;

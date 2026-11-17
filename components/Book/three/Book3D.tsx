@@ -13,6 +13,7 @@ import { useReducedMotion } from "../useBookState";
 import { useBook, type BookView, type WizStep } from "../BookProvider";
 import { paintPage } from "./pagePaint";
 import { REF_W, WizardSpread } from "../WizardSpread";
+import { AiTab } from "@/components/AiTab";
 import {
   BLOCK, blockTop, BOARD, CORNER_R, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, Q0, sheetCurve, SHEET_W, SHEETS, spineCloth, T, W,
 } from "./geometry";
@@ -694,7 +695,7 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
       {/* the page DOM: the menu spread (CSS 3D, on the tilted pages; always there, so it can be painted for
           a turn), and the wizard spread while it is shown (flat boxes over the pages, the camera straight above) */}
       {createPortal(<LeftPage />, layer.left)}
-      {createPortal(<RightPage onClose={b.close} />, layer.right)}
+      {createPortal(<><RightPage onClose={b.close} /><AiTab variant="menu" /></>, layer.right)}
       {shown.view === "wizard" && <WizardSpread step={shown.step} left={layer.flatLeft} right={layer.flatRight} />}
     </div>
   );

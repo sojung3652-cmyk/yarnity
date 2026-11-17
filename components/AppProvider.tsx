@@ -14,8 +14,9 @@ export interface ChatMsg { id: number; kind: "ai" | "me" | "note"; text: string;
   proposal?: Proposal; done?: boolean }
 export interface ChatTurn { role: "user" | "assistant"; content: string }
 export interface ChatState { msgs: ChatMsg[]; chips: string[]; off: boolean; images: boolean; checked: boolean;
-  /** the AI panel beside the book is open; a question waiting to be sent (a step's "AI에게 물어보기") */
-  open?: boolean; ask?: string | null }
+  /** the AI sheet is open; a question to put in its box (AskAiLine; the user sends it); bumped each time a
+   *  proposal is applied with 책에 적용 (도안 만들기 refreshes its fields) */
+  open?: boolean; prefill?: string | null; applied?: number }
 
 interface AppCtx {
   ready: boolean;

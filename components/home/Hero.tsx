@@ -6,6 +6,7 @@
 // photo and logo faded behind it. Other pages: the stage is hidden but stays mounted (no new canvas).
 import Image from "next/image";
 import { Book } from "@/components/Book/Book";
+import { AiHost } from "@/components/newbook/AiPanel";
 import { FoilLogo } from "@/components/FoilLogo";
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
 
@@ -43,6 +44,8 @@ export function Hero() {
         </div>
       </div>
       <Book />
+      {/* the one AI sheet, beside the open book (menu or 도안 만들기) */}
+      <AiHost />
     </section>
   );
 }

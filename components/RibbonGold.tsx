@@ -55,48 +55,60 @@ export function RibbonGold({ w, h, ball, ballY, lineInset, lineEnd, full, notch 
   );
 }
 
+/** The gold-leaf material shared by the ribbon and the AI index tab (AiTab.tsx): antique gold gradient,
+ *  fine cloth grain and beaten-leaf mottling, raised edges lit from the upper left. Put the returned defs
+ *  in an <svg>'s <defs> and paint a shape with fill={`url(#${ids.g})`} (and the weave) under filter ids.fr. */
+export function leafIds(id: string) { return { g: `lg${id}`, weave: `lv${id}`, fr: `lf${id}` }; }
+export function GoldLeafDefs({ ids }: { ids: ReturnType<typeof leafIds> }) {
+  return (
+    <>
+      <linearGradient id={ids.g} x1="0" y1="0" x2="1" y2="1">
+        {/* antique gold, matching the foil wordmark (FoilLogo) rather than brass */}
+        <stop offset="0" stopColor="#8A6E3A" /><stop offset=".3" stopColor="#C0A266" /><stop offset=".52" stopColor="#E6D3A4" />
+        <stop offset=".72" stopColor="#B0904F" /><stop offset="1" stopColor="#8F7038" />
+      </linearGradient>
+      <pattern id={ids.weave} width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height=".45" fill="#5A3E10" opacity=".14" /><rect width=".45" height="2" fill="#FFF3C8" opacity=".12" /></pattern>
+      {/* the leaf: grain, raised edges */}
+      <filter id={ids.fr} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
+        {/* fine grain (stronger) and a faint, larger mottling, like beaten leaf */}
+        <feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="2" seed="5" result="n" />
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  .7 .7 0 0 -.5" result="grain" />
+        <feComposite in="grain" in2="SourceAlpha" operator="in" result="grainIn" />
+        <feBlend in="SourceGraphic" in2="grainIn" mode="overlay" result="g1" />
+        <feTurbulence type="fractalNoise" baseFrequency=".18" numOctaves="2" seed="9" result="m" />
+        <feColorMatrix in="m" type="matrix" values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  .5 .5 0 0 -.35" result="mottle" />
+        <feComposite in="mottle" in2="SourceAlpha" operator="in" result="mottleIn" />
+        <feBlend in="g1" in2="mottleIn" mode="soft-light" result="g2" />
+        {/* about 20% less saturated: quieter, more expensive-looking gold */}
+        <feColorMatrix in="g2" type="saturate" values=".8" result="gold" />
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="bump" />
+        <feDiffuseLighting in="bump" surfaceScale="3" diffuseConstant="1" lightingColor="#fff" result="diff"><feDistantLight azimuth="225" elevation="60" /></feDiffuseLighting>
+        <feSpecularLighting in="bump" surfaceScale="3" specularConstant=".7" specularExponent="14" lightingColor="#FFF4D2" result="spec"><feDistantLight azimuth="225" elevation="45" /></feSpecularLighting>
+        <feComposite in="gold" in2="diff" operator="arithmetic" k1="1.18" k2="0" k3="0" k4="0" result="shaded" />
+        <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn" />
+        <feComposite in="shaded" in2="specIn" operator="arithmetic" k1="0" k2="1" k3=".6" k4="0" result="lit" />
+        <feComposite in="lit" in2="SourceAlpha" operator="in" />
+      </filter>
+    </>
+  );
+}
+
 /** The whole ribbon in gold leaf: gradient + fine cloth grain, raised at its edges (positive height map lit
  *  from the upper left), with the logo's yarn ball debossed into it (negative height map: shade on the
  *  upper-left inner walls, a lit lower-right lip). */
 function RibbonGoldLeaf({ w, h, ball, ballY, notch }: { w: number; h: number; ball: number; ballY: number; notch: number }) {
-  const id = useId().replace(/:/g, ""), g = `lg${id}`, gb = `lb${id}`, m = `lm${id}`, c = `lc${id}`, fr = `lf${id}`, fb = `ld${id}`, wt = `lw${id}`, weave = `lv${id}`;
+  const id = useId().replace(/:/g, ""), L = leafIds(id), gb = `lb${id}`, m = `lm${id}`, c = `lc${id}`, fb = `ld${id}`, wt = `lw${id}`;
   const s = ball / 2 / BALL.r, cx = w / 2, shape = `M0 0H${w}V${h}L${cx} ${h * notch}L0 ${h}Z`;
   return (
     <svg className="rib-gold rib-gold-full" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
       <defs>
-        <linearGradient id={g} x1="0" y1="0" x2="1" y2="1">
-          {/* antique gold, matching the foil wordmark (FoilLogo) rather than brass */}
-          <stop offset="0" stopColor="#8A6E3A" /><stop offset=".3" stopColor="#C0A266" /><stop offset=".52" stopColor="#E6D3A4" />
-          <stop offset=".72" stopColor="#B0904F" /><stop offset="1" stopColor="#8F7038" />
-        </linearGradient>
+        <GoldLeafDefs ids={L} />
         <linearGradient id={gb} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#7E6332" /><stop offset="1" stopColor="#A88B52" /></linearGradient>
-        <pattern id={weave} width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height=".45" fill="#5A3E10" opacity=".14" /><rect width=".45" height="2" fill="#FFF3C8" opacity=".12" /></pattern>
         <filter id={wt}><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0" /></filter>
         <clipPath id={c}><circle cx={cx} cy={ballY} r={ball / 2} /></clipPath>
         <mask id={m} maskUnits="userSpaceOnUse" x="0" y="0" width={w} height={h}>
           <image href="/pic/logo-mark.svg" x={cx - BALL.cx * s} y={ballY - BALL.cy * s} width={1170 * s} height={579 * s} clipPath={`url(#${c})`} filter={`url(#${wt})`} />
         </mask>
-        {/* the leaf: grain, raised edges */}
-        <filter id={fr} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
-          {/* fine grain (stronger) and a faint, larger mottling, like beaten leaf */}
-          <feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="2" seed="5" result="n" />
-          <feColorMatrix in="n" type="matrix" values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  .7 .7 0 0 -.5" result="grain" />
-          <feComposite in="grain" in2="SourceAlpha" operator="in" result="grainIn" />
-          <feBlend in="SourceGraphic" in2="grainIn" mode="overlay" result="g1" />
-          <feTurbulence type="fractalNoise" baseFrequency=".18" numOctaves="2" seed="9" result="m" />
-          <feColorMatrix in="m" type="matrix" values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  .5 .5 0 0 -.35" result="mottle" />
-          <feComposite in="mottle" in2="SourceAlpha" operator="in" result="mottleIn" />
-          <feBlend in="g1" in2="mottleIn" mode="soft-light" result="g2" />
-          {/* about 20% less saturated: quieter, more expensive-looking gold */}
-          <feColorMatrix in="g2" type="saturate" values=".8" result="gold" />
-          <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="bump" />
-          <feDiffuseLighting in="bump" surfaceScale="3" diffuseConstant="1" lightingColor="#fff" result="diff"><feDistantLight azimuth="225" elevation="60" /></feDiffuseLighting>
-          <feSpecularLighting in="bump" surfaceScale="3" specularConstant=".7" specularExponent="14" lightingColor="#FFF4D2" result="spec"><feDistantLight azimuth="225" elevation="45" /></feSpecularLighting>
-          <feComposite in="gold" in2="diff" operator="arithmetic" k1="1.18" k2="0" k3="0" k4="0" result="shaded" />
-          <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn" />
-          <feComposite in="shaded" in2="specIn" operator="arithmetic" k1="0" k2="1" k3=".6" k4="0" result="lit" />
-          <feComposite in="lit" in2="SourceAlpha" operator="in" />
-        </filter>
         {/* the ball pressed in: shade on its upper-left walls, a lit lower-right lip */}
         <filter id={fb} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
           <feOffset in="SourceAlpha" dx=".9" dy=".9" result="sh" />
@@ -113,7 +125,7 @@ function RibbonGoldLeaf({ w, h, ball, ballY, notch }: { w: number; h: number; ba
           <feMerge><feMergeNode in="lipLight" /><feMergeNode in="SourceGraphic" /><feMergeNode in="inner" /></feMerge>
         </filter>
       </defs>
-      <g filter={`url(#${fr})`}><path d={shape} fill={`url(#${g})`} /><path d={shape} fill={`url(#${weave})`} /></g>
+      <g filter={`url(#${L.fr})`}><path d={shape} fill={`url(#${L.g})`} /><path d={shape} fill={`url(#${L.weave})`} /></g>
       <g filter={`url(#${fb})`}><rect width={w} height={h} fill={`url(#${gb})`} mask={`url(#${m})`} /></g>
     </svg>
   );

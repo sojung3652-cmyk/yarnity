@@ -1,12 +1,14 @@
 "use client";
-// "AI와 상의하기" beside the book in 도안 만들기 (Kim's pick: a tab on the book's edge + per-step helpers).
-// A lavender woven tab on the right edge of the screen opens a sheet of note paper: the conversation, the
-// AI's quick answers as chips, a composer with a photo button. When a reply proposes values (lib/aiApply.ts
-// checks them against what the app can make), a small card lists them with "책에 적용": nothing changes in
-// the book until the user presses it. A step's "AI에게 물어보기" (AskAi) opens the sheet with its question.
-// Fallback (Rule 6): without ANTHROPIC_API_KEY (GET /api/chat -> available: false) the sheet says so and
-// the book's own fields keep working - the AI is never needed to make a pattern.
+// "AI와 상의하기": a sheet of note paper beside the open book - the conversation, the AI's quick answers as
+// chips, a composer with a photo button. It is opened from the book's AI index tab (components/AiTab.tsx)
+// or a line under a step's title (components/AskAiLine.tsx, which puts its question in the box). When a
+// reply proposes values (lib/aiApply.ts checks them against what the app can make), a small card lists them
+// with "책에 적용": nothing changes in the book until the user presses it.
+// One sheet for the whole book (AiHost, mounted on the book's stage), so it opens from the menu as well.
+// Fallback (Rule 6): without ANTHROPIC_API_KEY (GET /api/chat -> available: false) the sheet says it opens
+// soon and the book's own fields keep working - the AI is never needed to make a pattern.
 import { useEffect, useRef, useState } from "react";
+import { useBook } from "@/components/Book/BookProvider";
 import { useApp, type ChatMsg } from "@/components/AppProvider";
 import { proposalFrom, type Proposal } from "@/lib/aiApply";
 import type { ChatReply, ChatRequest } from "@/lib/chat";
@@ -15,7 +17,7 @@ import type { Draft } from "@/lib/types";
 import { hookMmOf, yarnWeightText } from "@/lib/yarn";
 
 const ERR: Record<string, string> = {
-  not_configured: "AI 상담이 아직 연결되지 않았어요. 책의 칸만으로도 끝까지 만들 수 있어요.",
+  not_configured: "AI 상담은 곧 열려요. 그동안 책의 칸만으로도 끝까지 만들 수 있어요.",
   not_granted: "AI 상담을 쓸 수 없는 상태예요. 책의 칸만으로도 끝까지 만들 수 있어요.",
   rate_limited: "잠시 뒤에 다시 보내 주세요.",
   image_rejected: "이 사진은 읽을 수 없어요. 다른 사진으로 해 볼까요?",
@@ -23,7 +25,7 @@ const ERR: Record<string, string> = {
   refused: "그 요청은 도와드리기 어려워요.",
 };
 const FATAL = ["not_configured", "not_granted"];
-const STEP_KO = ["", "이름", "품목", "실과 크기", "확인"];
+const STEP_KO = ["메뉴", "이름", "품목", "실과 크기", "확인"];
 
 let availabilityRequested = false, msgId = 1000;
 const nextId = () => msgId++;
@@ -48,15 +50,11 @@ function stateLine(d: Draft, step: number) {
   return `(지금 상태: ${parts.filter(Boolean).join(", ")})`;
 }
 
-/** "AI에게 물어보기" for a step: opens the sheet and sends this question. */
-export function AskAi({ q, children }: { q: string; children: React.ReactNode }) {
-  const { setChat } = useApp();
-  return (
-    <button type="button" className="ai-ask" onClick={() => setChat(c => ({ ...c, open: true, ask: q }))}>
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 9.2 6.8 14.5 8 9.2 9.2 8 14.5 6.8 9.2 1.5 8 6.8 6.8Z" fill="currentColor" /></svg>
-      {children}
-    </button>
-  );
+/** The one AI sheet on the book's stage: shown on the open book (menu: step 0, or the wizard's step). */
+export function AiHost() {
+  const b = useBook(), { draft, setDraft } = useApp();
+  if (b.view !== "home" && b.view !== "wizard") return null;
+  return <AiPanel draft={draft} step={b.view === "wizard" ? b.step : 0} onApply={p => setDraft({ ...draft, ...p })} />;
 }
 
 export function AiPanel({ draft, step, onApply }: { draft: Draft; step: number; onApply: (patch: Partial<Draft>) => void }) {
@@ -102,22 +100,20 @@ export function AiPanel({ draft, step, onApply }: { draft: Draft; step: number; 
       if (FATAL.includes(code)) offChat();
     } finally { setBusy(false); }
   }
-  // a step's question, once the chat is ready
+  // a line's question goes into the box (the user sends it)
   useEffect(() => {
-    if (!chat.ask || !chat.checked || busy) return;
-    const q = chat.ask; setChat(c => ({ ...c, ask: null }));
-    if (!chat.off) send(q);
-  }, [chat.ask, chat.checked, chat.off, busy]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!chat.prefill) return;
+    const q = chat.prefill; setChat(c => ({ ...c, prefill: null }));
+    setInput(q); requestAnimationFrame(() => { const el = inputRef.current; if (el) { el.focus({ preventScroll: true }); el.setSelectionRange(q.length, q.length); } });
+  }, [chat.prefill]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const apply = (m: ChatMsg, p: Proposal) => { onApply(p.patch); setChat(c => ({ ...c, msgs: c.msgs.map(x => (x.id === m.id ? { ...x, done: true } : x)) })); };
+  const apply = (m: ChatMsg, p: Proposal) => {
+    onApply(p.patch);
+    setChat(c => ({ ...c, applied: (c.applied ?? 0) + 1, msgs: c.msgs.map(x => (x.id === m.id ? { ...x, done: true } : x)) }));
+  };
 
   return (
     <>
-      {!open && (
-        <button type="button" className="ai-tab" aria-expanded={false} onClick={() => setOpen(true)}>
-          <span>AI와 상의</span>
-        </button>
-      )}
       {open && (
         <aside className="ai-sheet" aria-label="AI와 상의하기" onKeyDown={e => { if (e.key === "Escape") { e.preventDefault(); setOpen(false); } }}>
           <span className="ai-tape" aria-hidden="true" />
