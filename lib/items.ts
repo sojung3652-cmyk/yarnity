@@ -6,6 +6,7 @@
 // Inputs: "a" / "b" / "h" go to the engine as they are; the beanie's "circ" / "depth" are converted
 // (crown = round bottom, diameter = circumference / pi x 0.95; body = depth - crown radius).
 import type { Handle, ObjectKind, Shape } from "./pattern";
+import { DEFAULT_DRAFT, type Draft } from "./types";
 
 export type ItemKind = "flat-round" | "base-body" | "flat-rows" | "tube";
 export type ItemId =
@@ -82,6 +83,9 @@ export const HANDLE_PRESETS: [string, number][] = [["토트", 50], ["숄더", 70
 
 export const ITEM: Record<ItemId, Item> = Object.fromEntries(ITEMS.map(i => [i.id, i])) as Record<ItemId, Item>;
 export const ENGINE: Record<ItemKind, ObjectKind> = { "flat-round": "coaster", "base-body": "bag", "flat-rows": "rows", tube: "tube" };
+
+/** A new, empty draft (the mini bag with its tote handle): 새 도안 만들기, or leaving without saving. */
+export const freshDraft = (): Draft => ({ ...DEFAULT_DRAFT, item: "minibag", handleCm: ITEM.minibag.defaults.handleCm ?? null });
 
 /** Old saved works have no item: a bag was the mini bag, a coaster the coaster. */
 export const itemIdOf = (p: { item?: string; object: ObjectKind }): ItemId =>

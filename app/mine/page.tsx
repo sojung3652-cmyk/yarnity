@@ -76,6 +76,7 @@ function Card({ p, picking, picked, onPick, menuOpen, setMenu, confirm, setConfi
       <div className="mc-bar" aria-hidden="true"><i style={{ width: `${st === "done" ? 100 : Math.round((cur / total) * 100)}%` }} /></div>
       <p className="mc-where">{where}</p>
       <p className="mc-yarn">{yarn}{p.lot && <span className="mc-lot">LOT <b>{p.lot}</b><CopyLot lot={p.lot} /></span>}</p>
+      {!picking && <p className="mc-links"><Link href="/pattern" onClick={() => act("view")}>도안 보기</Link><Link href="/track" onClick={() => act("open")}>{st === "done" ? "뜨기 기록" : "이어서 뜨기"}</Link></p>}
       {menuOpen && <Menu p={p} onClose={() => setMenu(false)} act={k => { setMenu(false); if (k === "rename") { setName(p.name); setRenaming(true); } else act(k); }} />}
     </article>
   );
@@ -104,6 +105,7 @@ function List() {
   };
   const act = (p: Project) => (a: string, v?: string) => {
     if (a === "open" || a === "resume") { setActive(p.id); if (statusOf(p) === "paused") updateProject(p.id, { status: "knitting", pausedAt: null }); if (a === "resume") router.push("/track"); }
+    else if (a === "view") setActive(p.id);
     else if (a === "pause") updateProject(p.id, { status: "paused", pausedAt: Date.now() });
     else if (a === "unpause") updateProject(p.id, { status: "knitting", pausedAt: null });
     else if (a === "done") updateProject(p.id, { status: "done", pausedAt: null });

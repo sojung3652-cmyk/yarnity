@@ -43,6 +43,10 @@
 .mc-where{margin:0;font-size:12.5px;color:var(--m-label)}
 .mc-yarn{margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;font-size:12px;color:var(--m-help);line-height:1.5}
 .mc-lot{display:inline-flex;align-items:center;gap:6px;color:var(--m-ink)}
+/* the card's two ways in: the pattern sheet, and the knitting */
+.mc-links{display:flex;gap:16px;margin:4px 0 0;padding-top:10px;border-top:1px solid rgba(201,184,224,.45);font-size:13px}
+.mc-links a{color:var(--m-ink);text-decoration:underline;text-decoration-color:rgba(155,134,196,.6);text-underline-offset:4px}
+.mc-links a:hover{text-decoration-color:currentColor}
 .mc-lot b{font-weight:600;letter-spacing:.04em}
 .mc.picked{background:linear-gradient(#F6EEE6,#F6EEE6) 0 0 / 100% 100% no-repeat}
 .mc-check{position:absolute;left:-26px;top:22px}

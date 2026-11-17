@@ -8,9 +8,8 @@ import { useEffect, useState } from "react";
 import { FoilLogo } from "../FoilLogo";
 import { RibbonGold } from "../RibbonGold";
 import { useApp } from "@/components/AppProvider";
-import { ITEM, itemIdOf } from "@/lib/items";
+import { freshDraft } from "@/lib/items";
 import { store } from "@/lib/store";
-import { DEFAULT_DRAFT } from "@/lib/types";
 import { useBook, type WizStep } from "./BookProvider";
 
 const STEP_NAME: Record<WizStep, string> = { 1: "이름", 2: "품목", 3: "실과 크기", 4: "확인" };
@@ -64,7 +63,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
   const saved = (() => { const s = store.get<number>("iyarn.newstep", 1); return (s >= 1 && s <= 4 ? s : 1) as WizStep; })();
   const hasDraft = ready && (saved > 1 || draft.name.trim() !== "");
   const startNew = () => {
-    setDraft({ ...DEFAULT_DRAFT, item: itemIdOf(DEFAULT_DRAFT), handleCm: ITEM[itemIdOf(DEFAULT_DRAFT)].defaults.handleCm ?? null }); store.set("iyarn.newstep", 1);
+    setDraft(freshDraft()); store.set("iyarn.newstep", 1);
     book.startWizard(1);
   };
   return (

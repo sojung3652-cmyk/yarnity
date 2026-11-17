@@ -9,6 +9,8 @@
 // or arriving from a page that has no book.
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useApp } from "@/components/AppProvider";
+import { freshDraft } from "@/lib/items";
 import { store } from "@/lib/store";
 
 export type BookView = "closed" | "home" | "wizard" | "hidden";
@@ -99,27 +101,42 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const step: WizStep = urlStep ?? 1;
 
   const open = useCallback(() => { setInstant(false); setHomeOpen(true); }, []);
-  // close: the same everywhere in the book. In the wizard it goes home with the book closed (the draft is
-  // already saved on every change, so nothing is lost)
-  const close = useCallback(() => {
+  // close: the same everywhere in the book. In the wizard it goes home with the book closed
+  const doClose = useCallback(() => {
     setInstant(false); setHomeOpen(false);
     if (path === "/new") { setClosing(true); router.push("/", { scroll: false }); }
   }, [path, router]);
+  const doHome = useCallback(() => { setInstant(false); router.push("/", { scroll: false }); }, [router]);
+
+  // Leaving a new pattern half made (a name typed, or past step 1) asks first: keep it for
+  // "이어서 만들기", or throw it away. The draft is saved on every change, so "저장" just leaves; "저장하지
+  // 않고" resets it. Editing a saved work (?edit) never asks: nothing is overwritten until 도안 보기.
+  const { draft, setDraft } = useApp();
+  const [leaving, setLeaving] = useState<null | "close" | "home">(null);
+  const asks = useCallback(() => path === "/new" && !new URLSearchParams(location.search).has("edit") && (draft.name.trim() !== "" || (urlStep ?? 1) > 1),
+    [path, draft.name, urlStep]);
+  const close = useCallback(() => { if (asks()) setLeaving("close"); else doClose(); }, [asks, doClose]);
+  const leave = (keep: boolean) => {
+    if (!keep) { setDraft(freshDraft()); store.set(STEP_KEY, 1); }
+    const to = leaving; setLeaving(null);
+    if (to === "close") doClose(); else doHome();
+  };
   const startWizard = useCallback((step?: WizStep) => { setInstant(false); router.push(`/new?step=${step ?? savedStep()}`, { scroll: false }); }, [router]);
   const goStep = useCallback((s: WizStep) => {
     const sp = new URLSearchParams(location.search); sp.set("step", String(s));
     router.push(`/new?${sp}`, { scroll: false });
   }, [router]);
-  const toHome = useCallback(() => { setInstant(false); router.push("/", { scroll: false }); }, [router]);
+  const toHome = useCallback(() => { if (asks()) setLeaving("home"); else doHome(); }, [asks, doHome]);
 
   // Esc closes the book, from the menu or the wizard alike (one book; Kim's call), never while a Korean
   // syllable is being composed. An open hook list or the like handles its own Esc first (defaultPrevented).
   useEffect(() => {
     if (view !== "home" && view !== "wizard") return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !e.isComposing && !e.defaultPrevented) close(); };
+    // with the exit question open, Esc answers it with "계속 만들기"
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !e.isComposing && !e.defaultPrevented) { if (leaving) setLeaving(null); else close(); } };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [view, close]);
+  }, [view, close, leaving]);
 
   const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome }),
     [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome]);
@@ -127,6 +144,19 @@ export function BookProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>
       {children}
+      {leaving && (
+        <div className="leave-bg" onClick={() => setLeaving(null)}>
+          <div className="leave" role="alertdialog" aria-modal="true" aria-labelledby="leaveT" aria-describedby="leaveD" onClick={e => e.stopPropagation()}>
+            <h2 id="leaveT">만들던 도안을 저장할까요?</h2>
+            <p id="leaveD">저장해 두면 메뉴의 &lsquo;이어서 만들기&rsquo;로 지금 단계부터 다시 이어 갈 수 있어요.</p>
+            <div className="leave-btns">
+              <button type="button" className="btn btn-primary" autoFocus onClick={() => leave(true)}>저장하고 나가기</button>
+              <button type="button" className="btn btn-line" onClick={() => leave(false)}>저장하지 않고 나가기</button>
+            </div>
+            <button type="button" className="leave-stay" onClick={() => setLeaving(null)}>계속 만들기</button>
+          </div>
+        </div>
+      )}
     </Ctx.Provider>
   );
 }

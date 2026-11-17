@@ -54,7 +54,7 @@ export default function PatternPage() {
         <div className="ps-btns">
           <Link className="btn btn-line" href={`/new?edit=${p.id}`}>고치기</Link>
           <button type="button" className="btn btn-line" onClick={() => window.print()}>인쇄</button>
-          <Link className="btn btn-primary" id="startBtn" href="/track">뜨기 시작</Link>
+          <Link className="btn btn-primary" id="startBtn" href="/track">{p.current > 0 ? (p.current >= pp.rows.length ? "뜨기 기록 보기" : `이어서 뜨기 · ${pp.rows[p.current].label}`) : "뜨기 시작"}</Link>
         </div>
       </div>
 

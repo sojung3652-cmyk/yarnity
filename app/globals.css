@@ -199,6 +199,15 @@ html{overflow-x:clip}
 body:has(#view-new .book-stage-space){overflow:hidden}
 body:has(#view-new .book-stage-space) footer{display:none}
 .nav{position:relative;z-index:5}
+/* "만들던 도안을 저장할까요?" (BookProvider): a small paper card over a dimmed desk */
+.leave-bg{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(58,46,41,.28)}
+.leave{width:min(100%,380px);box-sizing:border-box;padding:28px 28px 18px;border-radius:6px;background:#FBF3EA;color:#3A2E29;font-family:"Noto Serif KR",serif;text-align:center;
+  box-shadow:0 20px 50px -20px rgba(50,35,25,.5),0 0 0 1px rgba(201,184,224,.6)}
+.leave h2{margin:0 0 10px;font-size:18px;font-weight:600}
+.leave p{margin:0 0 22px;font-size:13.5px;line-height:1.6;color:#6B5C55}
+.leave-btns{display:flex;flex-direction:column;gap:8px}
+.leave-btns .btn{width:100%;justify-content:center}
+.leave-stay{margin-top:10px;padding:8px 12px;border:0;background:none;font:inherit;font-size:13px;color:#6B5C55;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* wizard: the same open book as the menu, so the same backdrop as the open menu (.is-open rules below);
    no nav either (Nav.tsx), the book takes the whole screen. The book's soft 0.35px blur is off here: the
    pages are flat paper, and the blur thinned the text pictured on a turning leaf (it then read lighter
