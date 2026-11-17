@@ -1,12 +1,20 @@
 "use client";
+// 도안: the pattern as a printed pattern sheet (Kim's pick: "인쇄된 도안지", like it was drafted on paper).
+// One sheet of paper on the desk: a header (the work's name, what it is, its size), three boxes - the
+// finished shape drawn on graph paper, the supplies with the yarn amount, the gauge - then the rows in
+// numbered sections (01 바닥, 02 몸통...) as a ruled table, with notes in the margin where to measure.
+// The buttons (고치기 / 인쇄 / 뜨기 시작) sit above the sheet; printing shows the sheet alone (pattern.css).
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect } from "react";
 import { useApp } from "@/components/AppProvider";
+import { CopyLot } from "@/components/YarnInfo";
 import { drawing } from "@/lib/drawing";
 import { ITEM, itemIdOf } from "@/lib/items";
-import { YarnInfo } from "@/components/YarnInfo";
-import { fmt, PART_KO, plan, SHAPE_KO } from "@/lib/pattern";
+import { fmt, PART_KO, plan, SHAPE_KO, type Row } from "@/lib/pattern";
+import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
+import { yarnUse } from "@/lib/yarnUse";
+import "./pattern.css";
 
 export default function PatternPage() {
   const { ready, active: p } = useApp();
@@ -14,51 +22,102 @@ export default function PatternPage() {
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
   if (!ready || !p) return <main id="view-pattern" />;
 
-  const pp = plan(p);
-  const blocks: React.ReactNode[] = [];
-  let lastPart: string | null = null;
+  const pp = plan(p), it = ITEM[itemIdOf(p)];
+  const rounds = p.object === "coaster" || p.object === "bag";
+
+  // the rows in sections by part; runs of identical rows read as one line ("26–50단")
+  const sections: { part: Row["part"]; rows: { label: string; r: Row }[] }[] = [];
   for (let i = 0; i < pp.rows.length; i++) {
     const r = pp.rows[i];
-    if (r.part !== lastPart) {
-      const cnt = pp.rows.filter(x => x.part === r.part).length;
-      blocks.push(<div key={"t" + i} className="part-title"><h3>{PART_KO[r.part]}</h3><span className="small muted">{r.part === "handle" ? cnt + "개" : r.part === "start" ? "" : cnt + "단"}</span></div>);
-      lastPart = r.part;
-    }
+    if (!sections.length || sections[sections.length - 1].part !== r.part) sections.push({ part: r.part, rows: [] });
     let label = r.label, j = i;
-    // runs of identical rows read as one line ("26–50단", "2–250단")
-    if (r.part === "body" || r.part === "rows" || r.part === "rounds") { while (j + 1 < pp.rows.length && pp.rows[j + 1].part === r.part && pp.rows[j + 1].how === r.how) j++; if (j > i) label = `${r.label.replace("단", "")}–${pp.rows[j].label}`; }
-    blocks.push(
-      <Fragment key={"r" + i}>
-        <div className="row"><span className="no">{label}</span><span className="how">{r.how}<span className="why">{r.why}</span></span><span className="cnt">{r.n + "코"}</span></div>
-        {r.part === "bottom" && r.no === 3 && <p className="note">여기서 한 번 재면 남은 단을 다시 계산해요.</p>}
-        {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <p className="note">5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드려요.</p>}
-      </Fragment>
-    );
+    if (r.part === "body" || r.part === "rows" || r.part === "rounds") {
+      while (j + 1 < pp.rows.length && pp.rows[j + 1].part === r.part && pp.rows[j + 1].how === r.how) j++;
+      if (j > i) label = `${r.label.replace("단", "")}–${pp.rows[j].label}`;
+    }
+    sections[sections.length - 1].rows.push({ label, r });
     i = j;
   }
-  const it = ITEM[itemIdOf(p)], size = p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`;
-  const dims: [string, string][] = p.object === "rows" ? [["크기", `폭 ${p.a} × 길이 ${p.b}cm`]] : p.object === "tube" ? [["크기", `둘레 ${p.a} · ${it.id === "headband" ? "폭" : "높이"} ${p.h}cm`]]
-    : [["바닥", `${SHAPE_KO[p.shape]} · ${size}`], ...(p.object === "bag" ? [["몸통 높이", p.h + "cm"] as [string, string]] : [])];
-  // yarn and hook have their own card (YarnInfo)
-  const stats: [string, string][] = [["작품", it.name], ...dims, ["코 크기", `${fmt(pp.g.h * 10)}mm · ${pp.g.measured ? "실측" : "예상"}`]];
+  const count = (part: Row["part"]) => pp.rows.filter(x => x.part === part).length;
+
+  const size = p.object === "rows" ? `폭 ${p.a} × 길이 ${p.b}cm` : p.object === "tube" ? `둘레 ${p.a} · ${it.id === "headband" ? "폭" : "높이"} ${p.h}cm`
+    : `${SHAPE_KO[p.shape]} ${p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`}${p.object === "bag" ? ` · 높이 ${p.h}cm` : ""}`;
+  const colors = [{ hex: p.color, name: p.colorName, no: p.colorNo, lot: p.lot }, ...(p.moreColors ?? [])].filter(c => c.hex || c.name);
+  const mm = hookMmOf(p);
+  const use = yarnUse(pp, { weight: p.weight, yarnMm: p.yarnMm, yarnMode: p.yarnMode, skeinG: p.skeinG, skeinM: p.skeinM, colors: Math.max(1, colors.length) });
+  const made = new Date(p.created).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 
   return (
-    <main id="view-pattern">
-      <div className="app-head">
-        <div><div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div><h1 id="patTitle">{p.name}</h1></div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><Link className="btn btn-line" href={`/new?edit=${p.id}`}>고치기</Link><Link className="btn btn-primary" id="startBtn" href="/track">뜨기 시작</Link></div>
+    <main id="view-pattern" className="ps-main">
+      <div className="ps-actions">
+        <div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div>
+        <div className="ps-btns">
+          <Link className="btn btn-line" href={`/new?edit=${p.id}`}>고치기</Link>
+          <button type="button" className="btn btn-line" onClick={() => window.print()}>인쇄</button>
+          <Link className="btn btn-primary" id="startBtn" href="/track">뜨기 시작</Link>
+        </div>
       </div>
-      <div className="grid-pattern">
-        <aside style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-          {/* drawing() only interpolates numbers and fixed labels */}
-          <div className="card drawing" id="drawing" aria-label="완성 모양 도면" dangerouslySetInnerHTML={{ __html: drawing(p, pp, p.color, p.moreColors?.map(c => c.hex)) }} />
-          <div className="card" id="patStats" style={{ gap: 0 }}>
-            {stats.map(([k, v]) => <div key={k} className="stat"><span>{k}</span><b style={{ fontWeight: 400 }}>{v}</b></div>)}
+
+      <article className="ps-sheet" aria-labelledby="patTitle">
+        {/* header: the maker's line, the name, what it is */}
+        <header className="ps-head">
+          <p className="ps-kicker" lang="en"><span>Yarnity</span><span>Crochet Pattern</span><span>{made}</span></p>
+          <h1 id="patTitle">{p.name}</h1>
+          <p className="ps-sub">{it.name} · {size}</p>
+        </header>
+
+        <section className="ps-boxes" aria-label="한눈에 보기">
+          {/* the finished shape on graph paper (drawing() only interpolates numbers, fixed labels and hex colours) */}
+          <div className="ps-box ps-shape">
+            <h2 className="ps-box-title">완성 모양</h2>
+            <div className="ps-grid drawing" id="drawing" aria-label="완성 모양 도면" dangerouslySetInnerHTML={{ __html: drawing(p, pp, p.color, p.moreColors?.map(c => c.hex)) }} />
           </div>
-          <YarnInfo p={p} />
-        </aside>
-        <div className="card" style={{ gap: 0 }}><div id="patRows">{blocks}</div></div>
-      </div>
+          <div className="ps-box">
+            <h2 className="ps-box-title">준비물</h2>
+            <dl className="ps-dl">
+              <div><dt>실</dt><dd>{[p.yarn, p.materials?.join(" · ")].filter(Boolean).join(" · ") || "—"}<small>{yarnWeightText(p)}</small></dd></div>
+              <div><dt>바늘</dt><dd>{hookLabel(mm)}</dd></div>
+              {colors.length > 0 && <div><dt>색</dt><dd>{colors.map((c, i) => (
+                <span key={i} className="ps-color">{c.hex && <i style={{ background: c.hex }} />}{c.name || "직접 고른 색"}{c.no ? ` ${c.no}` : ""}{c.lot && <small>LOT {c.lot} <CopyLot lot={c.lot} /></small>}</span>
+              ))}</dd></div>}
+              <div><dt>실 양</dt><dd><b>약 {use.g}g</b><small>{use.skeins != null ? `${use.skeins}타래 · ` : ""}길이 약 {use.m}m</small></dd></div>
+            </dl>
+          </div>
+          <div className="ps-box">
+            <h2 className="ps-box-title">게이지</h2>
+            <p className="ps-gauge"><b>{fmt(pp.g.h * 10)}</b><span>mm</span></p>
+            <p className="ps-small">한 코 높이 · {pp.g.measured ? "직접 잰 값" : "예상 값"}</p>
+            <p className="ps-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산해요." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드려요."}</p>
+          </div>
+        </section>
+
+        {/* the rows, section by section */}
+        <section className="ps-rows" id="patRows" aria-label="단별 도안">
+          {sections.map((s, k) => (
+            <div key={k} className="ps-part">
+              <h2 className="ps-part-title"><span className="ps-part-no">{String(k + 1).padStart(2, "0")}</span>{PART_KO[s.part]}
+                <span className="ps-part-cnt">{s.part === "handle" ? count(s.part) + "개" : s.part === "start" ? "" : count(s.part) + "단"}</span></h2>
+              <table className="ps-table">
+                <tbody>
+                  {s.rows.map(({ label, r }) => (
+                    <Fragment key={r.idx}>
+                      <tr>
+                        <th scope="row">{label}</th>
+                        <td>{r.how}<small>{r.why}</small></td>
+                        <td className="ps-n">{r.n}<span>코</span></td>
+                      </tr>
+                      {r.part === "bottom" && r.no === 3 && <tr className="ps-note"><td colSpan={3}><span>※</span>여기서 한 번 지름을 재면 남은 단을 다시 계산해요.</td></tr>}
+                      {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <tr className="ps-note"><td colSpan={3}><span>※</span>5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드려요.</td></tr>}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </section>
+
+        <footer className="ps-foot" lang="en"><span>yarnity · intelligent crochet</span><span>{p.name}</span></footer>
+      </article>
     </main>
   );
 }

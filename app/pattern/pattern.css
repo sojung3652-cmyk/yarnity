@@ -1,0 +1,86 @@
+/* 도안 as a printed pattern sheet: one sheet of cream paper on the desk, drafted in thin warm-brown ink.
+   Type: Noto Serif KR for the text, Cormorant for the small English lines and the numbers that are
+   ornaments (section numbers, the gauge). Printing (@media print) leaves the sheet alone on white. */
+.ps-main{--ps-ink:#3A2E29;--ps-soft:#7A6A63;--ps-rule:#D9CBBE;--ps-hair:#E8DDD2;--ps-paper:#FBF3EA;--ps-lav:#C9B8E0;padding-bottom:64px}
+.ps-actions{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;max-width:860px;margin:28px auto 16px}
+.ps-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+.ps-sheet{position:relative;max-width:860px;margin:0 auto;padding:56px 64px 40px;box-sizing:border-box;color:var(--ps-ink);font-family:"Noto Serif KR",serif;
+  background:var(--ps-paper);border-radius:2px;
+  box-shadow:0 1px 1px rgba(70,50,40,.08),0 10px 30px -12px rgba(70,50,40,.25),0 30px 60px -40px rgba(70,50,40,.3)}
+/* a thin double frame inside the edge, like a printed form */
+.ps-sheet::before{content:"";position:absolute;inset:18px;border:1px solid var(--ps-hair);outline:1px solid var(--ps-hair);outline-offset:3px;pointer-events:none}
+
+/* header */
+.ps-head{text-align:center;padding-bottom:22px;border-bottom:1px solid var(--ps-rule);margin-bottom:26px}
+.ps-kicker{display:flex;justify-content:center;gap:18px;margin:0 0 14px;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--ps-soft)}
+.ps-kicker span+span::before{content:"·";margin-right:18px;color:var(--ps-rule)}
+.ps-head h1{margin:0;font-size:clamp(26px,3.2vw,34px);font-weight:600;letter-spacing:-.01em;line-height:1.25}
+.ps-sub{margin:10px 0 0;font-size:14px;color:var(--ps-soft)}
+
+/* three boxes */
+.ps-boxes{display:grid;grid-template-columns:1.25fr 1fr .8fr;gap:0;border:1px solid var(--ps-rule);margin-bottom:34px}
+.ps-box{padding:16px 18px 18px;min-width:0}
+.ps-box+.ps-box{border-left:1px solid var(--ps-rule)}
+.ps-box-title{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:.2em;color:var(--ps-soft)}
+/* graph paper under the drawing (fine 5mm-ish squares, a stronger line every 5) */
+.ps-grid{padding:6px;background-color:#FDF8F1;
+  background-image:linear-gradient(rgba(201,184,224,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(201,184,224,.35) 1px,transparent 1px),
+    linear-gradient(rgba(201,184,224,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(201,184,224,.16) 1px,transparent 1px);
+  background-size:50px 50px,50px 50px,10px 10px,10px 10px;border:1px solid var(--ps-hair)}
+.ps-grid .small{display:none} /* the drawing's own "완성 모양" caption: the box has a title */
+.ps-grid svg{display:block;width:100%;height:auto;max-height:190px}
+.ps-dl{display:flex;flex-direction:column;gap:10px;margin:0}
+.ps-dl>div{display:grid;grid-template-columns:38px minmax(0,1fr);gap:8px;align-items:baseline}
+.ps-dl dt{font-size:12px;font-weight:600}
+.ps-dl dd{margin:0;font-size:13.5px;line-height:1.45;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ps-dl small,.ps-color small{font-size:11.5px;color:var(--ps-soft)}
+.ps-dl b{font-size:15px;font-weight:600}
+.ps-color{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.ps-color i{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(60,40,30,.18)}
+.ps-color .lot-copy{margin-left:4px;font-size:11px}
+.ps-gauge{margin:0;display:flex;align-items:baseline;gap:4px}
+.ps-gauge b{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:44px;font-weight:600;line-height:1}
+.ps-gauge span{font-size:13px;color:var(--ps-soft)}
+.ps-small{margin:6px 0 0;font-size:12px;line-height:1.5;color:var(--ps-soft)}
+
+/* the rows */
+.ps-part+.ps-part{margin-top:30px}
+.ps-part-title{display:flex;align-items:baseline;gap:12px;margin:0 0 6px;padding-bottom:8px;border-bottom:1.5px solid var(--ps-ink);font-size:18px;font-weight:600}
+.ps-part-no{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:22px;font-weight:600;color:#9B86C4;letter-spacing:.02em}
+.ps-part-cnt{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--ps-soft)}
+.ps-table{width:100%;border-collapse:collapse;font-size:14px}
+.ps-table tr{border-bottom:1px solid var(--ps-hair)}
+.ps-table th{width:84px;padding:11px 10px 11px 0;text-align:left;vertical-align:baseline;font-weight:500;font-size:12.5px;color:var(--ps-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ps-table td{padding:11px 0;vertical-align:baseline;line-height:1.5}
+.ps-table td small{display:block;font-size:12px;color:var(--ps-soft);font-variant-numeric:tabular-nums}
+.ps-n{width:72px;text-align:right;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ps-n span{margin-left:2px;font-family:"Noto Serif KR",serif;font-size:11px;font-weight:400;color:var(--ps-soft)}
+/* a note in the margin: lavender wash, a reference mark */
+.ps-note{border-bottom:0!important}
+.ps-note td{padding:8px 12px;font-size:12.5px;color:var(--ps-ink);background:rgba(201,184,224,.18);border-left:2px solid var(--ps-lav)}
+.ps-note td span{margin-right:8px;color:#8C74BC}
+.ps-foot{display:flex;justify-content:space-between;margin-top:36px;padding-top:12px;border-top:1px solid var(--ps-hair);font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ps-soft)}
+
+@media (max-width:760px){
+  .ps-actions{margin:20px 16px 12px}
+  .ps-sheet{margin:0 8px;padding:36px 22px 28px}
+  .ps-sheet::before{inset:10px}
+  .ps-boxes{grid-template-columns:minmax(0,1fr)}
+  .ps-box+.ps-box{border-left:0;border-top:1px solid var(--ps-rule)}
+  .ps-table th{width:58px}
+  .ps-n{width:56px}
+}
+
+/* print: the sheet alone, on white, full width */
+@media print{
+  @page{margin:14mm}
+  body{background:#fff!important}
+  .nav,footer,.ps-actions,.lot-copy{display:none!important}
+  .ps-main{padding:0}
+  .ps-sheet{max-width:none;margin:0;padding:0;box-shadow:none;background:#fff}
+  .ps-sheet::before{display:none}
+  .ps-part{break-inside:auto}
+  .ps-table tr{break-inside:avoid}
+  .ps-part-title{break-after:avoid}
+}
