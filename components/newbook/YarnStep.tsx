@@ -266,7 +266,8 @@ function ColorList({ draft, patch, open, toggle }: { draft: Draft; patch: Patch;
 export function SuppliesPage({ draft, item, pp, stitchMm, measureNote }: { draft: Draft; item: Item; pp: Plan; stitchMm: number; measureNote: string }) {
   const colors = colorsOf(draft).filter(c => c.hex || c.name);
   const mm = draft.hook ? hookMmOf(draft) : NaN;
-  const use = yarnUse(pp, { weight: draft.weight, skeinG: draft.skeinG, skeinM: draft.skeinM, skeins: draft.skeins, colors: Math.max(1, colors.length) });
+  const use = yarnUse(pp, { weight: draft.weight, yarnMm: draft.yarnMm, yarnMode: draft.yarnMode, skeinG: draft.skeinG, skeinM: draft.skeinM, skeins: draft.skeins, colors: Math.max(1, colors.length) });
+  const basisText = use.basis === "label" ? "실 라벨" : use.basis === "mm" ? `실 굵기 ${draft.yarnMm}mm` : "실 굵기";
   const yarnLine = [draft.yarn, draft.materials?.join(" · ")].filter(Boolean).join(" · ");
   const label = draft.skeinG && draft.skeinM ? `한 타래 ${draft.skeinG}g · ${draft.skeinM}m 기준` : draft.skeinG ? `한 타래 ${draft.skeinG}g 기준` : draft.skeinM ? `한 타래 ${draft.skeinM}m 기준` : "";
   return (
@@ -287,7 +288,8 @@ export function SuppliesPage({ draft, item, pp, stitchMm, measureNote }: { draft
         {use.perColor && <p className="nb-sup-use-sub">색마다 약 {use.perColor}m</p>}
         {use.skeins != null && <p className="nb-sup-use-sub">{label}으로 <b>{use.skeins}타래</b>{draft.skeins ? ` · 가지고 있는 ${draft.skeins}타래` : ""}</p>}
         {use.short && <p className="nb-warn" role="status">가지고 있는 실이 조금 모자랄 수 있어요. 같은 LOT로 한 타래 더 준비해 두세요.</p>}
-        <p className="nb-help">도안의 코 수로 어림한 양이에요 (여유 10% 포함). 실 라벨의 무게와 길이를 적으면 타래 수도 알려 드려요.</p>
+        {use.labelOdd && <p className="nb-warn" role="status">적어 주신 라벨 정보({draft.skeinG}g · {draft.skeinM}m)는 실 한 타래로 보기 어려워서 빼고 계산했어요. 무게와 길이 칸이 바뀌지 않았는지 확인해 주세요.</p>}
+        <p className="nb-help">도안의 코 수로 어림한 양이에요 (여유 10% 포함). 무게는 {basisText} 기준 100g에 약 {use.per100}m로 계산했어요.{use.basis !== "label" ? " 실 라벨의 무게와 길이를 적으면 더 정확해지고 타래 수도 알려 드려요." : ""}</p>
       </div>
 
       <p className="nb-sup-stitch">한 코 크기 약 <b>{fmt(stitchMm)}mm</b></p>
