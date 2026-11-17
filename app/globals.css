@@ -206,7 +206,12 @@ html{overflow-x:clip}
 .hero-desk.is-overlay .book3d,.hero-desk.is-overlay .book-css-slot{animation:book-up .9s var(--float-ease)}
 @keyframes stage-in{from{background-color:rgba(58,46,41,0)}}
 @keyframes book-up{from{transform:translateY(100svh)}}
-@media (prefers-reduced-motion:reduce){.hero-desk.is-overlay,.hero-desk.is-overlay .book3d,.hero-desk.is-overlay .book-css-slot{animation:none}}
+/* closing a floating book: it sinks back down and the dim lifts, then the page it came from is shown */
+.hero-desk.is-sinking{animation:stage-out .7s ease-in forwards}
+.hero-desk.is-sinking .book3d,.hero-desk.is-sinking .book-css-slot{animation:book-down .7s cubic-bezier(.55,0,.75,.4) forwards}
+@keyframes book-down{to{transform:translateY(100svh)}}
+@keyframes stage-out{to{background-color:rgba(58,46,41,0)}}
+@media (prefers-reduced-motion:reduce){.hero-desk.is-overlay,.hero-desk.is-overlay .book3d,.hero-desk.is-overlay .book-css-slot,.hero-desk.is-sinking,.hero-desk.is-sinking .book3d,.hero-desk.is-sinking .book-css-slot{animation:none}}
 body:has(.hero-desk.is-overlay){overflow:hidden}
 /* the nav's two buttons as small woven labels in the menu book's colours (Book.css .pg-link): 새 도안 =
    도안 만들기's pastel yellow, 나의 도안집 = its pink; the same weave and stitch colours */

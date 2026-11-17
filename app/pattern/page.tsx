@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect } from "react";
 import { useApp } from "@/components/AppProvider";
+import { useBook } from "@/components/Book/BookProvider";
 import { CopyLot } from "@/components/YarnInfo";
 import { drawing } from "@/lib/drawing";
 import { ITEM, itemIdOf } from "@/lib/items";
@@ -18,6 +19,7 @@ import "./pattern.css";
 
 export default function PatternPage() {
   const { ready, active: p } = useApp();
+  const book = useBook();
   const router = useRouter();
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
   if (!ready || !p) return <main id="view-pattern" />;
@@ -52,7 +54,7 @@ export default function PatternPage() {
       <div className="ps-actions">
         <div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div>
         <div className="ps-btns">
-          <Link className="ps-label" href={`/new?edit=${p.id}`}><span>고치기</span></Link>
+          <button type="button" className="ps-label" onClick={() => book.editHere(p.id)}><span>고치기</span></button>
           <button type="button" className="ps-label" onClick={() => window.print()}><span>인쇄</span></button>
           <Link className="ps-label ps-label-go" id="startBtn" href="/track"><span>{p.current > 0 ? (p.current >= pp.rows.length ? "뜨기 기록 보기" : `이어서 뜨기 · ${pp.rows[p.current].label}`) : "뜨기 시작"}</span></Link>
         </div>

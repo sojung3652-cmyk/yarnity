@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp, type Removed } from "@/components/AppProvider";
+import { useBook } from "@/components/Book/BookProvider";
 import { CopyLot } from "@/components/YarnInfo";
 import { PhotoLog } from "@/components/PhotoLog";
 import { dropOrphans, photoSummary } from "@/lib/photos";
@@ -87,7 +88,7 @@ function Card({ p, picking, picked, onPick, menuOpen, setMenu, confirm, setConfi
 
 function List() {
   const { ready, projects, setActive, updateProject, addProject, removeProjects, restoreProjects } = useApp();
-  const router = useRouter();
+  const router = useRouter(), book = useBook();
   const [q, setQ] = useState(""), [filter, setFilter] = useState<Filter>("all"), [sort, setSort] = useState<Sort>("recent");
   const [menu, setMenu] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
   const [picking, setPicking] = useState(false), [picked, setPicked] = useState<string[]>([]), [askMany, setAskMany] = useState(false);
@@ -124,7 +125,7 @@ function List() {
     if (a === "open" || a === "resume") { setActive(p.id); if (statusOf(p) === "paused") updateProject(p.id, { status: "knitting", pausedAt: null }); if (a === "resume") router.push("/track"); }
     else if (a === "view") setActive(p.id);
     else if (a === "photos") setPhotoFor(p.id);
-    else if (a === "edit") router.push(`/new?edit=${p.id}`);
+    else if (a === "edit") book.editHere(p.id); // the book rises over this list; closing it comes back here
     else if (a === "pause") updateProject(p.id, { status: "paused", pausedAt: Date.now() });
     else if (a === "unpause") updateProject(p.id, { status: "knitting", pausedAt: null });
     else if (a === "done") updateProject(p.id, { status: "done", pausedAt: null });

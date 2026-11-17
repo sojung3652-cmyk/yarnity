@@ -26,7 +26,7 @@ export function Hero() {
     }
   }, [b.view, b.overlay]);
   return (
-    <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.overlay ? " is-overlay" : "") + (arriving ? " is-arriving" : "")}
+    <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>
       {/* two stage layers with the same geometry: the photo below the 3D canvas, the copy above it */}
       <div className="hero-stage hero-stage-bg">

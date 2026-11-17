@@ -40,6 +40,13 @@ interface BookCtx {
   openHere: () => void;
   /** the book is open over another page */
   overlay: boolean;
+  /** the book floats over the page it was opened from (새 도안, 도안 고치기): no home backdrop, it rises
+   *  from the bottom and sinks back when closed, and closing returns to that page */
+  floating: boolean;
+  /** the book is sinking back down (closing a floating book) */
+  sinking: boolean;
+  /** open a saved work in 도안 만들기 over the page you are on (closing it brings you back here) */
+  editHere: (id: string) => void;
 }
 
 const Ctx = createContext<BookCtx | null>(null);
@@ -81,7 +88,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (closing) setClosing(false);
     setInstant(!bookPage(seenPath) && !overlay);
     if (overlay) setOverlay(false); // going anywhere (the wizard, 내 작품) ends the overlay
-    if (origin && path !== "/new" && path !== origin) setOrigin(null);
+    if (origin && path !== "/new") setOrigin(null); // back on a page (the origin or any other): forgotten
   }
   // a step change on the same page (next / previous / Back / Forward) always turns the page, also after
   // the wizard was opened by a typed address or a refresh (which only skips the motion of that first view)
@@ -113,13 +120,25 @@ export function BookProvider({ children }: { children: ReactNode }) {
 
   const open = useCallback(() => { setInstant(false); setHomeOpen(true); }, []);
   // close: the same everywhere in the book. In the wizard it goes home with the book closed
-  const doClose = useCallback(() => {
+  const floating = overlay || (path === "/new" && !!origin);
+  const [sinking, setSinking] = useState(false);
+  const finishClose = useCallback(() => {
     setInstant(false); setHomeOpen(false);
     if (overlay) { setOverlay(false); return; } // opened over a page: just put the book away
-    // the wizard entered from the book opened over a page goes back to that page
+    // the wizard entered from a page (새 도안 -> 도안 만들기, 도안 고치기) goes back to that page
     if (path === "/new" && origin) { const o = origin; setOrigin(null); router.push(o, { scroll: false }); return; }
     if (path === "/new") { setClosing(true); router.push("/", { scroll: false }); }
   }, [path, router, overlay, origin]);
+  // a floating book sinks back down first (0.7s, Hero .is-sinking), then it goes; otherwise it closes now
+  const doClose = useCallback(() => {
+    if (sinking) return;
+    if (!floating) { finishClose(); return; }
+    setSinking(true);
+    setTimeout(() => { finishClose(); setSinking(false); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700);
+  }, [floating, sinking, finishClose]);
+  const editHere = useCallback((id: string) => {
+    setInstant(false); setOrigin(path + location.search); router.push(`/new?edit=${encodeURIComponent(id)}`, { scroll: false });
+  }, [path, router]);
   const openHere = useCallback(() => {
     if (path === "/" || path === "/new") { setInstant(false); setHomeOpen(true); if (path === "/new") router.push("/", { scroll: false }); return; }
     setInstant(false); setOrigin(path + location.search); setOverlay(true);
@@ -156,8 +175,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [view, close, leaving]);
 
-  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay }),
-    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay]);
+  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere }),
+    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere]);
   return (
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>
