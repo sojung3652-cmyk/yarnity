@@ -294,9 +294,10 @@
 .nb-ribbon .rib-gold{position:absolute;inset:0;width:100%;height:100%}
 /* ---- the same pages inside the one 3D book (components/Book/WizardSpread.tsx) ----
    Each page box is one page of this book: the WebGL paper is the page, so the CSS book's cover, grid and
-   paper backgrounds go; type, spacing and controls stay exactly as above. --w is the original book's
-   width at the reference size (two 642px pages + its padding), used by the title page's height. */
-.nb-book.nb-in3d{--w:1320px;zoom:var(--z,1);width:642px;height:calc(var(--hz,800) * 1px);display:flex;min-height:0;padding:0;border-radius:0;background:none;box-shadow:none;text-align:left;box-sizing:border-box}
+   paper backgrounds go; type, spacing and controls stay exactly as above. Laid out 690px wide (REF_W in
+   WizardSpread.tsx) and zoomed to the page; --w is the matching book width (two pages + padding), used
+   by the title page's height. */
+.nb-book.nb-in3d{--w:1416px;zoom:var(--z,1);width:690px;height:calc(var(--hz,800) * 1px);display:flex;min-height:0;padding:0;border-radius:0;background:none;box-shadow:none;text-align:left;box-sizing:border-box}
 /* the flat page boxes (Book3D FlatPages): screen rectangles over the pages; shown once the camera is
    straight above the book, with a short fade to hide the seam */
 .book-flat{position:absolute;inset:0;pointer-events:none}

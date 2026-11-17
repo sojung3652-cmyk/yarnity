@@ -345,10 +345,10 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
     const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / Math.min(0.68, 1320 / size.width), D / 2 / 0.88, aspect); // open spread: 68% of the width (max 1320px), at most 88% of the height
-    // wizard pose: straight down, so the pages read flat and square; the spread 80% of the screen wide
-    // (max 1400px), and whole in the height under the nav (24px room above and below)
-    const room = Math.max(200, size.height - navH - 48);
-    const wDist = fit((rightEdge - leftEdge) / 2 / Math.min(0.8, 1400 / size.width), D / 2 / (room / size.height), aspect);
+    // wizard pose: straight down, so the pages read flat and square; the spread 84% of the screen wide
+    // (max 1480px), and whole in the height under the nav (8px room above and below)
+    const room = Math.max(200, size.height - navH - 16);
+    const wDist = fit((rightEdge - leftEdge) / 2 / Math.min(0.84, 1480 / size.width), D / 2 / (room / size.height), aspect);
     v.wTgt.set((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0);
     v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).lerp(STRAIGHT_DOWN, we).normalize();
     v.tgt.copy(cTgt).lerp(oTgt, e).lerp(v.wTgt, we);

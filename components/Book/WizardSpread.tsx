@@ -10,8 +10,9 @@
 import { createPortal } from "react-dom";
 import { useNewBook } from "@/components/newbook/NewBook";
 
-/** one page of the original /new book on a 1440px-wide screen: (1320 - 2 * 18) / 2 */
-export const REF_W = 642;
+/** the width each page is laid out at before zooming to the page. The original /new page on a 1440px
+ *  screen was 642px ((1320 - 2 * 18) / 2); 690 sets the type a little smaller on the page (Kim's call). */
+export const REF_W = 690;
 
 export function WizardSpread({ left, right }: { left: HTMLElement; right: HTMLElement }) {
   const v = useNewBook();
