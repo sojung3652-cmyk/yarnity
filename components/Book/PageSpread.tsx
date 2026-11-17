@@ -13,7 +13,7 @@ import { store } from "@/lib/store";
 import { DEFAULT_DRAFT } from "@/lib/types";
 import { useBook, type WizStep } from "./BookProvider";
 
-const STEP_NAME: Record<WizStep, string> = { 1: "이름", 2: "품목", 3: "실과 바늘", 4: "모양과 크기" };
+const STEP_NAME: Record<WizStep, string> = { 1: "이름", 2: "품목", 3: "실과 크기", 4: "확인" };
 
 const ICON = { fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 

@@ -3,7 +3,7 @@
 //   left page  - the supplies in two groups. 실: thickness (required), the colours (one row per yarn:
 //                colour, colour number, LOT; "+ 색 추가" for more yarns), then name / material / what the
 //                yarn's label says, folded. 바늘: the hook size (required)
-//   right page - the supplies card: what was picked, and how much yarn the pattern will take
+// SuppliesPage is page 7 (step 4, after the size is set): what was picked, and how much yarn it will take
 // Only the required fields are open; everything else is a folded row showing its current value, one row
 // open at a time. Every choice keeps its own "직접 입력". Errors appear only when trying to move on with a
 // required field empty.
@@ -272,7 +272,6 @@ export function SuppliesPage({ draft, item, pp, stitchMm, measureNote }: { draft
   const label = draft.skeinG && draft.skeinM ? `한 타래 ${draft.skeinG}g · ${draft.skeinM}m 기준` : draft.skeinG ? `한 타래 ${draft.skeinG}g 기준` : draft.skeinM ? `한 타래 ${draft.skeinM}m 기준` : "";
   return (
     <div className="nb-supplies" aria-live="polite">
-      <h2 className="nb-sup-title">준비물</h2>
       <p className="nb-sup-for">{[draft.name.trim() || "이름 없는 작품", item.name].join(" · ")}</p>
       <dl className="nb-sup-list">
         <div><dt>실</dt><dd>{yarnLine || <span className="nb-none">이름 없음</span>}{yarnWeightText(draft) !== "—" && <small>{yarnWeightText(draft)}</small>}</dd></div>

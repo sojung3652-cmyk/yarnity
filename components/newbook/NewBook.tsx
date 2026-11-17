@@ -1,6 +1,6 @@
 "use client";
-// "도안 만들기" as an open book in four steps (left page = question and inputs, right page = what you've
-// picked so far / the live preview): ① name ② item ③ yarn, hook and colour ④ shape and size.
+// "도안 만들기" as an open book in four steps: ① name ② item ③ every input: yarn, hook and colours (left),
+// shape and size (right) ④ the check: the supplies with the yarn amount (left), the preview (right).
 // Items come from lib/items.ts and map onto the stitch engine (lib/pattern: plan, gauge) unchanged.
 // The draft is saved to iyarn.draft and the step to iyarn.newstep, so a refresh resumes where you were.
 // The step itself is in the address (/new?step=n, see components/Book/BookProvider.tsx), so Back/Forward
@@ -178,7 +178,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   const g = useMemo(() => gauge(input), [input]);
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
-  const stepOk = step === 3 ? yarnStepOk(draft) : step < 4 || (Object.keys(errors).length === 0 && !bagBad);
+  // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
+  const stepOk = step < 3 || (yarnStepOk(draft) && Object.keys(errors).length === 0 && !bagBad);
   const blockNext = step === 4 && !stepOk; // step 3 is never disabled: pressing it shows what is missing
 
   // Changing step: a turn still running is finished first (never two at once); on the desktop CSS book the
@@ -235,12 +236,12 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   };
   if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, left: null, right: null };
 
-  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇인가요?", 2: "무엇을 뜰까요?", 3: "어떤 실과 바늘을 쓰나요?", 4: "어떤 모양, 어떤 크기로 뜰까요?" };
-  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 모양과 크기 →", 4: "완성 · 최종 도안 보기 →" };
+  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇인가요?", 2: "무엇을 뜰까요?", 3: "어떤 실로, 어떤 크기로 뜰까요?", 4: "준비물을 확인해요" };
+  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
 
   const progress = (
     <ol className="nb-progress" aria-label="진행 단계">
-      {(["이름", "품목", "실과 바늘", "모양과 크기"] as const).map((t, i) => {
+      {(["이름", "품목", "실과 크기", "확인"] as const).map((t, i) => {
         const s = (i + 1) as Step, done = s < step;
         return (
           <li key={t} className={s === step ? "on" : done ? "done" : ""}>
@@ -283,16 +284,15 @@ export function useNewBook(inBook?: WizStep): NewBookView {
         {item.note && <p className="nb-help">{item.note}</p>}
       </div>
     );
-  } else if (step === 3) {
-    left = <YarnPage draft={draft} patch={patch} tried={tried} />;
-    right = <SuppliesPage draft={draft} item={item} pp={pp} stitchMm={g.h * 10}
-      measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춰요." : "3단을 뜬 뒤 재서 정확하게 맞춰요."} />;
   } else {
+    // ③ all the inputs: the yarn and hook (page 5), the shape and size (page 6)
+    // ④ the check before the pattern: the supplies with the yarn amount, now that the size is known
+    //    (page 7), and the preview (page 8)
     const shapes = item.shapes ?? [];
     const sizeText = input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm` : input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`;
     const handlePick = draft.handle === "none" ? "none" : ownHandle || draft.handleCm === 0 || !HANDLE_PRESETS.some(([, v]) => v === handleCmOf(draft)) ? "own" : String(handleCmOf(draft));
     const handleRow = pp.rows.find(r => r.part === "handle"), flapRows = pp.rows.filter(r => r.part === "flap").length, start = pp.rows.find(r => r.part === "start");
-    left = (
+    const sizePage = (
       <>
         <p className="nb-itemline"><ItemArt id={item.id} />{item.name}{item.beta && <em className="nb-beta">베타</em>}</p>
         {shapes.length > 1 && (
@@ -339,7 +339,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
         {item.note && <p className="nb-help">{item.note}</p>}
       </>
     );
-    right = (
+    const previewPage = (
       <div className="nb-preview">
         <h3>미리 보기</h3>
         {/* drawing() only interpolates numbers and fixed labels */}
@@ -356,6 +356,14 @@ export function useNewBook(inBook?: WizStep): NewBookView {
           : "코 수는 공식으로 계산해요. 3단을 뜬 뒤 지름을 재면 내 손에 맞게 다시 계산해 드려요."}</p>
       </div>
     );
+    if (step === 3) {
+      left = <YarnPage draft={draft} patch={patch} tried={tried} />;
+      right = <section className="nb-sec" aria-labelledby="secSize"><h2 className="nb-sec-title" id="secSize">모양과 크기</h2>{sizePage}</section>;
+    } else {
+      left = <SuppliesPage draft={draft} item={item} pp={pp} stitchMm={g.h * 10}
+        measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춰요." : "3단을 뜬 뒤 재서 정확하게 맞춰요."} />;
+      right = previewPage;
+    }
   }
 
   return {
@@ -377,7 +385,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
       </section>
     ),
     right: (
-      <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "준비물" : "지금까지"}>
+      <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "모양과 크기" : "지금까지"}>
         <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
         <div className="nb-foot">
           <span className="nb-folio">{step * 2}</span>
