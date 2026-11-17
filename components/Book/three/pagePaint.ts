@@ -32,11 +32,11 @@ function clonePage(src: HTMLElement) {
 
 const alphaOf = (col: string) => { const m = col.match(/rgba?\(([^)]+)\)/); if (!m) return 1; const p = m[1].split(/[ ,/]+/).filter(Boolean); return p.length > 3 ? parseFloat(p[3]) : 1; };
 
-export async function paintPage(src: HTMLElement, box: PaintBox, side: "left" | "right", res: number): Promise<HTMLCanvasElement> {
+export async function paintPage(src: HTMLElement, box: PaintBox, side: "left" | "right", res: number, paper = true): Promise<HTMLCanvasElement> {
   const W = Math.round(res), H = Math.round(res * box.h / box.w), S = W / box.w;
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const ctx = cv.getContext("2d")!;
-  (side === "right" ? drawRightPage : drawLeftPage)(cv); // the same paper as the page it stands for
+  if (paper) (side === "right" ? drawRightPage : drawLeftPage)(cv); // the same paper as the page it stands for
 
   const wrap = document.createElement("div");
   Object.assign(wrap.style, { position: "fixed", left: "-30000px", top: "0", width: box.w + "px", height: box.h + "px", pointerEvents: "none" });

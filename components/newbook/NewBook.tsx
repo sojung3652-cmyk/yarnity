@@ -322,7 +322,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
           {left}
         </div>
         <div className="nb-foot">
-          {step > 1 ? <ClothLabel side="back" type="button" onClick={() => go((step - 1) as Step)}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" href="/mine">← 내 작품</ClothLabel> : <span />}
+          {step > 1 ? <ClothLabel side="back" type="button" onClick={() => go((step - 1) as Step)}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" href="/mine">← 내 작품</ClothLabel>
+            : <ClothLabel side="back" type="button" onClick={book.toHome}>← 메뉴</ClothLabel>}
           <span className="nb-folio">{step * 2 - 1}</span>
         </div>
       </section>

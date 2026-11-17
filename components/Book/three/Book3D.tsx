@@ -12,7 +12,6 @@ import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRe
 import { useReducedMotion } from "../useBookState";
 import { useBook, type BookView, type WizStep } from "../BookProvider";
 import { paintPage } from "./pagePaint";
-import { drawLeftPage, drawRightPage } from "./paperTextures";
 import { REF_W, WizardSpread } from "../WizardSpread";
 import {
   BLOCK, blockTop, BOARD, CORNER_R, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, Q0, sheetCurve, SHEET_W, SHEETS, spineCloth, T, W,
@@ -421,9 +420,12 @@ function leafRes(layer: CssLayer, wiz: boolean) {
 // for a moment when the DOM faded back in). Curves: the right page (the sheet under the turning ones) and
 // the left page (the last turned sheet), as the spread's meshes use them.
 const RIGHT_CURVE = sheetCurve(SHEETS, 0).pts, LEFT_CURVE = sheetCurve(SHEETS - 1, 1).pts;
-function warpToPaper(src: HTMLCanvasElement, side: "left" | "right") {
-  const W = src.width, H = src.height, out = document.createElement("canvas"); out.width = W; out.height = H;
-  const ctx = out.getContext("2d")!, pts = side === "right" ? RIGHT_CURVE : LEFT_CURVE, n = pts.length - 1;
+// Only the page's content (a transparent picture) is warped and darkened; it is then laid on the very
+// paper canvas the page shows the rest of the time. Warping / re-drawing the paper too gave its grain a
+// different, stretched pattern, and the paper visibly broke up into pixels the moment the picture went on.
+function warpToPaper(src: HTMLCanvasElement, side: "left" | "right", paper: CanvasImageSource) {
+  const W = src.width, H = src.height, ink = document.createElement("canvas"); ink.width = W; ink.height = H;
+  const ctx = ink.getContext("2d")!, pts = side === "right" ? RIGHT_CURVE : LEFT_CURVE, n = pts.length - 1;
   // where along the box (0..1, as the box is drawn on screen) the paper point x lies
   const at = (x: number) => Math.min(1, Math.max(0, side === "right" ? (x - GUTTER_X) / SHEET_W : (x - (GUTTER_X - SHEET_W)) / SHEET_W));
   for (let i = 0; i < n; i++) {
@@ -431,9 +433,13 @@ function warpToPaper(src: HTMLCanvasElement, side: "left" | "right") {
     // right: texture u reads canvas u. left: un-mirrored on the back face, texture u reads canvas 1 - u
     const d0 = side === "right" ? u0 * W : (1 - u1) * W, d1 = side === "right" ? u1 * W : (1 - u0) * W;
     const sa = Math.min(s0, s1), sw = Math.max(0.5, Math.abs(s1 - s0));
-    ctx.drawImage(src, sa, 0, sw, H, d0, 0, d1 - d0 + 0.5, H); // +0.5: no hairline seams between columns
+    // whole-pixel column edges: no seams and no overlap (an overlap doubled the alpha of the text there)
+    const a = Math.round(d0), b = Math.round(d1);
+    if (b > a) ctx.drawImage(src, sa, 0, sw, H, a, 0, b - a, H);
   }
   inkForLight(ctx, W, H);
+  const out = document.createElement("canvas"); out.width = W; out.height = H;
+  const o = out.getContext("2d")!; o.drawImage(paper, 0, 0, W, H); o.drawImage(ink, 0, 0);
   return out;
 }
 
@@ -444,6 +450,7 @@ const PAPER = [251, 243, 234]; // #FBF3EA, paperTextures.ts
 function inkForLight(ctx: CanvasRenderingContext2D, W: number, H: number) {
   const img = ctx.getImageData(0, 0, W, H), d = img.data;
   for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue; // transparent: the paper shows through
     for (let c = 0; c < 3; c++) {
       const r = d[i + c] / PAPER[c];
       if (r < 0.9) d[i + c] = PAPER[c] * Math.pow(r, 1.5);
@@ -453,16 +460,17 @@ function inkForLight(ctx: CanvasRenderingContext2D, W: number, H: number) {
 }
 
 /** Pictures of the two pages of a spread as it is now (pagePaint.ts), at the page's own layout size. */
-async function paintSpread(layer: CssLayer, s: Spread) {
+async function paintSpread(layer: CssLayer, s: Spread, paper: { l: CanvasImageSource; r: CanvasImageSource }) {
   const wiz = s.view === "wizard", res = leafRes(layer, wiz);
   const [L, R] = wiz ? [layer.flatLeft, layer.flatRight] : [layer.left, layer.right];
   const box = wiz ? (() => { const h = REF_W * PAGE_H_PX / PAGE_PX; return { w: REF_W, h, vars: { "--z": "1", "--hz": h.toFixed(2) } }; })()
     : { w: PAGE_PX, h: PAGE_H_PX, vars: { "--k": layer.left.style.getPropertyValue("--k") || "1" } };
   const one = async (host: HTMLElement, side: "left" | "right") => {
     const src = host.firstElementChild as HTMLElement | null;
-    if (src) return warpToPaper(await paintPage(src, box, side, res), side);
+    const pp = side === "left" ? paper.l : paper.r;
+    if (src) return warpToPaper(await paintPage(src, box, side, res, false), side, pp);
     const cv = document.createElement("canvas"); cv.width = res; cv.height = Math.round(res * box.h / box.w);
-    (side === "left" ? drawLeftPage : drawRightPage)(cv); return cv;
+    cv.getContext("2d")!.drawImage(pp, 0, 0, cv.width, cv.height); return cv;
   };
   const [l, r] = await Promise.all([one(L, "left"), one(R, "right")]);
   return { l, r };
@@ -507,6 +515,8 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
       return t;
     };
     const keep = { r: m.rightPage.map, l: m.leftPage.map };
+    // the plain paper canvases (materials.ts): the pictures are laid on exactly these
+    const paperOf = { l: keep.l!.image as CanvasImageSource, r: keep.r!.image as CanvasImageSource };
     let made: THREE.Texture[] = [], landed: { l: THREE.Texture; r: THREE.Texture } | null = null;
     const end = () => {
       // landed: the paper shows the pictures of the new pages and the page DOM fades in over them (the same
@@ -532,7 +542,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
     };
     (async () => {
       try {
-        const old = await paintSpread(layer, shown);
+        const old = await paintSpread(layer, shown, paperOf);
         const oL = texOf(old.l, true), oR = texOf(old.r, false); made = [oL, oR];
         // the paper takes the pictures of the pages first, then the DOM goes: no blank page in between
         m.leftPage.map = oL; m.rightPage.map = oR; invalidate();
@@ -540,7 +550,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
         layer.turning = true; invalidate();
         setShown(want);
         await frames(3); // the new spread rendered (and its layout effects settled), still hidden
-        const neu = await paintSpread(layer, want);
+        const neu = await paintSpread(layer, want, paperOf);
         const nL = texOf(neu.l, true), nR = texOf(neu.r, false);
         made.push(nL, nR); landed = { l: nL, r: nR };
         // under the leaf: forward, the old left page (until covered) and the new right page (revealed)
