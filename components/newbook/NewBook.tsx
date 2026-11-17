@@ -22,7 +22,7 @@ import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
 import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
-import { RibbonGold } from "@/components/RibbonGold";
+import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
@@ -402,7 +402,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     // edge, "책 덮기" beside it on hover
     ribbon: (
       <button type="button" className="nb-ribbon" aria-label="책 덮기" onClick={book.close}>
-        <span className="nb-ribbon-tab"><RibbonGold full w={78} h={107} ball={34} ballY={42} lineInset={9} lineEnd={84} /></span>
+        <span className="nb-ribbon-tab"><GoldX /></span>
         <span className="nb-ribbon-tip" aria-hidden="true">책 덮기</span>
       </button>
     ),

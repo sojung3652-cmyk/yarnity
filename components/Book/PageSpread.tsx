@@ -6,7 +6,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FoilLogo } from "../FoilLogo";
-import { RibbonGold } from "../RibbonGold";
+import { GoldX } from "../GoldX";
 import { useApp } from "@/components/AppProvider";
 import { freshDraft } from "@/lib/items";
 import { store } from "@/lib/store";
@@ -69,7 +69,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
   return (
     <div className="pg-page pg-rp">
       <button type="button" className="pg-ribbon" aria-label="책 덮기" onClick={e => { e.stopPropagation(); onClose(); }}>
-        <span className="pg-ribbon-tab"><RibbonGold full w={78} h={107} ball={34} ballY={42} lineInset={9} lineEnd={84} /></span>
+        <span className="pg-ribbon-tab"><GoldX /></span>
         <span className="pg-ribbon-tip" aria-hidden="true">책 덮기</span>
       </button>
       <div className="pg-phone-brand"><Brand phone /></div>

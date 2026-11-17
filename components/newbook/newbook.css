@@ -536,3 +536,12 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .ask-line:focus-visible{outline:2px solid #3A2E29;outline-offset:3px;border-radius:2px}
 .nb-sec-title+.ask-line{margin:-8px 0 16px}
 @media (prefers-reduced-motion:reduce){.ask-arrow{transition:none}}
+/* the close button is a small gold X now (GoldX.tsx; Kim: the ribbon was too big) - same place, same tip */
+.nb-ribbon{top:16px;right:calc(5% - 6px);width:30px;min-width:0;height:30px;padding:5px;border-radius:50%;box-sizing:border-box}
+.nb-ribbon-tab{display:block;width:100%;height:100%;aspect-ratio:auto;filter:drop-shadow(0 1px 1px rgba(70,50,30,.25))}
+.nb-ribbon-tab .gold-x{display:block;width:100%;height:100%}
+.nb-ribbon-tip{top:50%;transform:translate(4px,-50%)}
+button.nb-ribbon:hover .nb-ribbon-tip,button.nb-ribbon:focus-visible .nb-ribbon-tip{transform:translate(0,-50%)}
+button.nb-ribbon:hover,button.nb-ribbon:focus-visible{transform:scale(1.1)}
+@media (max-width:899px){.nb-ribbon{width:30px;right:calc(5% - 6px)}}
+
