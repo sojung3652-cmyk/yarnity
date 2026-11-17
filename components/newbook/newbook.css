@@ -290,6 +290,20 @@
 .cloth-label.is-blocked:hover .cloth-face{transform:rotate(var(--tilt))}
 @media (prefers-reduced-motion:reduce){.cloth-face{transition:none}}
 @media (max-width:899px){.cloth-next{position:fixed;right:16px;bottom:max(14px,env(safe-area-inset-bottom));z-index:20}}
+/* ---- readability (Kim's pick: darker small type, a size up; paper and backdrop unchanged) ----
+   The small grey type was ~2.9:1 (help) and ~3.6:1 (labels) on the paper; now >= 4.5:1. Last in the file
+   on purpose: it overrides the scale above, for the 3D book and the one-page book alike. */
+.nb-book{--nb-label:13px;--nb-body:16px;--nb-help:13.5px;--nb-c-label:#6B5C55;--nb-c-help:#7A6A63}
+.nb-fold-value.nb-none{color:#9C8D85}
+.nb-fold-label,.nb-fold-value{font-size:14px}
+.nb-progress button{font-size:13px;color:#7A6A63}
+.nb-folio{font-size:13px;color:#8A7A72}
+.nb-help,.nb-group h2,.nb-facts dt,.nb-summary dt,.nb-big span,.nb-counts span,.nb-show p,.tp-sub{color:#7A6A63}
+.nb-facts dt,.nb-counts span{font-size:13px}
+.tp-cap,.tp-month{font-size:11px;color:#7A6A63}
+.nb-input-sm{font-size:15px}
+.nb-chip{font-size:14px}
+
 /* the ribbon is the "close the book" button */
 button.nb-ribbon{border:0;padding:0;cursor:pointer;transition:transform .18s ease}
 button.nb-ribbon:hover{transform:translateY(2px)}
