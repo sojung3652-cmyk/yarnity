@@ -51,7 +51,7 @@ function AddChip({ label, onAdd }: { label: string; onAdd: (v: string) => void }
   return (
     <span className="nb-addbox">
       <input className="nb-input nb-input-sm" autoFocus aria-label={label} maxLength={MAX_TEXT} value={v} onChange={e => setV(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); add(); } if (e.key === "Escape") setOpen(false); }} />
+        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); add(); } if (e.key === "Escape") { e.preventDefault(); setOpen(false); } }} /* preventDefault: Esc closes this box, not the book */ />
       <button type="button" className="nb-chip" onClick={add}>추가</button>
     </span>
   );

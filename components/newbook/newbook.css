@@ -290,6 +290,10 @@
 .cloth-label.is-blocked:hover .cloth-face{transform:rotate(var(--tilt))}
 @media (prefers-reduced-motion:reduce){.cloth-face{transition:none}}
 @media (max-width:899px){.cloth-next{position:fixed;right:16px;bottom:max(14px,env(safe-area-inset-bottom));z-index:20}}
+/* the ribbon is the "close the book" button */
+button.nb-ribbon{border:0;padding:0;cursor:pointer;transition:transform .18s ease}
+button.nb-ribbon:hover{transform:translateY(2px)}
+button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 /* gold foil on the ribbon (RibbonGold.tsx) */
 .nb-ribbon .rib-gold{position:absolute;inset:0;width:100%;height:100%}
 /* ---- the same pages inside the one 3D book (components/Book/WizardSpread.tsx) ----

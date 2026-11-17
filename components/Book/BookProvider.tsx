@@ -105,16 +105,14 @@ export function BookProvider({ children }: { children: ReactNode }) {
   }, [router]);
   const toHome = useCallback(() => { setInstant(false); router.push("/", { scroll: false }); }, [router]);
 
-  // Esc: wizard -> menu, menu -> closed (never while a Korean syllable is being composed)
+  // Esc closes the book, from the menu or the wizard alike (one book; Kim's call), never while a Korean
+  // syllable is being composed. An open hook list or the like handles its own Esc first (defaultPrevented).
   useEffect(() => {
     if (view !== "home" && view !== "wizard") return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || e.isComposing) return;
-      if (view === "wizard") { if (mode === "3d" && desk) toHome(); } else close();
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !e.isComposing && !e.defaultPrevented) close(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [view, mode, desk, toHome, close]);
+  }, [view, close]);
 
   const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome }),
     [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome]);
