@@ -5,6 +5,7 @@
 // the text button and the book open it. /new (wide screens): the same book, open on the wizard, with the
 // photo and logo faded behind it. Other pages: the stage is hidden but stays mounted (no new canvas).
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { Book } from "@/components/Book/Book";
 import { AiHost } from "@/components/newbook/AiPanel";
 import { FoilLogo } from "@/components/FoilLogo";
@@ -15,8 +16,17 @@ export function Hero() {
   // /new on phones or without WebGL: the one-page wizard of app/new draws itself; no stage
   const hidden = b.view === "hidden" || (b.view === "wizard" && !wizardInBook(b));
   const open = b.view === "home" || b.view === "wizard";
+  // coming back to the home screen from another page: the logo, the copy and the book float in (as the
+  // other pages do, globals.css .is-arriving); not on the very first load, not for the book opened over a page
+  const prev = useRef(b.view), [arriving, setArriving] = useState(false);
+  useEffect(() => {
+    const was = prev.current; prev.current = b.view;
+    if (was === "hidden" && (b.view === "closed" || b.view === "home") && !b.overlay) {
+      setArriving(true); const t = setTimeout(() => setArriving(false), 800); return () => clearTimeout(t);
+    }
+  }, [b.view, b.overlay]);
   return (
-    <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.overlay ? " is-overlay" : "")}
+    <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.overlay ? " is-overlay" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>
       {/* two stage layers with the same geometry: the photo below the 3D canvas, the copy above it */}
       <div className="hero-stage hero-stage-bg">
