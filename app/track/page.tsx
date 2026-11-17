@@ -158,8 +158,8 @@ export default function TrackPage() {
   const showMeasureRows = flat && current === 6 && !p.measuredH && pp.bodyRows > 5; // start chain + 5 rows done
   // the symbols this work's chart uses, in the order of a symbol table
   const syms: StitchSym[] = flat
-    ? (p.object === "tube" ? ["ch", "sl", "sc"] : ["ch", "sc"])
-    : [...(p.shape === "circle" ? ["ring" as const] : []), "ch", "sl", "sc", "inc"];
+    ? ["ch", "sc"]
+    : [p.shape === "circle" ? "ring" : "ch", "sc", "inc", ...(p.object === "bag" && pp.rows.some(x => x.part === "rim") ? ["sl" as const] : [])];
   // sections in pattern order (01 바닥, 02 몸통...), as on the pattern sheet
   const parts = pp.rows.map(x => x.part).filter((x, i, a) => a.indexOf(x) === i);
   const secNo = (part: Row["part"]) => String(parts.indexOf(part) + 1).padStart(2, "0");
