@@ -9,7 +9,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as THREE from "three";
 import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
-import { useReducedMotion, type BookState } from "../useBookState";
+import { useReducedMotion } from "../useBookState";
+import { useBook } from "../BookProvider";
+import { WizardLeft, WizardRight } from "../WizardSpread";
 import {
   BLOCK, blockTop, BOARD, CORNER_R, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, Q0, sheetCurve, SHEET_W, SHEETS, spineCloth, T, W,
 } from "./geometry";
@@ -309,12 +311,13 @@ function CameraRig({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   return null;
 }
 
-function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: boolean) => void; reduce: boolean; layer: CssLayer }) {
+function Scene({ open, instant, onOpen, reduce, layer }: { open: boolean; instant: boolean; onOpen: () => void; reduce: boolean; layer: CssLayer }) {
   const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0 }; derive(a); return a; }, []);
   const m = useBookMaterials();
   const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl), camera = useThree(s => s.camera), sceneRef = useThree(s => s.scene);
   const [shadowK] = useState(() => { const v = parseFloat(cssVar("--book-shadow", "1")); return Number.isFinite(v) ? v : 1; });
-  useEffect(() => { anim.target = open ? 1 : 0; if (reduce) anim.t = anim.target; invalidate(); }, [open, reduce, anim, invalidate]);
+  // instant: refresh, typed address, or arriving from a page without the book -> no opening motion
+  useEffect(() => { anim.target = open ? 1 : 0; if (reduce || instant) { anim.t = anim.target; derive(anim); } invalidate(); }, [open, instant, reduce, anim, invalidate]);
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
     if (!location.search.includes("debug")) return;
@@ -357,7 +360,7 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
       <directionalLight position={[-22, 52, -22]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
         <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
       </directionalLight>
-      <BookModel anim={anim} onOpen={() => setOpen(true)} layer={layer} m={m} />
+      <BookModel anim={anim} onOpen={onOpen} layer={layer} m={m} />
       {/* the book's shadow on the desk, in two layers like the photo's skeins: a narrow dark contact line where
           it touches, and a broad very soft shadow spreading to the lower right. Warm grey-brown (sampled
           beside the skeins), not black; darkness follows --book-shadow */}
@@ -372,7 +375,8 @@ function Scene({ open, setOpen, reduce, layer }: { open: boolean; setOpen: (v: b
   );
 }
 
-export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: () => void }) {
+export default function Book3D({ onFail }: { onFail: () => void }) {
+  const b = useBook(), open = b.view === "home" || b.view === "wizard";
   const [ready, setReady] = useState(false);
   const reduce = useReducedMotion();
   const cssHost = useRef<HTMLDivElement>(null);
@@ -386,9 +390,9 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
     <div className={"book3d" + (ready ? " ready" : "") + (open ? " is-open" : "")} id="book">
       <Canvas
         dpr={[1, 2]}
-        // open: a click on the empty desk around the book closes it. R3F calls this when a click hits none of
+        // home: a click on the empty desk around the book closes it. R3F calls this when a click hits none of
         // the objects with handlers (the book's meshes have one; the page content is DOM above the canvas)
-        onPointerMissed={() => { if (open) setOpen(false); }}
+        onPointerMissed={() => { if (b.view === "home") b.close(); }} // never in the wizard: a stray click must not leave it
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}
@@ -399,13 +403,14 @@ export default function Book3D({ open, setOpen, onFail }: BookState & { onFail: 
           requestAnimationFrame(() => setReady(true));
         }}
       >
-        <Scene open={open} setOpen={setOpen} reduce={reduce} layer={layer} />
+        <Scene open={open} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} />
       </Canvas>
       {/* film grain over the book and the photo (not over any text: the page DOM and the hero copy sit above) */}
       <div className="book-grain" aria-hidden="true" />
       <div ref={cssHost} />
-      {createPortal(<LeftPage />, layer.left)}
-      {createPortal(<RightPage onClose={() => setOpen(false)} />, layer.right)}
+      {/* the page DOM: the menu spread at home, the wizard spread on /new */}
+      {createPortal(b.view === "wizard" ? <WizardLeft /> : <LeftPage />, layer.left)}
+      {createPortal(b.view === "wizard" ? <WizardRight /> : <RightPage onClose={b.close} />, layer.right)}
     </div>
   );
 }

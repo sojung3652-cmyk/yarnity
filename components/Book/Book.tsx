@@ -1,22 +1,14 @@
 "use client";
-// The home book. Uses the WebGL (React Three Fiber) book when the browser can render it,
-// otherwise the original CSS 3D book. Open state is owned by the page (the hero's text button
-// opens the book too).
+// The book. Uses the WebGL (React Three Fiber) book when the browser can render it, otherwise the
+// original CSS 3D book. The mode and the open/closed/wizard state come from BookProvider (root layout).
 import dynamic from "next/dynamic";
-import { Component, useEffect, useState, type ReactNode } from "react";
+import { Component, type ReactNode } from "react";
 import "./Book.css";
 import { BookCSS } from "./BookCSS";
-import type { BookState } from "./useBookState";
+import { useBook } from "./BookProvider";
 
 // three.js touches window/WebGL at import time, so it is never server-rendered.
 const Book3D = dynamic(() => import("./three/Book3D"), { ssr: false, loading: () => null });
-
-function hasWebGL() {
-  try {
-    const c = document.createElement("canvas");
-    return !!(c.getContext("webgl2") || c.getContext("webgl"));
-  } catch { return false; }
-}
 
 // Any runtime failure inside the 3D tree (shader compile, context creation...) drops to the CSS book.
 class Fallback extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
@@ -26,18 +18,13 @@ class Fallback extends Component<{ onError: () => void; children: ReactNode }, {
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-export function Book({ state }: { state: BookState }) {
-  const [mode, setMode] = useState<"pending" | "3d" | "css">("pending");
-  useEffect(() => {
-    const forced = new URLSearchParams(location.search).get("book"); // ?book=css to compare
-    setMode(forced === "css" || !hasWebGL() ? "css" : "3d");
-  }, []);
-
-  if (mode === "css") return <div className="book-css-slot"><BookCSS {...state} /></div>;
-  if (mode === "pending") return null;
+export function Book() {
+  const b = useBook();
+  if (b.mode === "pending") return null;
+  if (b.mode === "css") return <div className="book-css-slot"><BookCSS open={b.view === "home"} setOpen={v => (v ? b.open() : b.close())} /></div>;
   return (
-    <Fallback onError={() => setMode("css")}>
-      <Book3D {...state} onFail={() => setMode("css")} />
+    <Fallback onError={() => b.setMode("css")}>
+      <Book3D onFail={() => b.setMode("css")} />
     </Fallback>
   );
 }

@@ -189,7 +189,18 @@ footer .brand{font-size:16px;color:var(--ink)}
    crop up to 8% top and bottom); outside it the page colour continues the photo's plain backdrop. */
 html{overflow-x:clip}
 .wrap{position:relative}
-.hero-desk{position:relative;height:100svh;width:100vw;margin-left:calc(50% - 50vw);overflow:hidden;isolation:isolate;background:var(--bg)}
+/* the book's stage is in the root layout (components/home/Hero.tsx): laid over the top of the page, full
+   width; the page keeps the first screen free for it (.book-stage-space). Hidden on pages without the book
+   (still mounted: one WebGL canvas for the whole app). */
+.hero-desk{position:absolute;top:0;left:calc(50% - 50vw);z-index:0;height:100svh;width:100vw;overflow:hidden;isolation:isolate;background:var(--bg)}
+.hero-desk.is-hidden{visibility:hidden;pointer-events:none}
+.book-stage-space{height:100svh}
+.nav ~ main .book-stage-space{height:calc(100svh - var(--nav-h,80px))}
+.nav{position:relative;z-index:5}
+/* wizard: the photo and the logo stay, faded and soft, behind the bigger book */
+.hero-desk.is-wizard .hero-bg{filter:blur(3px);opacity:.35;transform:none}
+.hero-desk.is-wizard .hero-copy-desk{opacity:.35;filter:blur(3px)}
+.hero-desk.is-wizard .hero-start{visibility:hidden}
 .hero-stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100svh * 1871 / 841 * 1.08));aspect-ratio:1871 / 841;container-type:inline-size}
 /* the stage's transform makes it a stacking context, so the photo and the copy live in two stage layers:
    the photo under the 3D canvas (z 2), the copy over it (pointer events only on the controls) */
@@ -199,14 +210,14 @@ html{overflow-x:clip}
    comp px, its yarn lands where the comp has it (registered against the comp image). Its plain colour
    (#F7ECEA = --bg) fades out at each edge (6% left and bottom; 3% top and 4% right, where the yarn
    comes close to the photo's border), so no seam shows. */
-.hero-bg{position:absolute;left:23.624%;top:13.317%;width:73.165%;z-index:0;transition:filter .8s ease,transform .8s ease}
+.hero-bg{position:absolute;left:23.624%;top:13.317%;width:73.165%;z-index:0;transition:filter .8s ease,transform .8s ease,opacity .8s ease}
 .hero-bg-img{position:static!important;width:100%!important;height:auto!important;display:block;
   -webkit-mask-image:linear-gradient(to right,transparent,#000 6%,#000 96%,transparent),linear-gradient(to bottom,transparent,#000 3%,#000 94%,transparent);
   -webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 6%,#000 96%,transparent),linear-gradient(to bottom,transparent,#000 3%,#000 94%,transparent);mask-composite:intersect}
 .hero-desk.is-open .hero-bg{filter:brightness(.94) blur(2px);transform:scale(1.02)}
 /* logo block (comp): mark 12.1% from the left, 17.2% wide, centred at 46% of the height; caption under
    it; the text button from 12.1%, 17.2% wide, at 63% of the height */
-.hero-copy-desk{position:absolute;inset:0;z-index:3;pointer-events:none;transition:opacity .5s ease}
+.hero-copy-desk{position:absolute;inset:0;z-index:3;pointer-events:none;transition:opacity .5s ease,filter .5s ease}
 .hero-copy-desk > *{pointer-events:auto}
 .hero-desk.is-open .hero-copy-desk{opacity:0}
 .hero-desk.is-open .hero-copy-desk > *{pointer-events:none}

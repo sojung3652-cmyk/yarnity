@@ -3,6 +3,8 @@ import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/components/AppProvider";
 import { Nav } from "@/components/Nav";
+import { BookProvider } from "@/components/Book/BookProvider";
+import { Hero } from "@/components/home/Hero";
 
 // Home hero and the open book: the start button (Cormorant Garamond italic) and the "INTELLIGENT CROCHET"
 // captions (Cormorant Garamond upright). Self-hosted by next/font (OFL), exposed as a CSS variable.
@@ -22,11 +24,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <AppProvider>
-          <div className="wrap">
-            <Nav />
-            {children}
-            <footer><span className="brand">Yarnity.</span></footer>
-          </div>
+          {/* the one book (and its stage) lives here, above the pages, so / <-> /new never re-creates it */}
+          <BookProvider>
+            <div className="wrap">
+              <Hero />
+              <Nav />
+              {children}
+              <footer><span className="brand">Yarnity.</span></footer>
+            </div>
+          </BookProvider>
         </AppProvider>
       </body>
     </html>

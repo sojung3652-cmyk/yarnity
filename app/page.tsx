@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { useApp } from "@/components/AppProvider";
-import { Hero } from "@/components/home/Hero";
 import { plan } from "@/lib/pattern";
 
 function Resume() {
@@ -17,10 +16,12 @@ function Resume() {
   );
 }
 
+// The hero (backdrop, logo, the 3D book) is in the root layout so the book survives / <-> /new;
+// this page keeps the first screen free for it and adds what sits below.
 export default function Home() {
   return (
     <main id="view-home">
-      <Hero />
+      <div className="book-stage-space" aria-hidden="true" />
       <div className="hero-foot"><span className="tagline">YARNITY · MAKE · TRACK · SHARE</span></div>
       <div id="homeResume"><Resume /></div>
     </main>
