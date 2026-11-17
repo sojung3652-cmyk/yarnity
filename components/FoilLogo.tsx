@@ -54,22 +54,33 @@ export function FoilLogo({ className = "pg-foil", shine }: { className?: string;
         </filter>
       </defs>
       <g filter={`url(#${f})`}><rect width={W} height={H} fill={`url(#${g})`} mask={`url(#${m})`} /></g>
-      {/* shine (Kim's pick): a narrow band of light runs left to right over the letters only (the same mask),
-          2.4s ease-in-out, then rests 6s; hidden with reduced motion (globals.css .foil-shine) */}
+      {/* shine (Kim's pick, corrected: "로고 외부에 윤곽선을 따라"): a soft gold light slides along the
+          OUTLINE around the letters, left to right - a thin ring just outside the logo (the logo grown by a few
+          units minus the logo itself, softly blurred) lit by a moving band. 2.4s ease-in-out, then rests 6s;
+          hidden with reduced motion (globals.css .foil-shine) */}
       {shine && (
         <g className="foil-shine">
           <defs>
-            <linearGradient id={s} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="140">
-              <stop offset="0" stopColor="#FFFBEF" stopOpacity="0" />
-              <stop offset=".42" stopColor="#FFF6DA" stopOpacity=".55" />
-              <stop offset=".5" stopColor="#FFFDF6" stopOpacity="1" />
-              <stop offset=".58" stopColor="#FFF6DA" stopOpacity=".55" />
-              <stop offset="1" stopColor="#FFFBEF" stopOpacity="0" />
+            <filter id={`o${id}`} x="-2%" y="-4%" width="104%" height="108%">
+              <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0" result="shape" />
+              <feMorphology in="shape" operator="dilate" radius="7" result="grown" />
+              <feComposite in="grown" in2="shape" operator="out" result="ring" />
+              <feGaussianBlur in="ring" stdDeviation="2.2" />
+            </filter>
+            <mask id={`r${id}`} maskUnits="userSpaceOnUse" x="-30" y="-30" width={W + 60} height={H + 60}>
+              <image href="/pic/logo-mark.svg" width={W} height={H} filter={`url(#o${id})`} />
+            </mask>
+            <linearGradient id={s} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="300" y2="120">
+              <stop offset="0" stopColor="#E9C978" stopOpacity="0" />
+              <stop offset=".4" stopColor="#E9C978" stopOpacity=".55" />
+              <stop offset=".5" stopColor="#FFF1C4" stopOpacity="1" />
+              <stop offset=".6" stopColor="#E9C978" stopOpacity=".55" />
+              <stop offset="1" stopColor="#E9C978" stopOpacity="0" />
               <animateTransform attributeName="gradientTransform" type="translate" values="-420 0; 1270 0; 1270 0" keyTimes="0; .2857; 1"
                 calcMode="spline" keySplines=".45 0 .55 1; 0 0 1 1" dur="8.4s" repeatCount="indefinite" />
             </linearGradient>
           </defs>
-          <rect width={W} height={H} fill={`url(#${s})`} mask={`url(#${m})`} style={{ mixBlendMode: "screen" }} />
+          <rect x="-30" y="-30" width={W + 60} height={H + 60} fill={`url(#${s})`} mask={`url(#r${id})`} />
         </g>
       )}
     </svg>

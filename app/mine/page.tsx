@@ -139,8 +139,12 @@ function List() {
   return (
     <>
       <div className="mine-tools">
-        <label htmlFor="mineSearch" className="sr">작품 찾기</label>
-        <input id="mineSearch" className="mine-search" type="search" autoComplete="off" placeholder="작품 찾기" value={q} onChange={e => setQ(e.target.value)} />
+        {/* a small search box with a magnifier (Kim: the long underlined field was too big) */}
+        <label className="mine-find" htmlFor="mineSearch">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10.4 10.4 14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+          <span className="sr">작품 찾기</span>
+          <input id="mineSearch" className="mine-search" type="search" autoComplete="off" placeholder="찾기" value={q} onChange={e => setQ(e.target.value)} />
+        </label>
         <div className="mine-row">
           <div className="mine-tabs" role="tablist" aria-label="상태로 거르기">
             {(["all", "knitting", "paused", "done"] as Filter[]).map(f => (

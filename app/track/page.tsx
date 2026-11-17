@@ -234,7 +234,12 @@ export default function TrackPage() {
                 </span>
               </button>
             </div>
-            <p className="tk-keys"><kbd>Space</kbd> 한 단 끝 · <kbd>Backspace</kbd> 되돌리기 · <kbd>←</kbd><kbd>→</kbd> 이전/다음 단 보기</p>
+            <div className="tk-keys" aria-label="키보드로 단 이동">
+              <span className="tk-keys-title">키보드</span>
+              <span><kbd>Space</kbd>한 단 끝</span>
+              <span><kbd>Backspace</kbd>되돌리기</span>
+              <span><kbd>←</kbd><kbd>→</kbd>이전 · 다음 단 보기</span>
+            </div>
 
             {/* the rows around this one */}
             <div className="tk-rows">

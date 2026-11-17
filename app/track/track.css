@@ -68,8 +68,12 @@
 .tk-ribbon:focus-visible .tk-ribbon-face{outline:2px solid var(--tk-ink);outline-offset:3px}
 .tk-ribbon:disabled{cursor:default}
 .tk-ribbon:disabled .tk-ribbon-face{filter:grayscale(.6);opacity:.55}
-.tk-keys{margin:8px 0 0;font-size:11.5px;color:var(--tk-soft);text-align:right}
-.tk-keys kbd{padding:1px 6px;border-radius:3px;border:1px solid var(--tk-rule);font-family:var(--sans);font-size:10.5px}
+/* the keys, as a small boxed legend under the ribbon (Kim: make it easier to see) */
+.tk-keys{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-top:10px;padding:10px 14px;border:1px solid rgba(155,134,196,.45);border-radius:4px;background:#F4EEF9;font-size:12.5px;color:var(--tk-ink)}
+.tk-keys>span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.tk-keys-title{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--tk-lav-ink)}
+.tk-keys kbd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;box-sizing:border-box;padding:0 7px;border:1px solid #BFAFD9;border-bottom-width:2px;border-radius:4px;background:#FFFDF8;font-family:var(--sans);font-size:11px;font-weight:600;color:var(--tk-ink)}
+.tk-keys kbd+kbd{margin-left:-2px}
 @media (hover:none){.tk-keys{display:none}}
 
 /* the rows: ruled, done ones ticked in pencil, this one marked */
