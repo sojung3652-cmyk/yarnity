@@ -303,4 +303,6 @@
 .book-flat{position:absolute;inset:0;pointer-events:none}
 .book-flat-page{position:absolute;visibility:hidden;opacity:0;transition:opacity .12s linear,visibility 0s .12s}
 .book-flat-page.is-shown{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .12s linear}
+/* reduced motion: no page turn, the new pages fade in over 0.15s (beats the site-wide transition:none) */
+@media (prefers-reduced-motion:reduce){.book-flat-page.is-shown{transition:opacity .15s linear!important}}
 .nb-in3d .nb-page{flex:1;height:100%;box-sizing:border-box;background:none;box-shadow:none;border-radius:0}

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { FoilLogo } from "../FoilLogo";
 import { RibbonGold } from "../RibbonGold";
 import { useApp } from "@/components/AppProvider";
+import { useBook } from "./BookProvider";
 
 const ICON = { fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -48,6 +49,7 @@ export function LeftPage() {
 export function RightPage({ onClose }: { onClose: () => void }) {
   // number of saved works (iyarn.projects, read by AppProvider after mount)
   const { ready, projects } = useApp(), workCount = ready ? projects.length : 0;
+  const book = useBook();
   return (
     <div className="pg-page pg-rp">
       <button type="button" className="pg-ribbon" aria-label="책 덮기" onClick={e => { e.stopPropagation(); onClose(); }}>
@@ -57,7 +59,9 @@ export function RightPage({ onClose }: { onClose: () => void }) {
       <div className="pg-phone-brand"><Brand phone /></div>
       {/* two text links divided by hairlines (whole row = one link) */}
       <nav className="pg-actions" aria-label="시작하기">
-        <Link className="pg-link pg-link-lav" href="/new">
+        {/* straight to the saved step (BookProvider.startWizard): a bare /new would show step 1 first, then
+            be replaced by the saved step, and the book would turn twice */}
+        <Link className="pg-link pg-link-lav" href="/new" onClick={e => { e.preventDefault(); book.startWizard(); }}>
           <span className="pg-link-text"><span className="pg-link-title">도안 만들기</span><span className="pg-link-desc">실과 크기만 정하면 코 수를 계산해요</span></span>
           <span className="pg-link-end">시작하기</span>
         </Link>

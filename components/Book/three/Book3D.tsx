@@ -10,7 +10,9 @@ import { createPortal } from "react-dom";
 import * as THREE from "three";
 import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import { useReducedMotion } from "../useBookState";
-import { useBook } from "../BookProvider";
+import { useBook, type BookView, type WizStep } from "../BookProvider";
+import { paintPage } from "./pagePaint";
+import { drawLeftPage, drawRightPage } from "./paperTextures";
 import { REF_W, WizardSpread } from "../WizardSpread";
 import {
   BLOCK, blockTop, BOARD, CORNER_R, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, Q0, sheetCurve, SHEET_W, SHEETS, spineCloth, T, W,
@@ -33,8 +35,13 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 // wizard: the open book grows and the camera moves straight above it (0.9s, together with the first turn)
 const WIZ_TOTAL = 0.9;
 
-// t: opening (0 closed .. 1 open). w: open menu (0) .. wizard pose (1).
-interface Anim { t: number; target: number; cover: number; sheets: number[]; cam: number; w: number; wTarget: number; wcam: number }
+// a page turn between two spreads (menu <-> wizard steps)
+const TURN = 0.7;
+
+// t: opening (0 closed .. 1 open). w: open menu (0) .. wizard pose (1). turn: the leaf turning between
+// spreads (leafP: 0 = lying on the right, 1 = on the left).
+interface Turn { f: number; dur: number; fwd: boolean; started: boolean; done: () => void }
+interface Anim { t: number; target: number; cover: number; sheets: number[]; cam: number; w: number; wTarget: number; wcam: number; turn: Turn | null; leafP: number }
 function derive(a: Anim) {
   const s = a.t * TOTAL;
   a.cover = ease(clamp01(s / COVER_END));
@@ -170,6 +177,8 @@ interface CssLayer {
   flatLeft: HTMLDivElement; flatRight: HTMLDivElement;
   /** called by the camera rig each frame after the camera moved */
   afterCamera?: () => void;
+  /** a page turn is running: the page DOM is hidden and inert (the leaf carries pictures of it) */
+  turning?: boolean;
 }
 const LEFT_Y = (() => { const c = sheetCurve(SHEETS - 1, 1); return c.pts[c.pts.length - 1][1]; })();
 const PAGE_LIFT = 0.06;
@@ -191,8 +200,8 @@ function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   const camera = useThree(s => s.camera), size = useThree(s => s.size);
   const a = useMemo(() => new THREE.Vector3(), []), b = useMemo(() => new THREE.Vector3(), []);
   useFrame(() => {
-    // the menu shows once the book is open and the camera is back from the wizard pose
-    const home = anim.w <= 0.001, o = home ? clamp01((anim.t - 0.9) / 0.1) : 0;
+    // the menu shows once the book is open and the camera is back from the wizard pose (never mid-turn)
+    const home = anim.w <= 0.001 && !layer.turning, o = home ? clamp01((anim.t - 0.9) / 0.1) : 0;
     for (const el of els) el.style.opacity = String(o);
     const vis = anim.t >= 0.999 && home;
     if (vis !== shown.current) { shown.current = vis; for (const el of els) { el.inert = !vis; el.style.pointerEvents = vis ? "auto" : "none"; } }
@@ -230,7 +239,7 @@ function FlatPages({ anim, layer }: { anim: Anim; layer: CssLayer }) {
       el.style.setProperty("--z", z.toFixed(4)); el.style.setProperty("--hz", (h / z).toFixed(2));
     };
     layer.afterCamera = () => {
-      const vis = anim.t >= 0.999 && anim.w >= 0.999;
+      const vis = anim.t >= 0.999 && anim.w >= 0.999 && !layer.turning;
       if (vis !== shown.current) { shown.current = vis; for (const el of els) { el.classList.toggle("is-shown", vis); el.inert = !vis; } }
       if (!vis) return;
       place(layer.flatLeft, GUTTER_X - SHEET_W / 2, LEFT_Y + PAGE_LIFT);
@@ -239,6 +248,28 @@ function FlatPages({ anim, layer }: { anim: Anim; layer: CssLayer }) {
     return () => { layer.afterCamera = undefined; };
   }, [anim, layer, camera, size, v]);
   return null;
+}
+
+/** The leaf that turns between spreads: one sheet on the gutter, bowing as it turns (sheetCurve: the
+ *  spine side leads, the fore edge lags), its two faces printed with pictures of the pages
+ *  (front = a right page, back = a left page; the same uv and un-mirroring as the spread's own pages).
+ *  Lifted 0.12mm so it never fights with the page it lands on. Only there while a turn runs. */
+function Leaf({ anim, mat }: { anim: Anim; mat: { front: THREE.Material; back: THREE.Material } }) {
+  const geo = useMemo(() => createSheet(PAGE_D), []);
+  const g = useRef<THREE.Group>(null), last = useRef(-1);
+  useFrame(() => {
+    const on = !!anim.turn; if (g.current) g.current.visible = on;
+    if (!on || Math.abs(anim.leafP - last.current) < 1e-6) return;
+    last.current = anim.leafP;
+    const c = sheetCurve(SHEETS - 1, anim.leafP); updateSheet(geo, c.pts, c.heads);
+  });
+  useEffect(() => () => geo.dispose(), [geo]);
+  return (
+    <group ref={g} position-y={0.012} visible={false}>
+      <mesh geometry={geo} material={mat.front} castShadow receiveShadow />
+      <mesh geometry={geo} material={mat.back} castShadow receiveShadow />
+    </group>
+  );
 }
 
 /** Lavender ribbon bookmark: from the gutter, out past the tail of the book; seen only when open. */
@@ -255,7 +286,7 @@ function Bookmark({ anim }: { anim: Anim }) {
   );
 }
 
-function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void; layer: CssLayer; m: BookMaterials }) {
+function BookModel({ anim, onOpen, layer, m, leaf }: { anim: Anim; onOpen: () => void; layer: CssLayer; m: BookMaterials; leaf: { front: THREE.Material; back: THREE.Material } }) {
   const block = useBlockGeometry();
   const [hover, setHover] = useState(false);
   useEffect(() => { document.body.style.cursor = hover ? "pointer" : ""; return () => { document.body.style.cursor = ""; }; }, [hover]);
@@ -272,6 +303,7 @@ function BookModel({ anim, onOpen, layer, m }: { anim: Anim; onOpen: () => void;
       <FrontCover anim={anim} m={m} />
       <PageControls anim={anim} layer={layer} />
       <FlatPages anim={anim} layer={layer} />
+      <Leaf anim={anim} mat={leaf} />
       <Bookmark anim={anim} />
     </group>
   );
@@ -367,22 +399,124 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
   return null;
 }
 
-function Scene({ open, wizard, instant, onOpen, reduce, layer }: { open: boolean; wizard: boolean; instant: boolean; onOpen: () => void; reduce: boolean; layer: CssLayer }) {
-  const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0, w: 0, wTarget: 0, wcam: 0 }; derive(a); return a; }, []);
+// ---- spreads and the turns between them ----
+export interface Spread { view: BookView; step: WizStep }
+const spreadKey = (s: Spread) => (s.view === "wizard" ? "w" + s.step : s.view);
+const isSpread = (s: Spread) => s.view === "home" || s.view === "wizard";
+const order = (s: Spread) => (s.view === "wizard" ? s.step : 0); // menu, then the four steps
+const frames = (n: number) => new Promise<void>(res => { const f = () => (--n <= 0 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+const LEAF_RES = 1280; // texture width of a page picture
+
+/** Pictures of the two pages of a spread as it is now (pagePaint.ts), at the page's own layout size. */
+async function paintSpread(layer: CssLayer, s: Spread) {
+  const wiz = s.view === "wizard";
+  const [L, R] = wiz ? [layer.flatLeft, layer.flatRight] : [layer.left, layer.right];
+  const box = wiz ? (() => { const h = REF_W * PAGE_H_PX / PAGE_PX; return { w: REF_W, h, vars: { "--z": "1", "--hz": h.toFixed(2) } }; })()
+    : { w: PAGE_PX, h: PAGE_H_PX, vars: { "--k": layer.left.style.getPropertyValue("--k") || "1" } };
+  const one = (host: HTMLElement, side: "left" | "right") => {
+    const src = host.firstElementChild as HTMLElement | null;
+    if (src) return paintPage(src, box, side, LEAF_RES);
+    const cv = document.createElement("canvas"); cv.width = LEAF_RES; cv.height = Math.round(LEAF_RES * box.h / box.w);
+    (side === "left" ? drawLeftPage : drawRightPage)(cv); return Promise.resolve(cv);
+  };
+  const [l, r] = await Promise.all([one(L, "left"), one(R, "right")]);
+  return { l, r };
+}
+
+/** Moves the book between the spread it shows and the one the address wants. Menu <-> wizard and step to
+ *  step turn a leaf (0.7s; 0.9s with the book growing / shrinking between the menu and the wizard pose).
+ *  The current pages are painted, the DOM is hidden, the new spread is rendered and painted, then the leaf
+ *  turns: forward its front is the old right page and its back the new left page, the page it lands on
+ *  keeps the old left page until covered and the revealed one is the new right page; backward mirrored.
+ *  The DOM fades back in (0.12s) when the leaf has landed. One turn at a time: a change asked for during a
+ *  turn starts when it ends. Reduced motion: no turn, a 0.15s fade. Opening / closing, a refresh, a typed
+ *  address or pages without the book: no turn. */
+function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, leaf }: {
+  want: Spread; shown: Spread; setShown: (s: Spread) => void; instant: boolean; reduce: boolean; anim: Anim; layer: CssLayer; m: BookMaterials; leaf: { front: THREE.MeshStandardMaterial; back: THREE.MeshStandardMaterial };
+}) {
+  const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl);
+  const busy = useRef(false), [round, setRound] = useState(0);
+  useEffect(() => {
+    if (busy.current) return;
+    const same = spreadKey(want) === spreadKey(shown), turn = !same && isSpread(want) && isSpread(shown) && !instant;
+    const poseTo = (s: Spread) => { anim.target = isSpread(s) ? 1 : 0; anim.wTarget = s.view === "wizard" ? 1 : 0; };
+    if (!turn) {
+      if (!same) setShown(want);
+      poseTo(want);
+      if (reduce || instant) { anim.t = anim.target; anim.w = anim.wTarget; derive(anim); }
+      invalidate(); return;
+    }
+    if (reduce) { // no turn: hide, swap, and let the pages fade in (0.15s)
+      layer.turning = true; setShown(want); poseTo(want); anim.t = anim.target; anim.w = anim.wTarget; derive(anim); invalidate();
+      frames(2).then(() => { layer.turning = false; invalidate(); });
+      return;
+    }
+    busy.current = true;
+    const fwd = order(want) > order(shown), dur = want.view !== shown.view ? WIZ_TOTAL : TURN;
+    const texOf = (cv: HTMLCanvasElement, left: boolean) => {
+      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = gl.capabilities.getMaxAnisotropy();
+      t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+      if (left) { t.wrapS = THREE.RepeatWrapping; t.repeat.x = -1; t.offset.x = 1; } // back face: un-mirror, as materials.ts does
+      return t;
+    };
+    const keep = { r: m.rightPage.map, l: m.leftPage.map };
+    let made: THREE.Texture[] = [];
+    const end = () => {
+      m.rightPage.map = keep.r; m.leftPage.map = keep.l;
+      made.forEach(t => t.dispose()); made = [];
+      anim.turn = null; layer.turning = false; busy.current = false; invalidate();
+      // focus: the new step's first field (or the menu's first action) once the pages are back
+      frames(3).then(() => {
+        // a field to type in first (the name is on the right page), then a choice, then a button
+        const hosts = want.view === "wizard" ? [layer.flatLeft, layer.flatRight] : [layer.right];
+        const qs = ['.nb-turn input:not([type="color"]), .nb-turn textarea', '.nb-turn [role="radio"][tabindex="0"]', ".nb-turn button, .pg-link"];
+        const el = qs.map(q => hosts.map(h => h.querySelector<HTMLElement>(q)).find(Boolean)).find(Boolean) ?? document.getElementById("nbTitle");
+        el?.focus({ preventScroll: true });
+      });
+      setRound(r => r + 1); // a change asked for during the turn goes next
+    };
+    (async () => {
+      try {
+        const old = await paintSpread(layer, shown);
+        layer.turning = true; invalidate();
+        setShown(want);
+        await frames(3); // the new spread rendered (and its layout effects settled), still hidden
+        const neu = await paintSpread(layer, want);
+        const oL = texOf(old.l, true), oR = texOf(old.r, false), nL = texOf(neu.l, true), nR = texOf(neu.r, false);
+        made = [oL, oR, nL, nR];
+        // under the leaf: forward, the old left page (until covered) and the new right page (revealed)
+        m.leftPage.map = fwd ? oL : nL; m.rightPage.map = fwd ? nR : oR;
+        leaf.front.map = fwd ? oR : nR; leaf.back.map = fwd ? nL : oL;
+        anim.leafP = fwd ? 0 : 1;
+        poseTo(want); // the book grows / shrinks together with the turn
+        anim.turn = { f: 0, dur, fwd, started: false, done: end };
+        invalidate();
+      } catch (e) {
+        console.warn("[Book3D] page turn skipped:", e);
+        setShown(want); poseTo(want); end();
+      }
+    })();
+  }, [want, shown, setShown, instant, reduce, anim, layer, m, leaf, gl, invalidate, round]);
+}
+
+function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want: Spread; shown: Spread; setShown: (s: Spread) => void; instant: boolean; onOpen: () => void; reduce: boolean; layer: CssLayer }) {
+  const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0, w: 0, wTarget: 0, wcam: 0, turn: null, leafP: 0 }; derive(a); return a; }, []);
   const m = useBookMaterials();
   const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl), camera = useThree(s => s.camera), sceneRef = useThree(s => s.scene);
   const [shadowK] = useState(() => { const v = parseFloat(cssVar("--book-shadow", "1")); return Number.isFinite(v) ? v : 1; });
-  // instant: refresh, typed address, or arriving from a page without the book -> no opening motion
-  useEffect(() => {
-    anim.target = open ? 1 : 0; anim.wTarget = wizard ? 1 : 0;
-    if (reduce || instant) { anim.t = anim.target; anim.w = anim.wTarget; derive(anim); }
-    invalidate();
-  }, [open, wizard, instant, reduce, anim, invalidate]);
+  // the leaf's two faces: a right page (front) and a left page (back), as the spread's own pages
+  const leaf = useMemo(() => ({ front: m.rightPage.clone(), back: m.leftPage.clone() }), [m]);
+  useEffect(() => () => { leaf.front.dispose(); leaf.back.dispose(); }, [leaf]);
+  useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, leaf });
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
     if (!location.search.includes("debug")) return;
     (window as unknown as { __book3d: object }).__book3d = {
       setProgress: (v: number) => { anim.t = v; anim.target = v; invalidate(); }, progress: () => anim.t, frames: () => gl.info.render.frame,
+      turn: () => (anim.turn ? +anim.turn.f.toFixed(3) : null), // page turn progress, null when none
+      // freeze a running turn at f (0..1) for a screenshot; resume() lets it finish
+      holdTurn: (f: number) => { if (anim.turn) { anim.turn.f = f; anim.leafP = anim.turn.fwd ? ease(f) : 1 - ease(f); (anim as unknown as { hold: boolean }).hold = true; invalidate(); } },
+      resume: () => { (anim as unknown as { hold: boolean }).hold = false; invalidate(); },
       scene: () => sceneRef, // for isolating meshes while debugging
       glInfo: () => { const c = gl.getContext(); const cam = camera as THREE.PerspectiveCamera; return { depthBits: c.getParameter(c.DEPTH_BITS), near: cam.near, far: cam.far, view: cam.view?.enabled ?? false }; },
       // which meshes a ray through screen point (CSS px) hits, nearest first, with uv
@@ -404,11 +538,19 @@ function Scene({ open, wizard, instant, onOpen, reduce, layer }: { open: boolean
     const wStep = Math.min(dt, 0.1) / WIZ_TOTAL;
     anim.w = anim.wTarget > anim.w ? Math.min(anim.wTarget, anim.w + wStep) : Math.max(anim.wTarget, anim.w - wStep);
     derive(anim);
-    if (anim.t !== anim.target || anim.w !== anim.wTarget) invalidate(); // frameloop="demand": render only while moving
+    const tr = anim.turn, held = !!(anim as unknown as { hold?: boolean }).hold; // held: ?debug screenshots only
+    if (tr && !held) {
+      // the first frame of a turn has no real dt (the canvas was idle): start from 0
+      const d = tr.started ? Math.min(dt, 0.1) : 0; tr.started = true;
+      tr.f = Math.min(1, tr.f + d / tr.dur);
+      anim.leafP = tr.fwd ? ease(tr.f) : 1 - ease(tr.f);
+      if (tr.f >= 1) { tr.done(); return; }
+    }
+    if (anim.t !== anim.target || anim.w !== anim.wTarget || (anim.turn && !held)) invalidate(); // frameloop="demand": render only while moving
   }, -1);
   return (
     <>
-      <CameraRig anim={anim} layer={layer} wizard={wizard} />
+      <CameraRig anim={anim} layer={layer} wizard={want.view === "wizard"} />
       {/* soft studio light without an HDR download: soft boxes baked into a small environment map */}
       {/* Light matched to the photo's objects: a broad, soft studio light from above (a big white softbox in
           the environment + sky/ground fill), with only a weak directional light from the upper left for
@@ -422,7 +564,7 @@ function Scene({ open, wizard, instant, onOpen, reduce, layer }: { open: boolean
       <directionalLight position={[-22, 52, -22]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
         <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
       </directionalLight>
-      <BookModel anim={anim} onOpen={onOpen} layer={layer} m={m} />
+      <BookModel anim={anim} onOpen={onOpen} layer={layer} m={m} leaf={leaf} />
       {/* the book's shadow on the desk, in two layers like the photo's skeins: a narrow dark contact line where
           it touches, and a broad very soft shadow spreading to the lower right. Warm grey-brown (sampled
           beside the skeins), not black; darkness follows --book-shadow */}
@@ -439,6 +581,9 @@ function Scene({ open, wizard, instant, onOpen, reduce, layer }: { open: boolean
 
 export default function Book3D({ onFail }: { onFail: () => void }) {
   const b = useBook(), open = b.view === "home" || b.view === "wizard";
+  // want: the spread the address asks for; shown: the one whose DOM is in the book (they differ during a turn)
+  const want = useMemo<Spread>(() => ({ view: b.view, step: b.step }), [b.view, b.step]);
+  const [shown, setShown] = useState<Spread>(want);
   const [ready, setReady] = useState(false);
   const reduce = useReducedMotion();
   const cssHost = useRef<HTMLDivElement>(null), flatHost = useRef<HTMLDivElement>(null);
@@ -470,18 +615,17 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
           requestAnimationFrame(() => setReady(true));
         }}
       >
-        <Scene open={open} wizard={b.view === "wizard"} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} />
+        <Scene want={want} shown={shown} setShown={setShown} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} />
       </Canvas>
       {/* film grain over the book and the photo (not over any text: the page DOM and the hero copy sit above) */}
       <div className="book-grain" aria-hidden="true" />
       <div ref={cssHost} />
       <div ref={flatHost} className="book-flat" />
-      {/* the page DOM: the menu spread at home (CSS 3D, on the tilted pages), the wizard spread on /new
-          (flat boxes over the pages, the camera straight above) */}
-      {b.view === "wizard" ? <WizardSpread left={layer.flatLeft} right={layer.flatRight} /> : <>
-        {createPortal(<LeftPage />, layer.left)}
-        {createPortal(<RightPage onClose={b.close} />, layer.right)}
-      </>}
+      {/* the page DOM: the menu spread (CSS 3D, on the tilted pages; always there, so it can be painted for
+          a turn), and the wizard spread while it is shown (flat boxes over the pages, the camera straight above) */}
+      {createPortal(<LeftPage />, layer.left)}
+      {createPortal(<RightPage onClose={b.close} />, layer.right)}
+      {shown.view === "wizard" && <WizardSpread step={shown.step} left={layer.flatLeft} right={layer.flatRight} />}
     </div>
   );
 }

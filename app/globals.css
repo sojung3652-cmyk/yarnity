@@ -196,6 +196,9 @@ html{overflow-x:clip}
 .hero-desk.is-hidden{visibility:hidden;pointer-events:none}
 .book-stage-space{height:100svh}
 .nav ~ main .book-stage-space{height:calc(100svh - var(--nav-h,80px))}
+/* /new in the 3D book: exactly one screen, nothing to scroll (a focused field never scrolls the book away) */
+body:has(#view-new .book-stage-space){overflow:hidden}
+body:has(#view-new .book-stage-space) footer{display:none}
 .nav{position:relative;z-index:5}
 /* wizard: the photo and the logo stay, faded and soft, behind the bigger book */
 .hero-desk.is-open.is-wizard .hero-bg{filter:blur(3px);opacity:.35;transform:none} /* .is-open too: beats the open menu's rule below */

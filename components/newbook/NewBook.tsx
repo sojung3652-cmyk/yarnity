@@ -82,10 +82,11 @@ export interface NewBookView {
   right: ReactNode;
 }
 
-export function useNewBook(): NewBookView {
+/** `inBook`: the 3D book passes the step whose pages it shows (it lags behind the address during a turn). */
+export function useNewBook(inBook?: WizStep): NewBookView {
   const { ready, draft, setDraft, addProject, updateProject, projects, setActive } = useApp();
   const router = useRouter();
-  const book = useBook(), step = book.step;
+  const book = useBook(), step = inBook ?? book.step;
   const [editId, setEditId] = useState<string | null>(null);
   const [nums, setNums] = useState<Record<FieldKey, string>>(numsOf(draft));
   const [dir, setDir] = useState<1 | -1>(1);

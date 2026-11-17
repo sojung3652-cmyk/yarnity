@@ -9,13 +9,15 @@
 // composition is the same at any book size.
 import { createPortal } from "react-dom";
 import { useNewBook } from "@/components/newbook/NewBook";
+import type { WizStep } from "./BookProvider";
 
 /** the width each page is laid out at before zooming to the page. The original /new page on a 1440px
  *  screen was 642px ((1320 - 2 * 18) / 2); 690 sets the type a little smaller on the page (Kim's call). */
 export const REF_W = 690;
 
-export function WizardSpread({ left, right }: { left: HTMLElement; right: HTMLElement }) {
-  const v = useNewBook();
+/** `step`: the step whose pages are in the book now (during a page turn it can lag behind the address). */
+export function WizardSpread({ step, left, right }: { step: WizStep; left: HTMLElement; right: HTMLElement }) {
+  const v = useNewBook(step);
   if (!v.ready) return null;
   const form = (side: "l" | "r", children: React.ReactNode) => (
     <form className={"nb-book nb-in3d nb-in3d-" + side} noValidate onSubmit={v.onSubmit} onKeyDown={v.onKeyDown}>{children}</form>
