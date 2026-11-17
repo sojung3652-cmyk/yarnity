@@ -63,3 +63,27 @@ describe("drawing", () => {
     expect(svg).toContain('viewBox="0 0 360 176"');
   });
 });
+
+describe("bag options (widening body, flap, handle length)", () => {
+  const base = { object: "bag" as const, shape: "circle" as const, a: 15, h: 15, hook: "5호", weight: "medium", handle: "short" as const };
+  it("a wider opening adds stitches evenly up to the opening's size", () => {
+    const pp = plan({ ...base, topA: 20 }), body = pp.rows.filter(r => r.part === "body");
+    expect(body[0].n).toBe(pp.last);
+    expect(body[body.length - 1].n).toBe(Math.round(pp.last * 20 / 15));
+    body.slice(1).forEach((r, i) => expect(r.n - body[i].n).toBe(r.inc));
+    expect(pp.rows.find(r => r.part === "rim")!.n).toBe(body[body.length - 1].n);
+  });
+  it("no opening size = the straight body as before", () => {
+    expect(plan({ ...base, topA: 15 })).toEqual(plan(base));
+  });
+  it("a flap is worked back and forth over half the opening", () => {
+    const pp = plan({ ...base, flapCm: 9 }), flap = pp.rows.filter(r => r.part === "flap");
+    expect(flap.length).toBe(15);
+    expect(flap[0].n).toBe(Math.round(pp.last / 2) - 2);
+    expect(flap[0].label).toBe("덮개 1");
+  });
+  it("handleCm sets the handle chain", () => {
+    const pp = plan({ ...base, handleCm: 120 }), g = pp.g;
+    expect(pp.rows.find(r => r.part === "handle")!.n).toBe(Math.round(120 / (g.w * 0.85)));
+  });
+});

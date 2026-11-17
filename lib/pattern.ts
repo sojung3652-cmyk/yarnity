@@ -11,14 +11,14 @@ export type Shape = "circle" | "oval" | "rect";
  *  (The 19 items in lib/items.ts map onto these four.) */
 export type ObjectKind = "coaster" | "bag" | "rows" | "tube";
 export type Handle = "short" | "long" | "none";
-export type Part = "bottom" | "body" | "rim" | "handle" | "start" | "rows" | "rounds";
+export type Part = "bottom" | "body" | "rim" | "flap" | "handle" | "start" | "rows" | "rounds";
 
 export const HOOKS: [HookKey, number][] = [["2호", 2.0], ["3호", 2.3], ["4호", 2.5], ["5호", 3.0], ["6호", 3.5], ["7호", 4.0], ["8호", 5.0], ["10호", 6.0]];
 export const HOOK_MM: Record<string, number> = Object.fromEntries(HOOKS);
 export const YARN: Record<Weight, number> = { thin: 0.9, medium: 1.0, thick: 1.15 };
 export const YARN_KO: Record<Weight, string> = { thin: "가는 실", medium: "보통", thick: "굵은 실" };
 export const SHAPE_KO: Record<Shape, string> = { circle: "원형", oval: "타원", rect: "사각" };
-export const PART_KO: Record<Part, string> = { bottom: "바닥", body: "몸통", rim: "테두리", handle: "손잡이", start: "시작 사슬", rows: "왕복뜨기", rounds: "둘레뜨기" };
+export const PART_KO: Record<Part, string> = { bottom: "바닥", body: "몸통", rim: "테두리", flap: "덮개", handle: "손잡이", start: "시작 사슬", rows: "왕복뜨기", rounds: "둘레뜨기" };
 
 export const rnd = (x: number) => Math.round(+x.toFixed(6));
 export const fmt = (n: number, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toString();
@@ -35,6 +35,13 @@ export interface PlanInput {
   weight: string;
   object: ObjectKind;
   handle?: Handle;
+  /** handle length in cm (wins over the old short 25 / long 90 of `handle`) */
+  handleCm?: number | null;
+  /** bag body widening to the top: the opening measured like `a` (diameter, or length for oval / rect);
+   *  unset or <= a = straight body, as before */
+  topA?: number | null;
+  /** bag flap (cover) length in cm, worked back and forth over the back half of the opening; unset = none */
+  flapCm?: number | null;
   measuredH?: number | null; // stitch height from the 3rd-round measurement (cm)
   measuredW?: number | null; // stitch width from the 5-row measurement (rows / tube only, cm)
 }
@@ -110,19 +117,40 @@ export function plan(p: PlanInput): Plan {
   const rows = bottom.slice() as Row[];
   if (p.object === "bag") {
     const bodyRows = Math.max(2, rnd((p.h as number) / g.h));
-    for (let i = 0; i < bodyRows; i++) rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라가요" : `${last}코 그대로`, inc: 0 } as Row);
-    for (let i = 0; i < 2; i++) rows.push({ part: "rim", n: last, how: i === 0 ? `짧은뜨기 ${last}코` : `빼뜨기 ${last}코로 마무리`, why: "입구를 단단하게", inc: 0 } as Row);
+    // the opening's stitches: the bottom's last round scaled by the perimeter (circle: diameter ratio;
+    // oval / rect: length and width both grow by topA - a, perimeter ~ 2 (a - b) + pi b)
+    const b0 = (p.b as number) || p.a;
+    const top = p.topA && p.topA > p.a
+      ? Math.round(last * (p.shape === "circle" ? p.topA / p.a : (2 * (p.a - b0) + Math.PI * (b0 + p.topA - p.a)) / (2 * (p.a - b0) + Math.PI * b0)))
+      : last;
+    let prevN = last;
+    for (let i = 0; i < bodyRows; i++) {
+      if (top === last) { rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라가요" : `${last}코 그대로`, inc: 0 } as Row); continue; }
+      // widening body: the extra stitches spread evenly over the rows (round 1 of the body stays straight)
+      const n = i === 0 ? last : Math.round(last + (top - last) * i / (bodyRows - 1)), inc = n - prevN;
+      rows.push({ part: "body", n, how: inc ? `짧은뜨기 ${n}코 (늘림 ${inc}코를 고르게 나눠서)` : `늘림 없이 짧은뜨기 ${n}코`,
+        why: i === 0 ? "여기서부터 위로 올라가요" : inc ? `${prevN} + 늘림 ${inc} = ${n} · 위로 갈수록 넓어져요` : `${n}코 그대로`, inc } as Row);
+      prevN = n;
+    }
+    const rimN = prevN;
+    for (let i = 0; i < 2; i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? `짧은뜨기 ${rimN}코` : `빼뜨기 ${rimN}코로 마무리`, why: "입구를 단단하게", inc: 0 } as Row);
+    if (p.flapCm && p.flapCm > 0) {
+      const fn = Math.max(4, Math.round(rimN / 2) - 2), fr = Math.max(2, rnd(p.flapCm / g.h));
+      for (let i = 0; i < fr; i++) rows.push({ part: "flap", n: fn, how: i === 0 ? `뒤판 가운데 ${fn}코에 실을 걸고 짧은뜨기 ${fn}코` : i === fr - 1 ? `사슬 1, 뒤집어서 짧은뜨기 ${fn}코 · 가운데에 사슬 고리(단추 구멍)` : `사슬 1, 뒤집어서 짧은뜨기 ${fn}코`,
+        why: i === 0 ? `입구의 절반 ${Math.round(rimN / 2)}코 - 양옆 1코씩 · 덮개 ${p.flapCm}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${fr}단` : `${fn}코 그대로`, inc: 0 } as Row);
+    }
     if (p.handle !== "none") {
-      const len = p.handle === "long" ? 90 : 25, ch = rnd(len / (g.w * 0.85));
+      const len = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25, ch = rnd(len / (g.w * 0.85));
       for (let i = 0; i < 2; i++) rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 양쪽에 연결`, why: `${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
     }
   }
-  let bi = 0, bo = 0, ri = 0, ha = 0;
+  let bi = 0, bo = 0, ri = 0, fl = 0, ha = 0;
   rows.forEach((r, i) => {
     r.idx = i;
     if (r.part === "bottom") { r.no = ++bi; r.label = `${bi}단`; }
     else if (r.part === "body") r.label = `${bottom.length + (++bo)}단`;
     else if (r.part === "rim") r.label = `테두리 ${++ri}`;
+    else if (r.part === "flap") r.label = `덮개 ${++fl}`;
     else r.label = `손잡이 ${++ha}`;
   });
   return { g, c, rows, bottomRounds: bottom.length, bodyRows: rows.filter(r => r.part === "body").length, last };

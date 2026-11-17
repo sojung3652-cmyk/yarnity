@@ -111,6 +111,9 @@
    in a deeper shade of the same colour, a slight tilt that straightens on hover */
 .pg-link.pg-link-lav{--lb:#F6EDCB;--ls:#D2BC78} /* 도안 만들기: pastel yellow */
 .pg-link.pg-link-rose{--lb:#F5E2E0;--ls:#D9AFAA}
+/* the two choices under 도안 만들기: 새 도안 = apricot, 이어서 = lavender */
+.pg-link.pg-link-apricot{--lb:#F8E1D0;--ls:#DDA684}
+.pg-link.pg-link-lilac{--lb:#E9E1F3;--ls:#B4A1D3}
 .pg-actions .pg-link{position:relative;border:0;border-radius:2px;padding:calc(16px * var(--k,1)) calc(30px * var(--k,1));
   background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lb);
   box-shadow:0 1px 2px rgba(70,50,40,.14),0 5px 12px rgba(70,50,40,.07);transform:rotate(-.7deg);transition:transform .2s ease}

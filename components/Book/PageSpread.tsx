@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { FoilLogo } from "../FoilLogo";
 import { RibbonGold } from "../RibbonGold";
 import { useApp } from "@/components/AppProvider";
-import { itemIdOf } from "@/lib/items";
+import { ITEM, itemIdOf } from "@/lib/items";
 import { store } from "@/lib/store";
 import { DEFAULT_DRAFT } from "@/lib/types";
 import { useBook, type WizStep } from "./BookProvider";
@@ -64,7 +64,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
   const saved = (() => { const s = store.get<number>("iyarn.newstep", 1); return (s >= 1 && s <= 4 ? s : 1) as WizStep; })();
   const hasDraft = ready && (saved > 1 || draft.name.trim() !== "");
   const startNew = () => {
-    setDraft({ ...DEFAULT_DRAFT, item: itemIdOf(DEFAULT_DRAFT) }); store.set("iyarn.newstep", 1);
+    setDraft({ ...DEFAULT_DRAFT, item: itemIdOf(DEFAULT_DRAFT), handleCm: ITEM[itemIdOf(DEFAULT_DRAFT)].defaults.handleCm ?? null }); store.set("iyarn.newstep", 1);
     book.startWizard(1);
   };
   return (
@@ -84,10 +84,10 @@ export function RightPage({ onClose }: { onClose: () => void }) {
             /new would show step 1 first and then the saved step, and the book would turn twice */}
         {choose && (
           <div className="pg-choose" id="pgChoose" role="group" aria-label="도안 만들기">
-            <button type="button" className="pg-link pg-link-sub pg-link-lav" onClick={e => { e.stopPropagation(); startNew(); }}>
+            <button type="button" className="pg-link pg-link-sub pg-link-apricot" onClick={e => { e.stopPropagation(); startNew(); }}>
               <span className="pg-link-text"><span className="pg-link-title">새 도안 만들기</span><span className="pg-link-desc">처음부터 시작해요</span></span>
             </button>
-            <button type="button" className="pg-link pg-link-sub pg-link-lav" disabled={!hasDraft} onClick={e => { e.stopPropagation(); book.startWizard(saved); }}>
+            <button type="button" className="pg-link pg-link-sub pg-link-lilac" disabled={!hasDraft} onClick={e => { e.stopPropagation(); book.startWizard(saved); }}>
               <span className="pg-link-text"><span className="pg-link-title">이어서 만들기</span>
                 <span className="pg-link-desc">{hasDraft ? `${draft.name.trim() || "이름 없는 작품"} · ${STEP_NAME[saved]}부터` : "이어서 만들 도안이 없어요"}</span></span>
             </button>

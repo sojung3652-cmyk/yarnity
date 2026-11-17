@@ -21,8 +21,8 @@ export interface Item {
   id: ItemId; name: string; group: string; kind: ItemKind;
   shapes?: Shape[];          // flat-round / base-body
   square?: boolean;          // a rect bottom is a square: one size field (a = b)
-  handles?: boolean;         // offers the handle chips
-  defaults: { shape?: Shape; a: number; b?: number; h?: number; handle?: Handle; circ?: number; depth?: number };
+  handles?: boolean;         // offers the handle chips (and the bag options: wider opening, flap)
+  defaults: { shape?: Shape; a: number; b?: number; h?: number; handle?: Handle; handleCm?: number; circ?: number; depth?: number };
   ovalDefault?: { a: number; b: number }; // a second size when switching a round item to oval
   range: Partial<Record<FieldKey, [number, number]>>;
   desc: string; level: "쉬움" | "보통"; time: string; method: string;
@@ -53,9 +53,9 @@ export const ITEMS: Item[] = [
   { id: "cupholder", name: "컵 홀더", group: "담는 것", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 7.5, h: 9, handle: "none" }, range: { a: [6, 10], h: [6, 12] },
     desc: "컵을 감싸는 홀더", level: "쉬움", time: "한두 시간", method: "원형 바닥 → 몸통" },
   // ---- 가방 (base-body) ----
-  { id: "minibag", name: "미니 손가방", group: "가방", kind: "base-body", shapes: ["circle", "oval", "rect"], handles: true, defaults: { shape: "circle", a: 15, b: 10, h: 15, handle: "short" }, range: { a: [4, 40], b: [4, 30], h: [2, 40] },
+  { id: "minibag", name: "미니 손가방", group: "가방", kind: "base-body", shapes: ["circle", "oval", "rect"], handles: true, defaults: { shape: "circle", a: 15, b: 10, h: 15, handle: "short", handleCm: 50 }, range: { a: [4, 40], b: [4, 30], h: [2, 40] },
     desc: "주말 하루면 완성하는 작은 손가방", level: "보통", time: "주말 하루", method: "바닥 → 몸통 → 손잡이" },
-  { id: "bucket", name: "버킷백", group: "가방", kind: "base-body", shapes: ["circle"], handles: true, defaults: { shape: "circle", a: 16, h: 20, handle: "long" }, range: { a: [12, 25], h: [12, 30] },
+  { id: "bucket", name: "버킷백", group: "가방", kind: "base-body", shapes: ["circle"], handles: true, defaults: { shape: "circle", a: 16, h: 20, handle: "long", handleCm: 70 }, range: { a: [12, 25], h: [12, 30] },
     desc: "깊고 둥근 어깨 가방", level: "보통", time: "주말 하루", method: "원형 바닥 → 몸통 → 손잡이" },
   { id: "pouch", name: "파우치", group: "가방", kind: "base-body", shapes: ["oval", "rect"], defaults: { shape: "oval", a: 18, b: 6, h: 12, handle: "none" }, range: { a: [12, 25], b: [4, 10], h: [8, 20] },
     desc: "작은 물건을 넣는 납작한 파우치", level: "보통", time: "반나절", method: "타원 바닥 → 몸통" },
@@ -76,6 +76,9 @@ export const ITEMS: Item[] = [
   { id: "beanie", name: "비니", group: "그 밖에", kind: "base-body", shapes: ["circle"], beta: true, defaults: { shape: "circle", a: 0, h: 0, handle: "none", circ: 56, depth: 20 }, range: { circ: [44, 62], depth: [15, 26] },
     desc: "정수리부터 둥글게 뜨는 모자", level: "보통", time: "주말 하루", method: "정수리(원형) → 몸통", note: "베타: 정수리가 평평하게 나올 수 있어요." },
 ];
+
+/** Handle lengths offered for bags (cm): carried in the hand, on the shoulder, across the body. */
+export const HANDLE_PRESETS: [string, number][] = [["토트", 50], ["숄더", 70], ["크로스", 120]];
 
 export const ITEM: Record<ItemId, Item> = Object.fromEntries(ITEMS.map(i => [i.id, i])) as Record<ItemId, Item>;
 export const ENGINE: Record<ItemKind, ObjectKind> = { "flat-round": "coaster", "base-body": "bag", "flat-rows": "rows", tube: "tube" };

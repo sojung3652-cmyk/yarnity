@@ -15,12 +15,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
-import { engineDims, ENGINE, fieldsFor, GROUPS, ITEM, ITEMS, itemIdOf, type FieldKey, type Item, type ItemId } from "@/lib/items";
+import { engineDims, ENGINE, fieldsFor, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, type FieldKey, type Item, type ItemId } from "@/lib/items";
 import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
 import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
-import { TitlePage } from "./TitlePage";
+import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
 import { RibbonGold } from "@/components/RibbonGold";
 import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
@@ -32,12 +32,35 @@ import "./newbook.css";
 type Step = WizStep;
 const STEP_KEY = "iyarn.newstep";
 const NO_NAME = "이름 없는 작품";
-const HANDLE_KO: Record<Handle, string> = { short: "짧은 끈 25cm", long: "긴 끈 90cm", none: "없음" };
+/** Handle length in cm as the engine will use it (older drafts: short 25 / long 90). */
+const handleCmOf = (d: Draft) => d.handleCm || (d.handle === "long" ? 90 : 25);
+const handleText = (d: Draft) => {
+  if (d.handle === "none") return "없음";
+  const cm = handleCmOf(d), p = HANDLE_PRESETS.find(([, v]) => v === cm);
+  return p ? `${p[0]} ${cm}cm` : `${cm}cm`;
+};
+const isBag = (it: Item) => it.group === "가방";
+const HANDLE_RANGE: [number, number] = [10, 200];
 
-/** The draft as the engine reads it (item -> engine path, beanie conversion, handle only where offered). */
+/** The draft as the engine reads it (item -> engine path, beanie conversion, handle and the bag options
+ *  only where offered; 0 = an option left with an invalid number, read as unset). */
 export function engineInput(d: Draft): PlanInput {
-  const it = ITEM[itemIdOf(d)], e = engineDims(it, d);
-  return { ...d, ...e, object: ENGINE[it.kind], handle: it.handles ? d.handle : (it.defaults.handle ?? "none") };
+  const it = ITEM[itemIdOf(d)], e = engineDims(it, d), bag = isBag(it);
+  return { ...d, ...e, object: ENGINE[it.kind], handle: it.handles ? d.handle : (it.defaults.handle ?? "none"),
+    handleCm: it.handles ? d.handleCm || null : null, topA: bag ? d.topA || null : null, flapCm: bag ? d.flapCm || null : null };
+}
+
+/** A number in cm typed into a box: kept as typed, passed on only when valid (else null). */
+function CmInput({ label, value, range, onValue, autoFocus }: { label: string; value: number | null | undefined; range: [number, number]; onValue: (v: number | null) => void; autoFocus?: boolean }) {
+  const [raw, setRaw] = useState(value != null ? String(value) : "");
+  const v = Number(raw.trim()), err = !raw.trim() ? "숫자를 적어 주세요." : !Number.isFinite(v) || v <= 0 ? "0보다 큰 숫자를 적어 주세요."
+    : v < range[0] || v > range[1] ? `${range[0]}~${range[1]}cm 사이로 적어 주세요.` : "";
+  return (
+    <Field label={label} error={err || undefined}>
+      {(id, eb) => <span className="nb-mm"><input id={id} className="nb-input nb-short" inputMode="decimal" autoComplete="off" autoFocus={autoFocus} aria-invalid={!!err} aria-describedby={eb} value={raw}
+        onChange={e => { setRaw(e.target.value); const n = Number(e.target.value.trim()); onValue(e.target.value.trim() && Number.isFinite(n) && n >= range[0] && n <= range[1] ? n : null); }} /><span className="nb-unit">cm</span></span>}
+    </Field>
+  );
 }
 const numsOf = (d: Draft): Record<FieldKey, string> => ({ a: String(d.a), b: String(d.b), h: String(d.h), circ: String(d.circ ?? 56), depth: String(d.depth ?? 20) });
 
@@ -93,6 +116,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   const [tried, setTried] = useState(false); // step 3: required messages only after trying to move on
   const [groupOpen, toggleGroup] = useOneOpen("납작한 것");
   const [fold4, toggle4] = useOneOpen();
+  const [ownHandle, setOwnHandle] = useState(false); // handle: "직접 입력" picked (stays custom even on a preset value)
   const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(step);
   const formRef = useRef<HTMLFormElement>(null), turn = useRef<Turn | null>(null), pending = useRef<Snapshot | null>(null);
 
@@ -121,7 +145,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   const pickItem = (id: ItemId) => {
     if (id === item.id) return;
     const it = ITEM[id], dv = it.defaults;
-    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", circ: dv.circ, depth: dv.depth };
+    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, circ: dv.circ, depth: dv.depth };
     setDraft(d); setNums(numsOf(d));
   };
   const pickShape = (s: Shape) => {
@@ -152,7 +176,9 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   const input = useMemo(() => engineInput(draft), [draft]);
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
-  const stepOk = step === 3 ? yarnStepOk(draft) : step < 4 || Object.keys(errors).length === 0;
+  // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
+  const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
+  const stepOk = step === 3 ? yarnStepOk(draft) : step < 4 || (Object.keys(errors).length === 0 && !bagBad);
   const blockNext = step === 4 && !stepOk; // step 3 is never disabled: pressing it shows what is missing
 
   // Changing step: a turn still running is finished first (never two at once); on the desktop CSS book the
@@ -181,12 +207,12 @@ export function useNewBook(inBook?: WizStep): NewBookView {
 
   const save = () => {
     const e = engineInput(draft);
-    const d: Draft = { ...draft, shape: e.shape, a: e.a, b: e.b as number, h: e.h as number, object: e.object, handle: e.handle as Handle, name: draft.name.trim() || NO_NAME, item: item.id };
+    const d: Draft = { ...draft, shape: e.shape, a: e.a, b: e.b as number, h: e.h as number, object: e.object, handle: e.handle as Handle, handleCm: e.handleCm ?? null, topA: e.topA ?? null, flapCm: e.flapCm ?? null, name: draft.name.trim() || NO_NAME, item: item.id };
     if (d.object === "bag" && d.shape !== "circle" && d.b >= d.a) d.b = Math.max(4, d.a - 2); // as the old form did
     setDraft({ ...d, name: draft.name });
     if (editId) {
       const old = projects.find(x => x.id === editId);
-      const same = old && (["item", "object", "weight", "hook", "shape", "a", "b", "h", "handle"] as const).every(k => old[k] === d[k]);
+      const same = old && (["item", "object", "weight", "hook", "shape", "a", "b", "h", "handle", "handleCm", "topA", "flapCm"] as const).every(k => (old[k] ?? null) === (d[k] ?? null));
       updateProject(editId, { ...d, ...(same ? {} : { current: 0, measuredH: null, measuredW: null }) });
       setActive(editId);
     } else {
@@ -210,7 +236,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, left: null, right: null };
 
   const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇인가요?", 2: "무엇을 뜰까요?", 3: "어떤 실과 바늘을 쓰나요?", 4: "어떤 모양, 어떤 크기로 뜰까요?" };
-  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 모양과 크기 →", 4: "도안 보기 →" };
+  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 모양과 크기 →", 4: "완성 · 최종 도안 보기 →" };
 
   const progress = (
     <ol className="nb-progress" aria-label="진행 단계">
@@ -229,11 +255,10 @@ export function useNewBook(inBook?: WizStep): NewBookView {
 
   let left: ReactNode, right: ReactNode;
   if (step === 1) {
-    // ① the left page stays blank paper; the right page is the title page (progress moves there)
+    // ① the left page is the book's title (logo, month); the right page the name on a woven label (progress moves there)
     const when = editId ? projects.find(x => x.id === editId)?.created ?? Date.now() : Date.now();
-    left = null;
-    right = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress}
-      month={new Date(when).toLocaleString("en-US", { month: "long", year: "numeric" }).toUpperCase()} />;
+    left = <TitleCover month={new Date(when).toLocaleString("en-US", { month: "long", year: "numeric" }).toUpperCase()} />;
+    right = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} />;
   } else if (step === 2) {
     left = (
       <div className="nb-folds nb-groups">
@@ -265,7 +290,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   } else {
     const shapes = item.shapes ?? [];
     const sizeText = input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm` : input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`;
-    const handleRow = pp.rows.find(r => r.part === "handle"), start = pp.rows.find(r => r.part === "start");
+    const handlePick = draft.handle === "none" ? "none" : ownHandle || draft.handleCm === 0 || !HANDLE_PRESETS.some(([, v]) => v === handleCmOf(draft)) ? "own" : String(handleCmOf(draft));
+    const handleRow = pp.rows.find(r => r.part === "handle"), flapRows = pp.rows.filter(r => r.part === "flap").length, start = pp.rows.find(r => r.part === "start");
     left = (
       <>
         <p className="nb-itemline"><ItemArt id={item.id} />{item.name}{item.beta && <em className="nb-beta">베타</em>}</p>
@@ -281,11 +307,33 @@ export function useNewBook(inBook?: WizStep): NewBookView {
             </Field>
           ))}
         </div>
-        {item.handles && (
+        {isBag(item) && (
           <div className="nb-folds">
-            <Fold label="손잡이" value={HANDLE_KO[draft.handle]} open={fold4 === "handle"} onToggle={() => toggle4("handle")}>
-              <Radios label="손잡이" value={draft.handle} onPick={v => patch({ handle: v as Handle })} options={(["short", "long", "none"] as Handle[]).map(h => [h, HANDLE_KO[h]])} />
+            {/* body: straight, or wider at the top (the opening measured like the bottom) */}
+            <Fold label="몸통 모양" value={draft.topA ? `위로 넓어지는 · 입구 ${draft.topA}cm` : draft.topA === 0 ? "위로 넓어지는" : "일자형"} open={fold4 === "body"} onToggle={() => toggle4("body")}>
+              <Radios label="몸통 모양" value={draft.topA != null ? "flare" : "straight"} options={[["straight", "일자형"], ["flare", "위로 넓어지는"]]}
+                onPick={v => patch({ topA: v === "flare" ? Math.round(draft.a * 1.3) : null })} />
+              {draft.topA != null && <div className="nb-sub"><CmInput key={"top" + draft.shape + draft.a} label={draft.shape === "circle" ? "입구 지름 (cm)" : "입구 가로 (cm)"} value={draft.topA || null}
+                range={[Math.ceil(draft.a) + 1, Math.round(draft.a * 2)]} onValue={v => patch({ topA: v ?? 0 })} /></div>}
             </Fold>
+            {/* a flap (cover) over the opening, worked back and forth from the back */}
+            <Fold label="덮개" value={draft.flapCm ? `있음 · ${draft.flapCm}cm` : draft.flapCm === 0 ? "있음" : "없음"} open={fold4 === "flap"} onToggle={() => toggle4("flap")}>
+              <Radios label="덮개" value={draft.flapCm != null ? "yes" : "no"} options={[["no", "없음"], ["yes", "있음"]]}
+                onPick={v => patch({ flapCm: v === "yes" ? Math.max(4, Math.round(draft.h * 0.6)) : null })} />
+              {draft.flapCm != null && <div className="nb-sub"><CmInput label="덮개 길이 (cm)" value={draft.flapCm || null} range={[3, 40]} onValue={v => patch({ flapCm: v ?? 0 })} /></div>}
+            </Fold>
+            {item.handles && (
+              <Fold label="손잡이" value={handleText(draft)} open={fold4 === "handle"} onToggle={() => toggle4("handle")}>
+                <Radios label="손잡이" value={handlePick} onPick={v => {
+                  setOwnHandle(v === "own");
+                  if (v === "none") patch({ handle: "none" });
+                  else if (v === "own") patch({ handle: "short", handleCm: handleCmOf(draft) });
+                  else patch({ handle: "short", handleCm: Number(v) });
+                }} options={[...HANDLE_PRESETS.map(([n, v]): [string, ReactNode] => [String(v), `${n} ${v}cm`]), ["own", "직접 입력"], ["none", "없음"]]} />
+                {handlePick === "own" && <div className="nb-sub"><CmInput label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} autoFocus={ownHandle} onValue={v => patch({ handle: "short", handleCm: v ?? 0 })} /></div>}
+                <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm예요.</p>
+              </Fold>
+            )}
           </div>
         )}
         {item.note && <p className="nb-help">{item.note}</p>}
@@ -301,7 +349,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
           {input.object === "rows" && start && <b>{`시작 사슬 ${start.n}코 · 한 단 ${pp.last}코 · ${pp.bodyRows}단`}</b>}
           {input.object === "tube" && start && <b>{`시작 사슬 ${start.n}코 (고리) · ${pp.bodyRows}단`}</b>}
           {(input.object === "coaster" || input.object === "bag") && <b>{`바닥 ${pp.bottomRounds}단 · 마지막 단 ${pp.last}코`}</b>}
-          {input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
+          {input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (flapRows ? ` · 덮개 ${flapRows}단` : "") + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
         </p>
         <p className="nb-help">{input.object === "rows" || input.object === "tube"
           ? "코 수는 공식으로 계산해요. 5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 내 손에 맞게 고쳐 드려요."
@@ -333,7 +381,16 @@ export function useNewBook(inBook?: WizStep): NewBookView {
         <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
         <div className="nb-foot">
           <span className="nb-folio">{step * 2}</span>
-          <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !stepOk)}>{nextLabel[step]}</ClothLabel>
+          {step === 4
+            // the last step: a wide dark ribbon with a gold edge, unlike the small labels of the steps before
+            ? <button type="submit" className="nb-final" aria-disabled={blockNext || undefined}>
+                <span className="nb-final-face">
+                  <svg className="nb-final-mark" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 9.4 6.6 14.5 8 9.4 9.4 8 14.5 6.6 9.4 1.5 8 6.6 6.6Z" fill="currentColor" /></svg>
+                  <span className="nb-final-text"><small>마지막 단계</small>완성 · 최종 도안 보기</span>
+                  <span className="nb-final-arrow" aria-hidden="true">→</span>
+                </span>
+              </button>
+            : <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !stepOk)}>{nextLabel[step]}</ClothLabel>}
         </div>
       </section>
     ),

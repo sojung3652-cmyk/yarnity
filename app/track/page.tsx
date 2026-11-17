@@ -132,7 +132,8 @@ export default function TrackPage() {
   const nx = pp.rows[current + 1];
   const flag = !done && r.part === "rounds" && r.no === 1 ? "고리로 둥글게 이어 떠요. 단마다 첫 코에 빼뜨기로 닫아요."
     : !done && r.part === "rows" && r.no === 2 ? "단 끝마다 사슬 1코를 세우고 뒤집어요."
-    : !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? "여기부터 늘림 없이 위로."
+    : !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? (pp.rows.some(x => x.part === "body" && x.inc) ? "여기부터 위로. 단마다 늘림 수만큼 고르게 늘려요." : "여기부터 늘림 없이 위로.")
+    : !done && r.part === "flap" && r.label === "덮개 1" ? "뒤판 가운데에서 시작해 왕복으로 떠요."
     : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리해요." : "";
   const flat = p.object === "rows" || p.object === "tube";
   const showMeasure = !flat && current === 3 && !p.measuredH && pp.bottomRounds > 3;
@@ -154,7 +155,7 @@ export default function TrackPage() {
           </div>
         </div>
         <div className="card">
-          <div className="meta"><span id="trPart">{done ? "완성" : r.part === "start" ? "시작 사슬" : `${PART_KO[r.part]} · ${r.label}`}</span><span id="trCount">{done ? "" : (r.part === "bottom" && (r.no as number) > 1 ? `${pp.rows[r.idx - 1].n} → ${r.n}코` : `${r.n}코`)}</span></div>
+          <div className="meta"><span id="trPart">{done ? "완성" : r.part === "start" ? "시작 사슬" : `${PART_KO[r.part]} · ${r.label}`}</span><span id="trCount">{done ? "" : ((r.part === "bottom" && (r.no as number) > 1) || (r.part === "body" && r.inc) ? `${pp.rows[r.idx - 1].n} → ${r.n}코` : `${r.n}코`)}</span></div>
           <p className="now-row" id="trHow">{done ? "마지막 단까지 다 떴어요." : r.how}</p>
           <p className="small muted" id="trWhy">{done ? "" : r.why}</p>
           <div className="bar" aria-hidden="true"><i id="trBar" style={{ width: (current / total * 100) + "%" }} /></div>

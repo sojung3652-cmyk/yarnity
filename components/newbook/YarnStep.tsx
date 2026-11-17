@@ -1,13 +1,18 @@
 "use client";
-// 실과 바늘 (step 3 of 도안 만들기): the yarn on the left page, the hook and a short summary on the right.
-// Only what is needed now is open: the two required fields (yarn thickness, hook size). Everything else
-// is a folded row showing its current value; one row opens at a time. Every choice keeps its own
-// "직접 입력". Errors appear only when trying to move on with a required field empty.
+// 실과 바늘 (step 3 of 도안 만들기), one spread:
+//   left page  - the two required fields (yarn thickness, hook size), then "가지고 있는 실 정보" folded:
+//                name / brand, material, and what the yarn's label says (skein weight / length, count,
+//                shop, memo)
+//   right page - the colours (one row per yarn: colour, colour number, LOT), "+ 색 추가" for more yarns,
+//                and a short summary
+// Only the required fields are open; everything else is a folded row showing its current value, one row
+// open at a time. Every choice keeps its own "직접 입력". Errors appear only when trying to move on with a
+// required field empty.
 import { useState, type ReactNode } from "react";
 import type { Item } from "@/lib/items";
 import { fmt, YARN_KO, type Weight } from "@/lib/pattern";
-import type { Draft } from "@/lib/types";
-import { clean, HOOK_CHIPS, HOOK_MATERIALS, HOOK_MM_RANGE, hookLabel, hookMmOf, hookYarnMismatch, MATERIALS, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
+import type { Draft, YarnColor } from "@/lib/types";
+import { clean, HOOK_CHIPS, HOOK_MM_RANGE, hookLabel, hookMmOf, hookYarnMismatch, MATERIALS, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { Fold, useOneOpen } from "./Fold";
 import { HookSelect } from "./HookSelect";
 
@@ -16,6 +21,7 @@ export const COLORS: [string, string][] = [
   ["버터 노랑", "#F3DE98"], ["살구", "#F5C3A0"], ["모카 브라운", "#9C7A62"], ["차콜", "#4E4A4C"], ["흰색", "#FFFFFF"],
 ];
 const COMMON_MATERIALS = ["코튼", "울", "아크릴", "메리노", "리넨", "혼방"];
+const MAX_COLORS = 6;
 
 /** Required on this step: yarn thickness (mm in range, or a level picked) and a hook size. */
 export function yarnStepOk(d: Draft) {
@@ -64,7 +70,7 @@ const Text = ({ id, value, onChange, placeholder, label }: { id: string; value?:
   </>
 );
 
-// ---------------------------------------------------------------- left page: the yarn
+// ---------------------------------------------------------------- left page: yarn thickness, hook, the yarn
 export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; tried: boolean }) {
   const [open, toggle] = useOneOpen();
   const mats = draft.materials ?? [];
@@ -83,9 +89,8 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
   const toggleMat = (m: string) => patch({ materials: mats.includes(m) ? mats.filter(x => x !== m) : [...mats, m], ...(m === "혼방" && mats.includes(m) ? { blend: "" } : {}) });
   const customMats = mats.filter(m => !MATERIALS.includes(m));
   const listed = moreMats ? MATERIALS : COMMON_MATERIALS;
-  const preset = draft.color ? COLORS.find(([n, hex]) => hex === draft.color && n === draft.colorName) : undefined;
   const num = (k: "skeinG" | "skeinM" | "skeins") => (raw: string) => { const v = parseNum(raw); patch({ [k]: Number.isFinite(v) ? v : null } as Partial<Draft>); };
-  const labelVal = [draft.skeinG ? `${draft.skeinG}g` : "", draft.skeinM ? `${draft.skeinM}m` : "", draft.skeins ? `${draft.skeins}타래` : "", draft.shop ?? ""].filter(Boolean).join(" · ");
+  const info = [draft.yarn, mats.join(" · "), draft.skeinG ? `${draft.skeinG}g` : "", draft.skeinM ? `${draft.skeinM}m` : "", draft.skeins ? `${draft.skeins}타래` : "", draft.shop ?? ""].filter(Boolean).join(" · ");
 
   return (
     <div className="nb-stack">
@@ -108,45 +113,24 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
         {showErr && mode === "mm" ? <p className="nb-err" id="yMmErr">{mmErr}</p> : <p className="nb-help">실 라벨에 없으면 자로 실 가닥의 폭을 재 보세요.</p>}
       </div>
 
+      {/* required, open: hook size */}
+      <HookField draft={draft} patch={patch} tried={tried} />
+
       <div className="nb-folds">
-        <Fold label="실 이름 / 브랜드" value={draft.yarn} open={open === "name"} onToggle={() => toggle("name")}>
-          <Text id="yName" label="실 이름 / 브랜드" value={draft.yarn} onChange={v => patch({ yarn: v })} placeholder="예: 면 혼방 합사" />
-        </Fold>
-        <Fold label="재질" value={mats.join(" · ")} open={open === "mat"} onToggle={() => toggle("mat")}>
-          <div className="nb-chips" role="group" aria-label="재질 (여러 개)">
-            {listed.map(m => <button key={m} type="button" className="nb-chip" aria-pressed={mats.includes(m)} onClick={() => toggleMat(m)}>{m}</button>)}
-            {customMats.map(m => <span key={m} className="nb-chip nb-chip-own">{m}<button type="button" aria-label={`${m} 지우기`} onClick={() => toggleMat(m)}>×</button></span>)}
-            {!moreMats && <button type="button" className="nb-chip nb-chip-more" onClick={() => setMoreMats(true)}>더 보기</button>}
-            <AddChip label="재질 직접 입력" onAdd={v => { if (!mats.includes(v)) patch({ materials: [...mats, v] }); }} />
+        {/* everything the yarn's own label says, in one place */}
+        <Fold label="가지고 있는 실 정보" value={info} open={open === "info"} onToggle={() => toggle("info")}>
+          <div className="nb-mini"><label htmlFor="yName">실 이름 / 브랜드</label>
+            <input id="yName" className="nb-input nb-input-sm nb-wide" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: 면 혼방 합사" value={draft.yarn} onChange={e => patch({ yarn: e.target.value })} onBlur={e => patch({ yarn: clean(e.target.value) })} />
           </div>
-          {mats.includes("혼방") && <div className="nb-sub"><Text id="yBlend" label="혼방 비율" value={draft.blend} onChange={v => patch({ blend: v })} placeholder="혼방 비율 (예: 코튼 60 · 아크릴 40)" /></div>}
-        </Fold>
-        <Fold label="색" open={open === "color"} onToggle={() => toggle("color")}
-          value={draft.color || draft.colorName ? <>{draft.color && <i className="nb-swatch" style={{ background: draft.color }} />}{draft.colorName || "직접 고른 색"}{draft.colorNo ? ` · ${draft.colorNo}` : ""}</> : ""}>
-          {/* ten unlabelled dots (name on hover / for screen readers); clicking the picked one clears it */}
-          <div className="nb-dots" role="radiogroup" aria-label="실 색">
-            {COLORS.map(([n, hex]) => {
-              const on = preset?.[0] === n;
-              return <button key={n} type="button" role="radio" aria-checked={on} aria-label={n} title={n} className="nb-dot-color" style={{ background: hex }}
-                onClick={() => patch(on ? { color: undefined, colorName: undefined } : { color: hex, colorName: n })} />;
-            })}
+          <div className="nb-mini"><span className="nb-mini-lbl">재질</span>
+            <div className="nb-chips" role="group" aria-label="재질 (여러 개)">
+              {listed.map(m => <button key={m} type="button" className="nb-chip" aria-pressed={mats.includes(m)} onClick={() => toggleMat(m)}>{m}</button>)}
+              {customMats.map(m => <span key={m} className="nb-chip nb-chip-own">{m}<button type="button" aria-label={`${m} 지우기`} onClick={() => toggleMat(m)}>×</button></span>)}
+              {!moreMats && <button type="button" className="nb-chip nb-chip-more" onClick={() => setMoreMats(true)}>더 보기</button>}
+              <AddChip label="재질 직접 입력" onAdd={v => { if (!mats.includes(v)) patch({ materials: [...mats, v] }); }} />
+            </div>
+            {mats.includes("혼방") && <div className="nb-sub"><Text id="yBlend" label="혼방 비율" value={draft.blend} onChange={v => patch({ blend: v })} placeholder="혼방 비율 (예: 코튼 60 · 아크릴 40)" /></div>}
           </div>
-          <div className="nb-custom">
-            <label htmlFor="yColorName" className="sr">직접 입력한 색 이름</label>
-            <input id="yColorName" className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="직접 입력 (예: 올리브)" value={preset ? "" : draft.colorName ?? ""}
-              onChange={e => patch({ colorName: e.target.value || undefined, color: preset ? undefined : draft.color })} onBlur={e => patch({ colorName: clean(e.target.value) || undefined })} />
-            <label className="nb-picker" title="색 고르기"><span className="sr">직접 고른 색</span>
-              <input type="color" value={!preset && draft.color ? draft.color : "#C9B8E0"} onChange={e => patch({ color: e.target.value, colorName: preset ? undefined : draft.colorName })} />
-            </label>
-            <label htmlFor="yColorNo" className="sr">색 번호</label>
-            <input id="yColorNo" className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="색 번호 (예: No. 214)" value={draft.colorNo ?? ""} onChange={e => patch({ colorNo: e.target.value })} onBlur={e => patch({ colorNo: clean(e.target.value) })} />
-          </div>
-        </Fold>
-        <Fold label="LOT 번호" value={draft.lot} open={open === "lot"} onToggle={() => toggle("lot")}>
-          <Text id="yLot" label="LOT (염색 로트) 번호" value={draft.lot} onChange={v => patch({ lot: v })} placeholder="예: A2417-03" />
-          <p className="nb-help">나중에 같은 색 실을 더 살 때 필요해요. 실 라벨에 적혀 있어요.</p>
-        </Fold>
-        <Fold label="라벨 정보 더 적기" value={labelVal} open={open === "label"} onToggle={() => toggle("label")}>
           <div className="nb-grid2">
             {([["skeinG", "한 타래 무게 (g)"], ["skeinM", "한 타래 길이 (m)"], ["skeins", "가지고 있는 타래 수"]] as const).map(([k, l]) => (
               <div key={k} className="nb-mini"><label htmlFor={"y" + k}>{l}</label><input id={"y" + k} className="nb-input nb-input-sm" inputMode="decimal" defaultValue={draft[k] ?? ""} onChange={e => num(k)(e.target.value)} /></div>
@@ -160,9 +144,8 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
   );
 }
 
-// ---------------------------------------------------------------- right page: the hook and a short summary
-export function HookPage({ draft, patch, item, stitchMm, measureNote, tried }: { draft: Draft; patch: Patch; item: Item; stitchMm: number; measureNote: string; tried: boolean }) {
-  const [open, toggle] = useOneOpen();
+/** The hook size (required): a size from the list, or "직접 입력" in mm. */
+function HookField({ draft, patch, tried }: { draft: Draft; patch: Patch; tried: boolean }) {
   const chip = HOOK_CHIPS.find(([k, v]) => k === draft.hook && (!draft.hookMm || draft.hookMm === v));
   const [custom, setCustom] = useState(!chip && !!draft.hook);
   const [raw, setRaw] = useState(!chip && draft.hookMm ? String(draft.hookMm) : "");
@@ -177,35 +160,86 @@ export function HookPage({ draft, patch, item, stitchMm, measureNote, tried }: {
   };
   const mm = draft.hook ? hookMmOf(draft) : NaN;
   const mis = Number.isFinite(mm) ? hookYarnMismatch(mm, draft.yarnMode !== "level" ? draft.yarnMm : null) : null;
-  const preset = HOOK_MATERIALS.includes(draft.hookMaterial ?? "");
-  const [ownMat, setOwnMat] = useState(!!draft.hookMaterial && !preset);
+  return (
+    <div className="nb-field nb-field-open">
+      <span className="nb-lbl">코바늘 굵기</span>
+      <div className="nb-mm">
+        <HookSelect value={chip?.[0] ?? ""} custom={custom} invalid={showErr} describedBy={showErr ? "hErr" : undefined}
+          onPick={(k, m) => { setCustom(false); patch({ hook: k, hookMm: m }); }} onCustom={() => { setCustom(true); setMm(raw); }} />
+        {custom && <><label htmlFor="hMm" className="sr">코바늘 굵기 mm</label>
+          <input id="hMm" className="nb-input nb-short" inputMode="decimal" autoComplete="off" autoFocus aria-invalid={showErr} aria-describedby={showErr ? "hErr" : undefined} value={raw} onChange={e => setMm(e.target.value)} placeholder="예: 1.25" /><span className="nb-unit">mm</span></>}
+      </div>
+      {showErr ? <p className="nb-err" id="hErr">{err}</p> : <p className="nb-help">바늘에 적힌 mm를 기준으로 해요.</p>}
+      {mis && <p className="nb-warn" role="status">{mis === "thin" ? "이 실에는 바늘이 가늘어요. 편물이 빳빳해질 수 있어요." : "이 실에는 바늘이 굵어요. 편물이 성글어질 수 있어요."}</p>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- right page: the colours and a short summary
+/** The yarns' colours as one list: the first one lives in color / colorName / colorNo / lot (the preview
+ *  and the stitch map use it), the ones added after it in moreColors. */
+const colorsOf = (d: Draft): YarnColor[] => [{ hex: d.color, name: d.colorName, no: d.colorNo, lot: d.lot }, ...(d.moreColors ?? [])];
+function setColor(d: Draft, i: number, c: YarnColor): Partial<Draft> {
+  if (i === 0) return { color: c.hex, colorName: c.name, colorNo: c.no, lot: c.lot };
+  const more = [...(d.moreColors ?? [])]; more[i - 1] = c; return { moreColors: more };
+}
+
+function ColorEditor({ c, i, onChange }: { c: YarnColor; i: number; onChange: (c: YarnColor) => void }) {
+  const preset = c.hex ? COLORS.find(([n, hex]) => hex === c.hex && n === c.name) : undefined;
+  const id = (k: string) => `yc${i}${k}`;
+  return (
+    <>
+      {/* ten unlabelled dots (name on hover / for screen readers); clicking the picked one clears it */}
+      <div className="nb-dots" role="radiogroup" aria-label={`색 ${i + 1}`}>
+        {COLORS.map(([n, hex]) => {
+          const on = preset?.[0] === n;
+          return <button key={n} type="button" role="radio" aria-checked={on} aria-label={n} title={n} className="nb-dot-color" style={{ background: hex }}
+            onClick={() => onChange(on ? { ...c, hex: undefined, name: undefined } : { ...c, hex, name: n })} />;
+        })}
+      </div>
+      <div className="nb-custom">
+        <label htmlFor={id("n")} className="sr">직접 입력한 색 이름</label>
+        <input id={id("n")} className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="직접 입력 (예: 올리브)" value={preset ? "" : c.name ?? ""}
+          onChange={e => onChange({ ...c, name: e.target.value || undefined, hex: preset ? undefined : c.hex })} onBlur={e => onChange({ ...c, name: clean(e.target.value) || undefined })} />
+        <label className="nb-picker" title="색 고르기"><span className="sr">직접 고른 색</span>
+          <input type="color" value={!preset && c.hex ? c.hex : "#C9B8E0"} onChange={e => onChange({ ...c, hex: e.target.value, name: preset ? undefined : c.name })} />
+        </label>
+      </div>
+      <div className="nb-grid2">
+        <div className="nb-mini"><label htmlFor={id("no")}>색 번호</label>
+          <input id={id("no")} className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: No. 214" value={c.no ?? ""} onChange={e => onChange({ ...c, no: e.target.value })} onBlur={e => onChange({ ...c, no: clean(e.target.value) })} /></div>
+        <div className="nb-mini"><label htmlFor={id("lot")}>LOT 번호</label>
+          <input id={id("lot")} className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: A2417-03" value={c.lot ?? ""} onChange={e => onChange({ ...c, lot: e.target.value })} onBlur={e => onChange({ ...c, lot: clean(e.target.value) })} /></div>
+      </div>
+      <p className="nb-help">LOT(염색 로트)는 같은 색 실을 더 살 때 필요해요. 실 라벨에 적혀 있어요.</p>
+    </>
+  );
+}
+
+export function HookPage({ draft, patch, item, stitchMm, measureNote }: { draft: Draft; patch: Patch; item: Item; stitchMm: number; measureNote: string; tried?: boolean }) {
+  const [open, setOpen] = useState<number | null>(null);
+  const colors = colorsOf(draft);
+  const mm = draft.hook ? hookMmOf(draft) : NaN;
   const line1 = [draft.name.trim() || "이름 없는 작품", item.name].join(" · ");
   const line2 = [draft.yarn, draft.materials?.join(" · "), Number.isFinite(mm) ? hookLabel(mm).replace(" · ", " ") : ""].filter(Boolean).join(" · ");
+  const add = () => { patch({ moreColors: [...(draft.moreColors ?? []), {}] }); setOpen(colors.length); };
+  const remove = (i: number) => { patch({ moreColors: (draft.moreColors ?? []).filter((_, j) => j !== i - 1) }); setOpen(null); };
 
   return (
     <div className="nb-stack nb-hook">
-      {/* required, open: hook size */}
-      <div className="nb-field nb-field-open">
-        <span className="nb-lbl">코바늘 굵기</span>
-        <div className="nb-mm">
-          <HookSelect value={chip?.[0] ?? ""} custom={custom} invalid={showErr} describedBy={showErr ? "hErr" : undefined}
-            onPick={(k, m) => { setCustom(false); patch({ hook: k, hookMm: m }); }} onCustom={() => { setCustom(true); setMm(raw); }} />
-          {custom && <><label htmlFor="hMm" className="sr">코바늘 굵기 mm</label>
-            <input id="hMm" className="nb-input nb-short" inputMode="decimal" autoComplete="off" autoFocus aria-invalid={showErr} aria-describedby={showErr ? "hErr" : undefined} value={raw} onChange={e => setMm(e.target.value)} placeholder="예: 1.25" /><span className="nb-unit">mm</span></>}
-        </div>
-        {showErr ? <p className="nb-err" id="hErr">{err}</p> : <p className="nb-help">바늘에 적힌 mm를 기준으로 해요.</p>}
-        {mis && <p className="nb-warn" role="status">{mis === "thin" ? "이 실에는 바늘이 가늘어요. 편물이 빳빳해질 수 있어요." : "이 실에는 바늘이 굵어요. 편물이 성글어질 수 있어요."}</p>}
-      </div>
-
-      <div className="nb-folds">
-        <Fold label="코바늘 재질" value={draft.hookMaterial} open={open === "hmat"} onToggle={() => toggle("hmat")}>
-          <div className="nb-chips" role="group" aria-label="코바늘 재질">
-            {HOOK_MATERIALS.map(m => <button key={m} type="button" className="nb-chip" aria-pressed={draft.hookMaterial === m} onClick={() => { setOwnMat(false); patch({ hookMaterial: draft.hookMaterial === m ? undefined : m }); }}>{m}</button>)}
-            <button type="button" className="nb-chip nb-chip-add" aria-pressed={ownMat} onClick={() => { setOwnMat(true); if (preset) patch({ hookMaterial: "" }); }}>+ 직접 입력</button>
+      <span className="nb-lbl">색</span>
+      <div className="nb-folds nb-colors">
+        {colors.map((c, i) => (
+          <div key={i} className="nb-color-row">
+            <Fold label={colors.length > 1 ? `색 ${i + 1}` : "실 색"} open={open === i} onToggle={() => setOpen(o => (o === i ? null : i))}
+              value={c.hex || c.name || c.no || c.lot ? <>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || (c.hex ? "직접 고른 색" : "")}{c.no ? ` · ${c.no}` : ""}{c.lot ? ` · LOT ${c.lot}` : ""}</> : ""}>
+              <ColorEditor c={c} i={i} onChange={nc => patch(setColor(draft, i, nc))} />
+              {i > 0 && <button type="button" className="nb-link nb-color-del" onClick={() => remove(i)}>이 색 빼기</button>}
+            </Fold>
           </div>
-          {ownMat && <div className="nb-sub"><Text id="hMat" label="코바늘 재질 직접 입력" value={preset ? "" : draft.hookMaterial} onChange={x => patch({ hookMaterial: x || undefined })} placeholder="예: 카본" /></div>}
-        </Fold>
+        ))}
       </div>
+      {colors.length < MAX_COLORS && <button type="button" className="nb-chip nb-chip-add nb-color-add" onClick={add}>+ 색 추가 (실 추가)</button>}
 
       {/* summary: two sentences, then the expected stitch size */}
       <div className="nb-recap" aria-live="polite">

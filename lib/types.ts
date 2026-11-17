@@ -15,6 +15,10 @@ export interface Draft {
   b: number;
   h: number;
   handle: Handle;
+  /** bags: handle length (cm; unset = the old 25 / 90 of `handle`), a wider opening (like `a`), a flap (cm) */
+  handleCm?: number | null;
+  topA?: number | null;
+  flapCm?: number | null;
   /** yarn colour: hex (tints the preview and the stitch map) and its name */
   color?: string;
   colorName?: string;
@@ -23,6 +27,8 @@ export interface Draft {
   blend?: string;
   colorNo?: string;
   lot?: string;
+  /** more yarns / colours beyond the first (the first stays in color / colorName / colorNo / lot) */
+  moreColors?: YarnColor[];
   /** yarn thickness in mm as typed; weight is derived from it (lib/yarn.ts); "level" = picked thin/medium/thick */
   yarnMm?: number | null;
   yarnMode?: "mm" | "level";
@@ -38,6 +44,8 @@ export interface Draft {
   circ?: number;
   depth?: number;
 }
+
+export interface YarnColor { hex?: string; name?: string; no?: string; lot?: string }
 
 export interface Project extends Draft {
   id: string;
