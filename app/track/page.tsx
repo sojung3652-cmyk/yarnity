@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawTrack } from "@/lib/drawMap";
-import { StitchLegend, SymIcon } from "@/components/StitchLegend";
+import { StitchLegend } from "@/components/StitchLegend";
+import "../pattern/pattern.css";
 import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
-import { clamp, fmt, PART_KO, plan } from "@/lib/pattern";
+import { clamp, fmt, PART_KO, plan, type Row } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
 
 function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
@@ -71,17 +72,18 @@ function MeasureRows({ p, onApply }: { p: Project; onApply: (h: number, w: numbe
   );
 }
 
-// 따라 뜨기 in focus mode (Kim's pick: "카운터 집중 모드"): one paper card with only what is needed while
-// knitting - the section and how far along, the row in big type, what to do, the stitch count - and the
-// lower half of the card one big "한 단 끝" to tap. The stitch chart and the full row list stay folded
-// away in sheets (코 도안 / 전체 단), with 되돌리기 beside them. Space = 한 단 끝, Backspace = 되돌리기,
-// Esc closes a sheet. The screen is kept on while this page is open.
+// 따라 뜨기 on the pattern sheet (Kim's pick after trying the focus mode: everything in view, like the
+// pattern sheet): one sheet of cream paper - a header (the work, the section, how far along), the stitch
+// chart on graph paper on the left (always visible, the row being made in lavender) with its key, the
+// row being made as an index card on the right with a wide ribbon for 한 단 끝 (and 되돌리기), and the
+// rows below it: the last ones done ticked in pencil, this one marked, the next ones; "전체 단" shows all.
+// Space = 한 단 끝, Backspace = 되돌리기. The screen is kept on while this page is open.
 export default function TrackPage() {
   const { ready, active: p, updateProject } = useApp();
   const router = useRouter();
-  const cvRef = useRef<HTMLCanvasElement>(null), listRef = useRef<HTMLOListElement>(null);
+  const cvRef = useRef<HTMLCanvasElement>(null);
   const [wakeOn, setWakeOn] = useState(false);
-  const [sheet, setSheet] = useState<null | "chart" | "list">(null);
+  const [allRows, setAllRows] = useState(false);
   const wake = useRef<WakeLockSentinel | null>(null);
 
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
@@ -98,8 +100,8 @@ export default function TrackPage() {
     updateProject(p.id, { current: cur, status: cur >= total ? "done" : "knitting", pausedAt: null });
   }, [p, updateProject]);
 
-  // the chart sheet's canvas: drawn when the sheet opens, on change and on resize (120ms debounce)
-  const redraw = useCallback(() => { if (sheet === "chart" && p && pp && cvRef.current) drawTrack(cvRef.current, { ...p, current }, pp); }, [sheet, p, pp, current]);
+  // canvas: redraw on change and on resize (120ms debounce)
+  const redraw = useCallback(() => { if (p && pp && cvRef.current) drawTrack(cvRef.current, { ...p, current }, pp); }, [p, pp, current]);
   useEffect(() => {
     redraw();
     let rz: ReturnType<typeof setTimeout>;
@@ -107,20 +109,17 @@ export default function TrackPage() {
     addEventListener("resize", onResize);
     return () => { clearTimeout(rz); removeEventListener("resize", onResize); };
   }, [redraw]);
-  // the row list opens at the row being made
-  useEffect(() => { if (sheet === "list") listRef.current?.querySelector(".is-now")?.scrollIntoView({ block: "center" }); }, [sheet]);
 
-  // keyboard: Space = 한 단 끝, Backspace = 되돌리기, Esc = close the sheet
+  // keyboard: Space = 한 단 끝, Backspace = 되돌리기
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && sheet) { e.preventDefault(); setSheet(null); return; }
       if ((e.target as Element | null)?.closest?.("input,select,textarea,button")) return;
       if (e.code === "Space") { e.preventDefault(); step(1); }
       if (e.code === "Backspace") { e.preventDefault(); step(-1); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [step, sheet]);
+  }, [step]);
 
   // keep the screen on while tracking
   useEffect(() => {
@@ -156,79 +155,87 @@ export default function TrackPage() {
     : [p.shape === "circle" ? "ring" : "ch", "sc", "inc", ...(pp.rows.some(x => x.part === "rim") ? ["sl" as const] : [])];
   // sections in pattern order (01 바닥, 02 몸통...), as on the pattern sheet
   const parts = pp.rows.map(x => x.part).filter((x, i, a) => a.indexOf(x) === i);
-  const secNo = String(parts.indexOf(r.part) + 1).padStart(2, "0");
-  const count = (pp.rows[r.idx - 1] && ((r.part === "bottom" && (r.no as number) > 1) || (r.part === "body" && r.inc))) ? <>{pp.rows[r.idx - 1].n}<i>→</i>{r.n}</> : <>{r.n}</>;
+  const secNo = (part: Row["part"]) => String(parts.indexOf(part) + 1).padStart(2, "0");
+  const fromN = pp.rows[r.idx - 1] && ((r.part === "bottom" && (r.no as number) > 1) || (r.part === "body" && r.inc)) ? pp.rows[r.idx - 1].n : null;
+  // the rows under the card: two done, this one, five to come (or all of them)
+  const shown = allRows ? pp.rows : pp.rows.slice(Math.max(0, current - 2), current + 6);
 
   return (
     <main id="view-track" className="tk-main">
-      <div className="tk-top">
-        <h1 id="trTitle">{p.name}</h1>
-        <span className="tk-wake" id="wakeNote">{wakeOn ? "화면 켜짐 유지 중" : ""}</span>
-        <Link className="tk-link" href="/pattern">도안 보기</Link>
-      </div>
-
-      <section className="tk-card" aria-label="지금 뜨는 단">
-        <div className="tk-head">
-          <span className="tk-sec" id="trPart">{done ? "완성" : r.part === "start" ? <><b>{secNo}</b>시작 사슬</> : <><b>{secNo}</b>{PART_KO[r.part]}</>}</span>
-          <span className="tk-pos" aria-label={`전체 ${total}줄 중 ${Math.min(current + 1, total)}번째`}>{Math.min(current + 1, total)}<i>/</i>{total}</span>
-        </div>
-        <div className="tk-bar" aria-hidden="true"><i id="trBar" style={{ width: (current / total * 100) + "%" }} /></div>
-
-        <div className="tk-now">
-          {done ? (
-            <>
-              <p className="tk-row">완성</p>
-              <p className="tk-how" id="trHow">마지막 단까지 다 떴어요.</p>
-              <p className="tk-done-links"><Link href="/pattern">도안 다시 보기</Link><Link href="/mine">사진 남기기 (내 작품)</Link></p>
-            </>
-          ) : (
-            <>
-              <p className="tk-row">{r.label}</p>
-              <p className="tk-how" id="trHow">{r.how}</p>
-              <p className="tk-count" id="trCount">{count}<span>코</span></p>
-              <p className="tk-why" id="trWhy">{r.why}</p>
-              {flag && <p className="flag tk-flag" id="trFlag">{flag}</p>}
-              <div id="trMeasure">{showMeasure && <Measure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} />}
-                {showMeasureRows && <MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} />}</div>
-            </>
-          )}
+      <article className="tk-sheet-page" aria-labelledby="trTitle">
+        <header className="tk-head">
+          <div className="tk-head-l">
+            <p className="tk-kicker" lang="en">Yarnity · Knitting along</p>
+            <h1 id="trTitle">{p.name}</h1>
+          </div>
+          <div className="tk-head-r">
+            <span className="tk-wake" id="wakeNote">{wakeOn ? "화면 켜짐 유지 중" : ""}</span>
+            <Link className="ps-label tk-label" href="/pattern"><span>도안 보기</span></Link>
+          </div>
+        </header>
+        <div className="tk-progress">
+          <span className="tk-sec" id="trPart">{done ? "완성" : r.part === "start" ? <><b>{secNo(r.part)}</b>시작 사슬</> : <><b>{secNo(r.part)}</b>{PART_KO[r.part]} · {r.label}</>}</span>
+          <div className="tk-bar" aria-hidden="true"><i id="trBar" style={{ width: (current / total * 100) + "%" }} /></div>
+          <span className="tk-pos">{Math.min(current + 1, total)}<i>/</i>{total}</span>
         </div>
 
-        {/* the lower half: one big target */}
-        <button className="tk-tap" id="doneBtn" type="button" disabled={done} onClick={() => step(1)}>
-          <span className="tk-tap-main">한 단 끝</span>
-          <span className="tk-tap-next" id="doneNext">{done ? "" : (nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단")}</span>
-          <span className="tk-tap-key" aria-hidden="true">Space</span>
-        </button>
+        <div className="tk-grid">
+          {/* the chart, always in view */}
+          <section className="tk-chart" aria-label="코 도안">
+            <h2 className="tk-box-title">코 도안</h2>
+            <div className="tk-graph"><canvas id="trCanvas" ref={cvRef} role="img" aria-label="코 도안" /></div>
+            <StitchLegend syms={syms} />
+          </section>
 
-        <nav className="tk-tools" aria-label="뜨기 도구">
-          <button type="button" aria-expanded={sheet === "chart"} onClick={() => setSheet(s => (s === "chart" ? null : "chart"))}><SymIcon sym="sc" />코 도안</button>
-          <button type="button" aria-expanded={sheet === "list"} onClick={() => setSheet(s => (s === "list" ? null : "list"))}><span className="tk-ico" aria-hidden="true">≡</span>전체 단</button>
-          <button type="button" id="undoBtn" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}><span className="tk-ico" aria-hidden="true">↶</span>되돌리기</button>
-        </nav>
-      </section>
+          <section className="tk-side" aria-label="지금 뜨는 단">
+            {/* the row being made, as an index card */}
+            <div className="tk-card">
+              {done ? (
+                <>
+                  <p className="tk-row">완성</p>
+                  <p className="tk-how" id="trHow">마지막 단까지 다 떴어요.</p>
+                  <p className="tk-done-links"><Link href="/pattern">도안 다시 보기</Link><Link href="/mine">사진 남기기 (내 작품)</Link></p>
+                </>
+              ) : (
+                <>
+                  <div className="tk-card-top"><span className="tk-row">{r.label}</span>
+                    <span className="tk-count" id="trCount">{fromN != null && <>{fromN}<i>→</i></>}{r.n}<span>코</span></span></div>
+                  <p className="tk-how" id="trHow">{r.how}</p>
+                  <p className="tk-why" id="trWhy">{r.why}</p>
+                  {flag && <p className="flag tk-flag" id="trFlag">{flag}</p>}
+                  <div id="trMeasure">{showMeasure && <Measure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} />}
+                    {showMeasureRows && <MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} />}</div>
+                </>
+              )}
+            </div>
 
-      {sheet && (
-        <div className="tk-sheet-bg" onClick={() => setSheet(null)}>
-          <div className="tk-sheet" role="dialog" aria-modal="true" aria-label={sheet === "chart" ? "코 도안" : "전체 단"} onClick={e => e.stopPropagation()}>
-            <div className="tk-sheet-head"><h2>{sheet === "chart" ? "코 도안" : "전체 단"}</h2><button type="button" className="tk-x" aria-label="닫기" autoFocus onClick={() => setSheet(null)}>×</button></div>
-            {sheet === "chart" ? (
-              <div className="tk-chart">
-                <canvas id="trCanvas" ref={cvRef} role="img" aria-label="코 도안" />
-                <StitchLegend syms={syms} />
-              </div>
-            ) : (
-              <ol className="tk-list" ref={listRef}>
-                {pp.rows.map(x => (
+            {/* a wide ribbon to tap, and a small undo beside it */}
+            <div className="tk-acts">
+              <button className="tk-undo" id="undoBtn" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>↶<span>되돌리기</span></button>
+              <button className="tk-ribbon" id="doneBtn" type="button" disabled={done} onClick={() => step(1)}>
+                <span className="tk-ribbon-face">
+                  <span className="tk-ribbon-main">한 단 끝</span>
+                  <span className="tk-ribbon-next" id="doneNext">{done ? "" : (nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단")}</span>
+                </span>
+              </button>
+            </div>
+            <p className="tk-keys"><kbd>Space</kbd> 한 단 끝 · <kbd>Backspace</kbd> 되돌리기</p>
+
+            {/* the rows around this one */}
+            <div className="tk-rows">
+              <div className="tk-rows-head"><h2 className="tk-box-title">단 목록</h2>
+                <button type="button" className="tk-more" aria-expanded={allRows} onClick={() => setAllRows(a => !a)}>{allRows ? "가까운 단만" : `전체 ${total}단 보기`}</button></div>
+              <ol className="tk-list" id="trNext">
+                {shown.map(x => (
                   <li key={x.idx} className={x.idx < current ? "is-done" : x.idx === current ? "is-now" : ""}>
-                    <span className="tk-l-no">{x.idx < current ? "✓ " : ""}{x.label}</span><span className="tk-l-how">{x.how}</span><span className="tk-l-n">{x.n}코</span>
+                    <span className="tk-l-no">{x.label}</span><span className="tk-l-how">{x.how}</span><span className="tk-l-n">{x.n}<small>코</small></span>
                   </li>
                 ))}
               </ol>
-            )}
-          </div>
+            </div>
+          </section>
         </div>
-      )}
+      </article>
     </main>
   );
 }
