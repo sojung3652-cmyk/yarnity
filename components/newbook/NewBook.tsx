@@ -118,6 +118,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   const [fold4, toggle4] = useOneOpen();
   const [ownHandle, setOwnHandle] = useState(false); // handle: "직접 입력" picked (stays custom even on a preset value)
   const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(step);
+  // the saved step when the wizard opened: a draft already past step 2 has its item (older drafts carry no flag)
+  const startStep = useRef(store.get<number>(STEP_KEY, 1));
   const formRef = useRef<HTMLFormElement>(null), turn = useRef<Turn | null>(null), pending = useRef<Snapshot | null>(null);
 
   // enter: a saved work to edit (?edit=id; BookProvider opens it on step 4) or the saved draft
@@ -130,7 +132,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     if (p) {
       const it = ITEM[itemIdOf(p)];
       const { id: _id, measuredH: _mh, measuredW: _mw, current: _cur, created: _cr, ...saved } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
-      d = { ...saved, name: p.name === NO_NAME ? "" : p.name, item: it.id, circ: p.circ ?? it.defaults.circ, depth: p.depth ?? it.defaults.depth,
+      d = { ...saved, itemPicked: true, name: p.name === NO_NAME ? "" : p.name, item: it.id, circ: p.circ ?? it.defaults.circ, depth: p.depth ?? it.defaults.depth,
         yarnMode: p.yarnMode ?? (p.yarnMm ? "mm" : "level") }; // older works: their thin/medium/thick stays
       setDraft(d); setEditId(p.id);
     }
@@ -143,9 +145,9 @@ export function useNewBook(inBook?: WizStep): NewBookView {
 
   // a new item starts from its own defaults (no values carried over from the previous item)
   const pickItem = (id: ItemId) => {
-    if (id === item.id) return;
+    if (id === item.id) { if (!draft.itemPicked) patch({ itemPicked: true }); return; }
     const it = ITEM[id], dv = it.defaults;
-    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, circ: dv.circ, depth: dv.depth };
+    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, circ: dv.circ, depth: dv.depth, itemPicked: true };
     setDraft(d); setNums(numsOf(d));
   };
   const pickShape = (s: Shape) => {
@@ -179,8 +181,10 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
-  const stepOk = step < 3 || (yarnStepOk(draft) && Object.keys(errors).length === 0 && !bagBad);
-  const blockNext = step === 4 && !stepOk; // step 3 is never disabled: pressing it shows what is missing
+  // step 2: an item has to be picked (nothing is shown until then)
+  const picked = !!draft.itemPicked || !!editId || startStep.current > 2;
+  const stepOk = step === 2 ? picked : step < 3 || (yarnStepOk(draft) && Object.keys(errors).length === 0 && !bagBad);
+  const blockNext = (step === 4 || step === 2) && !stepOk; // step 3 is never disabled: pressing it shows what is missing
 
   // Changing step: a turn still running is finished first (never two at once); on the desktop CSS book the
   // current pages are snapshotted for the page turn, which starts once the new step is rendered.
@@ -263,25 +267,40 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   } else if (step === 2) {
     left = (
       <div className="nb-folds nb-groups">
+        {tried && !picked && <p className="nb-err" role="alert">뜨고 싶은 것을 하나 골라 주세요.</p>}
         {GROUPS.map(gname => (
-          <Fold key={gname} label={gname} value={item.group === gname ? item.name : ""} open={groupOpen === gname} onToggle={() => toggleGroup(gname)}>
-            <Radios kind="item" label={gname} value={item.group === gname ? item.id : ("" as ItemId)} onPick={pickItem}
+          <Fold key={gname} label={gname} value={picked && item.group === gname ? item.name : ""} open={groupOpen === gname} onToggle={() => toggleGroup(gname)}>
+            <Radios kind="item" label={gname} value={picked && item.group === gname ? item.id : ("" as ItemId)} onPick={pickItem}
               options={ITEMS.filter(i => i.group === gname).map(i => [i.id, <><ItemArt id={i.id} /><span>{i.name}{i.beta && <em className="nb-beta">베타</em>}</span></>])} />
           </Fold>
         ))}
       </div>
     );
-    right = (
-      <div className="nb-show">
-        <ItemArt id={item.id} big fill={draft.color} />
-        <h3>{item.name}{item.beta && <em className="nb-beta">베타</em>}</h3>
-        <p>{item.desc}</p>
-        <dl className="nb-facts">
-          <div><dt>난이도</dt><dd>{item.level}</dd></div>
+    // the right page: nothing to show until an item is picked; then the item as a hang tag - its picture
+    // on a tag tied with a string, its group, name and a line about it, then a small ruled card: how hard
+    // (three dots), how long, and the order it is made in as numbered steps
+    const steps = item.method.split("→").map(x => x.trim()).filter(Boolean), lv = item.level === "쉬움" ? 1 : 2;
+    right = picked ? (
+      <div className="sh" key={item.id}>
+        <div className="sh-tag">
+          <span className="sh-string" aria-hidden="true" /><span className="sh-hole" aria-hidden="true" />
+          <ItemArt id={item.id} big fill={draft.color} />
+        </div>
+        <p className="sh-group">{item.group}</p>
+        <h3 className="sh-name">{item.name}{item.beta && <em className="nb-beta">베타</em>}</h3>
+        <p className="sh-desc">{item.desc}</p>
+        <dl className="sh-facts">
+          <div><dt>난이도</dt><dd><span className="sh-dots" aria-hidden="true">{[1, 2, 3].map(i => <i key={i} className={i <= lv ? "on" : ""} />)}</span>{item.level}</dd></div>
           <div><dt>예상 시간</dt><dd>{item.time}</dd></div>
-          <div><dt>뜨는 방식</dt><dd>{item.method}</dd></div>
+          <div className="sh-steps-row"><dt>뜨는 순서</dt><dd><ol className="sh-steps">{steps.map((x, i) => <li key={x}>{i > 0 && <span className="sh-line" aria-hidden="true" />}<b>{i + 1}</b>{x}</li>)}</ol></dd></div>
         </dl>
-        {item.note && <p className="nb-help">{item.note}</p>}
+        {item.note && <p className="nb-help sh-note">{item.note}</p>}
+      </div>
+    ) : (
+      <div className="sh-empty">
+        <span className="sh-empty-tag" aria-hidden="true"><span className="sh-hole" /></span>
+        <p>왼쪽에서 뜨고 싶은 것을 골라 보세요.</p>
+        <p className="nb-help">고르면 여기에 소개가 나와요.</p>
       </div>
     );
   } else {

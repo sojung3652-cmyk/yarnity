@@ -15,6 +15,8 @@ export interface Draft {
   b: number;
   h: number;
   handle: Handle;
+  /** the item was picked on step 2 (a new draft starts with none shown; the mini bag is only its default) */
+  itemPicked?: boolean;
   /** bags: handle length (cm; unset = the old 25 / 90 of `handle`), a wider opening (like `a`), a flap (cm) */
   handleCm?: number | null;
   topA?: number | null;

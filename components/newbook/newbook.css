@@ -421,3 +421,34 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .nb-sec{display:flex;flex-direction:column;margin-bottom:18px}
 .nb-sec-title{margin:0 0 16px;padding-bottom:8px;font-size:18px;font-weight:600;color:#2E2420;letter-spacing:-.01em;border-bottom:1px solid #E2D6CB}
 .nb-sec .nb-field-open{margin-bottom:20px}
+/* ---- step 2, the right page: the picked item as a hang tag (Kim: the old layout looked plain) ----
+   all real elements (no pseudo-elements), so a turn's page picture shows them too */
+.sh{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:14px;animation:sh-in .35s cubic-bezier(.2,.7,.3,1)}
+@keyframes sh-in{from{opacity:0;transform:translateY(8px)}}
+.sh-tag{position:relative;display:flex;align-items:center;justify-content:center;width:min(230px,62%);aspect-ratio:1/1.08;padding:30px 18px 14px;box-sizing:border-box;
+  background:#FFFDF8;border:1px solid #E6DACE;border-radius:14px 14px 8px 8px;box-shadow:0 1px 2px rgba(70,50,40,.1),0 10px 22px -14px rgba(70,50,40,.35);transform:rotate(-2deg)}
+.sh-tag .nb-art-big{width:100%;height:auto}
+.sh-hole{position:absolute;top:12px;left:50%;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--paper,#FBF3EA);box-shadow:inset 0 1px 2px rgba(70,50,40,.35)}
+.sh-string{position:absolute;bottom:calc(100% - 17px);left:50%;width:1.5px;height:34px;margin-left:-.75px;background:#B9A3E3;transform:rotate(14deg);transform-origin:bottom}
+.sh-group{margin:20px 0 0;font-size:11px;font-weight:600;letter-spacing:.24em;color:#9B86C4}
+.sh-name{margin:6px 0 0;font-size:22px;font-weight:600;letter-spacing:-.01em;color:#2E2420}
+.sh-desc{margin:6px 0 0;font-size:14px;color:#6B5C55}
+.sh-facts{display:grid;grid-template-columns:1fr 1fr;gap:0;width:min(100%,400px);margin:20px 0 0;border-top:1px solid #DDCFC3;border-bottom:1px solid #DDCFC3}
+.sh-facts>div{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px}
+.sh-facts>div+div{border-left:1px solid #E8DDD2}
+.sh-facts .sh-steps-row{grid-column:1 / -1;border-left:0;border-top:1px solid #E8DDD2}
+.sh-facts dt{font-size:11.5px;color:#8C7B72;letter-spacing:.04em}
+.sh-facts dd{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;font-weight:500;color:#3A2E29}
+.sh-dots{display:inline-flex;gap:3px}
+.sh-dots i{width:7px;height:7px;border-radius:50%;border:1px solid #B9A3E3}
+.sh-dots i.on{background:#B9A3E3}
+.sh-steps{display:flex;align-items:center;gap:6px;margin:0;padding:0;list-style:none;flex-wrap:wrap;justify-content:center}
+.sh-steps li{display:inline-flex;align-items:center;gap:6px}
+.sh-line{display:inline-block;width:16px;height:1px;background:#C9B8E0;margin-right:2px}
+.sh-steps b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#EDE5F6;font-size:10.5px;font-weight:600;color:#6E5A96}
+.sh-note{margin-top:12px}
+/* before an item is picked: an empty tag, dashed */
+.sh-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:60%;text-align:center;color:#6B5C55}
+.sh-empty-tag{position:relative;display:block;width:120px;aspect-ratio:1/1.08;margin-bottom:14px;border:1.5px dashed #CDBFE3;border-radius:14px 14px 8px 8px;transform:rotate(-2deg)}
+.sh-empty p{margin:0;font-size:14.5px}
+@media (prefers-reduced-motion:reduce){.sh{animation:none}}

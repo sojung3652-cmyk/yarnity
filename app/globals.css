@@ -199,13 +199,32 @@ html{overflow-x:clip}
    (still mounted: one WebGL canvas for the whole app). */
 .hero-desk{position:absolute;top:0;left:calc(50% - 50vw);z-index:0;height:100svh;width:100vw;overflow:hidden;isolation:isolate;background:var(--bg)}
 .hero-desk.is-hidden{visibility:hidden;pointer-events:none}
-/* the book opened over another page (새 도안): the stage covers the screen where you are, the page under it
-   does not scroll */
-.hero-desk.is-overlay{position:fixed;inset:0;left:0;z-index:60;width:100vw;height:100svh;animation:stage-in .3s ease-out}
-@keyframes stage-in{from{opacity:0}}
-@media (prefers-reduced-motion:reduce){.hero-desk.is-overlay{animation:none}}
+/* the book opened over another page (새 도안, Kim: "책만 아래서부터 뜨게"): no home backdrop or logo - the page
+   stays, dimmed, and the book alone rises from the bottom (0.55s, ease-out); the page does not scroll */
+.hero-desk.is-overlay{position:fixed;inset:0;left:0;z-index:60;width:100vw;height:100svh;background:rgba(58,46,41,.3);animation:stage-in .3s ease-out}
+.hero-desk.is-overlay .hero-stage{display:none}
+.hero-desk.is-overlay .book3d,.hero-desk.is-overlay .book-css-slot{animation:book-up .55s cubic-bezier(.2,.8,.2,1)}
+@keyframes stage-in{from{background-color:rgba(58,46,41,0)}}
+@keyframes book-up{from{transform:translateY(100svh)}}
+@media (prefers-reduced-motion:reduce){.hero-desk.is-overlay,.hero-desk.is-overlay .book3d,.hero-desk.is-overlay .book-css-slot{animation:none}}
 body:has(.hero-desk.is-overlay){overflow:hidden}
-.nav-links button.nav-btn{border:0;background:none;font:inherit;cursor:pointer}
+/* the nav's two buttons as small woven labels (as on the pattern sheet): 새 도안 in lavender, 내 도안집 cream */
+.nav-links{gap:10px}
+.nav-label{--tilt:-1deg;display:inline-flex;padding:3px 2px;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer}
+.nav-label+.nav-label{--tilt:.8deg}
+.nav-label>span{position:relative;display:inline-flex;align-items:center;height:34px;padding:0 20px;border-radius:2px;font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#3A2E29;white-space:nowrap;
+  background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
+  box-shadow:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.08);transform:rotate(var(--tilt));transition:transform .18s ease}
+.nav-label>span::before,.nav-label>span::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed #C4B5DD}
+.nav-label>span::before{left:7px}.nav-label>span::after{right:7px}
+.nav-label-new>span{background:repeating-linear-gradient(0deg,rgba(80,60,110,.07) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(80,60,110,.06) 0 1px,transparent 1px 3px),#D9CCEB;font-weight:600}
+.nav-label-new>span::before,.nav-label-new>span::after{border-color:#FBF3EA}
+.nav-label:hover>span,.nav-label[aria-current="page"]>span{transform:rotate(0) translateY(-1px)}
+.nav-label[aria-current="page"]>span{box-shadow:0 0 0 1.5px #B9A3E3,0 4px 10px rgba(70,50,40,.1)}
+.nav-label:focus-visible{outline:none}
+.nav-label:focus-visible>span{outline:2px solid #3A2E29;outline-offset:3px}
+@media (max-width:640px){.nav-label>span{height:30px;padding:0 14px;font-size:12px}.nav-links{gap:4px}}
+@media (prefers-reduced-motion:reduce){.nav-label>span{transition:none}}
 .book-stage-space{height:100svh}
 /* /new in the 3D book: exactly one screen, nothing to scroll (a focused field never scrolls the book away) */
 body:has(#view-new .book-stage-space){overflow:hidden}
