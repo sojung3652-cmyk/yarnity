@@ -72,6 +72,11 @@
   .ps-box+.ps-box{border-left:0;border-top:1px solid var(--ps-rule)}
   .ps-table th{width:58px}
   .ps-n{width:56px}
+  /* the kicker breaks between its parts, never inside one */
+  .ps-kicker{flex-wrap:wrap;gap:4px 12px;letter-spacing:.2em}
+  .ps-kicker span{white-space:nowrap}
+  .ps-kicker span+span::before{content:none}
+  .ps-kicker{gap:4px 16px}
 }
 
 /* print: the sheet alone, on white, full width */

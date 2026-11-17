@@ -174,7 +174,7 @@ export default function TrackPage() {
       <article className="tk-sheet-page" aria-labelledby="trTitle">
         <header className="tk-head">
           <div className="tk-head-l">
-            <p className="tk-kicker" lang="en">Yarnity · Knitting along</p>
+            <p className="tk-kicker" lang="en">Yarnity · Knitting{" "}along</p>
             <h1 id="trTitle">{p.name}</h1>
           </div>
           <div className="tk-head-r">

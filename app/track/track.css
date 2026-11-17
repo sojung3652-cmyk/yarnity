@@ -97,6 +97,7 @@
 
 @media (prefers-reduced-motion:reduce){.tk-bar i,.tk-ribbon-face{transition:none}}
 @media (max-width:860px){
+  .tk-kicker{letter-spacing:.14em;font-size:10px}
   .tk-sheet-page{margin:8px 8px 0;padding:24px 18px 24px}
   .tk-sheet-page::before{inset:8px}
   .tk-grid{grid-template-columns:minmax(0,1fr);gap:22px}

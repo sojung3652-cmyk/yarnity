@@ -353,3 +353,10 @@ body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
 /* home: the gold wordmark at the very bottom sits a little closer (just below the first screen) */
 #view-home + footer{padding-top:30px;padding-bottom:32px}
 
+/* phones: the centred logo left the labels squeezed against the right edge; logo left, labels right */
+@media (max-width:520px){
+  .nav{grid-template-columns:auto 1fr;gap:8px;padding-block:14px}
+  .nav .brand-logo{grid-column:1}
+  .nav .nav-links{grid-column:2}
+  .brand-logo img,.brand-logo .nav-foil{height:52px}
+}
