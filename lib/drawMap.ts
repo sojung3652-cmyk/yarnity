@@ -51,6 +51,14 @@ export function drawMap(cv: HTMLCanvasElement, pp: Plan, shape: Shape, upto: num
 
   for (const d of ds) {
     const st = stateOf(d.r), n = d.pts.length;
+    // the seam: between the round's last and first stitch - the 기둥사슬 standing outward, the slip stitch
+    // that joins the round just inside it
+    if ((pp.rows[d.r - 1] as { turn?: number }).turn && n > 1) {
+      const a = d.pts[n - 1], b = d.pts[0], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, len = Math.hypot(mx, my) || 1;
+      const ang = Math.atan2(mx / len, -my / len), k = (d.r - 0.45) / d.r;
+      drawSym(ctx, "ch", cx + mx * sc, cy + my * sc, size * 0.62, ang + Math.PI / 2, col[st], weight); // standing along the radius, as charts draw a 기둥사슬
+      drawSym(ctx, "sl", cx + mx * sc * k, cy + my * sc * k, size * 0.55, ang, col[st], weight);
+    }
     d.pts.forEach((p, i) => {
       // outward normal from the neighbours' tangent (works for circles, ovals and rectangles)
       const a = d.pts[(i - 1 + n) % n], b = d.pts[(i + 1) % n], tx = b.x - a.x, ty = b.y - a.y, nx = ty, ny = -tx;
@@ -77,6 +85,8 @@ export function drawTrack(cv: HTMLCanvasElement, p: Project, pp: Plan) {
     const st: St = r.idx < p.current ? "done" : r.idx === p.current ? "now" : "future";
     const y = y1 - (i + 0.5) * rowH, n = Math.min(36, r.n), gap = bw / n, size = Math.max(5, Math.min(rowH * 0.9, gap * 1.3));
     const slip = r.part === "rim" && r.how.startsWith("빼뜨기"), incs = Math.min(n, Math.round((r.inc || 0) * n / r.n));
+    // the 기둥사슬 at the row's start (left), the joining slip stitch at its end (right)
+    if ((r as { turn?: number }).turn) { drawSym(ctx, "ch", x0 - gap * 0.7, y, Math.min(size, gap * 1.1) * 0.8, Math.PI / 2, col[st], 1); drawSym(ctx, "sl", x0 + bw + gap * 0.6, y, size * 0.55, 0, col[st], 1); }
     for (let k = 0; k < n; k++) {
       const isInc = incs > 0 && Math.floor((k + 1) * incs / n) !== Math.floor(k * incs / n);
       drawSym(ctx, slip ? "sl" : isInc ? "inc" : "sc", x0 + (k + 0.5) * gap, y, slip ? size * 0.8 : size, 0, col[st], size < 8 ? 1 : 1.2);
@@ -102,8 +112,11 @@ function drawGrid(cv: HTMLCanvasElement, p: Project, pp: Plan) {
     const y = y1 - (i - from + 1) * rowH;
     for (let k = 0; k < n; k++) drawSym(ctx, "sc", x0 + (k + 0.5) * gap, y, size, 0, col[st], weight);
     // rows: the turning chain at the end the next row starts from (alternating sides); tubes: the slip stitch
-    const side = tube ? x0 - gap * 0.6 : (i % 2 === 0 ? x0 + bw + gap * 0.6 : x0 - gap * 0.6);
-    drawSym(ctx, tube ? "sl" : "ch", side, y, tube ? size * 0.7 : Math.min(size, gap * 1.05), tube ? 0 : Math.PI / 2, col[st], weight);
+    // rows: the 기둥사슬 at the end the next row starts from (alternating sides); tubes: the 기둥사슬 at the
+    // round's start and the slip stitch closing it
+    const side = tube ? x0 - gap * 0.7 : (i % 2 === 0 ? x0 + bw + gap * 0.6 : x0 - gap * 0.6);
+    drawSym(ctx, "ch", side, y, Math.min(size, gap * 1.05) * 0.85, Math.PI / 2, col[st], weight);
+    if (tube) drawSym(ctx, "sl", x0 + bw + gap * 0.6, y, size * 0.6, 0, col[st], weight);
   }
   // overall position
   const bx = x0 + bw + 26, bh = H - 80, by = 40;

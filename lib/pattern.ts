@@ -236,3 +236,29 @@ export function planTube(p: PlanInput): Plan {
   labelFlat(rows);
   return { g, c: n, rows, bottomRounds: 0, bodyRows: R, last: n };
 }
+
+// ---- 기둥사슬 (standing / turning chain) in the instructions ----
+// Every row and round here is single crochet, so each starts with 1 chain up to the stitch height - the
+// 기둥사슬 - which is not counted as a stitch (for 한길긴뜨기 and taller it would be 3+ and count as the
+// first stitch). Rounds are joined: 기둥사슬 1 at the start, a slip stitch into the first stitch at the end
+// (a slip stitch has no height, so the rim's slip-stitch round needs no 기둥사슬). Rows turn after it.
+// The engine above stays as the prototype had it (tests/pattern.test.ts checks it against the original);
+// this only rewrites the text the pattern and the knitting screen show, and marks the rows that have one
+// (`turn`, the chains: drawn on the chart).
+export const TURN_CH = 1;
+export function withChains(pp: Plan): Plan {
+  const rows = pp.rows.map((r): Row & { turn?: number } => {
+    const round = r.part === "bottom" || r.part === "body" || (r.part === "rim" && !r.how.startsWith("빼뜨기"));
+    if (round) {
+      if (r.how.startsWith("매직링에 ")) return { ...r, how: `매직링에 기둥사슬 ${TURN_CH}, ${r.how.slice(5)}, 첫 코에 빼뜨기`, turn: TURN_CH };
+      if (r.how.startsWith("사슬 ")) return { ...r, how: `${r.how} · 첫 코에 빼뜨기로 연결`, turn: 0 }; // oval / rect round 1: the chain's first stitch stands in
+      return { ...r, how: `기둥사슬 ${TURN_CH}, ${r.how}, 첫 코에 빼뜨기`, turn: TURN_CH };
+    }
+    if (r.part === "rounds") return { ...r, how: `기둥사슬 ${TURN_CH}, ${r.how}`, turn: TURN_CH };
+    if ((r.part === "rows" || r.part === "flap") && r.how.startsWith("사슬 1, 뒤집어서")) return { ...r, how: r.how.replace("사슬 1, 뒤집어서", `기둥사슬 ${TURN_CH}, 뒤집어서`), turn: TURN_CH };
+    if (r.part === "rows" && r.how.startsWith("두 번째 사슬부터")) return { ...r, how: r.how.replace("두 번째 사슬부터", "두 번째 사슬부터 (첫 사슬이 기둥사슬)"), turn: TURN_CH };
+    if (r.part === "start" && r.how.endsWith("고리 연결")) return r;
+    return r;
+  });
+  return { ...pp, rows };
+}

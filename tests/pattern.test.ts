@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
-import { dots, gauge, HOOKS, plan, type PlanInput } from "@/lib/pattern";
+import { dots, gauge, HOOKS, plan, withChains, type PlanInput } from "@/lib/pattern";
 import { drawing } from "@/lib/drawing";
 
 // Verbatim copy of the prototype engine (see header of that file).
@@ -85,5 +85,25 @@ describe("bag options (widening body, flap, handle length)", () => {
   it("handleCm sets the handle chain", () => {
     const pp = plan({ ...base, handleCm: 120 }), g = pp.g;
     expect(pp.rows.find(r => r.part === "handle")!.n).toBe(Math.round(120 / (g.w * 0.85)));
+  });
+});
+
+describe("기둥사슬 in the instructions", () => {
+  const bag = plan({ object: "bag", shape: "circle", a: 15, h: 15, hook: "5호", weight: "medium", handle: "short" });
+  const w = withChains(bag);
+  it("joined rounds: 기둥사슬 1 at the start, a slip stitch at the end; counts unchanged", () => {
+    expect(w.rows[0].how).toBe("매직링에 기둥사슬 1, 짧은뜨기 6코, 첫 코에 빼뜨기");
+    expect(w.rows[1].how).toBe("기둥사슬 1, 모든 코에 늘림, 첫 코에 빼뜨기");
+    expect(w.rows.map(r => r.n)).toEqual(bag.rows.map(r => r.n));
+  });
+  it("the rim's slip-stitch round and the handles have none", () => {
+    expect(w.rows.find(r => r.part === "rim" && r.how.startsWith("빼뜨기"))).toBeTruthy();
+    expect(w.rows.find(r => r.part === "handle")!.how).toBe(bag.rows.find(r => r.part === "handle")!.how);
+  });
+  it("rows turn after it; tubes start each round with it", () => {
+    const rows = withChains(plan({ object: "rows", shape: "rect", a: 18, b: 30, hook: "5호", weight: "medium" }));
+    expect(rows.rows[2].how.startsWith("기둥사슬 1, 뒤집어서")).toBe(true);
+    const tube = withChains(plan({ object: "tube", shape: "rect", a: 60, h: 20, hook: "5호", weight: "medium" }));
+    expect(tube.rows[1].how.startsWith("기둥사슬 1, 짧은뜨기")).toBe(true);
   });
 });

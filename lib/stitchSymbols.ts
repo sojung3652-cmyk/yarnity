@@ -19,7 +19,7 @@ export const SYM_PATH: Record<StitchSym, string> = {
 };
 /** filled rather than stroked */
 export const SYM_FILL: Partial<Record<StitchSym, boolean>> = { sl: true };
-export const SYM_KO: Record<StitchSym, string> = { ring: "매직링", ch: "사슬뜨기", sl: "빼뜨기", sc: "짧은뜨기", inc: "짧은뜨기 2코 늘려뜨기" };
+export const SYM_KO: Record<StitchSym, string> = { ring: "매직링", ch: "사슬뜨기 · 기둥사슬", sl: "빼뜨기", sc: "짧은뜨기", inc: "짧은뜨기 2코 늘려뜨기" };
 
 const cache: Partial<Record<StitchSym, Path2D>> = {};
 /** Draws a symbol on a canvas at (x, y), `size` px tall, rotated by `angle` (0 = growing upward). */

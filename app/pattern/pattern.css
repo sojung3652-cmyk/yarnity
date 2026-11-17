@@ -43,6 +43,8 @@
 .ps-gauge b{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:44px;font-weight:600;line-height:1}
 .ps-gauge span{font-size:13px;color:var(--ps-soft)}
 .ps-small{margin:6px 0 0;font-size:12px;line-height:1.5;color:var(--ps-soft)}
+.ps-rule{margin-top:10px;padding-top:8px;border-top:1px dashed var(--ps-hair)}
+.ps-rule b{margin-right:6px;color:var(--ps-ink);font-weight:600}
 
 /* the rows */
 .ps-part+.ps-part{margin-top:30px}

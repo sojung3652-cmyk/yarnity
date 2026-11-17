@@ -8,7 +8,7 @@ import { StitchLegend } from "@/components/StitchLegend";
 import "../pattern/pattern.css";
 import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
-import { clamp, fmt, PART_KO, plan, type Row } from "@/lib/pattern";
+import { clamp, fmt, PART_KO, plan, withChains, type Row } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
 
 function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
@@ -84,11 +84,14 @@ export default function TrackPage() {
   const cvRef = useRef<HTMLCanvasElement>(null);
   const [wakeOn, setWakeOn] = useState(false);
   const [allRows, setAllRows] = useState(false);
+  // 이전 단 / 다음 단: the card can show another row to read ahead or look back; the progress stays put
+  // (only 한 단 끝 / 되돌리기 move it). Back to the row being made whenever the progress moves.
+  const [view, setView] = useState<number | null>(null);
   const wake = useRef<WakeLockSentinel | null>(null);
 
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
 
-  const pp = useMemo(() => (p ? plan(p) : null), [p]), total = pp ? pp.rows.length : 0;
+  const pp = useMemo(() => (p ? withChains(plan(p)) : null), [p]), total = pp ? pp.rows.length : 0;
   const current = p ? clamp(p.current || 0, 0, total) : 0;
 
   // persist the clamped position (prototype renderTrack() ended with save())
@@ -110,16 +113,19 @@ export default function TrackPage() {
     return () => { clearTimeout(rz); removeEventListener("resize", onResize); };
   }, [redraw]);
 
-  // keyboard: Space = 한 단 끝, Backspace = 되돌리기
+  useEffect(() => { setView(null); }, [current]);
+  const peek = useCallback((d: number) => setView(v => clamp((v ?? Math.min(current, total - 1)) + d, 0, Math.max(0, total - 1))), [current, total]);
+  // keyboard: Space = 한 단 끝, Backspace = 되돌리기, ← / → = 이전 단 / 다음 단 (to read)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as Element | null)?.closest?.("input,select,textarea,button")) return;
       if (e.code === "Space") { e.preventDefault(); step(1); }
       if (e.code === "Backspace") { e.preventDefault(); step(-1); }
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); peek(e.key === "ArrowLeft" ? -1 : 1); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [step]);
+  }, [step, peek]);
 
   // keep the screen on while tracking
   useEffect(() => {
@@ -145,18 +151,21 @@ export default function TrackPage() {
     : !done && r.part === "rows" && r.no === 2 ? "단 끝마다 사슬 1코를 세우고 뒤집어요."
     : !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? (pp.rows.some(x => x.part === "body" && x.inc) ? "여기부터 위로. 단마다 늘림 수만큼 고르게 늘려요." : "여기부터 늘림 없이 위로.")
     : !done && r.part === "flap" && r.label === "덮개 1" ? "뒤판 가운데에서 시작해 왕복으로 떠요."
-    : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리해요." : "";
+    : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리해요."
+    : !done && (r as Row & { turn?: number }).turn && !pp.rows.slice(0, r.idx).some(x => (x as Row & { turn?: number }).turn) ? "단을 시작할 때 기둥사슬 1코를 떠요. 짧은뜨기의 기둥사슬은 코 수에 세지 않아요." : "";
   const flat = p.object === "rows" || p.object === "tube";
   const showMeasure = !flat && current === 3 && !p.measuredH && pp.bottomRounds > 3;
   const showMeasureRows = flat && current === 6 && !p.measuredH && pp.bodyRows > 5; // start chain + 5 rows done
   // the symbols this work's chart uses, in the order of a symbol table
   const syms: StitchSym[] = flat
     ? (p.object === "tube" ? ["ch", "sl", "sc"] : ["ch", "sc"])
-    : [p.shape === "circle" ? "ring" : "ch", "sc", "inc", ...(pp.rows.some(x => x.part === "rim") ? ["sl" as const] : [])];
+    : [...(p.shape === "circle" ? ["ring" as const] : []), "ch", "sl", "sc", "inc"];
   // sections in pattern order (01 바닥, 02 몸통...), as on the pattern sheet
   const parts = pp.rows.map(x => x.part).filter((x, i, a) => a.indexOf(x) === i);
   const secNo = (part: Row["part"]) => String(parts.indexOf(part) + 1).padStart(2, "0");
-  const fromN = pp.rows[r.idx - 1] && ((r.part === "bottom" && (r.no as number) > 1) || (r.part === "body" && r.inc)) ? pp.rows[r.idx - 1].n : null;
+  // the row the card shows: the one being made, or another one looked at with 이전 단 / 다음 단
+  const v = view ?? Math.min(current, total - 1), vr = pp.rows[v], other = view != null && v !== current;
+  const fromN = pp.rows[vr.idx - 1] && ((vr.part === "bottom" && (vr.no as number) > 1) || (vr.part === "body" && vr.inc)) ? pp.rows[vr.idx - 1].n : null;
   // the rows under the card: two done, this one, five to come (or all of them)
   const shown = allRows ? pp.rows : pp.rows.slice(Math.max(0, current - 2), current + 6);
 
@@ -189,8 +198,14 @@ export default function TrackPage() {
 
           <section className="tk-side" aria-label="지금 뜨는 단">
             {/* the row being made, as an index card */}
-            <div className="tk-card">
-              {done ? (
+            <div className={"tk-card" + (other ? " is-other" : "")}>
+              <div className="tk-peek">
+                <button type="button" onClick={() => peek(-1)} disabled={v <= 0}>‹ 이전 단</button>
+                <span className="tk-peek-state" aria-live="polite">{other ? (v < current ? "지난 단 · 다 떴어요" : "앞으로 뜰 단") : done ? "" : "지금 뜨는 단"}
+                  {other && <button type="button" className="tk-peek-back" onClick={() => setView(null)}>지금 단으로</button>}</span>
+                <button type="button" onClick={() => peek(1)} disabled={v >= total - 1}>다음 단 ›</button>
+              </div>
+              {done && !other ? (
                 <>
                   <p className="tk-row">완성</p>
                   <p className="tk-how" id="trHow">마지막 단까지 다 떴어요.</p>
@@ -198,13 +213,13 @@ export default function TrackPage() {
                 </>
               ) : (
                 <>
-                  <div className="tk-card-top"><span className="tk-row">{r.label}</span>
-                    <span className="tk-count" id="trCount">{fromN != null && <>{fromN}<i>→</i></>}{r.n}<span>코</span></span></div>
-                  <p className="tk-how" id="trHow">{r.how}</p>
-                  <p className="tk-why" id="trWhy">{r.why}</p>
-                  {flag && <p className="flag tk-flag" id="trFlag">{flag}</p>}
-                  <div id="trMeasure">{showMeasure && <Measure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} />}
-                    {showMeasureRows && <MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} />}</div>
+                  <div className="tk-card-top"><span className="tk-row">{vr.label}</span>
+                    <span className="tk-count" id="trCount">{fromN != null && <>{fromN}<i>→</i></>}{vr.n}<span>코</span></span></div>
+                  <p className="tk-how" id="trHow">{vr.how}</p>
+                  <p className="tk-why" id="trWhy">{vr.why}</p>
+                  {!other && flag && <p className="flag tk-flag" id="trFlag">{flag}</p>}
+                  {!other && <div id="trMeasure">{showMeasure && <Measure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} />}
+                    {showMeasureRows && <MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} />}</div>}
                 </>
               )}
             </div>
@@ -219,7 +234,7 @@ export default function TrackPage() {
                 </span>
               </button>
             </div>
-            <p className="tk-keys"><kbd>Space</kbd> 한 단 끝 · <kbd>Backspace</kbd> 되돌리기</p>
+            <p className="tk-keys"><kbd>Space</kbd> 한 단 끝 · <kbd>Backspace</kbd> 되돌리기 · <kbd>←</kbd><kbd>→</kbd> 이전/다음 단 보기</p>
 
             {/* the rows around this one */}
             <div className="tk-rows">
