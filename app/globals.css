@@ -345,4 +345,9 @@ body:has(#view-new .book-stage-space) footer{display:none}
 .hero-desk.is-arriving .book3d,.hero-desk.is-arriving .book-css-slot{animation:float-in .9s var(--float-ease) calc(var(--float-step) * 3) backwards}
 @keyframes stage-fade{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.hero-desk.is-arriving .hero-bg,.hero-desk.is-arriving .hero-copy-desk,.hero-desk.is-arriving .book3d,.hero-desk.is-arriving .book-css-slot{animation:none}}
+/* home: the tagline sits at the bottom of the first screen (was just below it), over the stage; it steps
+   aside while the book is open */
+#view-home .hero-foot{position:relative;z-index:1;margin-top:-72px;padding-top:0;height:72px;justify-content:center;pointer-events:none;transition:opacity .4s ease}
+body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
+@media (max-width:899px){#view-home .hero-foot{margin-top:-56px;height:56px}#view-home .tagline{font-size:11px;letter-spacing:.24em}}
 
