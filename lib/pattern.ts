@@ -245,18 +245,29 @@ export function planTube(p: PlanInput): Plan {
 // The engine above stays as the prototype had it (tests/pattern.test.ts checks it against the original);
 // this only rewrites the text the pattern and the knitting screen show, and marks the rows that have one
 // (`turn`, the chains: drawn on the chart).
+// The 기둥사슬 belongs to the start of the row it raises, never to the chain before it: a foundation
+// written as "사슬 9코, 둘째 코부터" is 사슬 8코 (the base) + 기둥사슬 1 (the next row's start), so it is
+// written that way, and a rows piece starts with the base chain alone ("사슬 18코"), its row 1 with the
+// 기둥사슬 (Kim's correction).
 export const TURN_CH = 1;
 export function withChains(pp: Plan): Plan {
   const rows = pp.rows.map((r): Row & { turn?: number } => {
     const round = r.part === "bottom" || r.part === "body" || (r.part === "rim" && !r.how.startsWith("빼뜨기"));
     if (round) {
       if (r.how.startsWith("매직링에 ")) return { ...r, how: `매직링에 기둥사슬 ${TURN_CH}, ${r.how.slice(5)}, 첫 코에 빼뜨기`, turn: TURN_CH };
-      if (r.how.startsWith("사슬 ")) return { ...r, how: `${r.how} · 첫 코에 빼뜨기로 연결`, turn: 0 }; // oval / rect round 1: the chain's first stitch stands in
+      // oval / rect round 1: "사슬 c코, 둘째 코부터 ..." = a base of c - 1 chains, then the 기둥사슬
+      const m = r.how.match(/^사슬 (\d+)코, 둘째 코부터 (.*)$/);
+      if (m) {
+        const c = Number(m[1]);
+        return { ...r, how: `사슬 ${c - 1}코 + 기둥사슬 ${TURN_CH}, ${m[2]} · 첫 코에 빼뜨기`, why: r.why.replace(`사슬 ${c}코 기초`, `사슬 ${c - 1}코 기초`), turn: TURN_CH };
+      }
       return { ...r, how: `기둥사슬 ${TURN_CH}, ${r.how}, 첫 코에 빼뜨기`, turn: TURN_CH };
     }
     if (r.part === "rounds") return { ...r, how: `기둥사슬 ${TURN_CH}, ${r.how}`, turn: TURN_CH };
     if ((r.part === "rows" || r.part === "flap") && r.how.startsWith("사슬 1, 뒤집어서")) return { ...r, how: r.how.replace("사슬 1, 뒤집어서", `기둥사슬 ${TURN_CH}, 뒤집어서`), turn: TURN_CH };
-    if (r.part === "rows" && r.how.startsWith("두 번째 사슬부터")) return { ...r, how: r.how.replace("두 번째 사슬부터", "두 번째 사슬부터 (첫 사슬이 기둥사슬)"), turn: TURN_CH };
+    // a rows piece: the base chain alone, then row 1 raised by its 기둥사슬
+    if (r.part === "rows" && r.how.startsWith("두 번째 사슬부터")) return { ...r, how: `기둥사슬 ${TURN_CH}, 사슬 ${r.n}코에 짧은뜨기 ${r.n}코`, turn: TURN_CH };
+    if (r.part === "start" && /^사슬 \d+코$/.test(r.how)) return { ...r, n: r.n - TURN_CH, how: `사슬 ${r.n - TURN_CH}코`, why: r.why.replace(/, 기둥 사슬 1코 더$/, "") };
     if (r.part === "start" && r.how.endsWith("고리 연결")) return r;
     return r;
   });

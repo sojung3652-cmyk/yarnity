@@ -47,17 +47,18 @@ export function drawMap(cv: HTMLCanvasElement, pp: Plan, shape: Shape, upto: num
   // the centre: a magic ring, or the chain the oval / rect bottom starts from
   const st1 = stateOf(1);
   if (shape === "circle") drawSym(ctx, "ring", cx, cy, Math.max(6, pp.g.h * sc * 0.9), 0, col[st1], weight);
-  else { const n = pp.c, gap = pp.g.w * sc; for (let k = 0; k < n; k++) drawSym(ctx, "ch", cx + (k - (n - 1) / 2) * gap, cy, Math.min(size, gap * 1.1), 0, col[st1], weight); }
+  // oval / rect: the base chain (the 기둥사슬 is round 1's, drawn at its seam)
+  else { const n = pp.c - 1, gap = pp.g.w * sc; for (let k = 0; k < n; k++) drawSym(ctx, "ch", cx + (k - (n - 1) / 2) * gap, cy, Math.min(size, gap * 1.1), 0, col[st1], weight); }
 
   for (const d of ds) {
     const st = stateOf(d.r), n = d.pts.length;
-    // the seam: between the round's last and first stitch - the 기둥사슬 standing outward, the slip stitch
-    // that joins the round just inside it
+    // the seam (between the round's last and first stitch): the 기둥사슬 that raises this round, standing
+    // between the previous round and this one, and at this round's level the slip stitch that closes it
     if ((pp.rows[d.r - 1] as { turn?: number }).turn && n > 1) {
       const a = d.pts[n - 1], b = d.pts[0], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, len = Math.hypot(mx, my) || 1;
-      const ang = Math.atan2(mx / len, -my / len), k = (d.r - 0.45) / d.r;
-      drawSym(ctx, "ch", cx + mx * sc, cy + my * sc, size * 0.62, ang + Math.PI / 2, col[st], weight); // standing along the radius, as charts draw a 기둥사슬
-      drawSym(ctx, "sl", cx + mx * sc * k, cy + my * sc * k, size * 0.55, ang, col[st], weight);
+      const ang = Math.atan2(mx / len, -my / len), k = (d.r - 0.5) / d.r;
+      drawSym(ctx, "ch", cx + mx * sc * k, cy + my * sc * k, size * 0.62, ang + Math.PI / 2, col[st], weight); // standing along the radius, as charts draw a 기둥사슬
+      drawSym(ctx, "sl", cx + mx * sc, cy + my * sc, size * 0.5, ang, col[st], weight);
     }
     d.pts.forEach((p, i) => {
       // outward normal from the neighbours' tangent (works for circles, ovals and rectangles)

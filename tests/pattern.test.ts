@@ -107,3 +107,18 @@ describe("기둥사슬 in the instructions", () => {
     expect(tube.rows[1].how.startsWith("기둥사슬 1, 짧은뜨기")).toBe(true);
   });
 });
+
+describe("기둥사슬 belongs to the row it raises", () => {
+  it("an oval bottom starts from a base of c - 1 chains + 기둥사슬 1", () => {
+    const pp = plan({ object: "coaster", shape: "oval", a: 12, b: 8, hook: "5호", weight: "medium" }), c = pp.c;
+    const r1 = withChains(pp).rows[0];
+    expect(r1.how.startsWith(`사슬 ${c - 1}코 + 기둥사슬 1, 짧은뜨기 ${c - 2}코`)).toBe(true);
+    expect(r1.how.endsWith("첫 코에 빼뜨기")).toBe(true);
+    expect(r1.n).toBe(pp.rows[0].n);
+  });
+  it("a rows piece: the base chain alone, row 1 with the 기둥사슬", () => {
+    const pp = plan({ object: "rows", shape: "rect", a: 18, b: 30, hook: "5호", weight: "medium" }), w = withChains(pp), n = pp.last;
+    expect([w.rows[0].how, w.rows[0].n]).toEqual([`사슬 ${n}코`, n]);
+    expect(w.rows[1].how).toBe(`기둥사슬 1, 사슬 ${n}코에 짧은뜨기 ${n}코`);
+  });
+});
