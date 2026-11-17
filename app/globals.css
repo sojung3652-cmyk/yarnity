@@ -195,16 +195,12 @@ html{overflow-x:clip}
 .hero-desk{position:absolute;top:0;left:calc(50% - 50vw);z-index:0;height:100svh;width:100vw;overflow:hidden;isolation:isolate;background:var(--bg)}
 .hero-desk.is-hidden{visibility:hidden;pointer-events:none}
 .book-stage-space{height:100svh}
-.nav ~ main .book-stage-space{height:calc(100svh - var(--nav-h,80px))}
 /* /new in the 3D book: exactly one screen, nothing to scroll (a focused field never scrolls the book away) */
 body:has(#view-new .book-stage-space){overflow:hidden}
 body:has(#view-new .book-stage-space) footer{display:none}
 .nav{position:relative;z-index:5}
-/* wizard: the photo and the logo stay, faded and soft, behind the bigger book */
-.hero-desk.is-open.is-wizard .hero-bg{filter:blur(3px);opacity:.35;transform:none} /* .is-open too: beats the open menu's rule below */
-.hero-desk.is-open.is-wizard .hero-copy-desk{opacity:.35;filter:blur(3px)}
-.hero-desk.is-wizard .hero-stage-copy{z-index:1} /* the faded logo goes under the book (canvas z 2), not over its page */
-.hero-desk.is-wizard .hero-start{visibility:hidden}
+/* wizard: the same open book as the menu, so the same backdrop as the open menu (.is-open rules below);
+   no nav either (Nav.tsx), the book takes the whole screen */
 .hero-stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100svh * 1871 / 841 * 1.08));aspect-ratio:1871 / 841;container-type:inline-size}
 /* the stage's transform makes it a stacking context, so the photo and the copy live in two stage layers:
    the photo under the 3D canvas (z 2), the copy over it (pointer events only on the controls) */

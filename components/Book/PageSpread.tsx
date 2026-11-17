@@ -4,10 +4,16 @@
 // type are % / cqw of the page (each page box is a size container), so the layout scales with the page.
 // Phones (< 900px) see only the right page: it then carries everything, stacked (see .pg-* in Book.css).
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { FoilLogo } from "../FoilLogo";
 import { RibbonGold } from "../RibbonGold";
 import { useApp } from "@/components/AppProvider";
-import { useBook } from "./BookProvider";
+import { itemIdOf } from "@/lib/items";
+import { store } from "@/lib/store";
+import { DEFAULT_DRAFT } from "@/lib/types";
+import { useBook, type WizStep } from "./BookProvider";
+
+const STEP_NAME: Record<WizStep, string> = { 1: "이름", 2: "품목", 3: "실과 바늘", 4: "모양과 크기" };
 
 const ICON = { fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -48,8 +54,19 @@ export function LeftPage() {
  *  also carries the brand block above the actions. */
 export function RightPage({ onClose }: { onClose: () => void }) {
   // number of saved works (iyarn.projects, read by AppProvider after mount)
-  const { ready, projects } = useApp(), workCount = ready ? projects.length : 0;
+  const { ready, projects, draft, setDraft } = useApp(), workCount = ready ? projects.length : 0;
   const book = useBook();
+  // 도안 만들기 always asks: a new pattern (from the start, the draft cleared) or carry on with the draft
+  const [choose, setChoose] = useState(false);
+  // folded again when the book closes or comes back from the wizard; not on the way into the wizard, so the
+  // picture of this page on the turning leaf still shows the choice that was made
+  useEffect(() => { if (book.view !== "wizard") setChoose(false); }, [book.view]);
+  const saved = (() => { const s = store.get<number>("iyarn.newstep", 1); return (s >= 1 && s <= 4 ? s : 1) as WizStep; })();
+  const hasDraft = ready && (saved > 1 || draft.name.trim() !== "");
+  const startNew = () => {
+    setDraft({ ...DEFAULT_DRAFT, item: itemIdOf(DEFAULT_DRAFT) }); store.set("iyarn.newstep", 1);
+    book.startWizard(1);
+  };
   return (
     <div className="pg-page pg-rp">
       <button type="button" className="pg-ribbon" aria-label="책 덮기" onClick={e => { e.stopPropagation(); onClose(); }}>
@@ -59,12 +76,23 @@ export function RightPage({ onClose }: { onClose: () => void }) {
       <div className="pg-phone-brand"><Brand phone /></div>
       {/* two text links divided by hairlines (whole row = one link) */}
       <nav className="pg-actions" aria-label="시작하기">
-        {/* straight to the saved step (BookProvider.startWizard): a bare /new would show step 1 first, then
-            be replaced by the saved step, and the book would turn twice */}
-        <Link className="pg-link pg-link-lav" href="/new" onClick={e => { e.preventDefault(); book.startWizard(); }}>
+        <button type="button" className="pg-link pg-link-lav" aria-expanded={choose} aria-controls="pgChoose" onClick={e => { e.stopPropagation(); setChoose(c => !c); }}>
           <span className="pg-link-text"><span className="pg-link-title">도안 만들기</span><span className="pg-link-desc">실과 크기만 정하면 코 수를 계산해요</span></span>
-          <span className="pg-link-end">시작하기</span>
-        </Link>
+          <span className="pg-link-end">{choose ? "닫기" : "시작하기"}</span>
+        </button>
+        {/* the choice, as two smaller labels under it. Each goes straight to its step (startWizard): a bare
+            /new would show step 1 first and then the saved step, and the book would turn twice */}
+        {choose && (
+          <div className="pg-choose" id="pgChoose" role="group" aria-label="도안 만들기">
+            <button type="button" className="pg-link pg-link-sub pg-link-lav" onClick={e => { e.stopPropagation(); startNew(); }}>
+              <span className="pg-link-text"><span className="pg-link-title">새 도안 만들기</span><span className="pg-link-desc">처음부터 시작해요</span></span>
+            </button>
+            <button type="button" className="pg-link pg-link-sub pg-link-lav" disabled={!hasDraft} onClick={e => { e.stopPropagation(); book.startWizard(saved); }}>
+              <span className="pg-link-text"><span className="pg-link-title">이어서 만들기</span>
+                <span className="pg-link-desc">{hasDraft ? `${draft.name.trim() || "이름 없는 작품"} · ${STEP_NAME[saved]}부터` : "이어서 만들 도안이 없어요"}</span></span>
+            </button>
+          </div>
+        )}
         <Link className="pg-link pg-link-rose" href="/mine">
           <span className="pg-link-text"><span className="pg-link-title">내 작품</span><span className="pg-link-desc">뜨던 곳부터 이어서</span></span>
           <span className="pg-link-end">{workCount ? `${workCount}개` : "아직 없어요"}</span>

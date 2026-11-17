@@ -377,11 +377,14 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
     const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / Math.min(0.68, 1320 / size.width), D / 2 / 0.88, aspect); // open spread: 68% of the width (max 1320px), at most 88% of the height
-    // wizard pose: straight down, so the pages read flat and square; the spread 84% of the screen wide
-    // (max 1480px), and whole in the height under the nav (8px room above and below)
+    // wizard pose: straight down, so the pages read flat and square; as big as fits: cover to cover up to
+    // 96% of the screen wide (max 1700px), whole in the height (no nav in the wizard, like home; 8px room)
+    // fitted to the whole open book, cover to cover: the front cover lies left of the spine cloth
+    // (spine at -W/2, the flat spine cloth ~T wide, then the board), the back board ends at W/2
     const room = Math.max(200, size.height - navH - 16);
-    const wDist = fit((rightEdge - leftEdge) / 2 / Math.min(0.84, 1480 / size.width), D / 2 / (room / size.height), aspect);
-    v.wTgt.set((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0);
+    const coverL = -W / 2 - T - W - 0.3, coverR = W / 2 + 0.3;
+    const wDist = fit((coverR - coverL) / 2 / Math.min(0.96, 1700 / size.width), D / 2 / (room / size.height), aspect);
+    v.wTgt.set((coverL + coverR) / 2, FAB + T * 0.6, 0);
     v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).lerp(STRAIGHT_DOWN, we).normalize();
     v.tgt.copy(cTgt).lerp(oTgt, e).lerp(v.wTgt, we);
     const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
@@ -478,12 +481,16 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
     (async () => {
       try {
         const old = await paintSpread(layer, shown);
+        const oL = texOf(old.l, true), oR = texOf(old.r, false); made = [oL, oR];
+        // the paper takes the pictures of the pages first, then the DOM goes: no blank page in between
+        m.leftPage.map = oL; m.rightPage.map = oR; invalidate();
+        await frames(1);
         layer.turning = true; invalidate();
         setShown(want);
         await frames(3); // the new spread rendered (and its layout effects settled), still hidden
         const neu = await paintSpread(layer, want);
-        const oL = texOf(old.l, true), oR = texOf(old.r, false), nL = texOf(neu.l, true), nR = texOf(neu.r, false);
-        made = [oL, oR, nL, nR];
+        const nL = texOf(neu.l, true), nR = texOf(neu.r, false);
+        made.push(nL, nR);
         // under the leaf: forward, the old left page (until covered) and the new right page (revealed)
         m.leftPage.map = fwd ? oL : nL; m.rightPage.map = fwd ? nR : oR;
         leaf.front.map = fwd ? oR : nR; leaf.back.map = fwd ? nL : oL;
@@ -602,9 +609,10 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
     <div className={"book3d" + (ready ? " ready" : "") + (open ? " is-open" : "")} id="book">
       <Canvas
         dpr={[1, 2]}
-        // home: a click on the empty desk around the book closes it. R3F calls this when a click hits none of
-        // the objects with handlers (the book's meshes have one; the page content is DOM above the canvas)
-        onPointerMissed={() => { if (b.view === "home") b.close(); }} // never in the wizard: a stray click must not leave it
+        // open (menu or wizard: it is one book): a click on the empty desk around the book closes it. R3F calls
+        // this when a click hits none of the objects with handlers (the book's meshes have one; the page
+        // content is DOM above the canvas). The wizard's draft is saved on every change, so nothing is lost.
+        onPointerMissed={() => { if (b.view === "home" || b.view === "wizard") b.close(); }}
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}

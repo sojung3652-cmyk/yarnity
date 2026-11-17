@@ -27,8 +27,8 @@ interface BookCtx {
   desk: boolean;
   open: () => void;
   close: () => void;
-  /** menu -> wizard, at the saved step */
-  startWizard: () => void;
+  /** menu -> wizard, at `step` (default: the saved step) */
+  startWizard: (step?: WizStep) => void;
   goStep: (s: WizStep) => void;
   /** wizard -> menu spread */
   toHome: () => void;
@@ -57,6 +57,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const [desk, setDesk] = useState(true);
   const [instant, setInstant] = useState(true);
   const [seenPath, setSeenPath] = useState<string | null>(null);
+  // a close asked for in the wizard (a click outside the book): / is then reached with the book closed
+  const [closing, setClosing] = useState(false);
 
   // address -> state, during render (not in an effect) so the book sees the new view and `instant`
   // in the same commit. Coming back to / from the wizard lands on the open menu; from anywhere else
@@ -64,7 +66,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
   if (seenPath !== path) {
     const bookPage = (p: string | null) => p === "/" || p === "/new";
     setSeenPath(path);
-    if (path === "/") setHomeOpen(seenPath === "/new");
+    if (path === "/") setHomeOpen(seenPath === "/new" && !closing);
+    if (closing) setClosing(false);
     setInstant(!bookPage(seenPath));
   }
 
@@ -89,8 +92,13 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const step: WizStep = urlStep ?? 1;
 
   const open = useCallback(() => { setInstant(false); setHomeOpen(true); }, []);
-  const close = useCallback(() => { setInstant(false); setHomeOpen(false); }, []);
-  const startWizard = useCallback(() => { setInstant(false); router.push(`/new?step=${savedStep()}`, { scroll: false }); }, [router]);
+  // close: the same everywhere in the book. In the wizard it goes home with the book closed (the draft is
+  // already saved on every change, so nothing is lost)
+  const close = useCallback(() => {
+    setInstant(false); setHomeOpen(false);
+    if (path === "/new") { setClosing(true); router.push("/", { scroll: false }); }
+  }, [path, router]);
+  const startWizard = useCallback((step?: WizStep) => { setInstant(false); router.push(`/new?step=${step ?? savedStep()}`, { scroll: false }); }, [router]);
   const goStep = useCallback((s: WizStep) => {
     const sp = new URLSearchParams(location.search); sp.set("step", String(s));
     router.push(`/new?${sp}`, { scroll: false });

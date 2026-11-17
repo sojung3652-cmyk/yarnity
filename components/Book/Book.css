@@ -120,3 +120,10 @@
 .pg-actions .pg-link:hover,.pg-actions .pg-link:focus-visible{transform:rotate(0) translateY(-1px)}
 .pg-actions .pg-link-desc{color:#8C7B72}
 @media (prefers-reduced-motion:reduce){.pg-actions .pg-link{transition:none}}
+/* 도안 만들기 -> the choice: two smaller labels, indented under it, straight (no tilt) */
+.pg-actions button.pg-link{width:100%;font:inherit;cursor:pointer}
+.pg-choose{display:flex;flex-direction:column;gap:calc(10px * var(--k,1));margin:calc(-10px * var(--k,1)) 0 0 8%}
+.pg-actions .pg-link.pg-link-sub{transform:none;min-height:0;padding:calc(11px * var(--k,1)) calc(26px * var(--k,1))}
+.pg-actions .pg-link.pg-link-sub .pg-link-title{font-size:max(2.7cqw,calc(15px * var(--k,1)))}
+.pg-actions .pg-link.pg-link-sub:disabled{cursor:default;opacity:.55}
+.pg-actions .pg-link.pg-link-sub:disabled .pg-link-title{background-size:0 1px}

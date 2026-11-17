@@ -294,10 +294,10 @@
 .nb-ribbon .rib-gold{position:absolute;inset:0;width:100%;height:100%}
 /* ---- the same pages inside the one 3D book (components/Book/WizardSpread.tsx) ----
    Each page box is one page of this book: the WebGL paper is the page, so the CSS book's cover, grid and
-   paper backgrounds go; type, spacing and controls stay exactly as above. Laid out 690px wide (REF_W in
+   paper backgrounds go; type, spacing and controls stay exactly as above. Laid out 642px wide (REF_W in
    WizardSpread.tsx) and zoomed to the page; --w is the matching book width (two pages + padding), used
    by the title page's height. */
-.nb-book.nb-in3d{--w:1416px;zoom:var(--z,1);width:690px;height:calc(var(--hz,800) * 1px);display:flex;min-height:0;padding:0;border-radius:0;background:none;box-shadow:none;text-align:left;box-sizing:border-box}
+.nb-book.nb-in3d{--w:1320px;zoom:var(--z,1);width:642px;height:calc(var(--hz,800) * 1px);display:flex;min-height:0;padding:0;border-radius:0;background:none;box-shadow:none;text-align:left;box-sizing:border-box}
 /* the flat page boxes (Book3D FlatPages): screen rectangles over the pages; shown once the camera is
    straight above the book, with a short fade to hide the seam */
 .book-flat{position:absolute;inset:0;pointer-events:none}
@@ -306,3 +306,5 @@
 /* reduced motion: no page turn, the new pages fade in over 0.15s (beats the site-wide transition:none) */
 @media (prefers-reduced-motion:reduce){.book-flat-page.is-shown{transition:opacity .15s linear!important}}
 .nb-in3d .nb-page{flex:1;height:100%;box-sizing:border-box;background:none;box-shadow:none;border-radius:0}
+/* the left page's paper curls down into the gutter over its inner ~17%: keep the content clear of it */
+.nb-in3d .nb-left{padding-left:40px;padding-right:120px}

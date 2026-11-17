@@ -11,9 +11,9 @@ import { createPortal } from "react-dom";
 import { useNewBook } from "@/components/newbook/NewBook";
 import type { WizStep } from "./BookProvider";
 
-/** the width each page is laid out at before zooming to the page. The original /new page on a 1440px
- *  screen was 642px ((1320 - 2 * 18) / 2); 690 sets the type a little smaller on the page (Kim's call). */
-export const REF_W = 690;
+/** the width each page is laid out at before zooming to the page: the original /new page on a 1440px
+ *  screen ((1320 - 2 * 18) / 2), so the type is the original's on the page */
+export const REF_W = 642;
 
 /** `step`: the step whose pages are in the book now (during a page turn it can lag behind the address). */
 export function WizardSpread({ step, left, right }: { step: WizStep; left: HTMLElement; right: HTMLElement }) {
