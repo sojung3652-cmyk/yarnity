@@ -294,3 +294,19 @@ body:has(#view-new .book-stage-space) footer{display:none}
 .pl-big figcaption{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;font-size:13px;color:#6B5C55;flex-wrap:wrap}
 .pl-big button{margin-left:10px;padding:6px 4px;border:0;background:none;font:inherit;font-size:13px;color:#3A2E29;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .pl-big button.danger{color:#A4493D}
+
+/* Pages out of the book float in (Kim's pick): the sheet rises 16px into place over 0.45s while its
+   shadow deepens (ease-out); its contents follow 0.04s apart. Still afterwards. Off with reduced motion. */
+@keyframes float-in{from{opacity:0;transform:translateY(16px);box-shadow:0 0 0 rgba(70,50,40,0)}}
+@keyframes float-in-soft{from{opacity:0;transform:translateY(10px)}}
+.ps-sheet,.tk-sheet-page,.mine-head,.mine-tools,.mc{animation:float-in .45s cubic-bezier(.2,.7,.3,1) backwards}
+.ps-head,.ps-boxes,.ps-part,.tk-chart,.tk-side,.ps-actions,.tk-head,.tk-progress{animation:float-in-soft .45s cubic-bezier(.2,.7,.3,1) backwards}
+.ps-actions{animation-delay:0s}.ps-head,.tk-head{animation-delay:.08s}.ps-boxes,.tk-progress{animation-delay:.12s}.tk-chart{animation-delay:.16s}.tk-side{animation-delay:.2s}
+.ps-part:nth-child(1){animation-delay:.16s}.ps-part:nth-child(2){animation-delay:.2s}.ps-part:nth-child(3){animation-delay:.24s}.ps-part:nth-child(4){animation-delay:.28s}.ps-part:nth-child(n+5){animation-delay:.32s}
+.mine-tools{animation-delay:.04s}
+.mc:nth-child(1){animation-delay:.08s}.mc:nth-child(2){animation-delay:.12s}.mc:nth-child(3){animation-delay:.16s}.mc:nth-child(4){animation-delay:.2s}.mc:nth-child(5){animation-delay:.24s}.mc:nth-child(6){animation-delay:.28s}.mc:nth-child(n+7){animation-delay:.32s}
+@media (prefers-reduced-motion:reduce){
+  .ps-sheet,.tk-sheet-page,.mine-head,.mine-tools,.mc,.ps-head,.ps-boxes,.ps-part,.tk-chart,.tk-side,.ps-actions,.tk-head,.tk-progress{animation:none}
+  .foil-shine{display:none}
+}
+@media print{.ps-sheet,.ps-head,.ps-boxes,.ps-part{animation:none}}

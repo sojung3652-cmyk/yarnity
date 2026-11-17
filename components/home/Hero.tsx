@@ -31,7 +31,7 @@ export function Hero() {
           {b.view === "wizard" ? <p className="hero-logo"><FoilLogo className="hero-foil" /></p> : (
             <h1 className="hero-logo">
               <span className="sr">Yarnity</span>
-              <FoilLogo className="hero-foil" />
+              <FoilLogo className="hero-foil" shine />
             </h1>
           )}
           <p className="hero-caption">Intelligent Crochet</p>
