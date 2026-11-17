@@ -209,7 +209,7 @@ export default function TrackPage() {
                 <>
                   <p className="tk-row">완성</p>
                   <p className="tk-how" id="trHow">마지막 단까지 다 떴어요.</p>
-                  <p className="tk-done-links"><Link href="/pattern">도안 다시 보기</Link><Link href="/mine">사진 남기기 (내 작품)</Link></p>
+                  <p className="tk-done-links"><Link href="/pattern">도안 다시 보기</Link><Link href="/mine">사진 남기기 (나의 도안집)</Link></p>
                 </>
               ) : (
                 <>

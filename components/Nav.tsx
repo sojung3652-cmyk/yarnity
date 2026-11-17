@@ -17,7 +17,7 @@ export function Nav() {
       <div className="nav-links">
         {/* 새 도안: the menu book rises over this page; closing it leaves you on the page. Both as woven labels */}
         <button type="button" className="nav-label nav-label-new" aria-haspopup="dialog" onClick={book.openHere}><span>새 도안</span></button>
-        <Link className="nav-label" href="/mine" aria-current={cur("/mine")}><span>내 도안집</span></Link>
+        <Link className="nav-label" href="/mine" aria-current={cur("/mine")}><span>나의 도안집</span></Link>
       </div>
     </nav>
   );

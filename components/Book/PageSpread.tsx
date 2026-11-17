@@ -93,7 +93,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
           </div>
         )}
         <Link className="pg-link pg-link-rose" href="/mine">
-          <span className="pg-link-text"><span className="pg-link-title">내 작품</span><span className="pg-link-desc">뜨던 곳부터 이어서</span></span>
+          <span className="pg-link-text"><span className="pg-link-title">나의 도안집</span><span className="pg-link-desc">뜨던 곳부터 이어서</span></span>
           <span className="pg-link-end">{workCount ? `${workCount}개` : "아직 없어요"}</span>
         </Link>
       </nav>
