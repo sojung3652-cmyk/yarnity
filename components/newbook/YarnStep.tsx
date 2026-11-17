@@ -1,8 +1,8 @@
 "use client";
 // 실과 바늘 (step 3 of 도안 만들기), one spread:
-//   left page  - all the supplies: the two required fields (yarn thickness, hook size), the colours (one
-//                row per yarn: colour, colour number, LOT; "+ 색 추가" for more yarns), then
-//                "가지고 있는 실 정보" folded: name / brand, material, what the yarn's label says
+//   left page  - the supplies in two groups. 실: thickness (required), the colours (one row per yarn:
+//                colour, colour number, LOT; "+ 색 추가" for more yarns), then name / material / what the
+//                yarn's label says, folded. 바늘: the hook size (required)
 //   right page - the supplies card: what was picked, and how much yarn the pattern will take
 // Only the required fields are open; everything else is a folded row showing its current value, one row
 // open at a time. Every choice keeps its own "직접 입력". Errors appear only when trying to move on with a
@@ -94,9 +94,11 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
 
   return (
     <div className="nb-stack">
-      {/* required, open: yarn thickness */}
+      {/* everything about the yarn in one group: thickness (required), colours, then name / material / label */}
+      <section className="nb-sec" aria-labelledby="secYarn">
+      <h2 className="nb-sec-title" id="secYarn">실</h2>
       <div className="nb-field nb-field-open">
-        <span className="nb-lbl" id="yMmLbl">실 굵기</span>
+        <span className="nb-lbl" id="yMmLbl">굵기</span>
         {mode === "mm" ? (
           <div className="nb-mm">
             <input id="yMm" className="nb-input nb-short" inputMode="decimal" autoComplete="off" aria-labelledby="yMmLbl" aria-invalid={showErr} aria-describedby={showErr ? "yMmErr" : undefined} value={mmRaw} onChange={e => setMm(e.target.value)} placeholder="예: 3.2" />
@@ -113,15 +115,12 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
         {showErr && mode === "mm" ? <p className="nb-err" id="yMmErr">{mmErr}</p> : <p className="nb-help">실 라벨에 없으면 자로 실 가닥의 폭을 재 보세요.</p>}
       </div>
 
-      {/* required, open: hook size */}
-      <HookField draft={draft} patch={patch} tried={tried} />
-
       {/* the yarn colours (one row per yarn, with its colour number and LOT) */}
       <ColorList draft={draft} patch={patch} open={open} toggle={toggle} />
 
       <div className="nb-folds">
         {/* everything the yarn's own label says, in one place */}
-        <Fold label="가지고 있는 실 정보" value={info} open={open === "info"} onToggle={() => toggle("info")}>
+        <Fold label="이름 · 재질 · 라벨 정보" value={info} open={open === "info"} onToggle={() => toggle("info")}>
           <div className="nb-mini"><label htmlFor="yName">실 이름 / 브랜드</label>
             <input id="yName" className="nb-input nb-input-sm nb-wide" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: 면 혼방 합사" value={draft.yarn} onChange={e => patch({ yarn: e.target.value })} onBlur={e => patch({ yarn: clean(e.target.value) })} />
           </div>
@@ -143,6 +142,13 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
           <div className="nb-mini"><label htmlFor="yMemo">메모</label><input id="yMemo" className="nb-input nb-input-sm nb-wide" maxLength={MAX_TEXT} value={draft.memo ?? ""} onChange={e => patch({ memo: e.target.value })} onBlur={e => patch({ memo: clean(e.target.value) })} /></div>
         </Fold>
       </div>
+      </section>
+
+      {/* the hook, its own group */}
+      <section className="nb-sec" aria-labelledby="secHook">
+        <h2 className="nb-sec-title" id="secHook">바늘</h2>
+        <HookField draft={draft} patch={patch} tried={tried} />
+      </section>
     </div>
   );
 }
@@ -165,7 +171,7 @@ function HookField({ draft, patch, tried }: { draft: Draft; patch: Patch; tried:
   const mis = Number.isFinite(mm) ? hookYarnMismatch(mm, draft.yarnMode !== "level" ? draft.yarnMm : null) : null;
   return (
     <div className="nb-field nb-field-open">
-      <span className="nb-lbl">코바늘 굵기</span>
+      <span className="nb-lbl">굵기</span>
       <div className="nb-mm">
         <HookSelect value={chip?.[0] ?? ""} custom={custom} invalid={showErr} describedBy={showErr ? "hErr" : undefined}
           onPick={(k, m) => { setCustom(false); patch({ hook: k, hookMm: m }); }} onCustom={() => { setCustom(true); setMm(raw); }} />

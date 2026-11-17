@@ -405,3 +405,9 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .nb-sup-use-sub{margin:0;font-size:13.5px;color:#3A2E29}
 .nb-sup-use .nb-help{margin-top:4px}
 .nb-sup-stitch{margin:14px 0 0;font-size:14.5px;color:#3A2E29}
+
+/* step 3, page 5: the supplies in two groups (실, 바늘), each under a group title a step above the
+   section titles: 18px, a hairline under it */
+.nb-sec{display:flex;flex-direction:column;margin-bottom:18px}
+.nb-sec-title{margin:0 0 16px;padding-bottom:8px;font-size:18px;font-weight:600;color:#2E2420;letter-spacing:-.01em;border-bottom:1px solid #E2D6CB}
+.nb-sec .nb-field-open{margin-bottom:20px}
