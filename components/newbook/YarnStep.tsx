@@ -210,8 +210,20 @@ function ColorEditor({ c, i, onChange }: { c: YarnColor; i: number; onChange: (c
         <label htmlFor={id("n")} className="sr">직접 입력한 색 이름</label>
         <input id={id("n")} className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="직접 입력 (예: 올리브)" value={preset ? "" : c.name ?? ""}
           onChange={e => onChange({ ...c, name: e.target.value || undefined, hex: preset ? undefined : c.hex })} onBlur={e => onChange({ ...c, name: clean(e.target.value) || undefined })} />
-        <label className="nb-picker" title="색 고르기"><span className="sr">직접 고른 색</span>
-          <input type="color" value={!preset && c.hex ? c.hex : "#C9B8E0"} onChange={e => onChange({ ...c, hex: e.target.value, name: preset ? undefined : c.name })} />
+        {/* the browser's colour picker behind a clear face: a colour wheel + "직접 고르기" until a colour of
+            one's own is picked, then that colour + "직접 고른 색" (the wheel is an SVG, so a turn's page
+            picture shows it too) */}
+        <label className={"nb-picker" + (!preset && c.hex ? " is-own" : "")} title="팔레트에서 색 고르기">
+          <span className="nb-picker-dot" aria-hidden="true">
+            {!preset && c.hex ? <i style={{ background: c.hex }} /> : (
+              <svg viewBox="0 0 32 32">{["#F28B82", "#F6C177", "#F3E08A", "#A8D5A2", "#9CC7EA", "#B9A3E3"].map((col, k) => {
+                const a0 = (k / 6) * 2 * Math.PI - Math.PI / 2, a1 = ((k + 1) / 6) * 2 * Math.PI - Math.PI / 2;
+                return <path key={col} d={`M16 16L${16 + 15 * Math.cos(a0)} ${16 + 15 * Math.sin(a0)}A15 15 0 0 1 ${16 + 15 * Math.cos(a1)} ${16 + 15 * Math.sin(a1)}Z`} fill={col} />;
+              })}<circle cx="16" cy="16" r="5.5" fill="#FFFBF5" /><path d="M16 13.2v5.6M13.2 16h5.6" stroke="#6B5C55" strokeWidth="1.4" strokeLinecap="round" /></svg>
+            )}
+          </span>
+          <span className="nb-picker-text">{!preset && c.hex ? "직접 고른 색" : "직접 고르기"}</span>
+          <input type="color" aria-label="팔레트에서 색 고르기" value={!preset && c.hex ? c.hex : "#C9B8E0"} onChange={e => onChange({ ...c, hex: e.target.value, name: preset ? undefined : c.name })} />
         </label>
       </div>
       <div className="nb-grid2">
