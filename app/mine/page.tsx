@@ -192,7 +192,8 @@ function List() {
 export default function MinePage() {
   return (
     <main id="view-mine" className="mine">
-      <div className="mine-head"><h1 lang="en">My Patterns</h1><Link className="mine-link" href="/new">새 도안 →</Link></div>
+      {/* the title is Kim's "My Patterns" wordmark (public/pic/my-patterns.png, trimmed from legacy/pic/mypatters.png) */}
+      <div className="mine-head"><h1 lang="en"><img className="mine-logo" src="/pic/my-patterns.png" alt="My Patterns" width={900} height={366} /></h1><Link className="mine-link" href="/new">새 도안 →</Link></div>
       <List />
       <p className="mine-note">작품과 사진은 이 브라우저에만 저장돼요.</p>
     </main>

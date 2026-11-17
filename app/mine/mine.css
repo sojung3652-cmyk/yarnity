@@ -1,7 +1,7 @@
 /* 내 작품: the book pages' type and spacing (small type, room, hairlines), paper menus without rounded
    boxes or heavy shadows */
 .mine{--m-label:#8C7B72;--m-help:#A08F86;--m-line:#E6DACF;--m-ink:#3A2E29;--m-accent:#6E5350;color:var(--m-ink);padding-bottom:80px}
-.mine-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:8px 0 26px}
+.mine-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:8px 0 26px}
 .mine-head h1{margin:0;font-size:22px;font-weight:500;letter-spacing:-.01em}
 .mine-link{border:0;background:none;padding:6px 0;font:inherit;font-size:13px;color:var(--m-accent);text-decoration:none;cursor:pointer}
 .mine-link:hover{text-decoration:underline;text-underline-offset:3px}
@@ -102,3 +102,6 @@
 .mc-cover span{position:absolute;right:8px;bottom:8px;min-width:22px;padding:2px 7px;border-radius:11px;background:rgba(251,243,234,.92);font-size:11.5px;color:var(--m-ink);text-align:center}
 .mc-links button{padding:0;border:0;background:none;font:inherit;color:var(--m-ink);text-decoration:underline;text-decoration-color:rgba(155,134,196,.6);text-underline-offset:4px;cursor:pointer}
 .mc-links button:hover{text-decoration-color:currentColor}
+/* the wordmark as the title */
+.mine-logo{display:block;width:auto;height:64px}
+@media (max-width:640px){.mine-logo{height:48px}}
