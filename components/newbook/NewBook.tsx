@@ -23,7 +23,7 @@ import { ItemArt } from "./ItemArt";
 import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
 import { RibbonGold } from "@/components/RibbonGold";
-import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
+import { SuppliesPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
 import { useBook, type WizStep } from "@/components/Book/BookProvider";
@@ -285,7 +285,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     );
   } else if (step === 3) {
     left = <YarnPage draft={draft} patch={patch} tried={tried} />;
-    right = <HookPage draft={draft} patch={patch} item={item} stitchMm={g.h * 10} tried={tried}
+    right = <SuppliesPage draft={draft} item={item} pp={pp} stitchMm={g.h * 10}
       measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춰요." : "3단을 뜬 뒤 재서 정확하게 맞춰요."} />;
   } else {
     const shapes = item.shapes ?? [];
@@ -377,7 +377,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
       </section>
     ),
     right: (
-      <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "코바늘과 요약" : "지금까지"}>
+      <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "준비물" : "지금까지"}>
         <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
         <div className="nb-foot">
           <span className="nb-folio">{step * 2}</span>

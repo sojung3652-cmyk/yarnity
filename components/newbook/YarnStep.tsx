@@ -1,18 +1,18 @@
 "use client";
 // 실과 바늘 (step 3 of 도안 만들기), one spread:
-//   left page  - the two required fields (yarn thickness, hook size), then "가지고 있는 실 정보" folded:
-//                name / brand, material, and what the yarn's label says (skein weight / length, count,
-//                shop, memo)
-//   right page - the colours (one row per yarn: colour, colour number, LOT), "+ 색 추가" for more yarns,
-//                and a short summary
+//   left page  - all the supplies: the two required fields (yarn thickness, hook size), the colours (one
+//                row per yarn: colour, colour number, LOT; "+ 색 추가" for more yarns), then
+//                "가지고 있는 실 정보" folded: name / brand, material, what the yarn's label says
+//   right page - the supplies card: what was picked, and how much yarn the pattern will take
 // Only the required fields are open; everything else is a folded row showing its current value, one row
 // open at a time. Every choice keeps its own "직접 입력". Errors appear only when trying to move on with a
 // required field empty.
 import { useState, type ReactNode } from "react";
 import type { Item } from "@/lib/items";
-import { fmt, YARN_KO, type Weight } from "@/lib/pattern";
+import { fmt, YARN_KO, type Plan, type Weight } from "@/lib/pattern";
 import type { Draft, YarnColor } from "@/lib/types";
-import { clean, HOOK_CHIPS, HOOK_MM_RANGE, hookLabel, hookMmOf, hookYarnMismatch, MATERIALS, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
+import { clean, HOOK_CHIPS, HOOK_MM_RANGE, hookLabel, hookMmOf, hookYarnMismatch, MATERIALS, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE, yarnWeightText } from "@/lib/yarn";
+import { yarnUse } from "@/lib/yarnUse";
 import { Fold, useOneOpen } from "./Fold";
 import { HookSelect } from "./HookSelect";
 
@@ -116,6 +116,9 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
       {/* required, open: hook size */}
       <HookField draft={draft} patch={patch} tried={tried} />
 
+      {/* the yarn colours (one row per yarn, with its colour number and LOT) */}
+      <ColorList draft={draft} patch={patch} open={open} toggle={toggle} />
+
       <div className="nb-folds">
         {/* everything the yarn's own label says, in one place */}
         <Fold label="가지고 있는 실 정보" value={info} open={open === "info"} onToggle={() => toggle("info")}>
@@ -216,38 +219,61 @@ function ColorEditor({ c, i, onChange }: { c: YarnColor; i: number; onChange: (c
   );
 }
 
-export function HookPage({ draft, patch, item, stitchMm, measureNote }: { draft: Draft; patch: Patch; item: Item; stitchMm: number; measureNote: string; tried?: boolean }) {
-  const [open, setOpen] = useState<number | null>(null);
+/** The colours (page 5, under the hook): one folded row per yarn, "+ 색 추가" under them. Shares the page's
+ *  one-open-at-a-time state (keys "c0", "c1"...). */
+function ColorList({ draft, patch, open, toggle }: { draft: Draft; patch: Patch; open: string | null; toggle: (k: string) => void }) {
   const colors = colorsOf(draft);
-  const mm = draft.hook ? hookMmOf(draft) : NaN;
-  const line1 = [draft.name.trim() || "이름 없는 작품", item.name].join(" · ");
-  const line2 = [draft.yarn, draft.materials?.join(" · "), Number.isFinite(mm) ? hookLabel(mm).replace(" · ", " ") : ""].filter(Boolean).join(" · ");
-  const add = () => { patch({ moreColors: [...(draft.moreColors ?? []), {}] }); setOpen(colors.length); };
-  const remove = (i: number) => { patch({ moreColors: (draft.moreColors ?? []).filter((_, j) => j !== i - 1) }); setOpen(null); };
-
+  const add = () => { patch({ moreColors: [...(draft.moreColors ?? []), {}] }); toggle("c" + colors.length); };
+  const remove = (i: number) => { patch({ moreColors: (draft.moreColors ?? []).filter((_, j) => j !== i - 1) }); toggle("c" + i); };
   return (
-    <div className="nb-stack nb-hook">
+    <div className="nb-field nb-field-open nb-colorfield">
       <span className="nb-lbl">색</span>
       <div className="nb-folds nb-colors">
         {colors.map((c, i) => (
-          <div key={i} className="nb-color-row">
-            <Fold label={colors.length > 1 ? `색 ${i + 1}` : "실 색"} open={open === i} onToggle={() => setOpen(o => (o === i ? null : i))}
-              value={c.hex || c.name || c.no || c.lot ? <>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || (c.hex ? "직접 고른 색" : "")}{c.no ? ` · ${c.no}` : ""}{c.lot ? ` · LOT ${c.lot}` : ""}</> : ""}>
-              <ColorEditor c={c} i={i} onChange={nc => patch(setColor(draft, i, nc))} />
-              {i > 0 && <button type="button" className="nb-link nb-color-del" onClick={() => remove(i)}>이 색 빼기</button>}
-            </Fold>
-          </div>
+          <Fold key={i} label={colors.length > 1 ? `색 ${i + 1}` : "실 색"} open={open === "c" + i} onToggle={() => toggle("c" + i)}
+            value={c.hex || c.name || c.no || c.lot ? <>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || (c.hex ? "직접 고른 색" : "")}{c.no ? ` · ${c.no}` : ""}{c.lot ? ` · LOT ${c.lot}` : ""}</> : ""}>
+            <ColorEditor c={c} i={i} onChange={nc => patch(setColor(draft, i, nc))} />
+            {i > 0 && <button type="button" className="nb-link nb-color-del" onClick={() => remove(i)}>이 색 빼기</button>}
+          </Fold>
         ))}
       </div>
       {colors.length < MAX_COLORS && <button type="button" className="nb-chip nb-chip-add nb-color-add" onClick={add}>+ 색 추가 (실 추가)</button>}
+    </div>
+  );
+}
 
-      {/* summary: two sentences, then the expected stitch size */}
-      <div className="nb-recap" aria-live="polite">
-        <p className="nb-recap-1">{line1}</p>
-        {line2 && <p className="nb-recap-2">{line2}</p>}
-        <p className="nb-recap-st">한 코 크기 약 <b>{fmt(stitchMm)}mm</b></p>
-        <p className="nb-help">{measureNote}</p>
+// ---------------------------------------------------------------- right page: the supplies card
+/** Page 6: what was picked on page 5 as one card, like a supplies list (yarn, hook, colours), and how much
+ *  yarn the pattern will take (lib/yarnUse.ts: a rule of thumb, shown with "약"). */
+export function SuppliesPage({ draft, item, pp, stitchMm, measureNote }: { draft: Draft; item: Item; pp: Plan; stitchMm: number; measureNote: string }) {
+  const colors = colorsOf(draft).filter(c => c.hex || c.name);
+  const mm = draft.hook ? hookMmOf(draft) : NaN;
+  const use = yarnUse(pp, { weight: draft.weight, skeinG: draft.skeinG, skeinM: draft.skeinM, skeins: draft.skeins, colors: Math.max(1, colors.length) });
+  const yarnLine = [draft.yarn, draft.materials?.join(" · ")].filter(Boolean).join(" · ");
+  const label = draft.skeinG && draft.skeinM ? `한 타래 ${draft.skeinG}g · ${draft.skeinM}m 기준` : draft.skeinG ? `한 타래 ${draft.skeinG}g 기준` : draft.skeinM ? `한 타래 ${draft.skeinM}m 기준` : "";
+  return (
+    <div className="nb-supplies" aria-live="polite">
+      <h2 className="nb-sup-title">준비물</h2>
+      <p className="nb-sup-for">{[draft.name.trim() || "이름 없는 작품", item.name].join(" · ")}</p>
+      <dl className="nb-sup-list">
+        <div><dt>실</dt><dd>{yarnLine || <span className="nb-none">이름 없음</span>}{yarnWeightText(draft) !== "—" && <small>{yarnWeightText(draft)}</small>}</dd></div>
+        <div><dt>바늘</dt><dd>{Number.isFinite(mm) ? hookLabel(mm) : <span className="nb-none">고르지 않음</span>}</dd></div>
+        <div><dt>색</dt><dd className="nb-sup-colors">{colors.length ? colors.map((c, i) => (
+          <span key={i} className="nb-sup-color">{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || "직접 고른 색"}{c.lot ? <small>LOT {c.lot}</small> : null}</span>
+        )) : <span className="nb-none">고르지 않음</span>}</dd></div>
+      </dl>
+
+      <div className="nb-sup-use">
+        <span className="nb-sup-use-lbl">예상 실 양</span>
+        <p className="nb-sup-use-num">약 <b>{use.m}m</b> · 약 <b>{use.g}g</b></p>
+        {use.perColor && <p className="nb-sup-use-sub">색마다 약 {use.perColor}m</p>}
+        {use.skeins != null && <p className="nb-sup-use-sub">{label}으로 <b>{use.skeins}타래</b>{draft.skeins ? ` · 가지고 있는 ${draft.skeins}타래` : ""}</p>}
+        {use.short && <p className="nb-warn" role="status">가지고 있는 실이 조금 모자랄 수 있어요. 같은 LOT로 한 타래 더 준비해 두세요.</p>}
+        <p className="nb-help">도안의 코 수로 어림한 양이에요 (여유 10% 포함). 실 라벨의 무게와 길이를 적으면 타래 수도 알려 드려요.</p>
       </div>
+
+      <p className="nb-sup-stitch">한 코 크기 약 <b>{fmt(stitchMm)}mm</b></p>
+      <p className="nb-help">{measureNote}</p>
     </div>
   );
 }
