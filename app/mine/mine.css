@@ -90,3 +90,10 @@
 @media (max-width:640px){.mine-cards{gap:20px}}
 .mc .lot-copy{background:transparent;border-color:rgba(110,83,80,.3);color:var(--m-accent);padding:2px 9px} /* on the cloth: no white pill */
 .mine-head h1{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-weight:500;font-size:28px;letter-spacing:0}
+
+/* a work's newest photo across the card's top, with how many there are */
+.mc-cover{position:relative;display:block;margin:-2px 0 10px;padding:0;border:0;background:none;cursor:pointer}
+.mc-cover img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px}
+.mc-cover span{position:absolute;right:8px;bottom:8px;min-width:22px;padding:2px 7px;border-radius:11px;background:rgba(251,243,234,.92);font-size:11.5px;color:var(--m-ink);text-align:center}
+.mc-links button{padding:0;border:0;background:none;font:inherit;color:var(--m-ink);text-decoration:underline;text-decoration-color:rgba(155,134,196,.6);text-underline-offset:4px;cursor:pointer}
+.mc-links button:hover{text-decoration-color:currentColor}

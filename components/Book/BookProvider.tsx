@@ -93,7 +93,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (path !== "/new" || urlStep) return;
     const sp = new URLSearchParams(location.search);
     if (parseStep(sp.get("step"))) return; // StepSync has not reported yet
-    sp.set("step", String(sp.get("edit") ? 4 : savedStep()));
+    sp.set("step", String(sp.get("edit") ? 3 : savedStep()));
     router.replace(`/new?${sp}`, { scroll: false });
   }, [path, urlStep, router]);
 

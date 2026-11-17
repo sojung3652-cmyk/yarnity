@@ -7,7 +7,7 @@
 // move between steps. useNewBook() holds all of the state and builds the two pages; they are drawn either
 // in the one 3D book (wide screens with WebGL: components/Book/WizardSpread.tsx) or, as before, in this
 // one-page CSS book (<NewBook />: phones, no WebGL).
-// Editing a saved work: /new?edit=<id> opens step 4 prefilled; "도안 보기" overwrites that work (its
+// Editing a saved work: /new?edit=<id> opens step 3 (every input) prefilled; "도안 보기" overwrites that work (its
 // knitting progress restarts if the pattern changed - the old row position would no longer match).
 // The AI chat (components/Chat.tsx, /api/chat) is not shown here for now; the code is kept.
 import Link from "next/link";

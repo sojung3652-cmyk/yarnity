@@ -160,7 +160,8 @@ kbd{font-family:var(--sans);font-size:11px;border:1px solid var(--line);border-r
 .pcard h3{font-size:15px;font-weight:500}
 .empty{padding:28px;border:1px dashed var(--line);border-radius:20px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 
-footer{padding-block:72px 40px;color:var(--muted);font-size:12.5px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer{padding-block:72px 40px;color:var(--muted);font-size:12.5px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.foot-foil{height:42px;width:auto;display:block;overflow:visible;opacity:.9} /* the gold wordmark, centred, smaller than the nav's */
 footer .brand{font-size:16px;color:var(--ink)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -262,3 +263,29 @@ body:has(#view-new .book-stage-space) footer{display:none}
   .book-css-slot{left:50%;top:46%}
   .book-css-slot .bookstage{--W:48vw} /* matches the 3D book: 62% of the screen wide as seen */
 }
+
+/* 사진 기록 (components/PhotoLog.tsx): a paper dialog over a dimmed desk */
+.pl-bg{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(58,46,41,.32)}
+.pl{width:min(100%,640px);max-height:min(88svh,760px);overflow:auto;box-sizing:border-box;padding:22px 24px 18px;border-radius:6px;background:#FBF3EA;color:#3A2E29;font-family:"Noto Serif KR",serif;
+  box-shadow:0 20px 50px -20px rgba(50,35,25,.5),0 0 0 1px rgba(201,184,224,.6)}
+.pl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.pl-head h2{display:flex;flex-direction:column;gap:2px;margin:0;font-size:18px;font-weight:600}
+.pl-head h2 span{font-size:12.5px;font-weight:400;color:#7A6A63}
+.pl-x{width:36px;height:36px;border:0;border-radius:50%;background:none;font-size:22px;line-height:1;color:#6B5C55;cursor:pointer}
+.pl-x:hover{background:rgba(201,184,224,.25)}
+.pl-add{position:relative;display:flex;align-items:center;justify-content:center;height:52px;border:1.5px dashed #B9A3E3;border-radius:4px;background:#FFFBF5;font-size:14px;color:#3A2E29;cursor:pointer}
+.pl-add:hover,.pl-add:focus-visible{background:#F4EEF9;outline:none}
+.pl-add input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.pl-err{margin:8px 0 0;font-size:12.5px;color:#A4493D}
+.pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin:16px 0 0;padding:0;list-style:none}
+.pl-grid button{display:flex;flex-direction:column;gap:6px;width:100%;padding:0;border:0;background:none;font:inherit;text-align:left;cursor:pointer}
+.pl-grid img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:3px;box-shadow:0 1px 2px rgba(60,40,30,.15)}
+.pl-grid span{font-size:12px;color:#7A6A63}
+.pl-grid button:focus-visible img{outline:2px solid #3A2E29;outline-offset:2px}
+.pl-none{margin:18px 0 4px;font-size:13.5px;color:#7A6A63;text-align:center}
+.pl-note{margin:16px 0 0;font-size:11.5px;color:#A08F86;text-align:center}
+.pl-big{margin:0}
+.pl-big img{display:block;width:100%;max-height:62svh;object-fit:contain;border-radius:3px;background:#F2E8DD}
+.pl-big figcaption{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;font-size:13px;color:#6B5C55;flex-wrap:wrap}
+.pl-big button{margin-left:10px;padding:6px 4px;border:0;background:none;font:inherit;font-size:13px;color:#3A2E29;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.pl-big button.danger{color:#A4493D}

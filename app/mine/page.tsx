@@ -1,12 +1,14 @@
 "use client";
-// 내 작품: search, filter by status, sort, and per-work actions (⋯ menu: 이어 뜨기, 중단/다시 시작, 완성으로
-// 표시, 이름 바꾸기, 복제, 삭제). Deleting asks in place (no confirm()) and can be undone for 6 seconds;
+// 내 작품: search, filter by status, sort, and per-work actions (⋯ menu: 이어 뜨기, 도안 고치기, 중단/다시 시작,
+// 완성으로 표시, 이름 바꾸기, 복제, 삭제). Each card: 도안 보기 / 이어서 뜨기 / 사진 기록, its newest photo as a cover. Deleting asks in place (no confirm()) and can be undone for 6 seconds;
 // "고르기" deletes several at once. Paper and hairline styling (mine.css), no rounded boxes.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp, type Removed } from "@/components/AppProvider";
 import { CopyLot } from "@/components/YarnInfo";
+import { PhotoLog } from "@/components/PhotoLog";
+import { dropOrphans, photoSummary } from "@/lib/photos";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { plan } from "@/lib/pattern";
 import { STATUS_KO, statusOf, type Status } from "@/lib/status";
@@ -29,7 +31,7 @@ function Menu({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: s
     const out = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node) && !(e.target as Element).closest?.(".mc-more")) onClose(); };
     document.addEventListener("mousedown", out); return () => document.removeEventListener("mousedown", out);
   }, [onClose]);
-  const items: [string, string][] = [["resume", "이어 뜨기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단하기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["copy", "복제"], ["delete", "삭제"]];
+  const items: [string, string][] = [["resume", "이어 뜨기"], ["edit", "도안 고치기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단하기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["copy", "복제"], ["delete", "삭제"]];
   return (
     <div ref={ref} className="mc-menu" role="menu" aria-label={`${p.name} 메뉴`}
       onKeyDown={e => {
@@ -43,9 +45,9 @@ function Menu({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: s
   );
 }
 
-function Card({ p, picking, picked, onPick, menuOpen, setMenu, confirm, setConfirm, act }: {
+function Card({ p, picking, picked, onPick, menuOpen, setMenu, confirm, setConfirm, act, cover }: {
   p: Project; picking: boolean; picked: boolean; onPick: () => void; menuOpen: boolean; setMenu: (o: boolean) => void;
-  confirm: boolean; setConfirm: (o: boolean) => void; act: (a: string, v?: string) => void;
+  confirm: boolean; setConfirm: (o: boolean) => void; act: (a: string, v?: string) => void; cover?: { n: number; url: string };
 }) {
   const pp = plan(p), total = pp.rows.length, cur = Math.min(p.current || 0, total), st = statusOf(p);
   const [renaming, setRenaming] = useState(false), [name, setName] = useState(p.name);
@@ -64,6 +66,7 @@ function Card({ p, picking, picked, onPick, menuOpen, setMenu, confirm, setConfi
   );
   return (
     <article className={`mc mc-${st}` + (picked ? " picked" : "")}>
+      {cover && <button type="button" className="mc-cover" aria-label={`${p.name} 사진 기록 ${cover.n}장`} onClick={() => act("photos")}><img src={cover.url} alt="" /><span>{cover.n}</span></button>}
       {picking && <label className="mc-check"><input type="checkbox" checked={picked} onChange={onPick} /><span className="sr">{p.name} 고르기</span></label>}
       <div className="mc-top">
         <span className="mc-item">{ITEM[itemIdOf(p)].name}{st !== "knitting" && <em className={`mc-badge ${st}`}>{STATUS_KO[st]}</em>}</span>
@@ -76,7 +79,7 @@ function Card({ p, picking, picked, onPick, menuOpen, setMenu, confirm, setConfi
       <div className="mc-bar" aria-hidden="true"><i style={{ width: `${st === "done" ? 100 : Math.round((cur / total) * 100)}%` }} /></div>
       <p className="mc-where">{where}</p>
       <p className="mc-yarn">{yarn}{p.lot && <span className="mc-lot">LOT <b>{p.lot}</b><CopyLot lot={p.lot} /></span>}</p>
-      {!picking && <p className="mc-links"><Link href="/pattern" onClick={() => act("view")}>도안 보기</Link><Link href="/track" onClick={() => act("open")}>{st === "done" ? "뜨기 기록" : "이어서 뜨기"}</Link></p>}
+      {!picking && <p className="mc-links"><Link href="/pattern" onClick={() => act("view")}>도안 보기</Link><Link href="/track" onClick={() => act("open")}>{st === "done" ? "뜨기 기록" : "이어서 뜨기"}</Link><button type="button" onClick={() => act("photos")}>사진 기록{cover ? ` ${cover.n}` : ""}</button></p>}
       {menuOpen && <Menu p={p} onClose={() => setMenu(false)} act={k => { setMenu(false); if (k === "rename") { setName(p.name); setRenaming(true); } else act(k); }} />}
     </article>
   );
@@ -92,6 +95,20 @@ function List() {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
+  // photos: each work's count and newest photo (as an object URL for the card's cover); the dialog's work
+  const [covers, setCovers] = useState<Record<string, { n: number; url: string }>>({});
+  const [photoFor, setPhotoFor] = useState<string | null>(null);
+  const loadCovers = async () => {
+    try {
+      const s = await photoSummary(), c: Record<string, { n: number; url: string }> = {};
+      for (const [id, v] of Object.entries(s)) c[id] = { n: v.n, url: URL.createObjectURL(v.latest.blob) };
+      setCovers(old => { Object.values(old).forEach(o => URL.revokeObjectURL(o.url)); return c; });
+    } catch { /* no IndexedDB (private mode): no covers */ }
+  };
+  useEffect(() => { loadCovers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // photos of works deleted for good (no undo pending) are dropped
+  useEffect(() => { if (ready && !undo) dropOrphans(projects.map(p => p.id)).catch(() => {}); }, [ready, undo, projects]);
+
   const counts = useMemo(() => { const c = { all: projects.length, knitting: 0, paused: 0, done: 0 }; projects.forEach(p => c[statusOf(p)]++); return c; }, [projects]);
   const shown = useMemo(() => {
     const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -106,6 +123,8 @@ function List() {
   const act = (p: Project) => (a: string, v?: string) => {
     if (a === "open" || a === "resume") { setActive(p.id); if (statusOf(p) === "paused") updateProject(p.id, { status: "knitting", pausedAt: null }); if (a === "resume") router.push("/track"); }
     else if (a === "view") setActive(p.id);
+    else if (a === "photos") setPhotoFor(p.id);
+    else if (a === "edit") router.push(`/new?edit=${p.id}`);
     else if (a === "pause") updateProject(p.id, { status: "paused", pausedAt: Date.now() });
     else if (a === "unpause") updateProject(p.id, { status: "knitting", pausedAt: null });
     else if (a === "done") updateProject(p.id, { status: "done", pausedAt: null });
@@ -151,10 +170,11 @@ function List() {
         <div className="mine-cards">
           {shown.map(p => (
             <Card key={p.id} p={p} picking={picking} picked={picked.includes(p.id)} onPick={() => setPicked(x => (x.includes(p.id) ? x.filter(i => i !== p.id) : [...x, p.id]))}
-              menuOpen={menu === p.id} setMenu={o => setMenu(o ? p.id : null)} confirm={confirm === p.id} setConfirm={o => setConfirm(o ? p.id : null)} act={act(p)} />
+              menuOpen={menu === p.id} setMenu={o => setMenu(o ? p.id : null)} confirm={confirm === p.id} setConfirm={o => setConfirm(o ? p.id : null)} act={act(p)} cover={covers[p.id]} />
           ))}
         </div>
       ) : <p className="mine-none">찾는 작품이 없어요</p>}
+      {photoFor && <PhotoLog projectId={photoFor} name={projects.find(x => x.id === photoFor)?.name ?? ""} onClose={() => setPhotoFor(null)} onChange={loadCovers} />}
       {undo && (
         <div className="mine-undo" role="status">
           <span>{undo.n > 1 ? `${undo.n}개를 지웠어요` : "지웠어요"}</span>
@@ -170,7 +190,7 @@ export default function MinePage() {
     <main id="view-mine" className="mine">
       <div className="mine-head"><h1 lang="en">My Patterns</h1><Link className="mine-link" href="/new">새 도안 →</Link></div>
       <List />
-      <p className="mine-note">작품은 이 브라우저에만 저장돼요.</p>
+      <p className="mine-note">작품과 사진은 이 브라우저에만 저장돼요.</p>
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/components/AppProvider";
 import { Nav } from "@/components/Nav";
+import { FoilLogo } from "@/components/FoilLogo";
 import { BookProvider } from "@/components/Book/BookProvider";
 import { Hero } from "@/components/home/Hero";
 
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Hero />
               <Nav />
               {children}
-              <footer><span className="brand">Yarnity.</span></footer>
+              <footer><FoilLogo className="foot-foil" /></footer>
             </div>
           </BookProvider>
         </AppProvider>
