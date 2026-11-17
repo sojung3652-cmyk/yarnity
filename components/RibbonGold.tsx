@@ -78,10 +78,17 @@ function RibbonGoldLeaf({ w, h, ball, ballY, notch }: { w: number; h: number; ba
         </mask>
         {/* the leaf: grain, raised edges */}
         <filter id={fr} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="5" result="n" />
-          <feColorMatrix in="n" type="matrix" values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  .35 .35 0 0 -.25" result="grain" />
+          {/* fine grain (stronger) and a faint, larger mottling, like beaten leaf */}
+          <feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="2" seed="5" result="n" />
+          <feColorMatrix in="n" type="matrix" values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  .7 .7 0 0 -.5" result="grain" />
           <feComposite in="grain" in2="SourceAlpha" operator="in" result="grainIn" />
-          <feBlend in="SourceGraphic" in2="grainIn" mode="overlay" result="gold" />
+          <feBlend in="SourceGraphic" in2="grainIn" mode="overlay" result="g1" />
+          <feTurbulence type="fractalNoise" baseFrequency=".18" numOctaves="2" seed="9" result="m" />
+          <feColorMatrix in="m" type="matrix" values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  .5 .5 0 0 -.35" result="mottle" />
+          <feComposite in="mottle" in2="SourceAlpha" operator="in" result="mottleIn" />
+          <feBlend in="g1" in2="mottleIn" mode="soft-light" result="g2" />
+          {/* about 20% less saturated: quieter, more expensive-looking gold */}
+          <feColorMatrix in="g2" type="saturate" values=".8" result="gold" />
           <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="bump" />
           <feDiffuseLighting in="bump" surfaceScale="3" diffuseConstant="1" lightingColor="#fff" result="diff"><feDistantLight azimuth="225" elevation="60" /></feDiffuseLighting>
           <feSpecularLighting in="bump" surfaceScale="3" specularConstant=".7" specularExponent="14" lightingColor="#FFF4D2" result="spec"><feDistantLight azimuth="225" elevation="45" /></feSpecularLighting>
