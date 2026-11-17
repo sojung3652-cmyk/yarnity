@@ -27,6 +27,7 @@ import { SuppliesPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
 import { useBook, type WizStep } from "@/components/Book/BookProvider";
+import { AiPanel, AskAi } from "./AiPanel";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -101,6 +102,8 @@ export interface NewBookView {
   onSubmit: (e: React.FormEvent) => void;
   onKeyDown: (e: KeyboardEvent<HTMLFormElement>) => void;
   ribbon: ReactNode;
+  /** "AI와 상의하기" beside the book (rendered once, outside the pages) */
+  ai: ReactNode;
   left: ReactNode;
   right: ReactNode;
 }
@@ -116,6 +119,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   const [tried, setTried] = useState(false); // step 3: required messages only after trying to move on
   const [groupOpen, toggleGroup] = useOneOpen("납작한 것");
   const [fold4, toggle4] = useOneOpen();
+  // bumped when the AI's proposal is applied: the pages' inputs that keep their own typed text remount
+  const [rev, setRev] = useState(0);
   const [ownHandle, setOwnHandle] = useState(false); // handle: "직접 입력" picked (stays custom even on a preset value)
   const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(step);
   // the saved step when the wizard opened: a draft already past step 2 has its item (older drafts carry no flag)
@@ -238,7 +243,17 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     const t = e.target as HTMLElement;
     if (e.key === "Enter" && !e.nativeEvent.isComposing && (t.getAttribute("role") === "radio" || t === titleRef.current)) { e.preventDefault(); next(); }
   };
-  if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, left: null, right: null };
+  if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, ai: null, left: null, right: null };
+
+  // "책에 적용": the AI's checked proposal (lib/aiApply.ts) goes into the draft and the fields show it
+  const applyAi = (p: Partial<Draft>) => { const nd = { ...draft, ...p }; setDraft(nd); setNums(numsOf(nd)); setRev(r => r + 1); };
+  // each step's "AI에게 물어보기"
+  const asks: Record<Step, [string, string][]> = {
+    1: [["이 작품에 어울리는 이름을 세 가지 추천해 줘.", "이름 추천받기"]],
+    2: [["코바늘 초보가 뜨기 좋은 걸 추천해 줘. 필요한 건 하나씩 물어봐 줘.", "뭘 뜰지 추천받기"]],
+    3: [["실 라벨 사진을 올릴게. 실 굵기와 알맞은 바늘을 읽어 줘.", "실 라벨 사진으로 채우기"], ["이 품목에 알맞은 크기를 같이 정해 줘.", "크기 상의하기"]],
+    4: [["지금 준비물과 크기로 괜찮은지 점검해 줘.", "준비물 점검받기"]],
+  };
 
   const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇인가요?", 2: "무엇을 뜰까요?", 3: "어떤 실로, 어떤 크기로 뜰까요?", 4: "준비물을 확인해요" };
   const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
@@ -387,6 +402,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
 
   return {
     ready, formRef, onSubmit, onKeyDown,
+    ai: <AiPanel draft={draft} step={step} onApply={applyAi} />,
     // the gold ribbon closes the book, as on the menu page (the draft is saved on every change)
     // the very same ribbon as the menu page's (PageSpread.tsx): all gold leaf, hanging from the page's top
     // edge, "책 덮기" beside it on hover
@@ -399,8 +415,9 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     left: (
       <section className="nb-page nb-left" aria-labelledby="nbTitle">
         {step !== 1 && progress}
-        <div key={"l" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
+        <div key={"l" + step + "-" + rev} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
           <h1 id="nbTitle" ref={titleRef} tabIndex={-1} className={step === 1 ? "sr" : undefined}>{titles[step]}</h1>
+          <div className="ai-asks">{asks[step].map(([q, t]) => <AskAi key={t} q={q}>{t}</AskAi>)}</div>
           {left}
         </div>
         <div className="nb-foot">
@@ -412,7 +429,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     ),
     right: (
       <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "모양과 크기" : "지금까지"}>
-        <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
+        <div key={"r" + step + "-" + rev} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
         <div className="nb-foot">
           <span className="nb-folio">{step * 2}</span>
           {step === 4
@@ -443,6 +460,8 @@ export function NewBook() {
         {v.left}
         {v.right}
       </form>
+      {/* outside the book's form: the AI sheet has its own form */}
+      {v.ai}
     </main>
   );
 }

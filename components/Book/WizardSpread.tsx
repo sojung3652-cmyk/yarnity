@@ -26,6 +26,8 @@ export function WizardSpread({ step, left, right }: { step: WizStep; left: HTMLE
     <>
       {createPortal(form("l", v.left), left)}
       {createPortal(form("r", <>{v.ribbon}{v.right}</>), right)}
+      {/* the AI sheet sits beside the book, on the screen (outside the page boxes) */}
+      {createPortal(v.ai, document.body)}
     </>
   );
 }

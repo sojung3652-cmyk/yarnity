@@ -7,10 +7,15 @@ import { withStatus } from "@/lib/status";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { store } from "@/lib/store";
 import { DEFAULT_DRAFT, type Draft, type Project } from "@/lib/types";
+import type { Proposal } from "@/lib/aiApply";
 
-export interface ChatMsg { id: number; kind: "ai" | "me" | "note"; text: string; img?: string; applied?: string[]; thinking?: boolean }
+export interface ChatMsg { id: number; kind: "ai" | "me" | "note"; text: string; img?: string; applied?: string[]; thinking?: boolean;
+  /** what the AI proposes (AI와 상의하기), applied only with 책에 적용; `done` once applied */
+  proposal?: Proposal; done?: boolean }
 export interface ChatTurn { role: "user" | "assistant"; content: string }
-export interface ChatState { msgs: ChatMsg[]; chips: string[]; off: boolean; images: boolean; checked: boolean }
+export interface ChatState { msgs: ChatMsg[]; chips: string[]; off: boolean; images: boolean; checked: boolean;
+  /** the AI panel beside the book is open; a question waiting to be sent (a step's "AI에게 물어보기") */
+  open?: boolean; ask?: string | null }
 
 interface AppCtx {
   ready: boolean;
@@ -35,8 +40,8 @@ export interface Removed { items: { p: Project; at: number }[]; active: string |
 const Ctx = createContext<AppCtx | null>(null);
 
 const INITIAL_CHAT: ChatState = {
-  msgs: [{ id: 0, kind: "ai", text: "무엇을 만들고 싶나요? 사진도 괜찮아요." }],
-  chips: ["네트백 같은 손가방", "원형 코스터"],
+  msgs: [{ id: 0, kind: "ai", text: "무엇을 만들고 싶은지, 어떤 실이 있는지 편하게 말해 주세요. 작품이나 실 라벨 사진도 괜찮아요." }],
+  chips: ["여름에 들 작은 가방", "선물할 코스터", "가진 실로 뭘 뜰까요?"],
   off: false,
   images: false,
   checked: false,
