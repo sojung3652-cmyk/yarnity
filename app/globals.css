@@ -350,4 +350,6 @@ body:has(#view-new .book-stage-space) footer{display:none}
 #view-home .hero-foot{position:relative;z-index:1;margin-top:-72px;padding-top:0;height:72px;justify-content:center;pointer-events:none;transition:opacity .4s ease}
 body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
 @media (max-width:899px){#view-home .hero-foot{margin-top:-56px;height:56px}#view-home .tagline{font-size:11px;letter-spacing:.24em}}
+/* home: the gold wordmark at the very bottom sits a little closer (just below the first screen) */
+#view-home + footer{padding-top:30px;padding-bottom:32px}
 
