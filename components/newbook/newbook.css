@@ -292,3 +292,9 @@
 @media (max-width:899px){.cloth-next{position:fixed;right:16px;bottom:max(14px,env(safe-area-inset-bottom));z-index:20}}
 /* gold foil on the ribbon (RibbonGold.tsx) */
 .nb-ribbon .rib-gold{position:absolute;inset:0;width:100%;height:100%}
+/* ---- the same pages inside the one 3D book (components/Book/WizardSpread.tsx) ----
+   Each page box is one page of this book: the WebGL paper is the page, so the CSS book's cover, grid and
+   paper backgrounds go; type, spacing and controls stay exactly as above. --w is the original book's
+   width at the reference size (two 642px pages + its padding), used by the title page's height. */
+.nb-book.nb-in3d{--w:1320px;display:flex;min-height:0;padding:0;border-radius:0;background:none;box-shadow:none;text-align:left;box-sizing:border-box}
+.nb-in3d .nb-page{flex:1;height:100%;box-sizing:border-box;background:none;box-shadow:none;border-radius:0}

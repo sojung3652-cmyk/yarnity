@@ -11,7 +11,7 @@ import * as THREE from "three";
 import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 import { useReducedMotion } from "../useBookState";
 import { useBook } from "../BookProvider";
-import { WizardLeft, WizardRight } from "../WizardSpread";
+import { WizardSpread } from "../WizardSpread";
 import {
   BLOCK, blockTop, BOARD, CORNER_R, coverPose, D, FAB, FORE_CONCAVE, GUTTER_X, Q0, sheetCurve, SHEET_W, SHEETS, spineCloth, T, W,
 } from "./geometry";
@@ -409,8 +409,10 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
       <div className="book-grain" aria-hidden="true" />
       <div ref={cssHost} />
       {/* the page DOM: the menu spread at home, the wizard spread on /new */}
-      {createPortal(b.view === "wizard" ? <WizardLeft /> : <LeftPage />, layer.left)}
-      {createPortal(b.view === "wizard" ? <WizardRight /> : <RightPage onClose={b.close} />, layer.right)}
+      {b.view === "wizard" ? <WizardSpread left={layer.left} right={layer.right} /> : <>
+        {createPortal(<LeftPage />, layer.left)}
+        {createPortal(<RightPage onClose={b.close} />, layer.right)}
+      </>}
     </div>
   );
 }

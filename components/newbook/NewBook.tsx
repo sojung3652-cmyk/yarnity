@@ -3,6 +3,10 @@
 // picked so far / the live preview): ① name ② item ③ yarn, hook and colour ④ shape and size.
 // Items come from lib/items.ts and map onto the stitch engine (lib/pattern: plan, gauge) unchanged.
 // The draft is saved to iyarn.draft and the step to iyarn.newstep, so a refresh resumes where you were.
+// The step itself is in the address (/new?step=n, see components/Book/BookProvider.tsx), so Back/Forward
+// move between steps. useNewBook() holds all of the state and builds the two pages; they are drawn either
+// in the one 3D book (wide screens with WebGL: components/Book/WizardSpread.tsx) or, as before, in this
+// one-page CSS book (<NewBook />: phones, no WebGL).
 // Editing a saved work: /new?edit=<id> opens step 4 prefilled; "도안 보기" overwrites that work (its
 // knitting progress restarts if the pattern changed - the old row position would no longer match).
 // The AI chat (components/Chat.tsx, /api/chat) is not shown here for now; the code is kept.
@@ -22,9 +26,10 @@ import { RibbonGold } from "@/components/RibbonGold";
 import { HookPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
+import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import "./newbook.css";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = WizStep;
 const STEP_KEY = "iyarn.newstep";
 const NO_NAME = "이름 없는 작품";
 const HANDLE_KO: Record<Handle, string> = { short: "짧은 끈 25cm", long: "긴 끈 90cm", none: "없음" };
@@ -66,20 +71,31 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   );
 }
 
-export function NewBook() {
+export interface NewBookView {
+  ready: boolean;
+  /** the CSS book's form (page turn snapshots); unused in the 3D book */
+  formRef: React.RefObject<HTMLFormElement | null>;
+  onSubmit: (e: React.FormEvent) => void;
+  onKeyDown: (e: KeyboardEvent<HTMLFormElement>) => void;
+  ribbon: ReactNode;
+  left: ReactNode;
+  right: ReactNode;
+}
+
+export function useNewBook(): NewBookView {
   const { ready, draft, setDraft, addProject, updateProject, projects, setActive } = useApp();
   const router = useRouter();
-  const [step, setStep] = useState<Step>(1);
+  const book = useBook(), step = book.step;
   const [editId, setEditId] = useState<string | null>(null);
   const [nums, setNums] = useState<Record<FieldKey, string>>(numsOf(draft));
   const [dir, setDir] = useState<1 | -1>(1);
   const [tried, setTried] = useState(false); // step 3: required messages only after trying to move on
   const [groupOpen, toggleGroup] = useOneOpen("납작한 것");
   const [fold4, toggle4] = useOneOpen();
-  const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), moved = useRef(false);
+  const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(step);
   const formRef = useRef<HTMLFormElement>(null), turn = useRef<Turn | null>(null), pending = useRef<Snapshot | null>(null);
 
-  // enter: a saved work to edit (?edit=id, step 4) or the saved draft and step
+  // enter: a saved work to edit (?edit=id; BookProvider opens it on step 4) or the saved draft
   useEffect(() => {
     if (!ready || loaded.current) return;
     loaded.current = true;
@@ -91,9 +107,7 @@ export function NewBook() {
       const { id: _id, measuredH: _mh, measuredW: _mw, current: _cur, created: _cr, ...saved } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
       d = { ...saved, name: p.name === NO_NAME ? "" : p.name, item: it.id, circ: p.circ ?? it.defaults.circ, depth: p.depth ?? it.defaults.depth,
         yarnMode: p.yarnMode ?? (p.yarnMm ? "mm" : "level") }; // older works: their thin/medium/thick stays
-      setDraft(d); setEditId(p.id); setStep(4);
-    } else {
-      const s = store.get<number>(STEP_KEY, 1); setStep((s >= 1 && s <= 4 ? s : 1) as Step);
+      setDraft(d); setEditId(p.id);
     }
     setNums(numsOf(d));
   }, [ready, draft, projects, setDraft]);
@@ -140,25 +154,27 @@ export function NewBook() {
   const stepOk = step === 3 ? yarnStepOk(draft) : step < 4 || Object.keys(errors).length === 0;
   const blockNext = step === 4 && !stepOk; // step 3 is never disabled: pressing it shows what is missing
 
-  // Changing step: a turn still running is finished first (never two at once); on the desktop book the
+  // Changing step: a turn still running is finished first (never two at once); on the desktop CSS book the
   // current pages are snapshotted for the page turn, which starts once the new step is rendered.
-  // Jumping several steps from the progress indicator is one turn.
+  // Jumping several steps from the progress indicator is one turn. The step changes through the address,
+  // so Back/Forward arrive here too (without a snapshot: no turn, just the new step).
   const go = (s: Step) => {
     if (s === step) return;
     turn.current?.finish();
-    const d = s > step ? 1 : -1;
-    pending.current = formRef.current && canTurn() ? snapshot(formRef.current, d) : null;
-    setDir(d); setStep(s); setTried(false); moved.current = true;
+    pending.current = formRef.current && canTurn() ? snapshot(formRef.current, s > step ? 1 : -1) : null;
+    book.goStep(s);
   };
   useLayoutEffect(() => {
-    if (!moved.current) return;
-    moved.current = false;
-    const book = formRef.current; if (!book) return;
+    const was = shownStep.current; if (was === step) return;
+    shownStep.current = step;
+    setDir(step > was ? 1 : -1); setTried(false);
+    // the CSS book's form, or the 3D book's two page forms
+    const book = formRef.current ?? document.querySelector<HTMLElement>(".book3d"); if (!book) return;
     // focus: the new step's first field (the one that had focus is gone)
     const focusFirst = () => (book.querySelector<HTMLElement>('.nb-page .nb-turn input:not([type="color"]), .nb-page .nb-turn textarea, .nb-page .nb-turn [role="radio"][tabindex="0"], .nb-page .nb-turn button') ?? titleRef.current)?.focus({ preventScroll: true });
     const snap = pending.current; pending.current = null;
-    if (!snap) { requestAnimationFrame(focusFirst); return; }
-    turn.current = startTurn(book, snap, () => { turn.current = null; focusFirst(); });
+    if (!snap || !formRef.current) { requestAnimationFrame(focusFirst); return; }
+    turn.current = startTurn(formRef.current, snap, () => { turn.current = null; focusFirst(); });
   }, [step]);
   useEffect(() => () => turn.current?.finish(), []);
 
@@ -183,7 +199,14 @@ export function NewBook() {
     if (step < 4) go((step + 1) as Step); else save();
   };
 
-  if (!ready) return <main id="view-new" className="nb-main" />;
+  const onSubmit = (e: React.FormEvent) => { e.preventDefault(); next(); };
+  // Enter = next step from anywhere in the book (inputs submit by themselves; chips, cards and the
+  // title too); other buttons and links keep their own Enter
+  const onKeyDown = (e: KeyboardEvent<HTMLFormElement>) => {
+    const t = e.target as HTMLElement;
+    if (e.key === "Enter" && !e.nativeEvent.isComposing && (t.getAttribute("role") === "radio" || t === titleRef.current)) { e.preventDefault(); next(); }
+  };
+  if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, left: null, right: null };
 
   const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇인가요?", 2: "무엇을 뜰까요?", 3: "어떤 실과 바늘을 쓰나요?", 4: "어떤 모양, 어떤 크기로 뜰까요?" };
   const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 모양과 크기 →", 4: "도안 보기 →" };
@@ -286,35 +309,45 @@ export function NewBook() {
     );
   }
 
+  return {
+    ready, formRef, onSubmit, onKeyDown,
+    ribbon: <span className="nb-ribbon" aria-hidden="true"><RibbonGold w={30} h={62} ball={18} ballY={27} lineInset={4} lineEnd={47} /></span>,
+    left: (
+      <section className="nb-page nb-left" aria-labelledby="nbTitle">
+        {step !== 1 && progress}
+        <div key={"l" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
+          <h1 id="nbTitle" ref={titleRef} tabIndex={-1} className={step === 1 ? "sr" : undefined}>{titles[step]}</h1>
+          {left}
+        </div>
+        <div className="nb-foot">
+          {step > 1 ? <ClothLabel side="back" type="button" onClick={() => go((step - 1) as Step)}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" href="/mine">← 내 작품</ClothLabel> : <span />}
+          <span className="nb-folio">{step * 2 - 1}</span>
+        </div>
+      </section>
+    ),
+    right: (
+      <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "코바늘과 요약" : "지금까지"}>
+        <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
+        <div className="nb-foot">
+          <span className="nb-folio">{step * 2}</span>
+          <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !stepOk)}>{nextLabel[step]}</ClothLabel>
+        </div>
+      </section>
+    ),
+  };
+}
+
+/** The one-page CSS book: phones and browsers without WebGL. */
+export function NewBook() {
+  const v = useNewBook();
+  if (!v.ready) return <main id="view-new" className="nb-main" />;
   return (
     <main id="view-new" className="nb-main">
-      <form ref={formRef} className="nb-book" noValidate onSubmit={e => { e.preventDefault(); next(); }}
-        onKeyDown={e => {
-          // Enter = next step from anywhere in the book (inputs submit by themselves; chips, cards and the
-          // title too); other buttons and links keep their own Enter
-          const t = e.target as HTMLElement;
-          if (e.key === "Enter" && !e.nativeEvent.isComposing && (t.getAttribute("role") === "radio" || t === titleRef.current)) { e.preventDefault(); next(); }
-        }}>
-        <span className="nb-ribbon" aria-hidden="true"><RibbonGold w={30} h={62} ball={18} ballY={27} lineInset={4} lineEnd={47} /></span>
+      <form ref={v.formRef} className="nb-book" noValidate onSubmit={v.onSubmit} onKeyDown={v.onKeyDown}>
+        {v.ribbon}
         <span className="nb-marker" aria-hidden="true" />
-        <section className="nb-page nb-left" aria-labelledby="nbTitle">
-          {step !== 1 && progress}
-          <div key={"l" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
-            <h1 id="nbTitle" ref={titleRef} tabIndex={-1} className={step === 1 ? "sr" : undefined}>{titles[step]}</h1>
-            {left}
-          </div>
-          <div className="nb-foot">
-            {step > 1 ? <ClothLabel side="back" type="button" onClick={() => go((step - 1) as Step)}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" href="/mine">← 내 작품</ClothLabel> : <span />}
-            <span className="nb-folio">{step * 2 - 1}</span>
-          </div>
-        </section>
-        <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "코바늘과 요약" : "지금까지"}>
-          <div key={"r" + step} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
-          <div className="nb-foot">
-            <span className="nb-folio">{step * 2}</span>
-            <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !stepOk)}>{nextLabel[step]}</ClothLabel>
-          </div>
-        </section>
+        {v.left}
+        {v.right}
       </form>
     </main>
   );

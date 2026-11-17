@@ -120,10 +120,3 @@
 .pg-actions .pg-link:hover,.pg-actions .pg-link:focus-visible{transform:rotate(0) translateY(-1px)}
 .pg-actions .pg-link-desc{color:#8C7B72}
 @media (prefers-reduced-motion:reduce){.pg-actions .pg-link{transition:none}}
-
-/* TEMPORARY (one-book step 1): placeholder wizard spread (components/Book/WizardSpread.tsx) */
-.wz-tmp{text-align:left}
-.wz-tmp-step{position:absolute;left:12%;top:12%;font-size:max(2cqw,calc(12px * var(--k,1)));letter-spacing:.2em;color:#8C7B72}
-.wz-tmp-title{position:absolute;left:12%;right:12%;top:18%;margin:0;font-family:"Noto Serif KR",serif;font-weight:400;font-size:max(4.4cqw,calc(20px * var(--k,1)));line-height:1.4}
-.wz-tmp-nav{position:absolute;left:12%;right:12%;bottom:12%;display:flex;justify-content:space-between}
-.wz-tmp-nav button{font:inherit;font-size:max(2.6cqw,calc(14px * var(--k,1)));padding:.6em 1.2em;border:1px solid #CDBFB4;border-radius:999px;background:transparent;color:#3A2E29;cursor:pointer}

@@ -1,29 +1,29 @@
 "use client";
-// TEMPORARY (one-book step 1): the wizard's spread in the 3D book, only the step title and moving
-// between steps, to check the address <-> book state. Step 2 replaces it with the real step pages
-// from components/newbook (inputs, folds, labels), unchanged.
-import { useBook, type WizStep } from "./BookProvider";
+// 도안 만들기 inside the one 3D book: the very same two pages as the one-page /new (useNewBook in
+// components/newbook/NewBook.tsx: progress, question, inputs, folds, woven labels, folios, the gold
+// ribbon), laid on the book's left and right page boxes (the same DOM boxes the home menu uses).
+// Each page is its own <form> with the same submit / Enter handling, since the two boxes are separate
+// DOM trees. The pages are laid out at the original page's width (REF_W) and zoomed to the box: zoom
+// re-lays the text at the final size (no transform scaling), so the composition is the same at any size.
+import { createPortal } from "react-dom";
+import { useNewBook } from "@/components/newbook/NewBook";
+import { PAGE_H_PX, PAGE_PX } from "./three/paperTextures";
 
-const TITLES: Record<WizStep, string> = { 1: "이 작품의 이름은 무엇인가요?", 2: "무엇을 뜰까요?", 3: "어떤 실과 바늘을 쓰나요?", 4: "어떤 모양, 어떤 크기로 뜰까요?" };
+/** one page of the original /new book on a 1440px-wide screen: (1320 - 2 * 18) / 2 */
+export const REF_W = 642;
 
-export function WizardLeft() {
-  const { step } = useBook();
-  return (
-    <div className="pg-page wz-tmp">
-      <p className="wz-tmp-step">{step} / 4</p>
-      <h1 className="wz-tmp-title">{TITLES[step]}</h1>
-    </div>
+export function WizardSpread({ left, right }: { left: HTMLElement; right: HTMLElement }) {
+  const v = useNewBook();
+  if (!v.ready) return null;
+  const zoom = PAGE_PX / REF_W;
+  const style = { zoom, width: REF_W, height: PAGE_H_PX / zoom } as React.CSSProperties;
+  const form = (side: "l" | "r", children: React.ReactNode) => (
+    <form className={"nb-book nb-in3d nb-in3d-" + side} style={style} noValidate onSubmit={v.onSubmit} onKeyDown={v.onKeyDown}>{children}</form>
   );
-}
-
-export function WizardRight() {
-  const { step, goStep, toHome } = useBook();
   return (
-    <div className="pg-page wz-tmp">
-      <div className="wz-tmp-nav">
-        {step > 1 ? <button type="button" onClick={() => goStep((step - 1) as WizStep)}>← 이전</button> : <button type="button" onClick={toHome}>← 메뉴</button>}
-        {step < 4 && <button type="button" onClick={() => goStep((step + 1) as WizStep)}>다음 →</button>}
-      </div>
-    </div>
+    <>
+      {createPortal(form("l", v.left), left)}
+      {createPortal(form("r", <>{v.ribbon}{v.right}</>), right)}
+    </>
   );
 }
