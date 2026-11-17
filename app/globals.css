@@ -1,6 +1,6 @@
 /* Layout: colourless and quiet. One blush media card is the only colour on the page.
    Thin Korean sans for everything; Latin serif italic only for the name "I Yarn". */
-:root{
+:root{--float:.8s;--float-ease:cubic-bezier(.22,.61,.36,1);--float-step:.08s;
   /* home book: tune here. Lavender book cloth (pastel, no more saturated than the photo's crochet motif),
      its shaded tone, shadow darkness (1 = as designed), film grain over the book and the photo, and the
      softening of the book's rendered edges */
@@ -201,9 +201,9 @@ html{overflow-x:clip}
 .hero-desk.is-hidden{visibility:hidden;pointer-events:none}
 /* the book opened over another page (새 도안, Kim: "책만 아래서부터 뜨게"): no home backdrop or logo - the page
    stays, dimmed, and the book alone rises from the bottom (0.55s, ease-out); the page does not scroll */
-.hero-desk.is-overlay{position:fixed;inset:0;left:0;z-index:60;width:100vw;height:100svh;background:rgba(58,46,41,.3);animation:stage-in .3s ease-out}
+.hero-desk.is-overlay{position:fixed;inset:0;left:0;z-index:60;width:100vw;height:100svh;background:rgba(58,46,41,.3);animation:stage-in .5s ease-out}
 .hero-desk.is-overlay .hero-stage{display:none}
-.hero-desk.is-overlay .book3d,.hero-desk.is-overlay .book-css-slot{animation:book-up .55s cubic-bezier(.2,.8,.2,1)}
+.hero-desk.is-overlay .book3d,.hero-desk.is-overlay .book-css-slot{animation:book-up .9s var(--float-ease)}
 @keyframes stage-in{from{background-color:rgba(58,46,41,0)}}
 @keyframes book-up{from{transform:translateY(100svh)}}
 @media (prefers-reduced-motion:reduce){.hero-desk.is-overlay,.hero-desk.is-overlay .book3d,.hero-desk.is-overlay .book-css-slot{animation:none}}
@@ -322,12 +322,12 @@ body:has(#view-new .book-stage-space) footer{display:none}
    shadow deepens (ease-out); its contents follow 0.04s apart. Still afterwards. Off with reduced motion. */
 @keyframes float-in{from{opacity:0;transform:translateY(16px);box-shadow:0 0 0 rgba(70,50,40,0)}}
 @keyframes float-in-soft{from{opacity:0;transform:translateY(10px)}}
-.ps-sheet,.tk-sheet-page,.mine-head,.mine-tools,.mc{animation:float-in .45s cubic-bezier(.2,.7,.3,1) backwards}
-.ps-head,.ps-boxes,.ps-part,.tk-chart,.tk-side,.ps-actions,.tk-head,.tk-progress{animation:float-in-soft .45s cubic-bezier(.2,.7,.3,1) backwards}
-.ps-actions{animation-delay:0s}.ps-head,.tk-head{animation-delay:.08s}.ps-boxes,.tk-progress{animation-delay:.12s}.tk-chart{animation-delay:.16s}.tk-side{animation-delay:.2s}
-.ps-part:nth-child(1){animation-delay:.16s}.ps-part:nth-child(2){animation-delay:.2s}.ps-part:nth-child(3){animation-delay:.24s}.ps-part:nth-child(4){animation-delay:.28s}.ps-part:nth-child(n+5){animation-delay:.32s}
-.mine-tools{animation-delay:.04s}
-.mc:nth-child(1){animation-delay:.08s}.mc:nth-child(2){animation-delay:.12s}.mc:nth-child(3){animation-delay:.16s}.mc:nth-child(4){animation-delay:.2s}.mc:nth-child(5){animation-delay:.24s}.mc:nth-child(6){animation-delay:.28s}.mc:nth-child(n+7){animation-delay:.32s}
+.ps-sheet,.tk-sheet-page,.mine-head,.mine-tools,.mc{animation:float-in var(--float) var(--float-ease) backwards}
+.ps-head,.ps-boxes,.ps-part,.tk-chart,.tk-side,.ps-actions,.tk-head,.tk-progress{animation:float-in-soft var(--float) var(--float-ease) backwards}
+.ps-actions{animation-delay:0s}.ps-head,.tk-head{animation-delay:calc(var(--float-step) * 2)}.ps-boxes,.tk-progress{animation-delay:calc(var(--float-step) * 3)}.tk-chart{animation-delay:calc(var(--float-step) * 4)}.tk-side{animation-delay:calc(var(--float-step) * 5)}
+.ps-part:nth-child(1){animation-delay:calc(var(--float-step) * 4)}.ps-part:nth-child(2){animation-delay:calc(var(--float-step) * 5)}.ps-part:nth-child(3){animation-delay:calc(var(--float-step) * 6)}.ps-part:nth-child(4){animation-delay:calc(var(--float-step) * 7)}.ps-part:nth-child(n+5){animation-delay:calc(var(--float-step) * 8)}
+.mine-tools{animation-delay:var(--float-step)}
+.mc:nth-child(1){animation-delay:calc(var(--float-step) * 2)}.mc:nth-child(2){animation-delay:calc(var(--float-step) * 3)}.mc:nth-child(3){animation-delay:calc(var(--float-step) * 4)}.mc:nth-child(4){animation-delay:calc(var(--float-step) * 5)}.mc:nth-child(5){animation-delay:calc(var(--float-step) * 6)}.mc:nth-child(6){animation-delay:calc(var(--float-step) * 7)}.mc:nth-child(n+7){animation-delay:calc(var(--float-step) * 8)}
 @media (prefers-reduced-motion:reduce){
   .ps-sheet,.tk-sheet-page,.mine-head,.mine-tools,.mc,.ps-head,.ps-boxes,.ps-part,.tk-chart,.tk-side,.ps-actions,.tk-head,.tk-progress{animation:none}
   .foil-shine{display:none}
@@ -335,9 +335,9 @@ body:has(#view-new .book-stage-space) footer{display:none}
 @media print{.ps-sheet,.ps-head,.ps-boxes,.ps-part{animation:none}}
 /* back to the home screen from another page: the backdrop fades in, the logo / copy and the book float up
    16px into place (0.45s ease-out, 0.06s apart), as pages out of the book do */
-.hero-desk.is-arriving .hero-bg{animation:stage-fade .45s ease-out backwards}
-.hero-desk.is-arriving .hero-copy-desk{animation:float-in .45s cubic-bezier(.2,.7,.3,1) .06s backwards}
-.hero-desk.is-arriving .book3d,.hero-desk.is-arriving .book-css-slot{animation:float-in .5s cubic-bezier(.2,.7,.3,1) .12s backwards}
+.hero-desk.is-arriving .hero-bg{animation:stage-fade var(--float) ease-out backwards}
+.hero-desk.is-arriving .hero-copy-desk{animation:float-in var(--float) var(--float-ease) calc(var(--float-step) * 1.5) backwards}
+.hero-desk.is-arriving .book3d,.hero-desk.is-arriving .book-css-slot{animation:float-in .9s var(--float-ease) calc(var(--float-step) * 3) backwards}
 @keyframes stage-fade{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.hero-desk.is-arriving .hero-bg,.hero-desk.is-arriving .hero-copy-desk,.hero-desk.is-arriving .book3d,.hero-desk.is-arriving .book-css-slot{animation:none}}
 

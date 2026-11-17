@@ -423,7 +423,7 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .nb-sec .nb-field-open{margin-bottom:20px}
 /* ---- step 2, the right page: the picked item as a hang tag (Kim: the old layout looked plain) ----
    all real elements (no pseudo-elements), so a turn's page picture shows them too */
-.sh{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:14px;animation:sh-in .35s cubic-bezier(.2,.7,.3,1)}
+.sh{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:14px;animation:sh-in .6s var(--float-ease,cubic-bezier(.22,.61,.36,1))}
 @keyframes sh-in{from{opacity:0;transform:translateY(8px)}}
 .sh-tag{position:relative;display:flex;align-items:center;justify-content:center;width:min(230px,62%);aspect-ratio:1/1.08;padding:30px 18px 14px;box-sizing:border-box;
   background:#FFFDF8;border:1px solid #E6DACE;border-radius:14px 14px 8px 8px;box-shadow:0 1px 2px rgba(70,50,40,.1),0 10px 22px -14px rgba(70,50,40,.35);transform:rotate(-2deg)}

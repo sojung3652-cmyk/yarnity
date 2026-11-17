@@ -22,7 +22,7 @@ export function Hero() {
   useEffect(() => {
     const was = prev.current; prev.current = b.view;
     if (was === "hidden" && (b.view === "closed" || b.view === "home") && !b.overlay) {
-      setArriving(true); const t = setTimeout(() => setArriving(false), 800); return () => clearTimeout(t);
+      setArriving(true); const t = setTimeout(() => setArriving(false), 1400); // longer than the slowest float-in (0.9s + 0.24s) return () => clearTimeout(t);
     }
   }, [b.view, b.overlay]);
   return (
