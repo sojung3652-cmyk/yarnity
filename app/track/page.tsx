@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawTrack } from "@/lib/drawMap";
+import { StitchLegend } from "@/components/StitchLegend";
+import type { StitchSym } from "@/lib/stitchSymbols";
 import { clamp, fmt, PART_KO, plan } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
 
@@ -136,6 +138,10 @@ export default function TrackPage() {
     : !done && r.part === "flap" && r.label === "덮개 1" ? "뒤판 가운데에서 시작해 왕복으로 떠요."
     : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리해요." : "";
   const flat = p.object === "rows" || p.object === "tube";
+  // the symbols this work's chart uses, in the order of a symbol table
+  const syms: StitchSym[] = flat
+    ? (p.object === "tube" ? ["ch", "sl", "sc"] : ["ch", "sc"])
+    : [p.shape === "circle" ? "ring" : "ch", "sc", "inc", ...(pp.rows.some(x => x.part === "rim") ? ["sl" as const] : [])];
   const showMeasure = !flat && current === 3 && !p.measuredH && pp.bottomRounds > 3;
   const showMeasureRows = flat && current === 6 && !p.measuredH && pp.bodyRows > 5; // start chain + 5 rows done
 
@@ -147,12 +153,8 @@ export default function TrackPage() {
       </div>
       <div className="grid-track">
         <div className="map">
-          <canvas id="trCanvas" ref={cvRef} role="img" aria-label="코 지도" />
-          <div className="legend">
-            <span><i className="sw" style={{ background: "var(--dot-now)" }} />지금 뜨는 단</span>
-            <span><i className="sw" style={{ border: "1.5px solid var(--dot-now)" }} />늘림</span>
-            <span><i className="sw" style={{ background: "var(--dot)" }} />뜬 코</span>
-          </div>
+          <canvas id="trCanvas" ref={cvRef} role="img" aria-label="코 도안" />
+          <StitchLegend syms={syms} />
         </div>
         <div className="card">
           <div className="meta"><span id="trPart">{done ? "완성" : r.part === "start" ? "시작 사슬" : `${PART_KO[r.part]} · ${r.label}`}</span><span id="trCount">{done ? "" : ((r.part === "bottom" && (r.no as number) > 1) || (r.part === "body" && r.inc) ? `${pp.rows[r.idx - 1].n} → ${r.n}코` : `${r.n}코`)}</span></div>
