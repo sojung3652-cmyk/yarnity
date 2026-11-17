@@ -343,7 +343,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
       <div className="nb-preview">
         <h3>미리 보기</h3>
         {/* drawing() only interpolates numbers and fixed labels */}
-        <div className="drawing nb-drawing" dangerouslySetInnerHTML={{ __html: drawing(input, pp, draft.color) }} />
+        <div className="drawing nb-drawing" dangerouslySetInnerHTML={{ __html: drawing(input, pp, draft.color, draft.moreColors?.map(c => c.hex)) }} />
         <p className="nb-counts" aria-live="polite">
           <span>{`${item.name} · ${sizeText}`}</span>
           {input.object === "rows" && start && <b>{`시작 사슬 ${start.n}코 · 한 단 ${pp.last}코 · ${pp.bodyRows}단`}</b>}

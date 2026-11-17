@@ -369,3 +369,17 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .nb-in3d .nb-page{flex:1;height:100%;box-sizing:border-box;background:none;box-shadow:none;border-radius:0}
 /* the left page's paper curls down into the gutter over its inner ~17%: keep the content clear of it */
 .nb-in3d .nb-left{padding-left:40px;padding-right:120px}
+/* a page whose content is longer than the page (step 3 with a fold open, step 4 with the bag options)
+   scrolls inside the page, between the progress and the footer; the page itself never grows */
+.nb-in3d .nb-page>.nb-turn{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-right:-12px;padding-right:12px;scrollbar-width:thin;scrollbar-color:#D8CABD transparent}
+.nb-in3d .nb-page>.nb-turn::-webkit-scrollbar{width:6px}.nb-in3d .nb-page>.nb-turn::-webkit-scrollbar-thumb{background:#D8CABD;border-radius:3px}
+/* ---- headings on the pages, two levels (Kim: "소제목 구분 가능하게") ----
+   1) a section's title (a field's label, a folded row's name, the right page's headings): 15px semibold,
+      dark, with a short lavender bar on the left (a border, so the page picture of a turn shows it too)
+   2) a small field inside an open fold (skein weight, LOT...): smaller and lighter, no bar */
+.nb-field>label,.nb-field>.nb-lbl,.nb-hook>.nb-lbl,.nb-preview>h3{display:flex;align-items:center;align-self:flex-start;font-size:15px;font-weight:600;color:#3A2E29;letter-spacing:0;line-height:1.3;border-left:3px solid #C9B8E0;padding-left:9px}
+.nb-preview>h3{margin-bottom:10px}
+.nb-fold-label{font-size:15px;font-weight:600;color:#3A2E29}
+.nb-fold-value{font-size:13.5px;color:#7A6A63}
+.nb-fold .nb-field>label,.nb-fold .nb-field>.nb-lbl,.nb-mini label,.nb-mini-lbl{border-left:0;padding-left:0;font-size:12.5px;font-weight:500;color:#7A6A63}
+.nb-mini{margin-bottom:14px}

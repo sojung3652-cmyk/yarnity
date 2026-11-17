@@ -43,6 +43,9 @@ export async function paintPage(src: HTMLElement, box: PaintBox, side: "left" | 
   for (const [k, v] of Object.entries(box.vars ?? {})) wrap.style.setProperty(k, v);
   wrap.setAttribute("aria-hidden", "true"); wrap.inert = true;
   const page = clonePage(src); wrap.append(page); document.body.append(wrap);
+  // a page scrolled inside (a long step) is pictured as it is scrolled: same structure, same scroll offsets
+  { const from = [src, ...src.querySelectorAll("*")], to = [page, ...page.querySelectorAll("*")];
+    from.forEach((e, i) => { if (e.scrollTop && to[i]) to[i].scrollTop = e.scrollTop; }); }
   try {
     const o = wrap.getBoundingClientRect();
     const X = (v: number) => (v - o.left) * S, Y = (v: number) => (v - o.top) * S;

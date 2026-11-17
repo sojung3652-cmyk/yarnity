@@ -51,7 +51,7 @@ export default function PatternPage() {
       <div className="grid-pattern">
         <aside style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
           {/* drawing() only interpolates numbers and fixed labels */}
-          <div className="card drawing" id="drawing" aria-label="완성 모양 도면" dangerouslySetInnerHTML={{ __html: drawing(p, pp, p.color) }} />
+          <div className="card drawing" id="drawing" aria-label="완성 모양 도면" dangerouslySetInnerHTML={{ __html: drawing(p, pp, p.color, p.moreColors?.map(c => c.hex)) }} />
           <div className="card" id="patStats" style={{ gap: 0 }}>
             {stats.map(([k, v]) => <div key={k} className="stat"><span>{k}</span><b style={{ fontWeight: 400 }}>{v}</b></div>)}
           </div>
