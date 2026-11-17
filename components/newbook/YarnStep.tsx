@@ -284,8 +284,9 @@ export function SuppliesPage({ draft, item, pp, stitchMm, measureNote }: { draft
 
       <div className="nb-sup-use">
         <span className="nb-sup-use-lbl">예상 실 양</span>
-        <p className="nb-sup-use-num">약 <b>{use.m}m</b> · 약 <b>{use.g}g</b></p>
-        {use.perColor && <p className="nb-sup-use-sub">색마다 약 {use.perColor}m</p>}
+        {/* grams first (how yarn is bought and weighed); the length as a small line under it */}
+        <p className="nb-sup-use-num">약 <b>{use.g}g</b></p>
+        <p className="nb-sup-use-sub">{use.perColor ? `색마다 약 ${Math.ceil(use.g / Math.max(1, colors.length))}g · ` : ""}길이로는 약 {use.m}m</p>
         {use.skeins != null && <p className="nb-sup-use-sub">{label}으로 <b>{use.skeins}타래</b>{draft.skeins ? ` · 가지고 있는 ${draft.skeins}타래` : ""}</p>}
         {use.short && <p className="nb-warn" role="status">가지고 있는 실이 조금 모자랄 수 있어요. 같은 LOT로 한 타래 더 준비해 두세요.</p>}
         {use.labelOdd && <p className="nb-warn" role="status">적어 주신 라벨 정보({draft.skeinG}g · {draft.skeinM}m)는 실 한 타래로 보기 어려워서 빼고 계산했어요. 무게와 길이 칸이 바뀌지 않았는지 확인해 주세요.</p>}
