@@ -88,7 +88,7 @@ export default function PatternPage() {
             <p className="ps-gauge"><b>{fmt(pp.g.h * 10)}</b><span>mm</span></p>
             <p className="ps-small">한 코 높이 · {pp.g.measured ? "직접 잰 값" : "예상 값"}</p>
             <p className="ps-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산해요." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드려요."}</p>
-            <p className="ps-small ps-rule"><b>기둥사슬</b> 단마다 사슬 1코로 시작해요. 코 수에는 세지 않아요.{p.object === "rows" ? " 왕복뜨기는 뜨고 나서 뒤집어요." : " 단 끝은 첫 코에 빼뜨기로 닫아요."}</p>
+            <p className="ps-small ps-rule"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 떠요." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세워요."} 짧은뜨기의 기둥사슬은 코 수에 세지 않아요.</p>
           </div>
         </section>
 

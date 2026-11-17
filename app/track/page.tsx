@@ -152,7 +152,7 @@ export default function TrackPage() {
     : !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? (pp.rows.some(x => x.part === "body" && x.inc) ? "여기부터 위로. 단마다 늘림 수만큼 고르게 늘려요." : "여기부터 늘림 없이 위로.")
     : !done && r.part === "flap" && r.label === "덮개 1" ? "뒤판 가운데에서 시작해 왕복으로 떠요."
     : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리해요."
-    : !done && (r as Row & { turn?: number }).turn && !pp.rows.slice(0, r.idx).some(x => (x as Row & { turn?: number }).turn) ? "단을 시작할 때 기둥사슬 1코를 떠요. 짧은뜨기의 기둥사슬은 코 수에 세지 않아요." : "";
+    : !done && (r as Row & { turn?: number }).turn && !pp.rows.slice(0, r.idx).some(x => (x as Row & { turn?: number }).turn) ? (p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어서 떠요. 짧은뜨기의 기둥사슬은 코 수에 세지 않아요." : "기둥사슬은 앞 단을 빼뜨기로 닫은 바로 그 자리 위에 세워요. 짧은뜨기의 기둥사슬은 코 수에 세지 않아요.") : "";
   const flat = p.object === "rows" || p.object === "tube";
   const showMeasure = !flat && current === 3 && !p.measuredH && pp.bottomRounds > 3;
   const showMeasureRows = flat && current === 6 && !p.measuredH && pp.bodyRows > 5; // start chain + 5 rows done
