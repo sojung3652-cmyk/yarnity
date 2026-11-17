@@ -12,7 +12,11 @@
 .nb-right{border-radius:3px 8px 8px 3px;background:var(--grainimg),linear-gradient(to right,rgba(90,62,40,.2),rgba(90,62,40,.05) 5%,transparent 9%),linear-gradient(to left,rgba(255,255,255,.5),transparent 12%),var(--paper);
   box-shadow:2px 3px 0 #F1E6D6,4px 6px 0 #EADDCA,6px 8px 0 #E2D4BF}
 /* ribbon tab (top right) and the bookmark hanging out at the bottom centre */
-.nb-ribbon{position:absolute;top:10px;right:7%;z-index:2;width:30px;height:62px;background:var(--book-lav-shade);clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%);box-shadow:inset -2px 0 3px rgba(60,40,90,.15)}
+/* the ribbon: the menu page's (Book.css .pg-ribbon) - gold leaf, 7.6% of the page wide, from the top edge */
+.nb-ribbon{position:absolute;top:0;right:6%;z-index:2;width:7.6%;min-width:30px;display:block;background:none}
+.nb-ribbon-tab{position:relative;display:block;aspect-ratio:78 / 107;filter:drop-shadow(0 1px 1.5px rgba(70,50,30,.28))}
+.nb-ribbon-tab .rib-gold{position:absolute;inset:0;width:100%!important;height:100%}
+.nb-ribbon-tip{position:absolute;right:calc(100% + 10px);top:38%;white-space:nowrap;font-family:"Noto Serif KR",serif;font-size:12px;color:#6F5E57;opacity:0;transform:translateX(4px);transition:opacity .2s,transform .2s;pointer-events:none}
 .nb-marker{position:absolute;left:calc(50% - 22px);bottom:-30px;z-index:-1;width:14px;height:50px;background:var(--book-lav-shade);clip-path:polygon(0 0,100% 0,100% 100%,50% 86%,0 100%)}
 /* type */
 .nb-page h1:focus{outline:none}
@@ -258,7 +262,7 @@
   .nb-right{padding-top:8px}
   .nb-select-list{max-height:min(260px,40vh)}
   .nb-page h1{font-size:24px;margin-bottom:20px}
-  .nb-ribbon{right:10%;width:24px;height:48px}
+  .nb-ribbon{right:6%;width:12%}
   .nb-progress{padding-right:44px;gap:6px 12px} /* clear of the ribbon */
   .nb-progress button{font-size:12.5px}
   .nb-marker{display:none}
@@ -353,11 +357,10 @@
 .nb-chip{font-size:14px}
 
 /* the ribbon is the "close the book" button */
-button.nb-ribbon{border:0;padding:0;cursor:pointer;transition:transform .18s ease}
-button.nb-ribbon:hover{transform:translateY(2px)}
+button.nb-ribbon{border:0;padding:0;cursor:pointer;transition:transform .2s ease}
+button.nb-ribbon:hover,button.nb-ribbon:focus-visible{transform:translateY(4px)}
+button.nb-ribbon:hover .nb-ribbon-tip,button.nb-ribbon:focus-visible .nb-ribbon-tip{opacity:1;transform:none}
 button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
-/* gold foil on the ribbon (RibbonGold.tsx) */
-.nb-ribbon .rib-gold{position:absolute;inset:0;width:100%;height:100%}
 /* ---- the same pages inside the one 3D book (components/Book/WizardSpread.tsx) ----
    Each page box is one page of this book: the WebGL paper is the page, so the CSS book's cover, grid and
    paper backgrounds go; type, spacing and controls stay exactly as above. Laid out 642px wide (REF_W in

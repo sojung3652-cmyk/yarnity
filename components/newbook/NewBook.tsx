@@ -369,7 +369,14 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   return {
     ready, formRef, onSubmit, onKeyDown,
     // the gold ribbon closes the book, as on the menu page (the draft is saved on every change)
-    ribbon: <button type="button" className="nb-ribbon" aria-label="책 덮기" title="책 덮기" onClick={book.close}><RibbonGold w={30} h={62} ball={18} ballY={27} lineInset={4} lineEnd={47} /></button>,
+    // the very same ribbon as the menu page's (PageSpread.tsx): all gold leaf, hanging from the page's top
+    // edge, "책 덮기" beside it on hover
+    ribbon: (
+      <button type="button" className="nb-ribbon" aria-label="책 덮기" onClick={book.close}>
+        <span className="nb-ribbon-tab"><RibbonGold full w={78} h={107} ball={34} ballY={42} lineInset={9} lineEnd={84} /></span>
+        <span className="nb-ribbon-tip" aria-hidden="true">책 덮기</span>
+      </button>
+    ),
     left: (
       <section className="nb-page nb-left" aria-labelledby="nbTitle">
         {step !== 1 && progress}
