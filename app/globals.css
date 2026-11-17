@@ -219,7 +219,6 @@ body:has(.hero-desk.is-overlay){overflow:hidden}
 .nav-label>span::before,.nav-label>span::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed var(--ls)}
 .nav-label>span::before{left:7px}.nav-label>span::after{right:7px}
 .nav-label:hover>span,.nav-label[aria-current="page"]>span{transform:rotate(0) translateY(-1px)}
-.nav-label[aria-current="page"]>span{box-shadow:0 0 0 1.5px var(--ls),0 4px 10px rgba(70,50,40,.1)}
 .nav-label:focus-visible{outline:none}
 .nav-label:focus-visible>span{outline:2px solid #3A2E29;outline-offset:3px}
 @media (max-width:640px){.nav-label>span{height:30px;padding:0 14px;font-size:12px}.nav-links{gap:4px}}
