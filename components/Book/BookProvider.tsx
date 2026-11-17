@@ -4,7 +4,9 @@
 //   /            -> "closed" (first load, refresh, coming from a page without the book) or "home" (the
 //                   open menu spread: opened here, or came back from the wizard)
 //   /new?step=n  -> "wizard", step n (1..4). /new without a step resumes the saved step (iyarn.newstep).
-//   other pages  -> "hidden" (the stage is invisible; the canvas stays mounted and idle)
+//   other pages  -> "hidden" (the stage is invisible; the canvas stays mounted and idle), or "home" while
+//                   the book is opened over the page ("새 도안" in the nav, openHere): closing it leaves you
+//                   on that page, and the wizard entered from it goes back there when closed
 // `instant` is true when the new state must appear without motion: first load, refresh, typed address,
 // or arriving from a page that has no book.
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -34,6 +36,10 @@ interface BookCtx {
   goStep: (s: WizStep) => void;
   /** wizard -> menu spread */
   toHome: () => void;
+  /** open the menu book over the page you are on (closing it keeps you there) */
+  openHere: () => void;
+  /** the book is open over another page */
+  overlay: boolean;
 }
 
 const Ctx = createContext<BookCtx | null>(null);
@@ -61,6 +67,9 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const [seenPath, setSeenPath] = useState<string | null>(null);
   // a close asked for in the wizard (a click outside the book): / is then reached with the book closed
   const [closing, setClosing] = useState(false);
+  // the book opened over another page ("새 도안"), and the page to come back to from the wizard
+  const [overlay, setOverlay] = useState(false);
+  const [origin, setOrigin] = useState<string | null>(null);
 
   // address -> state, during render (not in an effect) so the book sees the new view and `instant`
   // in the same commit. Coming back to / from the wizard lands on the open menu; from anywhere else
@@ -70,7 +79,9 @@ export function BookProvider({ children }: { children: ReactNode }) {
     setSeenPath(path);
     if (path === "/") setHomeOpen(seenPath === "/new" && !closing);
     if (closing) setClosing(false);
-    setInstant(!bookPage(seenPath));
+    setInstant(!bookPage(seenPath) && !overlay);
+    if (overlay) setOverlay(false); // going anywhere (the wizard, 내 작품) ends the overlay
+    if (origin && path !== "/new" && path !== origin) setOrigin(null);
   }
   // a step change on the same page (next / previous / Back / Forward) always turns the page, also after
   // the wizard was opened by a typed address or a refresh (which only skips the motion of that first view)
@@ -97,14 +108,21 @@ export function BookProvider({ children }: { children: ReactNode }) {
     router.replace(`/new?${sp}`, { scroll: false });
   }, [path, urlStep, router]);
 
-  const view: BookView = path === "/" ? (homeOpen ? "home" : "closed") : path === "/new" ? "wizard" : "hidden";
+  const view: BookView = path === "/" ? (homeOpen ? "home" : "closed") : path === "/new" ? "wizard" : overlay ? "home" : "hidden";
   const step: WizStep = urlStep ?? 1;
 
   const open = useCallback(() => { setInstant(false); setHomeOpen(true); }, []);
   // close: the same everywhere in the book. In the wizard it goes home with the book closed
   const doClose = useCallback(() => {
     setInstant(false); setHomeOpen(false);
+    if (overlay) { setOverlay(false); return; } // opened over a page: just put the book away
+    // the wizard entered from the book opened over a page goes back to that page
+    if (path === "/new" && origin) { const o = origin; setOrigin(null); router.push(o, { scroll: false }); return; }
     if (path === "/new") { setClosing(true); router.push("/", { scroll: false }); }
+  }, [path, router, overlay, origin]);
+  const openHere = useCallback(() => {
+    if (path === "/" || path === "/new") { setInstant(false); setHomeOpen(true); if (path === "/new") router.push("/", { scroll: false }); return; }
+    setInstant(false); setOrigin(path + location.search); setOverlay(true);
   }, [path, router]);
   const doHome = useCallback(() => { setInstant(false); router.push("/", { scroll: false }); }, [router]);
 
@@ -138,8 +156,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [view, close, leaving]);
 
-  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome }),
-    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome]);
+  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay }),
+    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay]);
   return (
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>

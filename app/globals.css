@@ -199,6 +199,13 @@ html{overflow-x:clip}
    (still mounted: one WebGL canvas for the whole app). */
 .hero-desk{position:absolute;top:0;left:calc(50% - 50vw);z-index:0;height:100svh;width:100vw;overflow:hidden;isolation:isolate;background:var(--bg)}
 .hero-desk.is-hidden{visibility:hidden;pointer-events:none}
+/* the book opened over another page (새 도안): the stage covers the screen where you are, the page under it
+   does not scroll */
+.hero-desk.is-overlay{position:fixed;inset:0;left:0;z-index:60;width:100vw;height:100svh;animation:stage-in .3s ease-out}
+@keyframes stage-in{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.hero-desk.is-overlay{animation:none}}
+body:has(.hero-desk.is-overlay){overflow:hidden}
+.nav-links button.nav-btn{border:0;background:none;font:inherit;cursor:pointer}
 .book-stage-space{height:100svh}
 /* /new in the 3D book: exactly one screen, nothing to scroll (a focused field never scrolls the book away) */
 body:has(#view-new .book-stage-space){overflow:hidden}
