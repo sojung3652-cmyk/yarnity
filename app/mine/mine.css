@@ -90,6 +90,8 @@
 .mc-bar{background:rgba(110,83,80,.12)}
 .mc-check{left:auto;right:34px;top:16px}
 .mc-menu{right:22px}
+/* each tilted card is its own layer, so a later card painted over an open ⋯ menu: lift the card whose menu is open */
+.mc.is-menu{position:relative;z-index:10}
 .mc-confirm{min-height:150px}
 @media (prefers-reduced-motion:reduce){.mc{transition:none}}
 @media (max-width:640px){.mine-cards{gap:20px}}

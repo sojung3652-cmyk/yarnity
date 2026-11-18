@@ -66,7 +66,7 @@ function Card({ p, picking, picked, onPick, menuOpen, setMenu, confirm, setConfi
     </article>
   );
   return (
-    <article className={`mc mc-${st}` + (picked ? " picked" : "")}>
+    <article className={`mc mc-${st}` + (picked ? " picked" : "") + (menuOpen ? " is-menu" : "")}>
       {cover && <button type="button" className="mc-cover" aria-label={`${p.name} 사진 기록 ${cover.n}장`} onClick={() => act("photos")}><img src={cover.url} alt="" /><span>{cover.n}</span></button>}
       {picking && <label className="mc-check"><input type="checkbox" checked={picked} onChange={onPick} /><span className="sr">{p.name} 고르기</span></label>}
       <div className="mc-top">
