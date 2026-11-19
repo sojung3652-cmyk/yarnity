@@ -13,7 +13,10 @@ import { MobileChrome } from "@/components/mobile/MobileChrome";
 const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: "500", style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
 
 export const metadata: Metadata = { title: "Yarnity" };
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
+// maximumScale 1: iOS Safari zoomed the whole screen in when a field inside the phone's 3D book page was tapped
+// (the page is CSS-zoomed and 3D-scaled, so its 16px inputs read as small). iOS still lets people pinch-zoom;
+// desktop browsers ignore it.
+export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
