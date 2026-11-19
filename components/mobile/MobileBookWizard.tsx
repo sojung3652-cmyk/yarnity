@@ -11,6 +11,8 @@
 // `sheet`: the sheet the book shows (Book3D passes the spread it shows, which lags the store during a turn).
 import { useLayoutEffect, useRef } from "react";
 import { useApp } from "@/components/AppProvider";
+import { useBook } from "@/components/Book/BookProvider";
+import { GoldX } from "@/components/GoldX";
 import { useNewBook } from "@/components/newbook/NewBook";
 import { yarnStepOk } from "@/components/newbook/YarnStep";
 import { setSheet, SHEETS } from "./sheetStore";
@@ -18,7 +20,7 @@ import { setSheet, SHEETS } from "./sheetStore";
 const NAMES = ["이름", "품목", "실과 크기", "확인"];
 
 export function MobileBookWizard({ sheet = 0 }: { sheet?: number }) {
-  const v = useNewBook(), s = v.phone, { draft } = useApp(), ref = useRef<HTMLFormElement>(null);
+  const v = useNewBook(), s = v.phone, { draft } = useApp(), book = useBook(), ref = useRef<HTMLFormElement>(null);
   // the page box's height in page px (Book3D sets it on the box), for the zoomed layout (mobile.css .mbw)
   useLayoutEffect(() => { const box = ref.current?.parentElement; if (box?.style.height) ref.current!.style.setProperty("--page-h", box.style.height); });
   if (!v.ready || !s) return <div className="mbw" />;
@@ -44,6 +46,8 @@ export function MobileBookWizard({ sheet = 0 }: { sheet?: number }) {
 
   return (
     <form ref={ref} className={`mbw mbz mbz-s${s.step}-${p}`} noValidate onSubmit={e => { e.preventDefault(); next(); }} onKeyDown={v.onKeyDown}>
+      {/* the book's close, as on its first page (a pattern half made asks first, as on the web) */}
+      <button type="button" className="mbook-x" aria-label="책 덮기" onClick={book.close}><GoldX /></button>
       <ol className="mbz-steps" aria-label="진행 단계">
         {NAMES.map((t, i) => (
           <li key={t} className={i + 1 < s.step ? "done" : i + 1 === s.step ? "on" : ""} aria-current={i + 1 === s.step ? "step" : undefined}>

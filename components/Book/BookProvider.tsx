@@ -131,6 +131,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     // the wizard entered from a page (새 도안 -> 도안 만들기, 도안 고치기) goes back to that page
     if (path === "/new" && origin) { const o = origin; setOrigin(null); router.push(o, { scroll: false }); return; }
     if (path === "/new") { setClosing(true); router.push("/", { scroll: false }); }
+    // phones: 도안집, 도안 and 따라 뜨기 are pages of the open book too; closing it goes to the desk, closed
+    else if (isPhone() && bookPageOf(path)) { setClosing(true); router.push("/", { scroll: false }); }
   }, [path, router, overlay, origin]);
   // a floating book sinks back down first (0.7s, Hero .is-sinking), then it goes; otherwise it closes now
   const doClose = useCallback(() => {
