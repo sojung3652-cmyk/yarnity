@@ -41,13 +41,16 @@ const TURN = 0.7;
 // t: opening (0 closed .. 1 open). w: open menu (0) .. wizard pose (1). turn: the leaf turning between
 // spreads (leafP: 0 = lying on the right, 1 = on the left).
 interface Turn { f: number; dur: number; fwd: boolean; started: boolean; done: () => void }
-interface Anim { t: number; target: number; cover: number; sheets: number[]; cam: number; w: number; wTarget: number; wcam: number; turn: Turn | null; leafP: number }
+interface Anim { t: number; target: number; cover: number; sheets: number[]; cam: number; w: number; wTarget: number; wcam: number; turn: Turn | null; leafP: number;
+  /** phones (< 768px) only: the closed book on the desk, far (0) .. looked at closely (1); zcam eased */
+  z?: number; zTarget?: number; zcam?: number }
 function derive(a: Anim) {
   const s = a.t * TOTAL;
   a.cover = ease(clamp01(s / COVER_END));
   a.sheets = SHEET_SPEED.map((f, k) => ease(clamp01((s - SHEET_START - k * SHEET_STAGGER) / (SHEET_DUR / f))));
   a.cam = ease(a.t);
   a.wcam = ease(a.w);
+  a.zcam = ease(a.z ?? 0);
 }
 
 // ---- spine cloth: a gently rounded band between the boards; it flattens as the book opens ----
@@ -343,14 +346,25 @@ const BOX = (() => {
   return out;
 })();
 
+// ---- phones under 768px (the mobile flow, components/mobile/MobileStage.tsx); 768px and up never use these ----
+export const PHONE_MAX = 767.98;
+// the closed book seen at a slant on the desk photo (bg_desk.webp): ~62 degrees above the desk, head away
+const PHONE_CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 62), 0);
+// closed: centred at 55% of the height, 34% of the screen wide; tapped once, the camera moves in until it is
+// 80% wide (1.2s). Open: the right page fills the screen from 36px (the left page shows 36px at the left
+// edge) to 40px before the right edge (the desk shows there, and the AI tab sticks out onto it), above the
+// 90px kept free at the bottom for the floating menu.
+const PHONE = { y: 0.55, w0: 0.34, w1: 0.8, zoom: 1.2, leftShow: 36, rightGap: 40, bottomKeep: 90, topGap: 24 };
+const phoneClosedSpot = (vw: number, vh: number, z: number) => ({ x: vw / 2, y: vh * PHONE.y, w: vw * THREE.MathUtils.lerp(PHONE.w0, PHONE.w1, z) });
+
 /** Phones: the book sits centred, 62% of the screen wide, at 46% of the height (logo above, button below). */
 function phoneSpot(vw: number, vh: number) { return { x: vw / 2, y: vh * 0.46, w: vw * 0.62 }; }
 
 /** Camera distance and lens shift that put the closed book at its spot (in the photo, or the phone layout). */
-function closedAnchor(vw: number, vh: number, tgt: THREE.Vector3, spot: { x: number; y: number; w: number }) {
+function closedAnchor(vw: number, vh: number, tgt: THREE.Vector3, spot: { x: number; y: number; w: number }, dir = CLOSED_DIR) {
   const cam = new THREE.PerspectiveCamera(FOV, vw / vh, 1, 1000);
   const project = (d: number) => {
-    cam.position.copy(tgt).addScaledVector(CLOSED_DIR, d); cam.up.set(0, 1, 0); cam.lookAt(tgt); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    cam.position.copy(tgt).addScaledVector(dir, d); cam.up.set(0, 1, 0); cam.lookAt(tgt); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     for (const p of BOX) { const q = p.clone().project(cam); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
     return { w: (x1 - x0) / 2 * vw, cx: ((x0 + x1) / 2 + 1) / 2 * vw, cy: (1 - (y0 + y1) / 2) / 2 * vh };
@@ -365,18 +379,35 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
   const { camera, size, scene } = useThree();
   useEffect(() => { layer.renderer.setSize(size.width, size.height); }, [layer, size]);
   const cTgt = useMemo(() => new THREE.Vector3(0, FAB + T / 2, 0), []);
-  const desk = size.width >= DESK_MIN;
+  const desk = size.width >= DESK_MIN, phone = size.width <= PHONE_MAX;
   const anchor = useMemo(() => closedAnchor(size.width, size.height, cTgt, desk ? photoSpot(size.width, size.height) : phoneSpot(size.width, size.height)), [desk, size.width, size.height, cTgt]);
+  // phones: the closed book's framing at the current zoom (recomputed only while zooming), and the desk photo
+  // scaled with it around the same point so the book does not slide on the desk
+  const phoneAnchor = useRef<{ z: number; w: number; h: number; a: ReturnType<typeof closedAnchor> } | null>(null);
+  const desk0 = useMemo(() => (phone ? closedAnchor(size.width, size.height, cTgt, phoneClosedSpot(size.width, size.height, 0), PHONE_CLOSED_DIR) : null), [phone, size.width, size.height, cTgt]);
   const v = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dir: new THREE.Vector3(), up: new THREE.Vector3(), wTgt: new THREE.Vector3() }), []);
   // wizard: the top nav stays visible, so the book is fitted (and centred) in the space under it
   const [navH, setNavH] = useState(0);
   useEffect(() => { setNavH(wizard ? Math.round(document.querySelector(".nav")?.getBoundingClientRect().bottom ?? 0) : 0); }, [size, wizard]);
   useFrame(() => {
     const cam = camera as THREE.PerspectiveCamera, aspect = size.width / size.height, e = anim.cam, we = anim.wcam;
-    const cDist = anchor.d;
+    let cAnchor = anchor;
+    if (phone) {
+      const z = anim.zcam ?? 0, pa = phoneAnchor.current;
+      if (!pa || Math.abs(pa.z - z) > 1e-4 || pa.w !== size.width || pa.h !== size.height)
+        phoneAnchor.current = { z, w: size.width, h: size.height, a: closedAnchor(size.width, size.height, cTgt, phoneClosedSpot(size.width, size.height, z), PHONE_CLOSED_DIR) };
+      cAnchor = phoneAnchor.current!.a;
+      const bg = document.querySelector<HTMLElement>(".m-desk-bg");
+      if (bg && desk0) bg.style.transform = `scale(${(desk0.d / cAnchor.d).toFixed(4)})`;
+      // the stage knows whether the book is being looked at closely (its hint moves under the bigger book)
+      const st = bg?.closest<HTMLElement>(".m-stage"), zk = z > 0.02 ? "1" : "0";
+      if (st && st.dataset.zoom !== zk) st.dataset.zoom = zk;
+    }
+    const cDist = cAnchor.d;
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
-    const oDist = !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / Math.min(0.68, 1320 / size.width), D / 2 / 0.88, aspect); // open spread: 68% of the width (max 1320px), at most 88% of the height
+    const pw = (size.width - PHONE.leftShow - PHONE.rightGap) / size.width, ph = (size.height - PHONE.bottomKeep - PHONE.topGap) / size.height;
+    const oDist = phone ? fit((BLOCK.x1 - GUTTER_X) / 2 / pw, D / 2 / ph, aspect) : !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / Math.min(0.68, 1320 / size.width), D / 2 / 0.88, aspect); // open spread: 68% of the width (max 1320px), at most 88% of the height
     // wizard pose: straight down, so the pages read flat and square; as big as fits: cover to cover up to
     // 96% of the screen wide (max 1700px), whole in the height (no nav in the wizard, like home; 8px room)
     // fitted to the whole open book, cover to cover: the front cover lies left of the spine cloth
@@ -385,7 +416,7 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
     const coverL = -W / 2 - T - W - 0.3, coverR = W / 2 + 0.3;
     const wDist = fit((coverR - coverL) / 2 / Math.min(0.96, 1700 / size.width), D / 2 / (room / size.height), aspect);
     v.wTgt.set((coverL + coverR) / 2, FAB + T * 0.6, 0);
-    v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).lerp(STRAIGHT_DOWN, we).normalize();
+    v.dir.copy(phone ? PHONE_CLOSED_DIR : CLOSED_DIR).lerp(OPEN_DIR, e).lerp(STRAIGHT_DOWN, we).normalize();
     v.tgt.copy(cTgt).lerp(oTgt, e).lerp(v.wTgt, we);
     const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
     v.pos.copy(v.tgt).addScaledVector(v.dir, THREE.MathUtils.lerp(THREE.MathUtils.lerp(cDist, oDist, e) * bump, wDist, we));
@@ -394,7 +425,10 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
     cam.position.copy(v.pos); cam.up.copy(v.up); cam.lookAt(v.tgt);
     // lens shift: closed, the book sits at its spot in the photo; it glides to the centre as it opens;
     // in the wizard it moves down by half the nav, to the middle of the space under it
-    cam.setViewOffset(size.width, size.height, anchor.shiftX * (1 - e), anchor.shiftY * (1 - e) - (navH / 2) * we, size.width, size.height);
+    // phones, open: the right page's centre moves right of the screen's centre (the left page's 36px show) and
+    // up (the bottom 90px kept free)
+    const oShiftX = phone ? -(PHONE.leftShow - PHONE.rightGap) / 2 : 0, oShiftY = phone ? (PHONE.bottomKeep - PHONE.topGap) / 2 : 0;
+    cam.setViewOffset(size.width, size.height, cAnchor.shiftX * (1 - e) + oShiftX * e, cAnchor.shiftY * (1 - e) + oShiftY * e - (navH / 2) * we, size.width, size.height);
     cam.updateProjectionMatrix(); cam.updateMatrixWorld(); scene.updateMatrixWorld();
     layer.renderer.render(scene, camera); // the DOM page buttons follow the same camera
     layer.afterCamera?.(); // ... and the wizard's flat pages
@@ -605,6 +639,10 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1) / TOTAL; // real time, capped, so slow devices do not stretch 1.6s
     anim.t = anim.target > anim.t ? Math.min(anim.target, anim.t + step) : Math.max(anim.target, anim.t - step);
+    if (anim.zTarget !== undefined) { // phones: the zoom on the closed book
+      const zs = Math.min(dt, 0.1) / PHONE.zoom, z = anim.z ?? 0;
+      anim.z = anim.zTarget > z ? Math.min(anim.zTarget, z + zs) : Math.max(anim.zTarget, z - zs);
+    }
     const wStep = Math.min(dt, 0.1) / WIZ_TOTAL;
     anim.w = anim.wTarget > anim.w ? Math.min(anim.wTarget, anim.w + wStep) : Math.max(anim.wTarget, anim.w - wStep);
     derive(anim);
@@ -616,8 +654,20 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
       anim.leafP = tr.fwd ? ease(tr.f) : 1 - ease(tr.f);
       if (tr.f >= 1) { tr.done(); return; }
     }
-    if (anim.t !== anim.target || anim.w !== anim.wTarget || (anim.turn && !held)) invalidate(); // frameloop="demand": render only while moving
+    if (anim.t !== anim.target || anim.w !== anim.wTarget || (anim.turn && !held) || (anim.zTarget !== undefined && anim.z !== anim.zTarget)) invalidate(); // frameloop="demand": render only while moving
   }, -1);
+  // phones: the first tap on the closed book brings it close, the second opens it; closing goes back to the
+  // book lying on the desk
+  const phone = useThree(s => s.size.width) <= PHONE_MAX;
+  useEffect(() => {
+    if (!phone) { anim.zTarget = undefined; anim.z = 0; derive(anim); return; }
+    if (anim.zTarget === undefined) anim.zTarget = 0;
+    if (want.view === "closed") { anim.zTarget = 0; if (reduce) anim.z = 0; invalidate(); }
+  }, [phone, want.view, anim, reduce, invalidate]);
+  const tapBook = () => {
+    if (phone && (anim.zTarget ?? 0) < 1) { anim.zTarget = 1; if (reduce) anim.z = 1; invalidate(); return; }
+    onOpen();
+  };
   return (
     <>
       <CameraRig anim={anim} layer={layer} wizard={want.view === "wizard"} />
@@ -631,20 +681,22 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
         <Lightformer form="rect" intensity={0.7} color="#ffffff" position={[14, 10, 14]} scale={[22, 12, 1]} target={[0, 0, 0]} />
       </Environment>
       <hemisphereLight args={["#fffaf4", "#eadcd2", 1.05]} />
-      <directionalLight position={[-22, 52, -22]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
+      {/* phones: the light comes from the upper right, as in the desk photo (bg_desk.webp), so the shadow falls
+          to the lower left; a 1024 shadow map */}
+      <directionalLight position={phone ? [30, 28, -22] : [-22, 52, -22]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={phone ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
         <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
       </directionalLight>
-      <BookModel anim={anim} onOpen={onOpen} layer={layer} m={m} leaf={leaf} />
+      <BookModel anim={anim} onOpen={tapBook} layer={layer} m={m} leaf={leaf} />
       {/* the book's shadow on the desk, in two layers like the photo's skeins: a narrow dark contact line where
           it touches, and a broad very soft shadow spreading to the lower right. Warm grey-brown (sampled
           beside the skeins), not black; darkness follows --book-shadow */}
       {/* broad soft layer: the key light's shadow map, falling to the lower right (follows the book as it opens) */}
       <mesh rotation-x={-Math.PI / 2} position-y={0} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <shadowMaterial transparent opacity={0.38 * shadowK} color={SHADOW_COLOR} />
+        <shadowMaterial transparent opacity={(phone ? 0.5 : 0.38) * shadowK} color={SHADOW_COLOR} />
       </mesh>
       {/* narrow dark contact line where the book touches the desk */}
-      <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={0.55 * shadowK} resolution={1024} color={SHADOW_COLOR} frames={Infinity} />
+      <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={(phone ? 0.7 : 0.55) * shadowK} resolution={1024} color={SHADOW_COLOR} frames={Infinity} />
     </>
   );
 }

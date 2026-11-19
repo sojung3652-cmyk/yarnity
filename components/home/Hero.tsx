@@ -11,6 +11,7 @@ import { AiHost } from "@/components/newbook/AiPanel";
 import { FoilLogo } from "@/components/FoilLogo";
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
 import { useMobile } from "@/components/mobile/useMobile";
+import { MobileStage } from "@/components/mobile/MobileStage";
 
 export function Hero() {
   const b = useBook();
@@ -26,9 +27,10 @@ export function Hero() {
       setArriving(true); const t = setTimeout(() => setArriving(false), 1400); // longer than the slowest float-in (0.9s + 0.24s) return () => clearTimeout(t);
     }
   }, [b.view, b.overlay]);
-  // phones: no stage and no three.js at all (the cover and the notebook are CSS; components/mobile)
+  // phones: the splash and the desk with the same 3D book (components/mobile/MobileStage.tsx); three.js
+  // loads only once the desk shows (Book3D is a dynamic import). Hidden on the phone's other screens.
   const m = useMobile();
-  if (m) return null;
+  if (m) return <MobileStage hidden={b.view === "hidden" || b.view === "wizard"} />;
   return (
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>

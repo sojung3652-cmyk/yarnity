@@ -21,7 +21,7 @@
   body{background:radial-gradient(120% 80% at 50% 35%,#F6EFEA 0%,#ECE2DB 72%,#E3D7CF 100%);min-height:100svh;color:var(--m-ink)}
   /* the desktop's top bar, footer logo and book stage are not on phones (also before the page has
      hydrated, so nothing of them flashes) */
-  .nav,.wrap>footer,.hero-desk,#view-home{display:none!important}
+  .nav,.wrap>footer,#view-home{display:none!important}
   /* pages that keep their own layout on phones (도안, 내 작품) end above the bottom bar */
   .wrap{padding-bottom:calc(var(--m-bottom) + 16px)}
   .m-root{font-family:var(--m-sans);color:var(--m-ink)}
@@ -463,4 +463,39 @@
   .mc-spiral{left:18px;right:18px;top:0}
   .mc-logo{bottom:58px}
   .mc-swipe{position:absolute;left:0;right:0;top:auto;bottom:22px;z-index:5;pointer-events:none;color:#8C7B72}
+}
+
+/* ---- ①②③ the splash, the desk and the web's 3D book (MobileStage.tsx, Book3D.tsx phone branch) ---- */
+@keyframes m-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes m-fade-in{from{opacity:0}}
+@media (max-width:767.98px){
+  .m-stage{position:fixed;inset:0;left:0;top:0;width:100vw;height:100svh;z-index:0;background:#EFE4DC}
+  .m-stage.is-hidden{visibility:hidden;pointer-events:none}
+  .m-desk{position:absolute;inset:0;overflow:hidden}
+  /* the photo is scaled around the closed book's spot (55% down) together with the camera */
+  .m-desk-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 55%;transform-origin:50% 55%;will-change:transform}
+  .m-stage .book3d{z-index:2}
+  .m-stage .book-grain{display:none}
+  .m-tap{position:absolute;left:0;right:0;top:calc(55% + 34vw * .75);z-index:3;margin:0;text-align:center;pointer-events:none;
+    font:italic 500 16px/1 var(--m-latin);letter-spacing:.06em;color:#6F5E57;animation:m-bob 2.4s ease-in-out infinite, m-fade-in .6s ease both}
+  /* ① splash */
+  .m-splash{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:6svh;
+    background:#F3E7E3 url(/mobile/bg_shadow.webp) center/cover no-repeat;transition:opacity .6s ease}
+  .m-splash.is-fading{opacity:0;pointer-events:none}
+  .m-splash-logo{padding:0;border:0;background:none;line-height:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .m-splash-foil{display:block;width:min(64vw,260px);height:auto;overflow:visible}
+  .m-splash-logo:focus-visible{outline:2px solid #3A2E29;outline-offset:8px;border-radius:4px}
+  .m-splash-cap{margin:16px 0 0;padding-left:.34em;font:500 11px/1 var(--m-latin);letter-spacing:.34em;text-transform:uppercase;color:#7A6A62}
+  .m-splash-rule{display:block;width:32px;margin:18px 0 0;border-top:1px solid rgba(111,94,87,.45)}
+  .m-splash-tag{margin:16px 0 0;padding-left:.3em;font:500 11px/1 var(--m-latin);letter-spacing:.3em;text-transform:uppercase;color:#8C7B72}
+  /* the bottom of the desk is kept free for the floating menu that comes later: no bottom bar here */
+  body:has(#view-m-home) .m-nav{display:none}
+}
+@media (max-width:767.98px) and (prefers-reduced-motion:reduce){
+  .m-tap{animation:none}
+  .m-splash{transition:none}
+}
+@media (max-width:767.98px){
+  .m-tap{transition:top 1.2s cubic-bezier(.65,0,.35,1)}
+  .m-stage[data-zoom="1"] .m-tap{top:calc(55% + 80vw * .68)}
 }
