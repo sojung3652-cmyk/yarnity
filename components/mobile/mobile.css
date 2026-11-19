@@ -140,3 +140,53 @@
   .m1-none{margin:14px 0 0;font-size:13px;color:var(--m-soft)}
   .m-folio{margin:28px 0 0;text-align:center;font:500 13px/1 var(--m-latin);letter-spacing:.2em;color:var(--m-soft)}
 }
+
+/* ---- (C) 도안 만들기 in the notebook ---- */
+@media (max-width:767px){
+  .mw-form{--paper:#FBF7F0;--ink2:#3B302B;--accent:#5E4B88;--rule:#E6DCCF;display:flex;flex-direction:column;min-height:100%;color:var(--m-ink)}
+  .mw .mn-scroll{display:flex;flex-direction:column}
+  .mw-progress{margin:0 0 18px}
+  .mw-progress ol{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;list-style:none;margin:0;padding:0}
+  .mw-progress li{height:4px;border-radius:2px;background:#E6DCCF}
+  .mw-progress li.done{background:var(--m-gold)}
+  .mw-progress li.on{background:linear-gradient(90deg,var(--m-gold) 0 50%,#E6DCCF 50%)}
+  .mw-progress p{margin:8px 0 0;font-size:12px;color:var(--m-soft)}
+  .mw-progress p b{color:var(--m-ink);font-weight:500}
+  .mw-title{margin:0 0 6px;font-size:21px;line-height:1.35}
+  .mw-title:focus{outline:none}
+  .mw-form .ask-line{margin:0 0 14px;min-height:44px}
+  .mw-body{flex:1;display:flex;flex-direction:column;gap:14px;font-size:14px}
+  .mw-split{height:1px;margin:10px 0;background:var(--m-line)}
+  /* step 1: the woven name label fits the page */
+  .mw-body .tp{min-height:0;padding:12px 0 6px}
+  .mw-body .tp-progress{display:none}
+  /* step 2: groups as folds, items as woven label chips (lavender when picked, ivory otherwise) */
+  .mw-groups .nb-fold-row{min-height:48px}
+  .mw-groups .nb-chips{gap:8px;padding:6px 0 12px}
+  .mw-groups .nb-chip{min-height:44px;padding:3px;border:0;border-radius:3px;background:var(--m-ivory);color:var(--m-ink);font-size:14px;
+    box-shadow:0 1px 2px rgba(80,60,40,.16),0 3px 8px rgba(80,60,40,.06)}
+  .mw-groups .nb-chip .m-label-in{min-height:36px;padding:0 13px;gap:4px;border-color:#D3C6B4}
+  .mw-groups .nb-chip[aria-checked="true"]{background:var(--m-linen);color:var(--m-ink)}
+  .mw-groups .nb-chip[aria-checked="true"] .m-label-in{border-color:rgba(59,42,80,.4)}
+  /* the other chips on the phone's steps: lavender when picked */
+  .mw-body .nb-chip[aria-checked="true"],.mw-body .nb-chip[aria-pressed="true"]{background:var(--m-linen);border-color:transparent;color:var(--m-ink)}
+  .mw-body .nb-chip{min-height:44px}
+  .mw-note{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--m-line);border-radius:4px;background:rgba(255,255,255,.45);animation:m-up .3s ease}
+  .mw-note .nb-art{flex:none;width:56px;height:56px}
+  .mw-note-text{min-width:0}
+  .mw-note-group{margin:0;font-size:11.5px;color:var(--m-soft)}
+  .mw-note h3{margin:2px 0 4px;font-size:16px}
+  .mw-note p{margin:0 0 4px;font-size:12.5px;line-height:1.55;color:#5A4D46}
+  .mw-note .mw-note-facts{color:var(--m-soft)}
+  /* steps 3 and 4: the book's two pages one under the other */
+  .mw-body .nb-two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .mw-body .nb-input{font-size:16px} /* iOS does not zoom into 16px fields */
+  .mw-body .nb-drawing svg{max-width:100%;height:auto}
+  /* the foot: 이전 as text, 다음 as the lavender label with a folded corner */
+  .mw-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;padding-top:4px}
+  .mw-back{min-height:44px;min-width:44px;padding:0 6px;border:0;background:none;font:inherit;font-size:14px;color:var(--m-soft);cursor:pointer}
+  .mw-next{width:auto;max-width:70%;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);position:relative}
+  .mw-next .m-label-in{justify-content:center;padding:10px 18px;font:600 14.5px/1.3 var(--m-serif);white-space:nowrap}
+  .mw-next::after{content:"";position:absolute;right:0;bottom:0;width:12px;height:12px;background:linear-gradient(135deg,#9C8CBB 0 50%,transparent 50%);box-shadow:-1px -1px 2px rgba(60,40,80,.2)}
+  .mw-next[aria-disabled="true"]{opacity:.55}
+}

@@ -26,6 +26,7 @@ import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
+import { useMobile } from "@/components/mobile/useMobile";
 import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import { AskAiLine } from "@/components/AskAiLine";
 import { AiTab } from "@/components/AiTab";
@@ -105,13 +106,28 @@ export interface NewBookView {
   ribbon: ReactNode;
   left: ReactNode;
   right: ReactNode;
+  /** the same step for the phone's notebook (components/mobile/MobileWizard.tsx): one page, top to bottom */
+  phone?: PhoneStep;
+}
+
+export interface PhoneStep {
+  step: WizStep;
+  title: string;
+  ask: "item" | "yarn" | "size" | null;
+  body: ReactNode;
+  /** 이전 (or 돌아가기 / 메뉴 on the first step) */
+  back: { label: string; onClick: () => void };
+  nextText: string;
+  blocked: boolean;
+  final: boolean;
+  next: () => void;
 }
 
 /** `inBook`: the 3D book passes the step whose pages it shows (it lags behind the address during a turn). */
 export function useNewBook(inBook?: WizStep): NewBookView {
   const { ready, draft, setDraft, addProject, updateProject, projects, setActive, chat } = useApp();
   const router = useRouter();
-  const book = useBook(), step = inBook ?? book.step;
+  const book = useBook(), step = inBook ?? book.step, phone = useMobile();
   const [editId, setEditId] = useState<string | null>(null);
   const [nums, setNums] = useState<Record<FieldKey, string>>(numsOf(draft));
   const [dir, setDir] = useState<1 | -1>(1);
@@ -236,7 +252,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     router.push("/pattern");
   };
   const next = () => {
-    if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
+    if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"], .mw-form [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
     if (step < 4) go((step + 1) as Step); else save();
   };
 
@@ -268,12 +284,13 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     </ol>
   );
 
-  let left: ReactNode, right: ReactNode;
+  let left: ReactNode, right: ReactNode, phoneBody: ReactNode = null;
   if (step === 1) {
     // ① the left page is the book's title (logo, month); the right page the name on a woven label (progress moves there)
     const when = editId ? projects.find(x => x.id === editId)?.created ?? Date.now() : Date.now();
     left = <TitleCover month={new Date(when).toLocaleString("en-US", { month: "long", year: "numeric" }).toUpperCase()} />;
     right = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} />;
+    if (phone) phoneBody = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={null} />;
   } else if (step === 2) {
     left = (
       <div className="nb-folds nb-groups">
@@ -290,6 +307,31 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     // on a tag tied with a string, its group, name and a line about it, then a small ruled card: how hard
     // (three dots), how long, and the order it is made in as numbered steps
     const steps = item.method.split("→").map(x => x.trim()).filter(Boolean), lv = item.level === "쉬움" ? 1 : 2;
+    if (phone) phoneBody = (
+      <>
+        <div className="mw-groups">
+          {tried && !picked && <p className="nb-err" role="alert">뜨고 싶은 것을 하나 골라 주세요.</p>}
+          {GROUPS.map(gname => (
+            <Fold key={gname} label={gname} value={picked && item.group === gname ? item.name : ""} open={groupOpen === gname} onToggle={() => toggleGroup(gname)}>
+              <Radios label={gname} value={picked && item.group === gname ? item.id : ("" as ItemId)} onPick={pickItem}
+                options={ITEMS.filter(i => i.group === gname).map(i => [i.id, <span key={i.id} className="m-label-in">{i.name}{i.beta && <em className="nb-beta">베타</em>}</span>])} />
+            </Fold>
+          ))}
+        </div>
+        {picked && (
+          <div className="mw-note" key={item.id}>
+            <ItemArt id={item.id} line />
+            <div className="mw-note-text">
+              <p className="mw-note-group">{item.group}</p>
+              <h3>{item.name}{item.beta && <em className="nb-beta">베타</em>}</h3>
+              <p>{item.desc}</p>
+              <p className="mw-note-facts">{`난이도 ${item.level} · ${item.time}`}</p>
+              <p className="mw-note-facts">{`뜨는 순서 · ${steps.join(" → ")}`}</p>
+            </div>
+          </div>
+        )}
+      </>
+    );
     right = picked ? (
       <div className="sh" key={item.id}>
         <div className="sh-tag">
@@ -393,10 +435,18 @@ export function useNewBook(inBook?: WizStep): NewBookView {
         measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춰요." : "3단을 뜬 뒤 재서 정확하게 맞춰요."} />;
       right = previewPage;
     }
+    if (phone) phoneBody = <>{left}<div className="mw-split" aria-hidden="true" />{right}</>;
   }
 
+  const phoneNext: Record<Step, string> = { 1: "다음 · 품목 ↑", 2: "다음 · 실과 바늘 ↑", 3: "다음 · 준비물 확인 ↑", 4: "완성 · 최종 도안 보기" };
+  const phoneStep: PhoneStep | undefined = phone ? {
+    step, title: titles[step], ask: step === 2 ? "item" : step === 3 ? "yarn" : null, body: phoneBody,
+    back: step > 1 ? { label: "이전", onClick: () => go((step - 1) as Step) } : editId ? { label: "돌아가기", onClick: book.close } : { label: "메뉴", onClick: book.toHome },
+    nextText: phoneNext[step], blocked: blockNext || (step === 3 && !stepOk), final: step === 4, next,
+  } : undefined;
+
   return {
-    ready, formRef, onSubmit, onKeyDown,
+    ready, formRef, onSubmit, onKeyDown, phone: phoneStep,
     // the gold ribbon closes the book, as on the menu page (the draft is saved on every change)
     // the very same ribbon as the menu page's (PageSpread.tsx): all gold leaf, hanging from the page's top
     // edge, "책 덮기" beside it on hover

@@ -19,6 +19,8 @@ export function Spiral({ n = 12, className = "" }: { n?: number; className?: str
 export function MobileNotebook({ children, turn, className = "", label, scrollRef }: { children: ReactNode; turn?: string | number; className?: string; label?: string; scrollRef?: React.RefObject<HTMLDivElement | null> }) {
   const first = useRef(turn), [leaf, setLeaf] = useState(0);
   useEffect(() => { if (turn !== first.current) { first.current = turn; setLeaf(l => l + 1); } }, [turn]);
+  // the turned sheet is gone after its 0.55s even if animationend never arrives (a background tab)
+  useEffect(() => { if (!leaf) return; const t = setTimeout(() => setLeaf(0), 700); return () => clearTimeout(t); }, [leaf]);
   return (
     <>
       <div className="mn-flipped" aria-hidden="true"><i /><i /></div>
