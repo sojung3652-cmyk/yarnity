@@ -8,6 +8,9 @@
 // (dir 1) the sheet you were reading - a copy of it, taken by the caller just before the change
 // (`snapshot`) - lifts up over the spiral and is gone; going back (dir -1) the sheet you return to comes
 // back down over the spiral onto the stack. 0.55s; a fade with reduced motion. Not on the first render.
+// Swipes (Kim): up = the next sheet, down = the previous one (onSwipeUp / onSwipeDown). The sheet's own
+// scrolling comes first: a swipe turns only when the sheet was already at its end (up) or its top (down)
+// when the finger went down; mostly-sideways moves, short ones and moves started in a text field do not.
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 export function Spiral({ n = 12, className = "" }: { n?: number; className?: string }) {
@@ -27,11 +30,25 @@ export function takeSnapshot(scroll: HTMLElement | null): Snapshot | null {
 }
 export interface Snapshot { el: HTMLElement; top: number }
 
-export function MobileNotebook({ children, turn, dir = 1, snapshot, className = "", label, scrollRef }: {
+export function MobileNotebook({ children, turn, dir = 1, snapshot, className = "", label, scrollRef, onSwipeUp, onSwipeDown }: {
   children: ReactNode; turn?: string | number; dir?: 1 | -1; snapshot?: React.RefObject<Snapshot | null>;
   className?: string; label?: string; scrollRef?: React.RefObject<HTMLDivElement | null>;
+  onSwipeUp?: () => void; onSwipeDown?: () => void;
 }) {
   const own = useRef<HTMLDivElement>(null), scroll = scrollRef ?? own;
+  const touch = useRef<{ x: number; y: number; top: boolean; end: boolean } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0], el = scroll.current;
+    if (e.touches.length > 1 || !el || (e.target as Element).closest("input,textarea,select,[contenteditable]")) { touch.current = null; return; }
+    touch.current = { x: t.clientX, y: t.clientY, top: el.scrollTop <= 1, end: el.scrollTop + el.clientHeight >= el.scrollHeight - 2 };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const st = touch.current; touch.current = null; if (!st) return;
+    const t = e.changedTouches[0], dy = st.y - t.clientY, dx = Math.abs(st.x - t.clientX);
+    if (Math.abs(dy) < 60 || Math.abs(dy) < dx * 1.5) return;
+    if (dy > 0 && st.end) onSwipeUp?.();
+    else if (dy < 0 && st.top) onSwipeDown?.();
+  };
   const first = useRef(turn), leafRef = useRef<HTMLDivElement>(null);
   const [leaf, setLeaf] = useState<{ n: number; dir: 1 | -1 } | null>(null);
   // a new sheet: start the turn in the same frame as the new content, so nothing flashes
@@ -57,7 +74,7 @@ export function MobileNotebook({ children, turn, dir = 1, snapshot, className = 
       <div className="mn-flipped" aria-hidden="true"><i /><i /></div>
       <section className={"mn " + className} aria-label={label}>
         <div className="mn-stack" aria-hidden="true"><i /><i /><i /></div>
-        <div className="mn-paper">
+        <div className="mn-paper" onTouchStart={onSwipeUp || onSwipeDown ? onTouchStart : undefined} onTouchEnd={onSwipeUp || onSwipeDown ? onTouchEnd : undefined}>
           <div className="mn-scroll" ref={scroll}>{children}</div>
           {leaf && <div key={leaf.n} ref={leafRef} className={"mn-leaf " + (leaf.dir > 0 ? "is-up" : "is-down")} aria-hidden="true" onAnimationEnd={() => setLeaf(null)} />}
         </div>

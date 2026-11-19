@@ -59,7 +59,7 @@ export function MobileWizard() {
 
   return (
     <main id="view-new" className="m-root">
-      <MobileNotebook turn={`${s.step}-${p}`} dir={dir} snapshot={snap} label="도안 만들기" className="mw" scrollRef={scroll}>
+      <MobileNotebook turn={`${s.step}-${p}`} dir={dir} snapshot={snap} label="도안 만들기" className="mw" scrollRef={scroll} onSwipeUp={next} onSwipeDown={back}>
         <form ref={v.formRef} className="mw-form" noValidate onSubmit={e => { e.preventDefault(); next(); }} onKeyDown={v.onKeyDown}>
           <div className="mw-progress">
             <ol aria-hidden="true">{[1, 2, 3, 4].map(i => <li key={i} className={i < s.step ? "done" : i === s.step ? "on" : ""} />)}</ol>

@@ -50,9 +50,9 @@ function Cover({ onOpen, closing }: { onOpen: () => void; closing?: boolean }) {
           <span className="mc-band" aria-hidden="true" />
           <span className="mc-logo" aria-hidden="true"><FoilLogo className="mc-foil" /></span>
         </button>
-        <Spiral n={11} className="mc-spiral" />
+        <Spiral n={12} className="mc-spiral" />
+        <p className="mc-swipe" lang="en" aria-hidden="true">Swipe up to open</p>
       </div>
-      <p className="mc-swipe" lang="en" aria-hidden="true">Swipe up to open</p>
     </main>
   );
 }
@@ -76,7 +76,8 @@ export function FirstPage({ onClose, overlay }: { onClose: () => void; overlay?:
   const Root = overlay ? "div" : "main";
   return (
     <Root id={overlay ? undefined : "view-m-home"} className="m-root" role={overlay ? "dialog" : undefined} aria-modal={overlay || undefined} aria-label={overlay ? "새 도안" : undefined}>
-      <MobileNotebook label="첫 장" className="m1">
+      {/* swiping down on the first page closes the book (the previous "sheet" is the cover) */}
+      <MobileNotebook label="첫 장" className="m1" onSwipeDown={onClose}>
         <button type="button" className="m1-close" aria-label="책 덮기" onClick={onClose}><GoldX /></button>
         <header className="m1-brand">
           <h1 className="m1-logo"><span className="sr">Yarnity</span><FoilLogo className="m1-foil" /></h1>
