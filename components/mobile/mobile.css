@@ -527,3 +527,29 @@
   body:has(.m-stage:not(.is-hidden)) .m-nav{display:none}
 }
 @media (max-width:767.98px){.mbw{word-break:keep-all;overflow-wrap:anywhere}}
+
+/* ---- ④ 도안집, 도안, 따라 뜨기 as the book's right page (MobileBookPages.tsx) ---- */
+@media (max-width:767.98px){
+  .mbp-close{position:absolute;right:8px;top:8px;z-index:5;display:grid;place-items:center;width:44px;height:44px;padding:13px;border:0;border-radius:50%;background:none;cursor:pointer;filter:drop-shadow(0 1px 1px rgba(70,50,30,.25))}
+  .mbp-close .gold-x{display:block;width:100%;height:100%}
+  .mbp .mbw-scroll{padding:44px 22px 22px}
+  /* 나의 도안집 */
+  .mbp .lb{margin:0;padding:0;min-height:0;background:none}
+  .mbp .lb-head{padding-right:30px}
+  .mbp .lb-title img{height:52px}
+  .mbp .lb-grid{gap:24px 14px}
+  .mbp .lb-undo{position:sticky;left:auto;right:auto;bottom:8px;margin-top:16px}
+  /* 도안: the sheet already sits on paper; drop its own margins */
+  .mbp .ps-main{padding:0;margin:0}
+  .mbp .ps-sheet{margin:0;padding:22px 16px;box-shadow:none}
+  .mbp .ps-actions{margin:0 0 16px}
+  /* 따라 뜨기: ruled lines and the pink margin on the page, the thumb zone at its foot */
+  .mbp-track .mbw-scroll{display:flex;flex-direction:column;padding:44px 18px 0 52px;background-attachment:local;
+    background-image:linear-gradient(90deg,transparent 40px,rgba(226,150,160,.55) 40px 41px,transparent 41px),repeating-linear-gradient(180deg,transparent 0 31px,rgba(196,181,221,.45) 31px 32px)}
+  .mbp-track .mt-page{display:flex;flex-direction:column;flex:1}
+  .mbp-track .mt-acts{margin:0 -18px 0 -52px;background:#FBF3EA}
+}
+@media (max-width:767.98px){
+  .mt-head{position:relative}
+  .mt-to-pattern{position:absolute;right:0;top:4px;display:inline-flex;align-items:center;min-height:44px;font-size:12.5px;color:#6E5350;text-decoration:underline;text-underline-offset:3px}
+}

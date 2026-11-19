@@ -24,6 +24,9 @@ import { LeftPage, RightPage } from "../PageSpread";
 import { cssVar } from "../coverArt";
 import { useMobile } from "@/components/mobile/useMobile";
 import { MobileBookWizard } from "@/components/mobile/MobileBookWizard";
+import { MobileBookPages } from "@/components/mobile/MobileBookPages";
+import { BOOK_PAGES, bookPageOf } from "@/components/mobile/bookPages";
+import { usePathname } from "next/navigation";
 
 // ---- timeline (seconds) ----
 const TOTAL = 1.6;
@@ -439,10 +442,11 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
 }
 
 // ---- spreads and the turns between them ----
-export interface Spread { view: BookView; step: WizStep }
-const spreadKey = (s: Spread) => (s.view === "wizard" ? "w" + s.step : s.view);
+/** `page`: phones only, a screen shown as the open book's right page (components/mobile/bookPages.ts) */
+export interface Spread { view: BookView; step: WizStep; page?: string }
+const spreadKey = (s: Spread) => (s.page ? "p" + s.page : s.view === "wizard" ? "w" + s.step : s.view);
 const isSpread = (s: Spread) => s.view === "home" || s.view === "wizard";
-const order = (s: Spread) => (s.view === "wizard" ? s.step : 0); // menu, then the four steps
+const order = (s: Spread) => (s.page ? BOOK_PAGES[s.page] : s.view === "wizard" ? s.step : 0); // menu, the four steps (phones: then 도안집, 도안, 따라 뜨기)
 const frames = (n: number) => new Promise<void>(res => { const f = () => (--n <= 0 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); });
 /** Texture width of a page picture: the page's size on screen x pixel ratio, so a texel is about a screen
  *  pixel (a 2x bigger picture, minified, came out blurred and lighter than the live text). */
@@ -709,7 +713,9 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
 export default function Book3D({ onFail }: { onFail: () => void }) {
   const b = useBook(), open = b.view === "home" || b.view === "wizard", phone = !!useMobile();
   // want: the spread the address asks for; shown: the one whose DOM is in the book (they differ during a turn)
-  const want = useMemo<Spread>(() => ({ view: b.view, step: b.step }), [b.view, b.step]);
+  // phones: 도안집, 도안 and 따라 뜨기 keep the book open, as its right page
+  const path = usePathname(), page = phone ? bookPageOf(path) : null;
+  const want = useMemo<Spread>(() => (page ? { view: "home", step: b.step, page } : { view: b.view, step: b.step }), [b.view, b.step, page]);
   const [shown, setShown] = useState<Spread>(want);
   const [ready, setReady] = useState(false);
   const reduce = useReducedMotion();
@@ -726,13 +732,13 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
     return () => { layer.renderer.domElement.remove(); layer.flatLeft.remove(); layer.flatRight.remove(); };
   }, [layer]);
   return (
-    <div className={"book3d" + (ready ? " ready" : "") + (open ? " is-open" : "")} id="book">
+    <div className={"book3d" + (ready ? " ready" : "") + (open || page ? " is-open" : "")} id="book">
       <Canvas
         dpr={[1, 2]}
         // open (menu or wizard: it is one book): a click on the empty desk around the book closes it. R3F calls
         // this when a click hits none of the objects with handlers (the book's meshes have one; the page
         // content is DOM above the canvas). The wizard's draft is saved on every change, so nothing is lost.
-        onPointerMissed={() => { if (b.view === "home" || b.view === "wizard") b.close(); }}
+        onPointerMissed={() => { if (!page && (b.view === "home" || b.view === "wizard")) b.close(); }}
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}
@@ -753,7 +759,7 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
           a turn), and the wizard spread while it is shown (flat boxes over the pages, the camera straight above) */}
       {createPortal(<LeftPage />, layer.left)}
       {/* phones: the wizard step is the right page itself (components/mobile/MobileBookWizard.tsx) */}
-      {createPortal(<>{phone && shown.view === "wizard" ? <MobileBookWizard /> : <RightPage onClose={b.close} />}<AiTab variant="menu" /></>, layer.right)}
+      {createPortal(<>{phone && shown.page ? <MobileBookPages page={shown.page} /> : phone && shown.view === "wizard" ? <MobileBookWizard /> : <RightPage onClose={b.close} />}<AiTab variant="menu" /></>, layer.right)}
       {shown.view === "wizard" && !phone && <WizardSpread step={shown.step} left={layer.flatLeft} right={layer.flatRight} />}
     </div>
   );

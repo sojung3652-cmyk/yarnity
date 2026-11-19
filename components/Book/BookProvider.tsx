@@ -14,6 +14,7 @@ import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, u
 import { useApp } from "@/components/AppProvider";
 import { freshDraft } from "@/lib/items";
 import { store } from "@/lib/store";
+import { bookPageOf, isPhone } from "@/components/mobile/bookPages";
 
 export type BookView = "closed" | "home" | "wizard" | "hidden";
 export type BookMode = "pending" | "3d" | "css";
@@ -82,9 +83,11 @@ export function BookProvider({ children }: { children: ReactNode }) {
   // in the same commit. Coming back to / from the wizard lands on the open menu; from anywhere else
   // (or on first load) the book is closed. Arriving from a page without the book snaps, no motion.
   if (seenPath !== path) {
-    const bookPage = (p: string | null) => p === "/" || p === "/new";
+    // phones (< 768px): 도안집, 도안 and 따라 뜨기 are pages of the open book too (components/mobile/bookPages.ts)
+    const phone = isPhone();
+    const bookPage = (p: string | null) => p === "/" || p === "/new" || (phone && !!bookPageOf(p));
     setSeenPath(path);
-    if (path === "/") setHomeOpen(seenPath === "/new" && !closing);
+    if (path === "/") setHomeOpen((seenPath === "/new" || (phone && !!bookPageOf(seenPath))) && !closing);
     if (closing) setClosing(false);
     setInstant(!bookPage(seenPath) && !overlay);
     if (overlay) setOverlay(false); // going anywhere (the wizard, 내 작품) ends the overlay

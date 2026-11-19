@@ -16,6 +16,7 @@ import { STATUS_KO, statusOf, type Status } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import "./mine.css";
+import { useMobile } from "@/components/mobile/useMobile";
 
 type Filter = "all" | Status;
 type Sort = "recent" | "created" | "name";
@@ -191,6 +192,9 @@ function List() {
 }
 
 export default function MinePage() {
+  // phones: 나의 도안집 is the open book's right page (components/mobile/MobileBookPages.tsx)
+  const m = useMobile();
+  if (m) return <main id="view-mine" className="m-root m-in-book"><h1 className="sr">나의 도안집</h1></main>;
   return (
     <main id="view-mine" className="mine">
       {/* the title is Kim's "My Patterns" wordmark (public/pic/my-patterns.png, trimmed from legacy/pic/mypatters.png) */}

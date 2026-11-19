@@ -10,7 +10,6 @@ import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
 import { clamp, fmt, PART_KO, plan, withChains, type Row } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
-import { MobileNotebook } from "@/components/mobile/MobileNotebook";
 import { useMobile } from "@/components/mobile/useMobile";
 
 function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
@@ -80,7 +79,14 @@ function MeasureRows({ p, onApply }: { p: Project; onApply: (h: number, w: numbe
 // row being made as an index card on the right with a wide ribbon for 한 단 끝 (and 되돌리기), and the
 // rows below it: the last ones done ticked in pencil, this one marked, the next ones; "전체 단" shows all.
 // Space = 한 단 끝, Backspace = 되돌리기. The screen is kept on while this page is open.
+// phones: 따라 뜨기 is the open book's right page (components/mobile/MobileBookPages.tsx)
 export default function TrackPage() {
+  const m = useMobile();
+  if (m) return <main id="view-track" className="m-root m-in-book"><h1 className="sr">따라 뜨기</h1></main>;
+  return <TrackScreen />;
+}
+
+export function TrackScreen() {
   const { ready, active: p, updateProject } = useApp();
   const router = useRouter();
   const cvRef = useRef<HTMLCanvasElement>(null);
@@ -176,10 +182,10 @@ export default function TrackPage() {
   if (m) {
     const prev = current > 0 ? pp.rows[current - 1] : null;
     return (
-      <main id="view-track" className="m-root">
-        <MobileNotebook label="따라 뜨기" className="mt">
+      <div className="mt mt-page">
           <header className="mt-head">
             <p className="mt-kicker" lang="en">Crochet along</p>
+            <Link className="mt-to-pattern" href="/pattern">도안 보기</Link>
             <h1 id="trTitle">{p.name}</h1>
             <div className="mt-progress">
               <div className="mt-bar" aria-hidden="true"><i style={{ width: (current / total * 100) + "%" }} /></div>
@@ -221,8 +227,7 @@ export default function TrackPage() {
               <span className="mt-done-face"><b>한 단 끝</b><small>{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</small></span>
             </button>
           </div>
-        </MobileNotebook>
-      </main>
+      </div>
     );
   }
 

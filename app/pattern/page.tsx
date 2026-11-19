@@ -1,4 +1,5 @@
 "use client";
+import { useMobile } from "@/components/mobile/useMobile";
 // 도안: the pattern as a printed pattern sheet (Kim's pick: "인쇄된 도안지", like it was drafted on paper).
 // One sheet of paper on the desk: a header (the work's name, what it is, its size), three boxes - the
 // finished shape drawn on graph paper, the supplies with the yarn amount, the gauge - then the rows in
@@ -17,7 +18,14 @@ import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { yarnUse } from "@/lib/yarnUse";
 import "./pattern.css";
 
+// phones: the sheet is the open book's right page (components/mobile/MobileBookPages.tsx)
 export default function PatternPage() {
+  const m = useMobile();
+  if (m) return <main id="view-pattern" className="m-root m-in-book"><h1 className="sr">도안</h1></main>;
+  return <PatternScreen />;
+}
+
+export function PatternScreen() {
   const { ready, active: p } = useApp();
   const book = useBook();
   const router = useRouter();

@@ -12,6 +12,8 @@ import { FoilLogo } from "@/components/FoilLogo";
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
 import { useMobile } from "@/components/mobile/useMobile";
 import { MobileStage } from "@/components/mobile/MobileStage";
+import { bookPageOf } from "@/components/mobile/bookPages";
+import { usePathname } from "next/navigation";
 
 export function Hero() {
   const b = useBook();
@@ -29,8 +31,8 @@ export function Hero() {
   }, [b.view, b.overlay]);
   // phones: the splash and the desk with the same 3D book (components/mobile/MobileStage.tsx); three.js
   // loads only once the desk shows (Book3D is a dynamic import). Hidden on the phone's other screens.
-  const m = useMobile();
-  if (m) return <MobileStage hidden={b.view === "hidden"} />;
+  const m = useMobile(), path = usePathname();
+  if (m) return <MobileStage hidden={b.view === "hidden" && !bookPageOf(path)} />;
   return (
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>

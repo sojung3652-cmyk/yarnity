@@ -3,12 +3,12 @@
 // there, so the desktop is unchanged.
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { MobileLibrary } from "@/components/mobile/MobileLibrary";
 import { useMobile } from "@/components/mobile/useMobile";
 
 export default function LibraryPage() {
   const m = useMobile(), router = useRouter();
   useEffect(() => { if (m === false) router.replace("/mine"); }, [m, router]);
   if (!m) return <main id="view-library" />;
-  return <MobileLibrary />;
+  // phones: the library is the open book's right page (components/mobile/MobileBookPages.tsx)
+  return <main id="view-library" className="m-root m-in-book"><h1 className="sr">나의 도안집</h1></main>;
 }
