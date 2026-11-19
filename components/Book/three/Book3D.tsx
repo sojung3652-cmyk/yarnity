@@ -47,15 +47,16 @@ const TURN = 0.7;
 // spreads (leafP: 0 = lying on the right, 1 = on the left).
 interface Turn { f: number; dur: number; fwd: boolean; started: boolean; done: () => void }
 interface Anim { t: number; target: number; cover: number; sheets: number[]; cam: number; w: number; wTarget: number; wcam: number; turn: Turn | null; leafP: number;
-  /** phones (< 768px) only: the closed book on the desk, far (0) .. looked at closely (1); zcam eased */
-  z?: number; zTarget?: number; zcam?: number }
+  /** phones (< 768px) only: how much taller the open book grows, so its right page fills the screen's height
+   *  (the book is stretched head to tail by 1 + (sz - 1) x cam as it opens; the page DOM box is made taller,
+   *  not stretched, so the type keeps its shape) */
+  sz?: number }
 function derive(a: Anim) {
   const s = a.t * TOTAL;
   a.cover = ease(clamp01(s / COVER_END));
   a.sheets = SHEET_SPEED.map((f, k) => ease(clamp01((s - SHEET_START - k * SHEET_STAGGER) / (SHEET_DUR / f))));
   a.cam = ease(a.t);
   a.wcam = ease(a.w);
-  a.zcam = ease(a.z ?? 0);
 }
 
 // ---- spine cloth: a gently rounded band between the boards; it flattens as the book opens ----
@@ -190,19 +191,22 @@ interface CssLayer {
 }
 const LEFT_Y = (() => { const c = sheetCurve(SHEETS - 1, 1); return c.pts[c.pts.length - 1][1]; })();
 const PAGE_LIFT = 0.06;
-function PageBox({ el, x, y }: { el: HTMLDivElement; x: number; y: number }) {
+function PageBox({ el, x, y, sz = 1 }: { el: HTMLDivElement; x: number; y: number; sz?: number }) {
   const obj = useMemo(() => {
-    el.style.width = PAGE_PX + "px"; el.style.height = PAGE_H_PX + "px";
+    // sz > 1 (phones): the book is stretched head to tail by sz, so the box is sz times taller and scaled
+    // back by 1 / sz along its height - the page is longer, its type is not stretched
+    el.style.width = PAGE_PX + "px"; el.style.height = Math.round(PAGE_H_PX * sz) + "px";
+    el.style.setProperty("--sz", String(sz)); // the menu page keeps its spacing (mobile.css)
     const o = new CSS3DObject(el);
-    o.position.set(x, y, (BLOCK.z0 + BLOCK.z1) / 2); o.rotation.set(-Math.PI / 2, 0, 0); o.scale.setScalar(PX_CM);
+    o.position.set(x, y, (BLOCK.z0 + BLOCK.z1) / 2); o.rotation.set(-Math.PI / 2, 0, 0); o.scale.set(PX_CM, PX_CM / sz, PX_CM);
     return o;
-  }, [el, x, y]);
+  }, [el, x, y, sz]);
   return <primitive object={obj} />;
 }
 
 /** Shows the page content only once the book is fully open (hidden, inert and out of the tab order
  *  otherwise), and keeps --k = page px per screen px so text never drops below its minimum size. */
-function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
+function PageControls({ anim, layer, sz }: { anim: Anim; layer: CssLayer; sz?: number }) {
   const els = useMemo(() => [layer.left, layer.right], [layer]);
   const shown = useRef<boolean | null>(null), lastK = useRef(0);
   const camera = useThree(s => s.camera), size = useThree(s => s.size);
@@ -222,8 +226,8 @@ function PageControls({ anim, layer }: { anim: Anim; layer: CssLayer }) {
   });
   return (
     <>
-      <PageBox el={layer.left} x={GUTTER_X - SHEET_W / 2} y={LEFT_Y + PAGE_LIFT} />
-      <PageBox el={layer.right} x={GUTTER_X + SHEET_W / 2} y={blockTop(BLOCK.x1) + PAGE_LIFT} />
+      <PageBox el={layer.left} x={GUTTER_X - SHEET_W / 2} y={LEFT_Y + PAGE_LIFT} sz={sz} />
+      <PageBox el={layer.right} x={GUTTER_X + SHEET_W / 2} y={blockTop(BLOCK.x1) + PAGE_LIFT} sz={sz} />
     </>
   );
 }
@@ -294,13 +298,15 @@ function Bookmark({ anim }: { anim: Anim }) {
   );
 }
 
-function BookModel({ anim, onOpen, layer, m, leaf }: { anim: Anim; onOpen: () => void; layer: CssLayer; m: BookMaterials; leaf: { front: THREE.Material; back: THREE.Material } }) {
+function BookModel({ anim, onOpen, layer, m, leaf, sz }: { anim: Anim; onOpen: () => void; layer: CssLayer; m: BookMaterials; leaf: { front: THREE.Material; back: THREE.Material }; sz?: number }) {
+  const grp = useRef<THREE.Group>(null);
+  useFrame(() => { if (grp.current) grp.current.scale.z = 1 + ((anim.sz ?? 1) - 1) * anim.cam; });
   const block = useBlockGeometry();
   const [hover, setHover] = useState(false);
   useEffect(() => { document.body.style.cursor = hover ? "pointer" : ""; return () => { document.body.style.cursor = ""; }; }, [hover]);
   const click = (e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); if (anim.target === 0) onOpen(); };
   return (
-    <group position-y={FAB} onClick={click} onPointerOver={() => setHover(anim.target === 0)} onPointerOut={() => setHover(false)}>
+    <group ref={grp} position-y={FAB} onClick={click} onPointerOver={() => setHover(anim.target === 0)} onPointerOut={() => setHover(false)}>
       <BackBoard m={m} />
       <mesh geometry={block} material={m.block} castShadow receiveShadow />
       <Sheet k={SHEETS} anim={anim} front={m.rightPage} back={m.pageBack} />
@@ -309,7 +315,7 @@ function BookModel({ anim, onOpen, layer, m, leaf }: { anim: Anim; onOpen: () =>
       ))}
       <SpineCloth anim={anim} m={m} />
       <FrontCover anim={anim} m={m} />
-      <PageControls anim={anim} layer={layer} />
+      <PageControls anim={anim} layer={layer} sz={sz} />
       <FlatPages anim={anim} layer={layer} />
       <Leaf anim={anim} mat={leaf} />
       <Bookmark anim={anim} />
@@ -353,14 +359,14 @@ const BOX = (() => {
 
 // ---- phones under 768px (the mobile flow, components/mobile/MobileStage.tsx); 768px and up never use these ----
 export const PHONE_MAX = 767.98;
-// the closed book seen at a slant on the desk photo (bg_desk.webp): ~62 degrees above the desk, head away
-const PHONE_CLOSED_DIR = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 62), 0);
-// closed: centred at 55% of the height, 34% of the screen wide; tapped once, the camera moves in until it is
-// 80% wide (1.2s). Open: the right page fills the screen from 36px (the left page shows 36px at the left
+// closed: as the web's phone layout (phoneSpot: 62% wide at 46% of the height, seen from 45 degrees, turned
+// 15 degrees on the desk); one tap comes closer and opens it, as on the web. Open: the book grows head to
+// tail until its right page fills the height (Scene: sz), from 36px (the left page shows 36px at the left
 // edge) to 40px before the right edge (the desk shows there, and the AI tab sticks out onto it), above the
 // 90px kept free at the bottom for the floating menu.
-const PHONE = { y: 0.55, w0: 0.34, w1: 0.8, zoom: 1.2, leftShow: 36, rightGap: 40, bottomKeep: 90, topGap: 24 };
-const phoneClosedSpot = (vw: number, vh: number, z: number) => ({ x: vw / 2, y: vh * PHONE.y, w: vw * THREE.MathUtils.lerp(PHONE.w0, PHONE.w1, z) });
+const PHONE = { leftShow: 36, rightGap: 40, bottomKeep: 90, topGap: 24 };
+/** phones: how much taller the open book is, so the right page fills the free height (>= 1) */
+const phoneStretch = (vw: number, vh: number) => Math.max(1, (SHEET_W * (vh - PHONE.topGap - PHONE.bottomKeep) / (vw - PHONE.leftShow - PHONE.rightGap)) / D);
 
 /** Phones: the book sits centred, 62% of the screen wide, at 46% of the height (logo above, button below). */
 function phoneSpot(vw: number, vh: number) { return { x: vw / 2, y: vh * 0.46, w: vw * 0.62 }; }
@@ -388,31 +394,19 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
   const anchor = useMemo(() => closedAnchor(size.width, size.height, cTgt, desk ? photoSpot(size.width, size.height) : phoneSpot(size.width, size.height)), [desk, size.width, size.height, cTgt]);
   // phones: the closed book's framing at the current zoom (recomputed only while zooming), and the desk photo
   // scaled with it around the same point so the book does not slide on the desk
-  const phoneAnchor = useRef<{ z: number; w: number; h: number; a: ReturnType<typeof closedAnchor> } | null>(null);
-  const desk0 = useMemo(() => (phone ? closedAnchor(size.width, size.height, cTgt, phoneClosedSpot(size.width, size.height, 0), PHONE_CLOSED_DIR) : null), [phone, size.width, size.height, cTgt]);
+
   const v = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dir: new THREE.Vector3(), up: new THREE.Vector3(), wTgt: new THREE.Vector3() }), []);
   // wizard: the top nav stays visible, so the book is fitted (and centred) in the space under it
   const [navH, setNavH] = useState(0);
   useEffect(() => { setNavH(wizard ? Math.round(document.querySelector(".nav")?.getBoundingClientRect().bottom ?? 0) : 0); }, [size, wizard]);
   useFrame(() => {
     const cam = camera as THREE.PerspectiveCamera, aspect = size.width / size.height, e = anim.cam, we = anim.wcam;
-    let cAnchor = anchor;
-    if (phone) {
-      const z = anim.zcam ?? 0, pa = phoneAnchor.current;
-      if (!pa || Math.abs(pa.z - z) > 1e-4 || pa.w !== size.width || pa.h !== size.height)
-        phoneAnchor.current = { z, w: size.width, h: size.height, a: closedAnchor(size.width, size.height, cTgt, phoneClosedSpot(size.width, size.height, z), PHONE_CLOSED_DIR) };
-      cAnchor = phoneAnchor.current!.a;
-      const bg = document.querySelector<HTMLElement>(".m-desk-bg");
-      if (bg && desk0) bg.style.transform = `scale(${(desk0.d / cAnchor.d).toFixed(4)})`;
-      // the stage knows whether the book is being looked at closely (its hint moves under the bigger book)
-      const st = bg?.closest<HTMLElement>(".m-stage"), zk = z > 0.02 ? "1" : "0";
-      if (st && st.dataset.zoom !== zk) st.dataset.zoom = zk;
-    }
+    const cAnchor = anchor;
     const cDist = cAnchor.d;
     const leftEdge = GUTTER_X - (BLOCK.x1 - BLOCK.x0) - 0.6, rightEdge = BLOCK.x1 + 0.4;
     const oTgt = !desk ? new THREE.Vector3((GUTTER_X + BLOCK.x1) / 2, FAB + BLOCK.y1, 0) : new THREE.Vector3((leftEdge + rightEdge) / 2, FAB + T * 0.6, 0.6);
     const pw = (size.width - PHONE.leftShow - PHONE.rightGap) / size.width, ph = (size.height - PHONE.bottomKeep - PHONE.topGap) / size.height;
-    const oDist = phone ? fit((BLOCK.x1 - GUTTER_X) / 2 / pw, D / 2 / ph, aspect) : !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / Math.min(0.68, 1320 / size.width), D / 2 / 0.88, aspect); // open spread: 68% of the width (max 1320px), at most 88% of the height
+    const oDist = phone ? fit((BLOCK.x1 - GUTTER_X) / 2 / pw, D * (anim.sz ?? 1) / 2 / ph, aspect) : !desk ? fit((BLOCK.x1 - GUTTER_X) / 2 / 0.92, D / 2 / 0.7, aspect) : fit((rightEdge - leftEdge) / 2 / Math.min(0.68, 1320 / size.width), D / 2 / 0.88, aspect); // open spread: 68% of the width (max 1320px), at most 88% of the height
     // wizard pose: straight down, so the pages read flat and square; as big as fits: cover to cover up to
     // 96% of the screen wide (max 1700px), whole in the height (no nav in the wizard, like home; 8px room)
     // fitted to the whole open book, cover to cover: the front cover lies left of the spine cloth
@@ -421,7 +415,7 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
     const coverL = -W / 2 - T - W - 0.3, coverR = W / 2 + 0.3;
     const wDist = fit((coverR - coverL) / 2 / Math.min(0.96, 1700 / size.width), D / 2 / (room / size.height), aspect);
     v.wTgt.set((coverL + coverR) / 2, FAB + T * 0.6, 0);
-    v.dir.copy(phone ? PHONE_CLOSED_DIR : CLOSED_DIR).lerp(OPEN_DIR, e).lerp(STRAIGHT_DOWN, we).normalize();
+    v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).lerp(STRAIGHT_DOWN, we).normalize();
     v.tgt.copy(cTgt).lerp(oTgt, e).lerp(v.wTgt, we);
     const bump = 1 + 0.35 * Math.sin(Math.PI * e); // the cover swings towards the camera mid-way
     v.pos.copy(v.tgt).addScaledVector(v.dir, THREE.MathUtils.lerp(THREE.MathUtils.lerp(cDist, oDist, e) * bump, wDist, we));
@@ -501,11 +495,16 @@ function inkForLight(ctx: CanvasRenderingContext2D, W: number, H: number) {
 }
 
 /** Pictures of the two pages of a spread as it is now (pagePaint.ts), at the page's own layout size. */
-async function paintSpread(layer: CssLayer, s: Spread, paper: { l: CanvasImageSource; r: CanvasImageSource }, phone?: boolean) {
+async function paintSpread(layer: CssLayer, s: Spread, paper: { l: CanvasImageSource; r: CanvasImageSource }, phone?: boolean, sz = 1) {
   const wiz = s.view === "wizard" && !phone, res = leafRes(layer, wiz);
   const [L, R] = wiz ? [layer.flatLeft, layer.flatRight] : [layer.left, layer.right];
   const box = wiz ? (() => { const h = REF_W * PAGE_H_PX / PAGE_PX; return { w: REF_W, h, vars: { "--z": "1", "--hz": h.toFixed(2) } }; })()
-    : { w: PAGE_PX, h: PAGE_H_PX, vars: { "--k": layer.left.style.getPropertyValue("--k") || "1" } };
+    : phone
+      // phones: the pages are laid out at screen pixels (mobile.css .mbw zooms by --k), and the painter does not
+      // follow CSS zoom: paint the page at its on-screen size with --k = 1 instead (same layout, same lines)
+      ? (() => { const k = parseFloat(layer.left.style.getPropertyValue("--k")) || 1, w = Math.round(PAGE_PX / k);
+          return { w, h: Math.round(PAGE_H_PX * sz / k), vars: { "--k": "1", "--mbw-w": w + "px" } }; })()
+      : { w: PAGE_PX, h: Math.round(PAGE_H_PX * sz), vars: { "--k": layer.left.style.getPropertyValue("--k") || "1" } };
   const one = async (host: HTMLElement, side: "left" | "right") => {
     const src = host.firstElementChild as HTMLElement | null;
     const pp = side === "left" ? paper.l : paper.r;
@@ -585,7 +584,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
     };
     (async () => {
       try {
-        const old = await paintSpread(layer, shown, paperOf, phone);
+        const old = await paintSpread(layer, shown, paperOf, phone, anim.sz);
         const oL = texOf(old.l, true), oR = texOf(old.r, false); made = [oL, oR];
         // the paper takes the pictures of the pages first, then the DOM goes: no blank page in between
         m.leftPage.map = oL; m.rightPage.map = oR; invalidate();
@@ -593,7 +592,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
         layer.turning = true; invalidate();
         setShown(want);
         await frames(3); // the new spread rendered (and its layout effects settled), still hidden
-        const neu = await paintSpread(layer, want, paperOf, phone);
+        const neu = await paintSpread(layer, want, paperOf, phone, anim.sz);
         const nL = texOf(neu.l, true), nR = texOf(neu.r, false);
         made.push(nL, nR); landed = { l: nL, r: nR };
         // under the leaf: forward, the old left page (until covered) and the new right page (revealed)
@@ -648,10 +647,6 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1) / TOTAL; // real time, capped, so slow devices do not stretch 1.6s
     anim.t = anim.target > anim.t ? Math.min(anim.target, anim.t + step) : Math.max(anim.target, anim.t - step);
-    if (anim.zTarget !== undefined) { // phones: the zoom on the closed book
-      const zs = Math.min(dt, 0.1) / PHONE.zoom, z = anim.z ?? 0;
-      anim.z = anim.zTarget > z ? Math.min(anim.zTarget, z + zs) : Math.max(anim.zTarget, z - zs);
-    }
     const wStep = Math.min(dt, 0.1) / WIZ_TOTAL;
     anim.w = anim.wTarget > anim.w ? Math.min(anim.wTarget, anim.w + wStep) : Math.max(anim.wTarget, anim.w - wStep);
     derive(anim);
@@ -663,20 +658,12 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
       anim.leafP = tr.fwd ? ease(tr.f) : 1 - ease(tr.f);
       if (tr.f >= 1) { tr.done(); return; }
     }
-    if (anim.t !== anim.target || anim.w !== anim.wTarget || (anim.turn && !held) || (anim.zTarget !== undefined && anim.z !== anim.zTarget)) invalidate(); // frameloop="demand": render only while moving
+    if (anim.t !== anim.target || anim.w !== anim.wTarget || (anim.turn && !held)) invalidate(); // frameloop="demand": render only while moving
   }, -1);
-  // phones: the first tap on the closed book brings it close, the second opens it; closing goes back to the
-  // book lying on the desk
-  const phone = useThree(s => s.size.width) <= PHONE_MAX;
-  useEffect(() => {
-    if (!phone) { anim.zTarget = undefined; anim.z = 0; derive(anim); return; }
-    if (anim.zTarget === undefined) anim.zTarget = 0;
-    if (want.view === "closed") { anim.zTarget = 0; if (reduce) anim.z = 0; invalidate(); }
-  }, [phone, want.view, anim, reduce, invalidate]);
-  const tapBook = () => {
-    if (phone && (anim.zTarget ?? 0) < 1) { anim.zTarget = 1; if (reduce) anim.z = 1; invalidate(); return; }
-    onOpen();
-  };
+  // phones: the open book grows head to tail to the screen's height (sz)
+  const vw = useThree(s => s.size.width), vh = useThree(s => s.size.height), phone = vw <= PHONE_MAX;
+  const sz = phone ? +phoneStretch(vw, vh).toFixed(3) : 1;
+  useEffect(() => { anim.sz = sz; invalidate(); }, [anim, sz, invalidate]);
   return (
     <>
       <CameraRig anim={anim} layer={layer} wizard={want.view === "wizard"} />
@@ -692,10 +679,10 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
       <hemisphereLight args={["#fffaf4", "#eadcd2", 1.05]} />
       {/* phones: the light comes from the upper right, as in the desk photo (bg_desk.webp), so the shadow falls
           to the lower left; a 1024 shadow map */}
-      <directionalLight position={phone ? [30, 28, -22] : [-22, 52, -22]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={phone ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
+      <directionalLight position={phone ? [22, 52, -22] : [-22, 52, -22]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={phone ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
         <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
       </directionalLight>
-      <BookModel anim={anim} onOpen={tapBook} layer={layer} m={m} leaf={leaf} />
+      <BookModel anim={anim} onOpen={onOpen} layer={layer} m={m} leaf={leaf} sz={sz} />
       {/* the book's shadow on the desk, in two layers like the photo's skeins: a narrow dark contact line where
           it touches, and a broad very soft shadow spreading to the lower right. Warm grey-brown (sampled
           beside the skeins), not black; darkness follows --book-shadow */}

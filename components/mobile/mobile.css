@@ -503,7 +503,7 @@
 /* ---- ④ 도안 만들기 on the 3D book's right page (MobileBookWizard.tsx) ---- */
 @media (max-width:767.98px){
   /* laid out at screen pixels: the page box is 720 page-px wide, --k page-px per screen px */
-  .mbw{position:absolute;left:0;top:0;width:calc(720px / var(--k,1));height:calc(var(--page-h,1000px) / var(--k,1));zoom:var(--k,1);
+  .mbw{position:absolute;left:0;top:0;width:calc(var(--mbw-w,720px) / var(--k,1));height:calc(var(--page-h,1000px) / var(--k,1));zoom:var(--k,1);
     --paper:#FBF3EA;--ink2:#3A2E29;--accent:#6E5350;--rule:#CDBFB4;color:#3A2E29;font-family:"Newsreader","Noto Serif KR",Georgia,serif;font-size:14px;line-height:1.6;text-align:left}
   .mbw-scroll{height:100%;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 26px 22px 26px;-webkit-overflow-scrolling:touch}
   .mbw .nb-page{display:block;min-width:0;padding:0;border-radius:0;background:none;box-shadow:none;color:#3A2E29}
@@ -552,4 +552,17 @@
 @media (max-width:767.98px){
   .mt-head{position:relative}
   .mt-to-pattern{position:absolute;right:0;top:4px;display:inline-flex;align-items:center;min-height:44px;font-size:12.5px;color:#6E5350;text-decoration:underline;text-underline-offset:3px}
+}
+/* the closed book lies as on the web's phone layout (62% wide, 46% down); the hint sits under it */
+@media (max-width:767.98px){
+  .m-tap,.m-stage[data-zoom="1"] .m-tap{top:calc(46% + 62vw * .5)}
+}
+/* the open book is taller on phones (Book3D: --sz): the menu page spreads a little, not all the way (the web spacing x ~1.4) */
+@media (max-width:767.98px){
+  .m-stage .pg-rp .pg-logo{top:calc(6.5% / (1 + (var(--sz,1) - 1) * .45))}
+  .m-stage .pg-rp .pg-cap{top:calc(6.5% / (1 + (var(--sz,1) - 1) * .45) + 62cqw * 579 / 1170 + 12px * var(--k,1))}
+  .m-stage .pg-rp .pg-rule{top:calc(38% / (1 + (var(--sz,1) - 1) * .45))}
+  .m-stage .pg-rp .pg-tag{top:calc(42.5% / (1 + (var(--sz,1) - 1) * .45))}
+  .m-stage .pg-rp .pg-ko{top:calc(51% / (1 + (var(--sz,1) - 1) * .45))}
+  .m-stage .pg-actions{top:calc(59% / (1 + (var(--sz,1) - 1) * .45))}
 }
