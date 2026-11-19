@@ -29,8 +29,9 @@ export function MobileWizard() {
           <div className="mw-body">{s.body}</div>
           <div className="mw-foot">
             <button type="button" className="mw-back" onClick={s.back.onClick}>{s.back.label}</button>
-            <button type="submit" className={"m-label mw-next" + (s.final ? " is-final" : "")} aria-disabled={s.blocked || undefined}>
-              <span className="m-label-in">{s.nextText}</span>
+            {/* as in the book: a cream cloth label for the steps, the dark ribbon with gold for the last one */}
+            <button type="submit" className={s.final ? "mw-final" : "m-label mw-next"} aria-disabled={s.blocked || undefined}>
+              <span className={s.final ? "mw-final-face" : "m-label-in"}>{s.nextText}</span>
             </button>
           </div>
         </form>

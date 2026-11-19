@@ -84,13 +84,13 @@ function FirstPage({ onClose }: { onClose: () => void }) {
           <p className="m1-ko">아이디어만 있으면,<br />나만의 뜨개질 도안을 만들 수 있어요.</p>
         </header>
         <nav className="m1-acts" aria-label="시작하기">
-          <button type="button" className="m-label m1-act" aria-expanded={hasDraft ? choose : undefined} onClick={make}>
+          <button type="button" className="m-label is-yellow m1-act" aria-expanded={hasDraft ? choose : undefined} onClick={make}>
             <span className="m-label-in"><span className="m1-act-text"><b>도안 만들기</b><small>실과 크기만 정하면 코 수를 계산해요</small></span><span className="m1-act-end">{choose ? "닫기" : "시작"}</span></span>
           </button>
           {choose && (
             <div className="m1-choose" role="group" aria-label="도안 만들기">
-              <button type="button" className="m-label m1-sub" onClick={fresh}><span className="m-label-in"><span className="m1-act-text"><b>새 도안 만들기</b><small>처음부터 시작해요</small></span></span></button>
-              <button type="button" className="m-label is-ivory m1-sub" onClick={() => book.startWizard(step)}><span className="m-label-in"><span className="m1-act-text"><b>이어서 만들기</b><small>{`${draft.name.trim() || "이름 없는 작품"} · ${STEP_NAME[step]}부터`}</small></span></span></button>
+              <button type="button" className="m-label is-apricot m1-sub" onClick={fresh}><span className="m-label-in"><span className="m1-act-text"><b>새 도안 만들기</b><small>처음부터 시작해요</small></span></span></button>
+              <button type="button" className="m-label is-lilac m1-sub" onClick={() => book.startWizard(step)}><span className="m-label-in"><span className="m1-act-text"><b>이어서 만들기</b><small>{`${draft.name.trim() || "이름 없는 작품"} · ${STEP_NAME[step]}부터`}</small></span></span></button>
             </div>
           )}
           {going && g && (
@@ -98,7 +98,7 @@ function FirstPage({ onClose }: { onClose: () => void }) {
               <span className="m-label-in"><span className="m1-act-text"><b>이어서 뜨기</b><small>{`${going.name} · ${g.where}`}</small></span><span className="m1-act-end">{g.pos}</span></span>
             </button>
           )}
-          <Link className="m-label is-ivory m1-act" href="/library">
+          <Link className="m-label is-rose m1-act" href="/library">
             <span className="m-label-in"><span className="m1-act-text"><b>나의 도안집</b><small>뜨던 곳부터 이어서</small></span><span className="m1-act-end">{count ? `${count}개` : "아직 없어요"}</span></span>
           </Link>
         </nav>

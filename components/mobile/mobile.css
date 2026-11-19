@@ -354,3 +354,62 @@
   .lb-note{margin-top:36px}
 }
 @media (max-width:767.98px){.m1-act-text small{white-space:normal;text-overflow:clip}}
+
+/* ---- colours as in the web book (Kim: the same colour placement as the web) ----
+   Woven labels: the web's weave over a flat pastel, stitches in a deeper shade of the same colour, a
+   slight tilt. 도안 만들기 yellow, 나의 도안집 rose, 새 도안 만들기 apricot, 이어서 만들기 lilac, other
+   labels the book's cream cloth with lavender stitches. */
+@media (max-width:767.98px){
+  .m-label{--lb:#F6EFE2;--ls:var(--book-lav,#C4B5DD);padding:0;border-radius:2px;transform:rotate(-.7deg);
+    background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lb);
+    box-shadow:0 1px 2px rgba(70,50,40,.14),0 5px 12px rgba(70,50,40,.07)}
+  .m-label:active{transform:rotate(0) translateY(1px)}
+  .m-label .m-label-in,.m-label.is-ivory .m-label-in{position:relative;border:0;padding-left:24px;padding-right:24px}
+  .m-label .m-label-in::before,.m-label .m-label-in::after{content:"";position:absolute;top:8px;bottom:8px;border-left:1.5px dashed var(--ls);pointer-events:none}
+  .m-label .m-label-in::before{left:10px}.m-label .m-label-in::after{right:10px}
+  .m-label.is-yellow{--lb:#F6EDCB;--ls:#D2BC78}
+  .m-label.is-rose{--lb:#F5E2E0;--ls:#D9AFAA;transform:rotate(.6deg)}
+  .m-label.is-apricot{--lb:#F8E1D0;--ls:#DDA684;transform:none}
+  .m-label.is-lilac{--lb:#E9E1F3;--ls:#B4A1D3;transform:none}
+  .m-label.is-ivory{--lb:#F6EFE2;background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lb);transform:rotate(.4deg)}
+  .m-label .m1-act-text small,.m-label.is-ivory .m1-act-text small{color:#8C7B72}
+
+  /* the bottom bar's 새 도안: the web nav's yellow label */
+  .m-new{background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),#F6EDCB;
+    box-shadow:0 1px 2px rgba(70,50,40,.18),0 4px 10px rgba(70,50,40,.1)}
+  .m-new-in{border-color:#D2BC78;color:#3A2E29}
+
+  /* 도안 만들기: chips as in the book (hairline pills, the picked one dark brown), the cream cloth label for
+     다음, the dark ribbon with gold lettering for the last step */
+  .mw-groups .nb-chip,.mw-body .nb-chip{min-height:44px;padding:0 16px;border:1px solid var(--rule);border-radius:999px;background:transparent;box-shadow:none;color:var(--ink2);font-size:14px}
+  .mw-groups .nb-chip .m-label-in{display:contents}
+  .mw-groups .nb-chip .m-label-in::before,.mw-groups .nb-chip .m-label-in::after{content:none}
+  .mw-groups .nb-chip[aria-checked="true"],.mw-body .nb-chip[aria-checked="true"],.mw-body .nb-chip[aria-pressed="true"]{background:#6E5350;border-color:#6E5350;color:#FBF3EA}
+  .mw-next .m-label-in{font-weight:500}
+  .mw-final{flex:1;display:flex;justify-content:flex-end;min-width:0;padding:0;border:0;background:none;font:inherit;cursor:pointer}
+  .mw-final-face{display:flex;align-items:center;justify-content:center;width:100%;max-width:280px;min-height:52px;padding:8px 26px;box-sizing:border-box;color:#E9D4A0;
+    background:linear-gradient(180deg,#46372F,#33271F);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%,12px 50%);box-shadow:0 2px 4px rgba(50,35,25,.25);
+    font:500 14.5px/1.3 var(--m-serif);letter-spacing:.02em}
+  .mw-final[aria-disabled="true"]{opacity:.55}
+
+  /* 따라 뜨기: the book's undo (cream, a hairline) and its lavender ribbon with cream stitches */
+  .mt-undo{flex:none;display:flex;align-items:center;justify-content:center;width:66px;height:96px;padding:0;border:1px solid #E6DCCF;border-radius:3px;background:#FFFDF8;color:#3A2E29;font:inherit;cursor:pointer}
+  .mt-undo:disabled{opacity:.45;cursor:default}
+  .mt-undo-in{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#6F5E57}
+  .mt-undo svg{width:20px;height:20px}
+  .mt-done{flex:1;min-width:0;height:96px;padding:0;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .mt-done:disabled{opacity:.5;cursor:default}
+  .mt-done-face{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:100%;padding:12px 30px;color:#3A2E29;
+    background:repeating-linear-gradient(0deg,rgba(80,60,110,.06) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(80,60,110,.05) 0 1px,transparent 1px 3px),#D9CCEB;
+    clip-path:polygon(0 0,100% 0,calc(100% - 14px) 50%,100% 100%,0 100%,14px 50%)}
+  .mt-done-face::before{content:"";position:absolute;inset:7px 22px;border-top:1.5px dashed rgba(251,243,234,.95);border-bottom:1.5px dashed rgba(251,243,234,.95);pointer-events:none}
+  .mt-done:active .mt-done-face{transform:scale(.99)}
+  .mt-done-face b{font:600 21px/1 var(--m-serif);letter-spacing:.06em}
+  .mt-done-face small{font-size:12.5px;color:#5E4E66}
+
+  /* 나의 도안집: the web list's ink underline, a cream 이어서 뜨기 card */
+  .lb-tabs button[aria-selected="true"]::after{height:1.5px;background:#3A2E29}
+  .lb-going{background:rgba(246,239,226,.8);box-shadow:inset 0 0 0 1px #EDE3D5}
+  .lb-going-text small{color:#8C7B72}
+}
+@media (max-width:767.98px){.mw-next::after{background:linear-gradient(135deg,#DCCFBC 0 50%,transparent 50%)}}

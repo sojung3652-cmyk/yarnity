@@ -214,11 +214,11 @@ export default function TrackPage() {
             {!done && nx && <p className="mt-next"><span>다음</span>{nx.label} · {nx.n}코 · {nx.how}</p>}
           </section>
           <div className="mt-acts">
-            <button className="m-label is-ivory mt-undo" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>
-              <span className="m-label-in"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5 3.5 8.5 7 12M4 8.5h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>되돌리기</span>
+            <button className="mt-undo" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>
+              <span className="mt-undo-in"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5 3.5 8.5 7 12M4 8.5h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>되돌리기</span>
             </button>
-            <button className="m-label mt-done" type="button" disabled={done} onClick={() => step(1)}>
-              <span className="m-label-in"><b>한 단 끝</b><small>{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</small></span>
+            <button className="mt-done" type="button" disabled={done} onClick={() => step(1)}>
+              <span className="mt-done-face"><b>한 단 끝</b><small>{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</small></span>
             </button>
           </div>
         </MobileNotebook>
