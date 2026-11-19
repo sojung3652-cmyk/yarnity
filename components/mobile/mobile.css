@@ -413,3 +413,25 @@
   .lb-going-text small{color:#8C7B72}
 }
 @media (max-width:767.98px){.mw-next::after{background:linear-gradient(135deg,#DCCFBC 0 50%,transparent 50%)}}
+
+/* ---- 도안 만들기: the book's own pages laid on the notebook's sheets (their book-only parts hidden) ---- */
+@keyframes mn-leaf-down{from{transform:rotateX(92deg)}to{transform:none}}
+@media (max-width:767.98px){
+  .mw .nb-page{display:block;min-width:0;padding:0;border-radius:0;background:none;box-shadow:none;color:var(--m-ink)}
+  .mw .nb-foot,.mw .nb-progress,.mw .nb-ribbon,.mw .nb-marker{display:none}
+  .mw .nb-turn{animation:none!important}
+  .mw .nb-page h1{margin:0 0 10px;font-size:22px;font-weight:500;line-height:1.35}
+  .mw .nb-page h1.sr{margin:0}
+  .mw .nb-page .ask-line{margin:0 0 26px}
+  .mw .tp{min-height:0}
+  .mw .tp-cover{padding:24px 0 8px}
+  .mw-foot{position:relative}
+  .mw-folio{position:absolute;left:50%;transform:translateX(-50%);font:500 12px/1 var(--m-latin);letter-spacing:.1em;color:var(--m-soft);pointer-events:none}
+  /* the turning sheet carries its page */
+  .mn-leaf>.mn-scroll{pointer-events:none}
+  .mn-leaf.is-up{animation:mn-leaf .55s cubic-bezier(.45,.05,.55,.95) forwards}
+  .mn-leaf.is-down{animation:mn-leaf-down .55s cubic-bezier(.45,.05,.55,.95) both}
+}
+@media (max-width:767.98px) and (prefers-reduced-motion:reduce){
+  .mn-leaf.is-up,.mn-leaf.is-down{animation:mn-fade .3s ease forwards;transform:none}
+}
