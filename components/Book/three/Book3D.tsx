@@ -26,6 +26,7 @@ import { useMobile } from "@/components/mobile/useMobile";
 import { MobileBookWizard } from "@/components/mobile/MobileBookWizard";
 import { MobileBookPages } from "@/components/mobile/MobileBookPages";
 import { BOOK_PAGES, bookPageOf } from "@/components/mobile/bookPages";
+import { useSheet } from "@/components/mobile/sheetStore";
 import { usePathname } from "next/navigation";
 
 // ---- timeline (seconds) ----
@@ -436,11 +437,12 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
 }
 
 // ---- spreads and the turns between them ----
-/** `page`: phones only, a screen shown as the open book's right page (components/mobile/bookPages.ts) */
-export interface Spread { view: BookView; step: WizStep; page?: string }
-const spreadKey = (s: Spread) => (s.page ? "p" + s.page : s.view === "wizard" ? "w" + s.step : s.view);
+/** phones only - `page`: a screen shown as the open book's right page (components/mobile/bookPages.ts);
+ *  `sheet`: which sheet of a 도안 만들기 step (components/mobile/sheetStore.ts) */
+export interface Spread { view: BookView; step: WizStep; page?: string; sheet?: number }
+const spreadKey = (s: Spread) => (s.page ? "p" + s.page : s.view === "wizard" ? "w" + s.step + (s.sheet != null ? "-" + s.sheet : "") : s.view);
 const isSpread = (s: Spread) => s.view === "home" || s.view === "wizard";
-const order = (s: Spread) => (s.page ? BOOK_PAGES[s.page] : s.view === "wizard" ? s.step : 0); // menu, the four steps (phones: then 도안집, 도안, 따라 뜨기)
+const order = (s: Spread) => (s.page ? BOOK_PAGES[s.page] : s.view === "wizard" ? (s.sheet != null ? s.step * 2 + s.sheet : s.step) : 0); // menu, the four steps (phones: then 도안집, 도안, 따라 뜨기)
 const frames = (n: number) => new Promise<void>(res => { const f = () => (--n <= 0 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); });
 /** Texture width of a page picture: the page's size on screen x pixel ratio, so a texel is about a screen
  *  pixel (a 2x bigger picture, minified, came out blurred and lighter than the live text). */
@@ -702,7 +704,8 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
   // want: the spread the address asks for; shown: the one whose DOM is in the book (they differ during a turn)
   // phones: 도안집, 도안 and 따라 뜨기 keep the book open, as its right page
   const path = usePathname(), page = phone ? bookPageOf(path) : null;
-  const want = useMemo<Spread>(() => (page ? { view: "home", step: b.step, page } : { view: b.view, step: b.step }), [b.view, b.step, page]);
+  const sheet = useSheet(b.step), wizSheet = phone && b.view === "wizard" ? sheet : undefined;
+  const want = useMemo<Spread>(() => (page ? { view: "home", step: b.step, page } : { view: b.view, step: b.step, sheet: wizSheet }), [b.view, b.step, page, wizSheet]);
   const [shown, setShown] = useState<Spread>(want);
   const [ready, setReady] = useState(false);
   const reduce = useReducedMotion();
@@ -746,7 +749,7 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
           a turn), and the wizard spread while it is shown (flat boxes over the pages, the camera straight above) */}
       {createPortal(<LeftPage />, layer.left)}
       {/* phones: the wizard step is the right page itself (components/mobile/MobileBookWizard.tsx) */}
-      {createPortal(<>{phone && shown.page ? <MobileBookPages page={shown.page} /> : phone && shown.view === "wizard" ? <MobileBookWizard /> : <RightPage onClose={b.close} />}<AiTab variant="menu" /></>, layer.right)}
+      {createPortal(<>{phone && shown.page ? <MobileBookPages page={shown.page} /> : phone && shown.view === "wizard" ? <MobileBookWizard sheet={shown.sheet} /> : <RightPage onClose={b.close} />}<AiTab variant="menu" /></>, layer.right)}
       {shown.view === "wizard" && !phone && <WizardSpread step={shown.step} left={layer.flatLeft} right={layer.flatRight} />}
     </div>
   );

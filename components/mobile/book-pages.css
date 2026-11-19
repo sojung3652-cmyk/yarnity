@@ -1,0 +1,70 @@
+/* Phones (767px and narrower): 도안 (5) and 따라 뜨기 (6) as the book's right page (MobileBookPages.tsx), in
+   screen px with the wizard's type and spacing (Kim's spec): page padding 22 / 24 / 20 / 36, body 13px, help
+   11.5px #6B5D55, numbers 22px, the row being made 26px and its instruction 15px, nothing under 11px
+   (decorative capitals 10px). The head and the buttons stay; only the rows / the row scroll. */
+@media (max-width:767.98px){
+  body .mbp-pattern,body .mbp-track{--mz:1;display:flex;flex-direction:column;box-sizing:border-box;padding:22px 24px 20px 36px;
+    font-family:"Noto Serif KR",serif;font-size:13px;line-height:1.6;color:#3A2E29;word-break:keep-all;overflow-wrap:anywhere}
+  body .mbp-pattern .mbp-close,body .mbp-track .mbp-close{right:6px;top:6px}
+  body .mbp .mbp-close{width:46px;height:46px;padding:14px}
+
+  /* ---- 5 도안 ---- */
+  body .mpp{display:flex;flex-direction:column;flex:1;min-height:0}
+  body .mpp-head{flex:none;padding-right:34px}
+  body .mpp-kicker{margin:0;font:500 10px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.25em;text-transform:uppercase;color:#8C7B72}
+  body .mpp-head h1{margin:10px 0 0;font-family:"Noto Serif KR",serif;font-weight:600;font-size:17px;line-height:1.45}
+  body .mpp-sub{margin:6px 0 0;font-size:11.5px;line-height:1.6;color:#6B5D55}
+  body .mpp-facts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:0;margin:20px 0 0;border-top:1px solid #E2D6CB;border-left:1px solid #E2D6CB}
+  body .mpp-facts div{padding:10px 12px;border-right:1px solid #E2D6CB;border-bottom:1px solid #E2D6CB;min-width:0}
+  body .mpp-facts dt{font-size:11.5px;color:#6B5D55}
+  body .mpp-facts dd{margin:2px 0 0;font-size:13px;line-height:1.4}
+  body .mpp-facts dd b{font-size:22px;font-weight:600;line-height:1.2}
+  body .mpp-colors{display:inline-flex;gap:4px;margin-left:6px;vertical-align:middle}
+  body .mpp-colors i{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(60,40,30,.15)}
+  /* the rows: scroll inside, fading out at the foot */
+  body .mpp-rows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:24px -8px 0 0;padding:0 8px 28px 0;
+    -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent)}
+  body .mpp-part+.mpp-part{margin-top:24px}
+  body .mpp-part h2{display:flex;align-items:baseline;gap:8px;margin:0;padding-bottom:6px;border-bottom:1px solid #E2D6CB;font-family:"Noto Serif KR",serif;font-weight:700;font-size:14px}
+  body .mpp-part h2 span{font:500 11px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#8C7B72}
+  body .mpp-part ol{list-style:none;margin:0;padding:0}
+  body .mpp-part li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:baseline;min-height:44px;padding:10px 0;border-bottom:1px solid #EFE6DB;box-sizing:border-box}
+  body .mpp-no{font-size:12.5px;font-weight:600}
+  body .mpp-how{font-size:13px;line-height:1.55}
+  body .mpp-how small{display:block;margin-top:2px;font-size:11.5px;line-height:1.6;color:#6B5D55}
+  body .mpp-n{font-size:11.5px;color:#6B5D55;white-space:nowrap}
+  body .mpp-n b{font-size:15px;font-weight:600;color:#3A2E29}
+  body .mpp-foot{flex:none}
+  body .mpp-foot .mbz-btn{display:inline-flex;text-decoration:none}
+
+  /* ---- 6 따라 뜨기: no ruled lines here; a progress bar, the row as a card, the thumb zone ---- */
+  body .mbp-track .mt-page{display:flex;flex-direction:column;flex:1;min-height:0}
+  body .mbp-track .mt-head{flex:none;padding:0 34px 0 0}
+  body .mbp-track .mt-kicker{font-size:10px;letter-spacing:.25em}
+  body .mbp-track .mt-head h1{margin:10px 0 12px;font-family:"Noto Serif KR",serif;font-weight:600;font-size:17px;line-height:1.45}
+  body .mbp-track .mt-to-pattern{position:static;display:inline-flex;align-items:center;min-height:46px;min-width:46px;margin:-8px 0 2px;font-size:12px;color:#6E5350}
+  body .mbp-track .mt-bar{height:4px}
+  body .mbp-track .mt-pos{font-size:13px}
+  body .mbp-track .mt-wake{font-size:11.5px;color:#6B5D55}
+  body .mbp-track .mt-rows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;gap:12px;margin:0 -8px 0 0;padding:20px 8px 16px 0}
+  body .mbp-track .mt-prev{font-size:11.5px;color:#6B5D55;opacity:1}
+  body .mbp-track .mt-now{padding:16px 16px 18px;border:1px solid #E6DCCF;border-radius:4px;background:rgba(255,253,248,.7);box-shadow:0 1px 2px rgba(70,50,40,.06)}
+  body .mbp-track .mt-sec{font-size:11.5px;color:#7E6AA8}
+  body .mbp-track .mt-row{font-family:"Noto Serif KR",serif;font-weight:600;font-size:26px;line-height:1.2}
+  body .mbp-track .mt-count{font-family:"Noto Serif KR",serif;font-weight:600;font-size:22px}
+  body .mbp-track .mt-count small{font-size:15px}
+  body .mbp-track .mt-count span{font-size:12px}
+  body .mbp-track .mt-how{margin-top:10px;font-size:15px;line-height:1.65}
+  body .mbp-track .mt-why{margin-top:6px;font-size:11.5px;line-height:1.6;color:#6B5D55}
+  body .mbp-track .mt-flag{margin-top:12px;font-size:12px;line-height:1.6;color:#5A4A44}
+  body .mbp-track .mt-next{font-size:11.5px;color:#6B5D55;white-space:normal}
+  body .mbp-track .mt-measure{padding:14px}
+  body .mbp-track .mt-measure .txt{min-height:44px;font-size:16px}
+  body .mbp-track .mt-acts{position:static;flex:none;gap:10px;margin:0;padding:16px 0 0;border-top:0;background:none}
+  body .mbp-track .mt-undo{width:66px;height:88px}
+  body .mbp-track .mt-undo-in{font-size:12px}
+  body .mbp-track .mt-done{height:88px}
+  body .mbp-track .mt-done-face b{font-size:20px}
+  body .mbp-track .mt-done-face small{font-size:12px;color:#5E4E66}
+  body .mbp-track .mt-links a{min-height:44px;font-size:13px}
+}
