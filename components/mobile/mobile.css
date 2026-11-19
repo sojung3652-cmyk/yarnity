@@ -16,7 +16,7 @@
 @keyframes mn-fade{to{opacity:0}}
 @keyframes m-up{from{transform:translateY(10px);opacity:0}}
 
-@media (max-width:767px){
+@media (max-width:767.98px){
   html{background:#E3D7CF}
   body{background:radial-gradient(120% 80% at 50% 35%,#F6EFEA 0%,#ECE2DB 72%,#E3D7CF 100%);min-height:100svh;color:var(--m-ink)}
   /* the desktop's top bar, footer logo and book stage are not on phones (also before the page has
@@ -76,13 +76,13 @@
   /* the AI sheet sits above the bar */
   .ai-sheet{bottom:calc(var(--m-bottom) + 8px);height:min(70svh,calc(100svh - var(--m-bottom) - 24px))}
 }
-@media (max-width:767px) and (prefers-reduced-motion:reduce){
+@media (max-width:767.98px) and (prefers-reduced-motion:reduce){
   .mn-leaf{animation:mn-fade .3s ease forwards;transform:none}
 }
 
 /* ---- (A) the cover: the phone's home ---- */
 @keyframes mc-open{to{transform:rotateX(96deg)}}
-@media (max-width:767px){
+@media (max-width:767.98px){
   .m-cover-page{position:fixed;inset:0 0 var(--m-bottom) 0;overflow:hidden;touch-action:none}
   .mc-book{position:absolute;left:34px;right:34px;top:74px;height:min(560px,calc(100svh - 74px - var(--m-bottom) - 64px));perspective:1600px}
   .mc-stack i{position:absolute;top:0;border-radius:3px 3px 6px 6px}
@@ -105,12 +105,12 @@
   .mc-swipe{position:absolute;left:0;right:0;top:calc(74px + min(560px,calc(100svh - 74px - var(--m-bottom) - 64px)) + 26px);margin:0;text-align:center;
     font:italic 500 15px/1 var(--m-latin);letter-spacing:.25em;color:var(--m-soft)}
 }
-@media (max-width:767px) and (prefers-reduced-motion:reduce){
+@media (max-width:767.98px) and (prefers-reduced-motion:reduce){
   .mc-book.is-opening .mc-cover{animation:mn-fade .3s ease forwards}
 }
 
 /* ---- (B) the first page ---- */
-@media (max-width:767px){
+@media (max-width:767.98px){
   .m-ribbon{position:absolute;right:22px;top:0;z-index:4;width:18px;height:104px;filter:drop-shadow(0 2px 2px rgba(70,50,20,.28))}
   .m-ribbon .rib-gold{display:block;width:100%;height:100%}
   .m1-brand{text-align:center;padding:18px 0 4px}
@@ -142,7 +142,7 @@
 }
 
 /* ---- (C) 도안 만들기 in the notebook ---- */
-@media (max-width:767px){
+@media (max-width:767.98px){
   .mw-form{--paper:#FBF7F0;--ink2:#3B302B;--accent:#5E4B88;--rule:#E6DCCF;display:flex;flex-direction:column;min-height:100%;color:var(--m-ink)}
   .mw .mn-scroll{display:flex;flex-direction:column}
   .mw-progress{margin:0 0 18px}
@@ -192,7 +192,7 @@
 }
 
 /* ---- (D) 따라 뜨기: a ruled notebook page ---- */
-@media (max-width:767px){
+@media (max-width:767.98px){
   .mt .mn-scroll{display:flex;flex-direction:column;padding:30px 18px 0 52px;background-attachment:local;
     background-image:linear-gradient(90deg,transparent 40px,rgba(226,150,160,.55) 40px 41px,transparent 41px),repeating-linear-gradient(180deg,transparent 0 31px,rgba(196,181,221,.45) 31px 32px)}
   .mt-head{padding-bottom:12px}
@@ -234,13 +234,13 @@
   .mt-done b{font:600 22px/1 var(--m-serif);letter-spacing:.1em}
   .mt-done small{font-size:13px;color:#4E4250}
 }
-@media (max-width:767px){
+@media (max-width:767.98px){
   .mt-measure .measure{padding:0;background:none;border:0;box-shadow:none}
   .mt-measure .btn-primary{border:0;border-radius:3px;background:var(--m-linen);color:var(--m-ink);box-shadow:0 1px 2px rgba(60,40,80,.18)}
 }
 
 /* ---- (E) 나의 도안집: an e-book library on plain paper ---- */
-@media (max-width:767px){
+@media (max-width:767.98px){
   body:has(#view-library.lb){background:var(--m-paper)}
   .lb{margin:0 -20px;padding:28px 16px calc(var(--m-bottom) + 24px);min-height:100svh;box-sizing:border-box;background:var(--m-paper)}
   .lb-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}

@@ -4,7 +4,7 @@
 // render the desktop markup, and mobile.css hides the parts that must not flash on a phone.
 import { useSyncExternalStore } from "react";
 
-export const MOBILE_QUERY = "(max-width: 767px)";
+export const MOBILE_QUERY = "(max-width: 767.98px)";
 const subscribe = (cb: () => void) => { const mq = matchMedia(MOBILE_QUERY); mq.addEventListener("change", cb); return () => mq.removeEventListener("change", cb); };
 
 export function useMobile(): boolean | null {
