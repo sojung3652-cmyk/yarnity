@@ -32,7 +32,7 @@ export function Hero() {
   // phones: the splash and the desk with the same 3D book (components/mobile/MobileStage.tsx); three.js
   // loads only once the desk shows (Book3D is a dynamic import). Hidden on the phone's other screens.
   const m = useMobile(), path = usePathname();
-  if (m) return <MobileStage hidden={b.view === "hidden" && !bookPageOf(path)} />;
+  if (m) return <MobileStage hidden={b.view === "hidden" && !bookPageOf(path)} home={path === "/"} />;
   return (
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>
