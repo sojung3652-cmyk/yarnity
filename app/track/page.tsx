@@ -10,6 +10,8 @@ import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
 import { clamp, fmt, PART_KO, plan, withChains, type Row } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
+import { MobileNotebook } from "@/components/mobile/MobileNotebook";
+import { useMobile } from "@/components/mobile/useMobile";
 
 function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
   const pp = plan(p), exp = 6 * pp.g.h;
@@ -88,6 +90,7 @@ export default function TrackPage() {
   // (only 한 단 끝 / 되돌리기 move it). Back to the row being made whenever the progress moves.
   const [view, setView] = useState<number | null>(null);
   const wake = useRef<WakeLockSentinel | null>(null);
+  const m = useMobile();
 
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
 
@@ -168,6 +171,60 @@ export default function TrackPage() {
   const fromN = pp.rows[vr.idx - 1] && ((vr.part === "bottom" && (vr.no as number) > 1) || (vr.part === "body" && vr.inc)) ? pp.rows[vr.idx - 1].n : null;
   // the rows under the card: two done, this one, five to come (or all of them)
   const shown = allRows ? pp.rows : pp.rows.slice(Math.max(0, current - 2), current + 6);
+
+  // phones: the same row, counts and actions on a ruled notebook page (components/mobile); no chart
+  if (m) {
+    const prev = current > 0 ? pp.rows[current - 1] : null;
+    return (
+      <main id="view-track" className="m-root">
+        <MobileNotebook label="따라 뜨기" className="mt">
+          <header className="mt-head">
+            <p className="mt-kicker" lang="en">Crochet along</p>
+            <h1 id="trTitle">{p.name}</h1>
+            <div className="mt-progress">
+              <div className="mt-bar" aria-hidden="true"><i style={{ width: (current / total * 100) + "%" }} /></div>
+              <span className="mt-pos">{Math.min(current + 1, total)} / {total}</span>
+            </div>
+            {wakeOn && <p className="mt-wake">화면 켜짐 유지 중</p>}
+          </header>
+          <section className="mt-rows" aria-label="지금 뜨는 단">
+            {prev && <p className="mt-prev"><s>{prev.label} · {prev.n}코</s></p>}
+            {done ? (
+              <div className="mt-now">
+                <p className="mt-row">완성</p>
+                <p className="mt-how">마지막 단까지 다 떴어요.</p>
+                <p className="mt-links"><Link href="/pattern">도안 다시 보기</Link><Link href="/library">사진 남기기</Link></p>
+              </div>
+            ) : (
+              <div className="mt-now">
+                <p className="mt-sec">{r.part === "start" ? "시작 사슬" : PART_KO[r.part]}</p>
+                <div className="mt-now-top"><span className="mt-row">{r.label}</span>
+                  <span className="mt-count">{(() => { const f = pp.rows[r.idx - 1] && ((r.part === "bottom" && (r.no as number) > 1) || (r.part === "body" && r.inc)) ? pp.rows[r.idx - 1].n : null; return f != null ? <small>{f}→</small> : null; })()}{r.n}<span>코</span></span></div>
+                <p className="mt-how">{r.how}</p>
+                {r.why && <p className="mt-why">{r.why}</p>}
+                {flag && <p className="mt-flag">{flag}</p>}
+                {(showMeasure || showMeasureRows) && (
+                  <div className="mt-measure">
+                    {showMeasure && <><p className="mt-measure-title">3단까지 뜬 지름을 재 주세요</p><Measure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} /></>}
+                    {showMeasureRows && <><p className="mt-measure-title">5단까지 뜬 폭과 높이를 재 주세요</p><MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} /></>}
+                  </div>
+                )}
+              </div>
+            )}
+            {!done && nx && <p className="mt-next"><span>다음</span>{nx.label} · {nx.n}코 · {nx.how}</p>}
+          </section>
+          <div className="mt-acts">
+            <button className="m-label is-ivory mt-undo" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>
+              <span className="m-label-in"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5 3.5 8.5 7 12M4 8.5h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>되돌리기</span>
+            </button>
+            <button className="m-label mt-done" type="button" disabled={done} onClick={() => step(1)}>
+              <span className="m-label-in"><b>한 단 끝</b><small>{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</small></span>
+            </button>
+          </div>
+        </MobileNotebook>
+      </main>
+    );
+  }
 
   return (
     <main id="view-track" className="tk-main">
