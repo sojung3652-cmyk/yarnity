@@ -22,6 +22,8 @@ import { LABEL_CM, useBookMaterials, type BookMaterials } from "./materials";
 import { PAGE_D, PAGE_H_PX, PAGE_PX, PX_CM } from "./paperTextures";
 import { LeftPage, RightPage } from "../PageSpread";
 import { cssVar } from "../coverArt";
+import { useMobile } from "@/components/mobile/useMobile";
+import { MobileBookWizard } from "@/components/mobile/MobileBookWizard";
 
 // ---- timeline (seconds) ----
 const TOTAL = 1.6;
@@ -495,8 +497,8 @@ function inkForLight(ctx: CanvasRenderingContext2D, W: number, H: number) {
 }
 
 /** Pictures of the two pages of a spread as it is now (pagePaint.ts), at the page's own layout size. */
-async function paintSpread(layer: CssLayer, s: Spread, paper: { l: CanvasImageSource; r: CanvasImageSource }) {
-  const wiz = s.view === "wizard", res = leafRes(layer, wiz);
+async function paintSpread(layer: CssLayer, s: Spread, paper: { l: CanvasImageSource; r: CanvasImageSource }, phone?: boolean) {
+  const wiz = s.view === "wizard" && !phone, res = leafRes(layer, wiz);
   const [L, R] = wiz ? [layer.flatLeft, layer.flatRight] : [layer.left, layer.right];
   const box = wiz ? (() => { const h = REF_W * PAGE_H_PX / PAGE_PX; return { w: REF_W, h, vars: { "--z": "1", "--hz": h.toFixed(2) } }; })()
     : { w: PAGE_PX, h: PAGE_H_PX, vars: { "--k": layer.left.style.getPropertyValue("--k") || "1" } };
@@ -519,15 +521,17 @@ async function paintSpread(layer: CssLayer, s: Spread, paper: { l: CanvasImageSo
  *  The DOM fades back in (0.12s) when the leaf has landed. One turn at a time: a change asked for during a
  *  turn starts when it ends. Reduced motion: no turn, a 0.15s fade. Opening / closing, a refresh, a typed
  *  address or pages without the book: no turn. */
-function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, leaf }: {
+function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, leaf, phone }: {
   want: Spread; shown: Spread; setShown: (s: Spread) => void; instant: boolean; reduce: boolean; anim: Anim; layer: CssLayer; m: BookMaterials; leaf: { front: THREE.MeshStandardMaterial; back: THREE.MeshStandardMaterial };
+  /** phones: the wizard is on the right page of the open book (no wizard pose, no flat pages) */
+  phone?: boolean;
 }) {
   const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl);
   const busy = useRef(false), [round, setRound] = useState(0);
   useEffect(() => {
     if (busy.current) return;
     const same = spreadKey(want) === spreadKey(shown), turn = !same && isSpread(want) && isSpread(shown) && !instant;
-    const poseTo = (s: Spread) => { anim.target = isSpread(s) ? 1 : 0; anim.wTarget = s.view === "wizard" ? 1 : 0; };
+    const poseTo = (s: Spread) => { anim.target = isSpread(s) ? 1 : 0; anim.wTarget = s.view === "wizard" && !phone ? 1 : 0; };
     if (!turn) {
       if (!same) setShown(want);
       poseTo(want);
@@ -569,7 +573,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
       // focus: the new step's first field (or the menu's first action) once the pages are back
       frames(3).then(() => {
         // a field to type in first (the name is on the right page), then a choice, then a button
-        const hosts = want.view === "wizard" ? [layer.flatLeft, layer.flatRight] : [layer.right];
+        const hosts = want.view === "wizard" && !phone ? [layer.flatLeft, layer.flatRight] : [layer.right];
         const qs = ['.nb-turn input:not([type="color"]), .nb-turn textarea', '.nb-turn [role="radio"][tabindex="0"]', ".nb-turn button, .pg-link"];
         const el = qs.map(q => hosts.map(h => h.querySelector<HTMLElement>(q)).find(Boolean)).find(Boolean) ?? document.getElementById("nbTitle");
         el?.focus({ preventScroll: true });
@@ -577,7 +581,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
     };
     (async () => {
       try {
-        const old = await paintSpread(layer, shown, paperOf);
+        const old = await paintSpread(layer, shown, paperOf, phone);
         const oL = texOf(old.l, true), oR = texOf(old.r, false); made = [oL, oR];
         // the paper takes the pictures of the pages first, then the DOM goes: no blank page in between
         m.leftPage.map = oL; m.rightPage.map = oR; invalidate();
@@ -585,7 +589,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
         layer.turning = true; invalidate();
         setShown(want);
         await frames(3); // the new spread rendered (and its layout effects settled), still hidden
-        const neu = await paintSpread(layer, want, paperOf);
+        const neu = await paintSpread(layer, want, paperOf, phone);
         const nL = texOf(neu.l, true), nR = texOf(neu.r, false);
         made.push(nL, nR); landed = { l: nL, r: nR };
         // under the leaf: forward, the old left page (until covered) and the new right page (revealed)
@@ -600,7 +604,7 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
         setShown(want); poseTo(want); end();
       }
     })();
-  }, [want, shown, setShown, instant, reduce, anim, layer, m, leaf, gl, invalidate, round]);
+  }, [want, shown, setShown, instant, reduce, anim, layer, m, leaf, gl, invalidate, round, phone]);
 }
 
 function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want: Spread; shown: Spread; setShown: (s: Spread) => void; instant: boolean; onOpen: () => void; reduce: boolean; layer: CssLayer }) {
@@ -611,7 +615,8 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
   // the leaf's two faces: a right page (front) and a left page (back), as the spread's own pages
   const leaf = useMemo(() => ({ front: m.rightPage.clone(), back: m.leftPage.clone() }), [m]);
   useEffect(() => () => { leaf.front.dispose(); leaf.back.dispose(); }, [leaf]);
-  useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, leaf });
+  const phoneW = useThree(s => s.size.width) <= PHONE_MAX;
+  useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, leaf, phone: phoneW });
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
     if (!location.search.includes("debug")) return;
@@ -702,7 +707,7 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
 }
 
 export default function Book3D({ onFail }: { onFail: () => void }) {
-  const b = useBook(), open = b.view === "home" || b.view === "wizard";
+  const b = useBook(), open = b.view === "home" || b.view === "wizard", phone = !!useMobile();
   // want: the spread the address asks for; shown: the one whose DOM is in the book (they differ during a turn)
   const want = useMemo<Spread>(() => ({ view: b.view, step: b.step }), [b.view, b.step]);
   const [shown, setShown] = useState<Spread>(want);
@@ -747,8 +752,9 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
       {/* the page DOM: the menu spread (CSS 3D, on the tilted pages; always there, so it can be painted for
           a turn), and the wizard spread while it is shown (flat boxes over the pages, the camera straight above) */}
       {createPortal(<LeftPage />, layer.left)}
-      {createPortal(<><RightPage onClose={b.close} /><AiTab variant="menu" /></>, layer.right)}
-      {shown.view === "wizard" && <WizardSpread step={shown.step} left={layer.flatLeft} right={layer.flatRight} />}
+      {/* phones: the wizard step is the right page itself (components/mobile/MobileBookWizard.tsx) */}
+      {createPortal(<>{phone && shown.view === "wizard" ? <MobileBookWizard /> : <RightPage onClose={b.close} />}<AiTab variant="menu" /></>, layer.right)}
+      {shown.view === "wizard" && !phone && <WizardSpread step={shown.step} left={layer.flatLeft} right={layer.flatRight} />}
     </div>
   );
 }

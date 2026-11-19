@@ -5,12 +5,12 @@
 // The AI chat (components/Chat.tsx + /api/chat) is not shown for now; its code is kept for later.
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
 import { NewBook } from "@/components/newbook/NewBook";
-import { MobileWizard } from "@/components/mobile/MobileWizard";
 import { useMobile } from "@/components/mobile/useMobile";
 
 export default function NewPage() {
   const b = useBook(), m = useMobile();
-  if (m) return <MobileWizard />; // phones: the spring notebook (components/mobile)
+  // phones: the steps are the right page of the 3D book on the desk (Hero -> MobileStage, Book3D)
+  if (m) return <main id="view-new" className="m-root m-in-book"><h1 className="sr">도안 만들기</h1></main>;
   if (b.mode === "pending") return <main id="view-new" className="nb-main" />;
   if (wizardInBook(b)) return <main id="view-new"><div className="book-stage-space" aria-hidden="true" /></main>;
   return <NewBook />;
