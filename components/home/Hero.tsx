@@ -10,6 +10,7 @@ import { Book } from "@/components/Book/Book";
 import { AiHost } from "@/components/newbook/AiPanel";
 import { FoilLogo } from "@/components/FoilLogo";
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
+import { useMobile } from "@/components/mobile/useMobile";
 
 export function Hero() {
   const b = useBook();
@@ -25,6 +26,9 @@ export function Hero() {
       setArriving(true); const t = setTimeout(() => setArriving(false), 1400); // longer than the slowest float-in (0.9s + 0.24s) return () => clearTimeout(t);
     }
   }, [b.view, b.overlay]);
+  // phones: no stage and no three.js at all (the cover and the notebook are CSS; components/mobile)
+  const m = useMobile();
+  if (m) return null;
   return (
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>

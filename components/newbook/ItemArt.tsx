@@ -43,9 +43,10 @@ function shape(id: ItemId, c: string, ink: string, light: string) {
   }
 }
 
-export function ItemArt({ id, big, fill }: { id: ItemId; big?: boolean; fill?: string }) {
-  const c = big && fill ? fill : PASTEL[id];
-  const ink = `color-mix(in srgb, ${c} 45%, #6B4C40)`, light = `color-mix(in srgb, ${c} 55%, #FFFFFF)`;
+/** `line`: the same drawing as a plain line drawing (no colour fills), for the phone's item note. */
+export function ItemArt({ id, big, fill, line }: { id: ItemId; big?: boolean; fill?: string; line?: boolean }) {
+  const c = line ? "transparent" : big && fill ? fill : PASTEL[id];
+  const ink = line ? "#7A6C64" : `color-mix(in srgb, ${c} 45%, #6B4C40)`, light = line ? "transparent" : `color-mix(in srgb, ${c} 55%, #FFFFFF)`;
   return (
     <svg viewBox="0 0 64 64" className={big ? "nb-art nb-art-big" : "nb-art"} aria-hidden="true" strokeWidth={big ? 0.8 : 1.2}>
       {shape(id, c, ink, light)}
