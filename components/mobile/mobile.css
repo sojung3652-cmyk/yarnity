@@ -557,15 +557,7 @@
 @media (max-width:767.98px){
   .m-tap,.m-stage[data-zoom="1"] .m-tap{top:calc(46% + 62vw * .5)}
 }
-/* the open book is taller on phones (Book3D: --sz): the menu page spreads a little, not all the way (the web spacing x ~1.4) */
-@media (max-width:767.98px){
-  .m-stage .pg-rp .pg-logo{top:calc(6.5% / (1 + (var(--sz,1) - 1) * .45))}
-  .m-stage .pg-rp .pg-cap{top:calc(6.5% / (1 + (var(--sz,1) - 1) * .45) + 62cqw * 579 / 1170 + 12px * var(--k,1))}
-  .m-stage .pg-rp .pg-rule{top:calc(38% / (1 + (var(--sz,1) - 1) * .45))}
-  .m-stage .pg-rp .pg-tag{top:calc(42.5% / (1 + (var(--sz,1) - 1) * .45))}
-  .m-stage .pg-rp .pg-ko{top:calc(51% / (1 + (var(--sz,1) - 1) * .45))}
-  .m-stage .pg-actions{top:calc(59% / (1 + (var(--sz,1) - 1) * .45))}
-}
+
 
 /* the first moment on a phone, before the page has started: the desktop hero (photo, logo, start link) in the
    server's HTML must not show; the splash's wall is already there under it */
@@ -577,21 +569,6 @@
 /* ---- readable on a tall phone (Kim): the menu page flows top to bottom with bigger logo and type; the
    book's other pages are laid out 15% bigger. Sizes are screen px (x --k = page px). ---- */
 @media (max-width:767.98px){
-  .m-stage .pg-rp{display:flex;flex-direction:column;box-sizing:border-box;padding:calc(58px * var(--k,1)) calc(24px * var(--k,1)) 0}
-  .m-stage .pg-rp .pg-phone-brand{display:flex;flex-direction:column;align-items:center;text-align:center}
-  .m-stage .pg-rp .pg-logo,.m-stage .pg-rp .pg-cap,.m-stage .pg-rp .pg-rule,.m-stage .pg-rp .pg-tag,.m-stage .pg-rp .pg-ko{position:static;left:auto;right:auto;top:auto;transform:none}
-  .m-stage .pg-rp .pg-logo{width:80%;margin:0 auto}
-  .m-stage .pg-rp .pg-cap{margin-top:calc(14px * var(--k,1));font-size:calc(11.5px * var(--k,1));letter-spacing:.34em}
-  .m-stage .pg-rp .pg-rule{display:block;width:calc(34px * var(--k,1));margin:calc(24px * var(--k,1)) auto 0}
-  .m-stage .pg-rp .pg-tag{margin-top:calc(22px * var(--k,1));font-size:calc(17.5px * var(--k,1));line-height:1.3}
-  .m-stage .pg-rp .pg-ko{margin-top:calc(12px * var(--k,1));font-size:calc(15.5px * var(--k,1));line-height:1.75}
-  .m-stage .pg-actions{position:static;left:auto;top:auto;width:auto;margin-top:calc(44px * var(--k,1));gap:calc(18px * var(--k,1))}
-  .m-stage .pg-actions .pg-link{min-height:calc(64px * var(--k,1));padding:calc(18px * var(--k,1)) calc(30px * var(--k,1))}
-  .m-stage .pg-actions .pg-link-desc{display:block;margin-top:calc(2px * var(--k,1));font-size:calc(13px * var(--k,1))}
-  .m-stage .pg-link-title{font-size:calc(18px * var(--k,1))}
-  .m-stage .pg-link-end{font-size:calc(17px * var(--k,1))}
-  .m-stage .pg-actions .pg-link.pg-link-sub .pg-link-title{font-size:calc(16px * var(--k,1))}
-  .m-stage .pg-choose{gap:calc(12px * var(--k,1));margin:calc(-6px * var(--k,1)) 0 0 7%}
   /* the other pages: the same layout drawn 15% bigger */
   .mbw{--mz:1.15;width:calc(var(--mbw-w,720px) / (var(--k,1) * var(--mz)));height:calc(var(--page-h,1000px) / (var(--k,1) * var(--mz)));zoom:calc(var(--k,1) * var(--mz))}
   .mbw-scroll{padding:24px 20px 20px}

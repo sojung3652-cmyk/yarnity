@@ -1,0 +1,43 @@
+/* Phones (767px and narrower): the open book's right page home - layout and type only (Kim's spec). Values
+   are given for a 343px-wide page and scale with the page: X -> X / 343 x 100cqw (the page box, .pg-page, is
+   a size container); type never below 10 screen px (10px x --k page px). Padding on the page itself uses %,
+   which is also of the page's width. The splash, the AI tab, the book, the turns, colours and textures are
+   not touched here. Everything is inside the phone query (prefixed with body to win over Book.css's own phone
+   rules), so 768px and up never see it; not scoped to the stage, so the page's painted copy for a turn matches. */
+@media (max-width:767.98px){
+  /* cqw is of the container's content box (the page minus its 26 + 36 side padding = 281 of 343) */
+  body .pg-rp{--u:calc(100cqw / 281);display:flex;flex-direction:column;align-items:center;box-sizing:border-box;
+    padding:calc(100% * 92 / 343) calc(100% * 26 / 343) calc(100% * 40 / 343) calc(100% * 36 / 343)}
+  body .pg-rp .pg-phone-brand{display:flex;flex-direction:column;align-items:center;flex:none;width:100%}
+  /* the web places these at fixed spots of the page; here they flow top to bottom */
+  body .pg-rp .pg-logo,body .pg-rp .pg-cap,body .pg-rp .pg-rule,body .pg-rp .pg-actions{position:static;left:auto;right:auto;top:auto;transform:none}
+  /* 2. the gold foil logo (the web's, debossed): 150 x 69 */
+  body .pg-rp .pg-logo{width:calc(150 * var(--u));margin:0}
+  body .pg-rp .pg-logo .pg-foil{width:100%;height:auto}
+  /* 3. INTELLIGENT CROCHET */
+  body .pg-rp .pg-cap{margin:calc(12 * var(--u)) 0 0;padding-left:.34em;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-weight:600;
+    font-size:max(calc(10px * var(--k,1)),calc(8.5 * var(--u)));letter-spacing:.34em;line-height:1;color:#8A7258}
+  /* 4. a hairline */
+  body .pg-rp .pg-rule{display:block;width:calc(32 * var(--u));margin:calc(18 * var(--u)) auto 0;border-top:1px solid rgba(138,114,88,.4)}
+  body .pg-rp .pg-tag,body .pg-rp .pg-ko{display:none}
+  /* 5. the space between pushes the labels down; 6. the two labels, the page's width, 12 apart */
+  body .pg-actions{margin-top:auto;width:100%;gap:calc(12 * var(--u))}
+  body .pg-actions .pg-link{min-height:0;padding:calc((3 + 11) * var(--u)) calc((4 + 12) * var(--u));align-items:center;gap:calc(10 * var(--u));
+    box-shadow:0 1px 2px rgba(110,90,50,.3),0 4px 8px -6px rgba(110,90,50,.4)}
+  /* the dashed stitches stay, just inside the label's outer 3 / 4 */
+  body .pg-actions .pg-link::before,body .pg-actions .pg-link::after{top:calc(3 * var(--u));bottom:calc(3 * var(--u))}
+  body .pg-actions .pg-link::before{left:calc(4 * var(--u))}
+  body .pg-actions .pg-link::after{right:calc(4 * var(--u))}
+  body .pg-actions .pg-link-text{gap:0;text-align:left}
+  body .pg-link-title{font-family:"Noto Serif KR",serif;font-weight:600;font-size:max(calc(10px * var(--k,1)),calc(14 * var(--u)));line-height:1.35}
+  body .pg-actions .pg-link-desc{display:block;margin-top:calc(2 * var(--u));font-family:"Noto Sans KR",system-ui,sans-serif;font-size:max(calc(10px * var(--k,1)),calc(10 * var(--u)));line-height:1.45;color:#7A6C64}
+  body .pg-link-end{flex:none;white-space:nowrap;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-style:italic;font-weight:500;font-size:max(calc(10px * var(--k,1)),calc(13 * var(--u)));color:#5A4A3E}
+  /* the two choices under 도안 만들기, in the same type a little smaller */
+  body .pg-choose{gap:calc(10 * var(--u));margin:calc(-4 * var(--u)) 0 0 calc(18 * var(--u))}
+  body .pg-actions .pg-link.pg-link-sub{padding:calc((3 + 8) * var(--u)) calc((4 + 12) * var(--u))}
+  body .pg-actions .pg-link.pg-link-sub .pg-link-title{font-size:max(calc(10px * var(--k,1)),calc(13 * var(--u)))}
+  /* 7. the close (x): 12 / 12 from the top right, a 13px mark in a 36 x 36 touch area */
+  body .pg-rp .pg-ribbon{top:calc(12 * var(--u));right:calc(12 * var(--u));width:calc(36 * var(--u));height:calc(36 * var(--u));padding:calc(11.5 * var(--u));transform:none}
+  body .pg-rp .pg-ribbon:hover,body .pg-rp .pg-ribbon:focus-visible{transform:none}
+  body .pg-rp .pg-ribbon-tab{width:calc(13 * var(--u));height:calc(13 * var(--u))}
+}

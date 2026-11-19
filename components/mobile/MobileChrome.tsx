@@ -14,6 +14,7 @@ import { MobileNavBar } from "./MobileNavBar";
 import { useMobile } from "./useMobile";
 import "@/components/newbook/newbook.css";
 import "./mobile.css";
+import "./home-page.css";
 
 export function MobileChrome() {
   const m = useMobile(), b = useBook(), { draft, setDraft } = useApp(), path = usePathname();
