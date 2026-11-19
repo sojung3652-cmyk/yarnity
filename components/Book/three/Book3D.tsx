@@ -362,9 +362,9 @@ export const PHONE_MAX = 767.98;
 // closed: as the web's phone layout (phoneSpot: 62% wide at 46% of the height, seen from 45 degrees, turned
 // 15 degrees on the desk); one tap comes closer and opens it, as on the web. Open: the book grows head to
 // tail until its right page fills the height (Scene: sz), from 36px (the left page shows 36px at the left
-// edge) to 40px before the right edge (the desk shows there, and the AI tab sticks out onto it), above the
+// edge) to 14px before the right edge, 40px below the top (the AI tab sticks up from the page's head there), above the
 // 90px kept free at the bottom for the floating menu.
-const PHONE = { leftShow: 36, rightGap: 40, bottomKeep: 90, topGap: 24 };
+const PHONE = { leftShow: 36, rightGap: 14, bottomKeep: 90, topGap: 40 };
 /** phones: how much taller the open book is, so the right page fills the free height (>= 1) */
 const phoneStretch = (vw: number, vh: number) => Math.max(1, (SHEET_W * (vh - PHONE.topGap - PHONE.bottomKeep) / (vw - PHONE.leftShow - PHONE.rightGap)) / D);
 

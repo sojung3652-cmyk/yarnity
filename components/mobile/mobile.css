@@ -600,3 +600,13 @@
   .mbp-track .mt-acts{margin:0 -16px 0 -48px}
   .mbp-close{right:4px;top:4px}
 }
+
+/* the AI tab sticks up from the right page's head instead of its fore edge (Kim: more room for the page):
+   the same gold plate turned a quarter, its "AI" turned back upright; 26px out above the page, 6px under it */
+@media (max-width:767.98px){
+  .m-stage .ai-ftab-menu,.m-stage .ai-ftab-menu.is-inside{left:auto!important;right:20%;top:calc(-39 * var(--u))!important;transform:rotate(-90deg)!important}
+  .m-stage .ai-ftab-menu:hover,.m-stage .ai-ftab-menu:focus-visible{transform:rotate(-90deg) translateX(calc(2 * var(--u)))!important}
+  .m-stage .ai-ftab-menu .ai-ftab-mark{transform-box:fill-box;transform-origin:center;transform:rotate(90deg)}
+  .m-stage .ai-ftab-menu .ai-ftab-tip{display:none}
+}
+@media (max-width:767.98px){.mbp .lb-cover-label span{font-size:10px;padding:5px 3px}}
