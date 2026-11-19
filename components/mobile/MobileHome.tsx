@@ -57,7 +57,8 @@ function Cover({ onOpen, closing }: { onOpen: () => void; closing?: boolean }) {
   );
 }
 
-function FirstPage({ onClose }: { onClose: () => void }) {
+/** `overlay`: raised over another screen by the bottom bar's + (MobileChrome), as the web's 새 도안 does. */
+export function FirstPage({ onClose, overlay }: { onClose: () => void; overlay?: boolean }) {
   const { ready, projects, active, setActive, draft } = useApp();
   const router = useRouter(), book = useBook();
   const { hasDraft, step } = useDraftState(), fresh = useStartFresh();
@@ -72,8 +73,9 @@ function FirstPage({ onClose }: { onClose: () => void }) {
   const make = () => { if (hasDraft) setChoose(c => !c); else fresh(); };
 
   // the web book's menu page, as one page: the brand block, then the actions as woven labels, the ornament
+  const Root = overlay ? "div" : "main";
   return (
-    <main id="view-m-home" className="m-root">
+    <Root id={overlay ? undefined : "view-m-home"} className="m-root" role={overlay ? "dialog" : undefined} aria-modal={overlay || undefined} aria-label={overlay ? "새 도안" : undefined}>
       <MobileNotebook label="첫 장" className="m1">
         <button type="button" className="m1-close" aria-label="책 덮기" onClick={onClose}><GoldX /></button>
         <header className="m1-brand">
@@ -104,13 +106,18 @@ function FirstPage({ onClose }: { onClose: () => void }) {
         </nav>
         <div className="m1-orn" aria-hidden="true"><i /><span /><i /></div>
       </MobileNotebook>
-    </main>
+    </Root>
   );
 }
 
 export function MobileHome() {
   const [open, setOpen] = useState<boolean | null>(null), [closing, setClosing] = useState(false);
   useEffect(() => { try { setOpen(sessionStorage.getItem(OPEN_KEY) === "1"); } catch { setOpen(false); } }, []);
+  // the bottom bar's + on this screen opens the book here (MobileNavBar)
+  useEffect(() => {
+    const on = () => { try { sessionStorage.setItem(OPEN_KEY, "1"); } catch {} setClosing(false); setOpen(true); };
+    addEventListener("m:open-book", on); return () => removeEventListener("m:open-book", on);
+  }, []);
   if (open === null) return <main id="view-m-home" className="m-root" />;
   // closing the book (the gold X) lays the cover back down over the first page
   if (!open) return <Cover closing={closing} onOpen={() => { try { sessionStorage.setItem(OPEN_KEY, "1"); } catch {} setClosing(false); setOpen(true); }} />;

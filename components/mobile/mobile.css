@@ -435,3 +435,21 @@
 @media (max-width:767.98px) and (prefers-reduced-motion:reduce){
   .mn-leaf.is-up,.mn-leaf.is-down{animation:mn-fade .3s ease forwards;transform:none}
 }
+
+/* ---- the + : the menu book rises over the page (as the web's 새 도안) ---- */
+@keyframes m-book-up{from{transform:translateY(100svh)}}
+@keyframes m-book-down{to{transform:translateY(100svh)}}
+@keyframes m-dim-in{from{background-color:rgba(58,46,41,0)}}
+@keyframes m-dim-out{to{background-color:rgba(58,46,41,0)}}
+@media (max-width:767.98px){
+  .m-float{position:fixed;inset:0;z-index:50;background:rgba(58,46,41,.32);animation:m-dim-in .7s ease both}
+  .m-float>.m-root{position:absolute;inset:0;transform:translateZ(0);animation:m-book-up .7s cubic-bezier(.22,.61,.36,1) both}
+  .m-float.is-sinking{animation:m-dim-out .7s ease-in forwards}
+  .m-float.is-sinking>.m-root{animation:m-book-down .7s cubic-bezier(.55,0,.75,.4) forwards}
+  /* the library's title: the My Patterns wordmark */
+  .lb-title{margin:0;line-height:0}
+  .lb-title img{display:block;width:auto;height:60px}
+}
+@media (max-width:767.98px) and (prefers-reduced-motion:reduce){
+  .m-float,.m-float>.m-root,.m-float.is-sinking,.m-float.is-sinking>.m-root{animation:none}
+}

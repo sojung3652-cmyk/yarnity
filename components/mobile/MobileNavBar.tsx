@@ -5,7 +5,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/components/AppProvider";
-import { useNewDraft } from "./useNewDraft";
 
 const I = { fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 const ICONS = {
@@ -17,15 +16,16 @@ const ICONS = {
   ai: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3.5 12.6 9.4 18.5 11 12.6 12.6 11 18.5 9.4 12.6 3.5 11 9.4 9.4Z" {...I} /><path d="M18.5 15.5l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z" {...I} strokeWidth={1.2} /></svg>,
 };
 
-export function MobileNavBar() {
-  const path = usePathname(), { chat, setChat } = useApp(), startDraft = useNewDraft();
+/** `onNew`: the + (the menu book rises over this screen, MobileChrome); `bookUp` while it is up. */
+export function MobileNavBar({ onNew, bookUp }: { onNew: () => void; bookUp: boolean }) {
+  const path = usePathname(), { chat, setChat } = useApp();
   const ai = !!chat.open;
   const cur = (on: boolean) => (on && !ai ? "page" : undefined);
   return (
     <nav className="m-nav" aria-label="주 메뉴">
       <Link className="m-tab" href="/" aria-current={cur(path === "/")}>{ICONS.shelf}<span>책장</span></Link>
       <Link className="m-tab" href="/library" aria-current={cur(path === "/library" || path === "/mine" || path === "/pattern")}>{ICONS.library}<span>도안집</span></Link>
-      <button type="button" className="m-tab m-tab-new" aria-label="새 도안" aria-current={cur(path === "/new")} onClick={startDraft}>
+      <button type="button" className="m-tab m-tab-new" aria-label="새 도안" aria-haspopup="dialog" aria-expanded={bookUp} aria-current={cur(path === "/new" || bookUp)} onClick={onNew}>
         <span className="m-new"><span className="m-new-in">{ICONS.plus}</span></span>
       </button>
       <Link className="m-tab" href="/track" aria-current={cur(path === "/track")}>{ICONS.knit}<span>뜨는 중</span></Link>

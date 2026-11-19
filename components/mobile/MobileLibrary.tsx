@@ -110,7 +110,8 @@ export function MobileLibrary() {
   return (
     <main id="view-library" className="m-root lb">
       <header className="lb-head">
-        <div><p className="lb-kicker" lang="en">My library</p><h1>나의 도안집</h1></div>
+        {/* the web's 나의 도안집 title: Kim's "My Patterns" wordmark (public/pic/my-patterns.png) */}
+        <h1 className="lb-title" lang="en"><img src="/pic/my-patterns.png" alt="My Patterns" width={900} height={366} /></h1>
         <div className="lb-tools">
           <button type="button" className="lb-icon" aria-label="찾기" aria-expanded={finding} onClick={() => { setFinding(f => !f); if (finding) setQ(""); }}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6" {...I} /><path d="m15 15 5 5" {...I} /></svg>
