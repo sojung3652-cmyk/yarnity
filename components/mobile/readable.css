@@ -59,3 +59,22 @@
   body .mbz-steps li{gap:3px}
   body .mbz-dot{width:14px;height:14px;font-size:9px}
 }
+
+/* ---- 도안 만들기: 처음으로 / 나의 도안집 on the desk under the book (DeskButtons.tsx) ---- */
+@media (max-width:767.98px){
+  .m-desk-btns{position:fixed;z-index:4;display:flex;gap:12px;transition:opacity .2s ease}
+  .m-desk-btns.is-away{opacity:0;pointer-events:none}
+  .m-desk-btn{flex:1;min-width:0;min-height:44px;padding:0;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .m-desk-face{position:relative;display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;box-sizing:border-box;padding:0 18px;border-radius:2px;
+    font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#3B302B;white-space:nowrap;
+    background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lb);
+    box-shadow:0 1px 2px rgba(110,90,50,.28),-3px 5px 8px -4px rgba(70,48,34,.4)}
+  .m-desk-face::before,.m-desk-face::after{content:"";position:absolute;top:7px;bottom:7px;border-left:1.5px dashed var(--ls);pointer-events:none}
+  .m-desk-face::before{left:8px}.m-desk-face::after{right:8px}
+  .m-desk-face svg{flex:none;width:14px;height:14px}
+  .m-desk-btn.is-cream{--lb:#F6EFE2;--ls:#C4B5DD}
+  .m-desk-btn.is-rose{--lb:#F3E0DF;--ls:#D9AFAA}
+  .m-desk-btn:active .m-desk-face{transform:translateY(1px)}
+  .m-desk-btn:focus-visible{outline:none}
+  .m-desk-btn:focus-visible .m-desk-face{outline:2px solid #3B302B;outline-offset:3px}
+}

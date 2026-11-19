@@ -48,6 +48,9 @@ interface BookCtx {
   sinking: boolean;
   /** open a saved work in 도안 만들기 over the page you are on (closing it brings you back here) */
   editHere: (id: string) => void;
+  /** leave 도안 만들기 for another address (the phone's buttons on the desk); a pattern half made asks first,
+   *  as closing does */
+  leaveTo: (path: string) => void;
 }
 
 const Ctx = createContext<BookCtx | null>(null);
@@ -154,14 +157,15 @@ export function BookProvider({ children }: { children: ReactNode }) {
   // "이어서 만들기", or throw it away. The draft is saved on every change, so "저장" just leaves; "저장하지
   // 않고" resets it. Editing a saved work (?edit) never asks: nothing is overwritten until 도안 보기.
   const { draft, setDraft } = useApp();
-  const [leaving, setLeaving] = useState<null | "close" | "home">(null);
+  // where a leave that asks goes: close the book, home, or (phones) another address
+  const [leaving, setLeaving] = useState<null | "close" | "home" | { path: string }>(null);
   const asks = useCallback(() => path === "/new" && !new URLSearchParams(location.search).has("edit") && (draft.name.trim() !== "" || (urlStep ?? 1) > 1),
     [path, draft.name, urlStep]);
   const close = useCallback(() => { if (asks()) setLeaving("close"); else doClose(); }, [asks, doClose]);
   const leave = (keep: boolean) => {
     if (!keep) { setDraft(freshDraft()); store.set(STEP_KEY, 1); }
     const to = leaving; setLeaving(null);
-    if (to === "close") doClose(); else doHome();
+    if (to === "close") doClose(); else if (to && typeof to === "object") { setInstant(false); router.push(to.path, { scroll: false }); } else doHome();
   };
   const startWizard = useCallback((step?: WizStep) => { setInstant(false); router.push(`/new?step=${step ?? savedStep()}`, { scroll: false }); }, [router]);
   const goStep = useCallback((s: WizStep) => {
@@ -169,6 +173,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     router.push(`/new?${sp}`, { scroll: false });
   }, [router]);
   const toHome = useCallback(() => { if (asks()) setLeaving("home"); else doHome(); }, [asks, doHome]);
+  const leaveTo = useCallback((to: string) => { if (asks()) setLeaving({ path: to }); else { setInstant(false); router.push(to, { scroll: false }); } }, [asks, router]);
 
   // Esc closes the book, from the menu or the wizard alike (one book; Kim's call), never while a Korean
   // syllable is being composed. An open hook list or the like handles its own Esc first (defaultPrevented).
@@ -180,8 +185,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [view, close, leaving]);
 
-  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere }),
-    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere]);
+  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo }),
+    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo]);
   return (
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>

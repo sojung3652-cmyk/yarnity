@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Book } from "@/components/Book/Book";
 import { useBook } from "@/components/Book/BookProvider";
 import { FoilLogo } from "@/components/FoilLogo";
+import { DeskButtons } from "./DeskButtons";
 
 const SPLASH_KEY = "m.splash";
 
@@ -28,6 +29,8 @@ export function MobileStage({ hidden, home }: { hidden: boolean; home: boolean }
       {/* the desk photo */}
       <div className="m-desk" aria-hidden="true"><img className="m-desk-bg" src="/mobile/bg_desk.webp" alt="" /></div>
       <Book />
+      {/* 도안 만들기: 처음으로 / 나의 도안집 lying on the desk under the book */}
+      {b.view === "wizard" && !hidden && <DeskButtons />}
       {closed && splash === "off" && <p className="m-tap" lang="en" aria-hidden="true">tap the book</p>}
       {splash !== "off" && (
         <div className={"m-splash" + (splash === "fading" ? " is-fading" : "")}>
