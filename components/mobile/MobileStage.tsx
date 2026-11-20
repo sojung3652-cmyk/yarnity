@@ -9,12 +9,12 @@
 // 새 도안 from a screen outside the book (나의 도안집, 완성 도안, 따라 뜨기): the page dims a little and the open
 // book (도안 만들기, step 1) rises from the bottom (0.5s), then the desk photo fades in (0.25s). Leaving
 // 도안 만들기 for such a screen (완성 · 최종 도안 보기, Back): the new screen is drawn behind, the desk fades out
-// and the book sinks (0.4s). Reduced motion: a 0.2s fade. The 3D canvas, its camera, light and shadows are Book3D's (phone branch).
+// and the book sinks (0.4s). Reduced motion: a 0.2s fade. The book is the CSS 3D book (MobileCssBook.tsx).
 import { useEffect, useState } from "react";
-import { Book } from "@/components/Book/Book";
 import { useBook } from "@/components/Book/BookProvider";
 import { FoilLogo } from "@/components/FoilLogo";
 import { DeskButtons } from "./DeskButtons";
+import { MobileCssBook } from "./MobileCssBook";
 
 const SPLASH_KEY = "m.splash";
 
@@ -46,7 +46,8 @@ export function MobileStage({ hidden, home }: { hidden: boolean; home: boolean }
     <section className={"hero-desk m-stage" + (gone ? " is-hidden" : "") + (b.view === "home" ? " is-open" : "") + (motion ? " is-" + motion : "")} aria-label="책상" aria-hidden={hidden || undefined} inert={hidden}>
       {/* the desk photo */}
       <div className="m-desk" aria-hidden="true"><img className="m-desk-bg" src="/mobile/bg_desk.webp" alt="" /></div>
-      <Book />
+      {/* the CSS 3D book (no three.js on phones; MobileCssBook.tsx) */}
+      <MobileCssBook />
       {/* 도안 만들기: 처음으로 / 나의 도안집 lying on the desk under the book */}
       {b.view === "wizard" && !hidden && motion !== "rise" && <DeskButtons />}
       {closed && splash === "off" && <p className="m-tap" lang="en" aria-hidden="true">tap the book</p>}

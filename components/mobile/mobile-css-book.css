@@ -1,0 +1,121 @@
+/* The phone's CSS 3D book (MobileCssBook.tsx), from Kim's demo public/mobile-css3d-book/index.html: the same
+   layers, numbers and timings. The demo's 300 x 505 book is given here in % of the book (or px where the demo
+   gives fixed px); its size and place come from MobileCssBook's layout() as --mcb-* variables. Phones only. */
+@media (max-width:767.98px){
+  .mcb{--ease-book:cubic-bezier(.45,.05,.2,1);--ease-zoom:cubic-bezier(.22,.7,.2,1);--ease-leaf:cubic-bezier(.45,.05,.25,1);
+    position:absolute;inset:0;z-index:2;pointer-events:none}
+  .mcb-abs{position:absolute}
+
+  /* textures */
+  .mcb-linen{background-color:#C4B5DD;background-image:url(/mobile/linen.png);background-size:160px 160px}
+  .mcb-paper{background-color:#F5EEE4;background-image:linear-gradient(rgba(246,240,231,.6),rgba(246,240,231,.6)),url(/mobile/paper.png);background-size:auto,320px 320px}
+
+  /* the book: closed on the desk -> zoomed -> open (grows head to tail to the page's height) */
+  .mcb-book{position:absolute;left:var(--mcb-l);top:var(--mcb-t);width:var(--mcb-w);height:var(--mcb-h0);transform-origin:0 0;transform:var(--mcb-closed);
+    pointer-events:auto;transition:transform 1.2s var(--ease-zoom),height 1.6s var(--ease-book)}
+  .mcb.is-zoomed .mcb-book{transform:var(--mcb-zoomed)}
+  .mcb.is-open .mcb-book{transform:var(--mcb-open);height:var(--mcb-h);transition:transform 1.6s var(--ease-book),height 1.6s var(--ease-book)}
+  .mcb-persp{position:absolute;inset:0;perspective:1600px;perspective-origin:60% 135%}
+  .mcb-tilt{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(26deg);transition:transform 1.6s var(--ease-book)}
+  .mcb.is-open .mcb-tilt{transform:rotateX(5deg)}
+
+  /* light from the upper right: the shadow falls to the lower left */
+  .mcb-shadow-r{left:-2px;right:-2px;top:-2px;bottom:-2px;border-radius:4px;transform:translateZ(-.5px);
+    box-shadow:0 0 2px 1px rgba(60,40,28,.55),-6px 7px 8px 0 rgba(70,48,34,.38),-22px 24px 30px 2px rgba(90,62,44,.30)}
+  .mcb-shadow-l{left:calc(-1 * var(--mcb-w) - 2px);width:var(--mcb-w);top:-2px;bottom:-2px;border-radius:4px;transform:translateZ(-.5px);opacity:0;transition:opacity .8s ease .8s;
+    box-shadow:0 0 2px 1px rgba(60,40,28,.5),-6px 7px 8px 0 rgba(70,48,34,.34),-22px 24px 30px 2px rgba(90,62,44,.26)}
+  .mcb-board{left:-1px;right:-2px;top:-2px;bottom:-2px;border-radius:3px 6px 6px 3px}
+  .mcb-thick{left:0;top:100%;width:100%;height:26px;transform-origin:top center;transform:rotateX(90deg);
+    background:linear-gradient(180deg,transparent 0 calc(100% - 3px),#B9AAD3 calc(100% - 3px)),repeating-linear-gradient(180deg,#F7F1E7 0 1.5px,#E3D8C6 1.5px 3px);
+    box-shadow:inset 0 -6px 8px -4px rgba(90,60,40,.3),inset 0 0 0 100px rgba(90,60,40,.06)}
+
+  /* the right page and what lies on it */
+  .mcb-rpage{left:3px;top:3px;right:4px;bottom:3px;border-radius:1px 4px 4px 1px;transform:translateZ(23px);overflow:hidden}
+  .mcb-gutter-l{right:0;top:0;bottom:0;width:40px;background:linear-gradient(270deg,rgba(120,95,70,.24),rgba(120,95,70,.07) 45%,rgba(120,95,70,0));pointer-events:none}
+  .mcb-gutter-r{left:0;top:0;bottom:0;width:34px;background:linear-gradient(90deg,rgba(120,95,70,.20),rgba(120,95,70,.06) 45%,rgba(120,95,70,0));pointer-events:none}
+  .mcb-edge-r{right:0;top:0;bottom:0;width:8px;background:repeating-linear-gradient(90deg,rgba(160,140,120,.10) 0 1px,transparent 1px 2px);pointer-events:none}
+  .mcb-content{position:absolute;inset:0;opacity:0;transition:opacity .3s ease}
+  .mcb.is-open .mcb-content{opacity:1;transition:opacity .7s ease 1.1s}
+  .mcb-pbox,.mcb-copy{position:relative}
+  /* a copy of the old page under a sheet coming back */
+  .mcb-under{position:absolute;inset:0;pointer-events:none}
+  .mcb-under:not(:empty){background-color:#F5EEE4;background-image:linear-gradient(rgba(246,240,231,.6),rgba(246,240,231,.6)),url(/mobile/paper.png);background-size:auto,320px 320px}
+  .mcb-under-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(60,40,30,.30),rgba(60,40,30,.08) 45%,rgba(60,40,30,0) 75%);opacity:0;transition:opacity 1.15s ease}
+  .mcb-aibox{left:3px;top:3px;right:4px;bottom:3px;transform:translateZ(23.5px);pointer-events:none;opacity:0;transition:opacity .3s ease}
+  .mcb-aibox .ai-ftab{pointer-events:auto}
+  .mcb-ribbon{left:22px;bottom:-34px;width:9px;height:46px;transform:translateZ(23.5px);clip-path:polygon(0 0,100% 0,100% 100%,50% 86%,0 100%);opacity:0;transition:opacity .3s ease;filter:drop-shadow(-2px 2px 1px rgba(60,40,30,.25))}
+  .mcb.is-open .mcb-aibox,.mcb.is-open .mcb-ribbon{opacity:1;transition:opacity .7s ease 1.1s}
+  .mcb.is-open .mcb-shadow-l{opacity:1}
+
+  /* the turning sheet (MobileCssBook adds wizard / turning / turned on .mcb-tilt) */
+  .mcb-sheet{left:3px;top:3px;right:4px;bottom:3px;transform-style:preserve-3d;transform-origin:left center;transform:translateZ(26.5px) rotateY(0);
+    transition:transform 1.15s var(--ease-leaf);display:none;pointer-events:none}
+  .mcb-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .mcb-sheet .mcb-front{border-radius:1px 4px 4px 1px;overflow:hidden;box-shadow:2px 0 6px -2px rgba(70,48,34,.25)}
+  .mcb-sheet .mcb-back{border-radius:4px 1px 1px 4px;overflow:hidden;transform:rotateY(180deg)}
+  .mcb-shade{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1.15s ease}
+  .mcb-sheet .mcb-front .mcb-shade{background:linear-gradient(270deg,rgba(60,40,30,0),rgba(60,40,30,.2))}
+  .mcb-sheet .mcb-back .mcb-shade{background:rgba(60,40,30,.18);opacity:1}
+  .mcb-tilt.wizard .mcb-sheet{display:block;will-change:transform}
+  .mcb-tilt.turning .mcb-under-shade{opacity:1}
+  .mcb-tilt.turned .mcb-sheet{transform:translateZ(26.5px) rotateY(-179.5deg)}
+  .mcb-tilt.turned .mcb-sheet .mcb-front .mcb-shade{opacity:1}
+  .mcb-tilt.turned .mcb-sheet .mcb-back .mcb-shade{opacity:0}
+  .mcb-tilt.turned .mcb-under-shade{opacity:0}
+  /* the left page: the gold logo, a line under it */
+  .mcb-left{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+  .mcb-left img{width:120px;height:auto;filter:drop-shadow(0 1px 0 rgba(255,250,240,.85)) drop-shadow(0 -1px 0 rgba(90,60,20,.3))}
+  .mcb-left p{margin:0;font:italic 500 10px/1 var(--m-latin,"Cormorant Garamond",serif);color:#8A7258}
+
+  /* the cover: turns from its left edge; front = the bird picture, back = linen and the endpaper */
+  .mcb-cover{inset:0;transform-style:preserve-3d;transform-origin:left center;transform:translateZ(26px) rotateY(0);transition:transform 1.5s var(--ease-leaf)}
+  .mcb.is-open .mcb-cover{transform:translateZ(26px) rotateY(-180deg)}
+  .mcb-cover .mcb-front{border-radius:3px 7px 7px 3px;overflow:hidden;background:#F3E6DC;box-shadow:inset 0 0 0 1px rgba(80,60,110,.2)}
+  .mcb-art{position:absolute;left:14.667%;top:0;width:85.333%;height:100%;object-fit:cover}
+  .mcb-band{left:0;top:0;bottom:0;width:15.333%;box-shadow:1px 0 0 rgba(80,60,110,.35),3px 0 5px rgba(80,60,110,.15)}
+  .mcb-lbl{left:22%;bottom:5.15%;width:46.667%;aspect-ratio:140/50;display:flex;align-items:center;justify-content:center;border-radius:2px;
+    background-color:#FAF5EA;background-image:url(/mobile/paper.png);background-size:160px 160px;
+    box-shadow:0 1px 2px rgba(90,70,40,.35),inset 0 0 0 1px rgba(168,130,58,.55),inset 0 0 0 4px #FAF5EA,inset 0 0 0 4.5px rgba(168,130,58,.35)}
+  .mcb-lbl img{width:71.4%;height:auto}
+  .mcb-gloss{inset:0;background:linear-gradient(120deg,rgba(255,255,255,.22),rgba(255,255,255,0) 45%,rgba(60,40,30,.06))}
+  .mcb-cover .mcb-back{border-radius:7px 3px 3px 7px;transform:rotateY(180deg)}
+  .mcb-endpaper{left:4px;top:3px;right:3px;bottom:3px;border-radius:4px 1px 1px 4px}
+
+  /* the closed book is one button */
+  .mcb-hit{position:absolute;inset:-8px;transform:translateZ(30px);border:0;padding:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .mcb-hit:focus-visible{outline:2px solid #3A2E29;outline-offset:4px;border-radius:6px}
+
+  /* the gold logo inside the 3D layers: the image (a CSS mask with filters vanishes in 3D layers); the flat
+     splash keeps its masked foil */
+  .mcb svg.pg-foil,.mcb svg.tp-logo{content:url(/mobile/logo_gold.webp);height:auto;object-fit:contain;
+    filter:drop-shadow(0 1px 0 rgba(255,250,240,.85)) drop-shadow(0 -1px 0 rgba(90,60,20,.3))}
+
+  /* the stage is the dynamic viewport's height; the book follows it, debounced (MobileCssBook) */
+  .m-stage{height:100dvh}
+  /* the stage around it: the desk photo zooms with the book, from the closed book's spot; the hint goes */
+  .m-stage .m-desk-bg{transform-origin:50% 46%;transition:transform 1.2s var(--ease-zoom,cubic-bezier(.22,.7,.2,1))}
+  .m-stage[data-book="zoomed"] .m-desk-bg{transform:scale(var(--mcb-dz,1.3))}
+  .m-stage[data-book="open"] .m-desk-bg{transform:scale(var(--mcb-do,1.4));transition:transform 1.6s cubic-bezier(.45,.05,.2,1)}
+  .m-stage[data-book="zoomed"] .m-tap{opacity:0;transition:opacity .3s ease}
+  .m-stage[data-book] .m-tap{top:var(--mcb-tapy)}
+
+  /* while something moves only */
+  .mcb.is-anim .mcb-book,.mcb.is-anim .mcb-tilt,.mcb.is-anim .mcb-cover{will-change:transform}
+  /* arriving already open (a refresh, a typed address): no motion */
+  .mcb.is-instant .mcb-book,.mcb.is-instant .mcb-tilt,.mcb.is-instant .mcb-cover,.mcb.is-instant .mcb-content,
+  .mcb.is-instant .mcb-aibox,.mcb.is-instant .mcb-ribbon,.mcb.is-instant .mcb-shadow-l{transition:none}
+  .m-stage:has(.mcb.is-instant) .m-desk-bg{transition:none}
+
+  /* 새 도안 rises / sinks (screens-mobile.css does the same for the three.js book) */
+  .m-stage.is-rise .mcb{animation:m-book-rise .5s cubic-bezier(.22,.8,.3,1) both}
+  .m-stage.is-sink .mcb{animation:m-book-sink .4s cubic-bezier(.5,0,.75,0) forwards}
+}
+@keyframes mcb-fade{from{opacity:0}}
+@media (max-width:767.98px) and (prefers-reduced-motion:reduce){
+  /* no turning: the states change at once, the page fades in (0.2s) */
+  .mcb-book,.mcb-tilt,.mcb-cover,.mcb-sheet,.m-stage .m-desk-bg{transition:none!important}
+  .mcb-content,.mcb.is-open .mcb-content,.mcb-aibox,.mcb.is-open .mcb-aibox{transition:opacity .2s ease!important}
+  .mcb-content.is-fade{animation:mcb-fade .2s ease}
+  .mcb-tilt.wizard .mcb-sheet{display:none}
+  .m-stage.is-rise .mcb,.m-stage.is-sink .mcb{animation:none}
+}

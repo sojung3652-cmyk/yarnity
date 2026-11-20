@@ -6,6 +6,7 @@ import { Component, type ReactNode } from "react";
 import "./Book.css";
 import { BookCSS } from "./BookCSS";
 import { useBook } from "./BookProvider";
+import { useMobile } from "@/components/mobile/useMobile";
 
 // three.js touches window/WebGL at import time, so it is never server-rendered.
 const Book3D = dynamic(() => import("./three/Book3D"), { ssr: false, loading: () => null });
@@ -32,9 +33,11 @@ function Why() {
 }
 
 export function Book() {
-  const b = useBook();
+  const b = useBook(), m = useMobile();
   const why = typeof location !== "undefined" && new URLSearchParams(location.search).get("book") === "why";
-  if (b.mode === "pending") return null;
+  // phones have their own CSS 3D book (components/mobile/MobileCssBook.tsx): nothing here until the screen is
+  // known to be wide, so the three.js chunk is never even requested on a phone
+  if (b.mode === "pending" || m !== false) return null;
   if (b.mode === "css") return <div className="book-css-slot">{why && <Why />}<BookCSS open={b.view === "home"} setOpen={v => (v ? b.open() : b.close())} /></div>;
   return (
     <Fallback onError={() => b.setMode("css")}>
