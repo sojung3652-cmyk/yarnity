@@ -708,6 +708,7 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
   const want = useMemo<Spread>(() => (page ? { view: "home", step: b.step, page } : { view: b.view, step: b.step, sheet: wizSheet }), [b.view, b.step, page, wizSheet]);
   const [shown, setShown] = useState<Spread>(want);
   const [ready, setReady] = useState(false);
+  const [phoneGL] = useState(() => matchMedia("(max-width: 767.98px)").matches);
   const reduce = useReducedMotion();
   const cssHost = useRef<HTMLDivElement>(null), flatHost = useRef<HTMLDivElement>(null);
   const [layer] = useState<CssLayer>(() => {
@@ -733,7 +734,10 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance", logarithmicDepthBuffer: true }}
+        // phones: no logarithmic depth (it writes depth per pixel, heavy for a phone's tile GPU) and the default
+        // power preference. A Pixel 10 Pro (KakaoTalk, 2026-11) lost the context twice on load with them, after
+        // which Chrome blocks WebGL for the site. Read once, when the context is made (useMobile is still null then).
+        gl={{ alpha: true, antialias: true, ...(phoneGL ? { powerPreference: "default" } : { powerPreference: "high-performance", logarithmicDepthBuffer: true }) }}
         onCreated={({ gl, invalidate }) => {
           gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.12; // outputColorSpace stays sRGB (default); exposure set so the lit cloth reads close to its hex (--book-lav)
           // A lost context is often given back: Android WebViews (KakaoTalk on a Pixel, 2026-11) take it while
