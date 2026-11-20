@@ -26,8 +26,8 @@ export function MoreSheet({ title, items, onClose }: { title: string; items: Mor
   const [asking, setAsking] = useState<string | null>(null), y0 = useRef<number | null>(null), [drag, setDrag] = useState(0);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [onClose]);
   const common: MoreItem[] = [
-    { key: "home", icon: "home", label: "처음으로", sub: "책 첫 페이지", onClick: () => router.push("/") },
-    { key: "new", icon: "plus", label: "새 도안 만들기", sub: "책이 펼쳐져요", onClick: () => { onClose(); newDraft(); } },
+    { key: "home", icon: "home", label: "처음으로", sub: "홈 화면", onClick: () => router.push("/") },
+    { key: "new", icon: "plus", label: "새 도안 만들기", onClick: () => { onClose(); newDraft(); } },
     { key: "mine", icon: "shelf", label: "나의 도안집", onClick: () => router.push("/mine") },
   ];
   const row = (it: MoreItem) => asking === it.key ? (

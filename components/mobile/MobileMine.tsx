@@ -99,6 +99,10 @@ export function MobileMine() {
             <section className="mm-hook" aria-labelledby="mmHook">
               <p className="mm-kick" id="mmHook" lang="en">On the hook <span lang="ko">· 지금 뜨는 중</span></p>
               <div className="mm-card">
+                {/* the work's sheet (도안 고치기 ... 삭제), as tapping its cover does (Kim: delete was not to be found) */}
+                <button type="button" className="mm-card-more" aria-label={`${hook.name} 더 보기`} aria-haspopup="dialog" onClick={() => setOpen(hook.id)}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.6" fill="currentColor" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /><circle cx="18.5" cy="12" r="1.6" fill="currentColor" /></svg>
+                </button>
                 <div className="mm-card-in">
                   <button type="button" className="mm-card-cover" aria-label={`${hook.name} 자세히`} onClick={() => setOpen(hook.id)}><Cover p={hook} w={74} /></button>
                   <div className="mm-card-text">

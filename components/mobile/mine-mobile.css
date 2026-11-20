@@ -59,6 +59,9 @@
   .mm-card::before,.mm-card::after{content:"";position:absolute;top:10px;bottom:10px;border-left:1.5px dashed #C4B5DD}
   .mm-card::before{left:7px}.mm-card::after{right:7px}
   .mm-card-in{display:flex;gap:14px;align-items:flex-start}
+  .mm-card-more{position:absolute;right:6px;top:4px;z-index:1;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;background:none;color:#6B5D55;cursor:pointer}
+  .mm-card-more svg{width:20px;height:20px}
+  .mm-card-text{padding-right:26px}
   .mm-card-cover{flex:none;padding:0;border:0;background:none;cursor:pointer}
   .mm-card-cover .mm-cover{padding:10px 8px 8px 14px;gap:4px}
   .mm-card-cover .mm-icon{width:30px;height:30px}

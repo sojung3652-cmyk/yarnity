@@ -16,7 +16,7 @@ export const COVERS: Cover[] = [
   { id: "09", plate: [42.3, 67.3, 41.8, 12.8] },
   { id: "10", plate: [35.5, 67.2, 43.2, 12.9] },
   { id: "11", plate: [44.1, 67.4, 44.5, 12.9] },
-  { id: "12", plate: [38.2, 67.4, 41.4, 12.8] },
+  { id: "12", plate: [31.8, 67.6, 45.9, 13.4] }, // cropped: another book stood at its left edge
   { id: "dark_01", plate: [46.4, 73.4, 39.5, 11.3], dark: true },
   { id: "dark_02", plate: [39.1, 73.6, 38.2, 11.2], dark: true },
   { id: "dark_03", plate: [52.3, 73.1, 30.5, 10.7], dark: true },

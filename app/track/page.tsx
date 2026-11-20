@@ -106,7 +106,7 @@ function PhoneMeasure({ p, onApply, onLater }: { p: Project; onApply: (h: number
 }
 
 export function TrackScreen() {
-  const { ready, active: p, updateProject } = useApp();
+  const { ready, active: p, updateProject, removeProjects } = useApp();
   const router = useRouter();
   const cvRef = useRef<HTMLCanvasElement>(null);
   const [wakeOn, setWakeOn] = useState(false);
@@ -254,10 +254,9 @@ export function TrackScreen() {
           <div className="ms-foot-row">
             <StitchButton icon={DiaryIcon.undo} label="되돌리기" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
             <div className="ms-go">
-              {/* the slim lavender lace: 한 단 끝, and the next row under it on the same satin */}
-              <LaceButton variant="lavender" width="fill" className="mst-done" disabled={done} onClick={() => step(1)}>
-                <span>한 단 끝</span><small>{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</small>
-              </LaceButton>
+              {/* the slim lavender lace: 한 단 끝 alone on its satin (two lines crowded it, Kim); the next row under it */}
+              <LaceButton variant="lavender" width="fill" disabled={done} onClick={() => step(1)}>한 단 끝</LaceButton>
+              <p className="ms-go-sub">{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</p>
             </div>
           </div>
         </div>
@@ -274,6 +273,8 @@ export function TrackScreen() {
           <MoreSheet title="나가도 지금 단까지 저장돼요" onClose={() => setMore(false)} items={[
             { key: "sheet", icon: "sheet", label: "도안 전체 보기", onClick: () => router.push("/pattern") },
             { key: "again", icon: "again", label: "처음 단부터 다시", danger: true, confirm: "지금까지 뜬 단을 지우고 1단부터 다시 할까요?", onClick: () => { setMore(false); updateProject(p.id, { current: 0, status: "knitting", pausedAt: null }); } },
+            // the work itself, from where it is being knitted (Kim: there was no delete for it here)
+            { key: "delete", icon: "trash", label: "이 작품 지우기", danger: true, confirm: "이 작품과 뜬 기록을 지울까요? 되돌릴 수 없어요.", onClick: () => { setMore(false); removeProjects([p.id]); router.push("/mine"); } },
           ]} />
         )}
       </main>
