@@ -35,15 +35,14 @@ html body .ai-ftab-star{position:absolute;left:calc(50% + 3 * var(--u));top:calc
 html body .ai-ftab .ai-ftab-mark{transform:translateY(calc(6 * var(--u)))}
 html body .ai-ftab.is-inside .ai-ftab-star{left:calc(50% - 3 * var(--u))}
 
-/* the wizard's HANDMADE name tag on wide screens: the white lace tag (components/diary LaceTag look), 420px,
+/* the wizard's HANDMADE name tag, web and phone: the ivory lace name tag (lace_tag_name.webp, 900 x 418),
    HANDMADE, the name (20px) and "with love · yarnity" on its satin (15% in at the sides, 31% top, 30% bottom:
-   padding % is of the width, so 31% / 30% of the 418/900 height). Phones keep their cloth patch. */
-@media (min-width:768px){
-  html body .tp-label{width:420px;max-width:100%;aspect-ratio:900 / 418;min-height:0;height:auto;overflow:hidden;box-sizing:border-box;padding:14.4% 15% 13.9%;gap:1px;justify-content:center;
-    border:0;border-image:none;background:url(/mobile/diary/lace_tag_white.webp) center / 100% 100% no-repeat;filter:none;box-shadow:none}
-  html body .tp-label>*{flex:none}
-  /* one line on the satin (TitlePage sizes rows for its own 26px; at 20px a name of 30 letters still fits) */
-  html body .tp-label .tp-input{font-size:20px!important;line-height:26px;min-height:0;height:27px;margin:0;padding:0;overflow:hidden;white-space:nowrap}
-  html body .tp-label .tp-label-top{font-size:9.5px}
-  html body .tp-label .tp-label-bottom{font-size:11px}
-}
+   padding % is of the width, so 31% / 30% of the 418/900 height). 420px wide, narrower if the page is. */
+html body .tp-label,html body .mfw .tp-label{width:420px;max-width:100%;aspect-ratio:900 / 418;min-height:0;height:auto;overflow:hidden;box-sizing:border-box;padding:14.4% 15% 13.9%;gap:1px;justify-content:center;
+  border:0;border-image:none;background:url(/mobile/diary/lace_tag_name.webp) center / 100% 100% no-repeat;filter:none;box-shadow:none}
+html body .tp-label>*{flex:none}
+/* one line on the satin (TitlePage sizes rows for its own 26px; at 20px a name of 30 letters still fits) */
+/* tight lines: the three fit the satin also on a 360px phone (a 56px-high satin) */
+html body .tp-label .tp-input,html body .mfw .tp-label .tp-input{font-size:20px!important;line-height:24px;min-height:0;height:25px;margin:0;padding:0;overflow:hidden;white-space:nowrap}
+html body .tp-label .tp-label-top,html body .mfw .tp-label .tp-label-top{font-size:9.5px;line-height:1.1;margin:0}
+html body .tp-label .tp-label-bottom,html body .mfw .tp-label .tp-label-bottom{font-size:11px;line-height:1.15;margin:0}

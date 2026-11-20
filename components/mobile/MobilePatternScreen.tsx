@@ -14,6 +14,7 @@ import { ITEM, itemIdOf } from "@/lib/items";
 import { fmt, PART_KO, plan, SHAPE_KO, withChains, type Row } from "@/lib/pattern";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { yarnUse } from "@/lib/yarnUse";
+import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
 import { MobileTopBar, MoreButton } from "./MobileTopBar";
 import { MoreSheet } from "./MoreSheet";
 import { useNewDraft } from "./useNewDraft";
@@ -128,9 +129,9 @@ export function MobilePatternScreen() {
       <div className="ms-foot">
         {justMade && <p className="msp-made"><button type="button" onClick={newDraft}>+ 새 도안</button> · <button type="button" onClick={() => router.push("/mine")}>나의 도안집</button></p>}
         <div className="ms-foot-row">
-          <button type="button" className="ms-label" onClick={() => book.editHere(p.id)}><span>고치기</span></button>
+          <StitchButton icon={DiaryIcon.pen} label="고치기" onClick={() => book.editHere(p.id)} />
           <div className="ms-go">
-            <button type="button" className="ms-ribbon" onClick={go}><span>{started ? `이어서 뜨기 · ${pp.rows[cur].label}부터 →` : cur >= total ? "뜨기 기록 보기 →" : "뜨기 시작 →"}</span></button>
+            <LaceButton variant="lavender" width="fill" onClick={go}>{started ? `이어서 뜨기 · ${pp.rows[cur].label}부터 →` : cur >= total ? "뜨기 기록 보기 →" : "뜨기 시작 →"}</LaceButton>
             <p className="ms-go-sub">{started ? `${pp.rows[cur].label}부터` : "1단부터"} · 화면이 꺼지지 않아요</p>
           </div>
         </div>

@@ -1,8 +1,9 @@
 "use client";
 // Girl's Diary buttons, shared by the web and the phone (Kim): the images are public/mobile/diary.
-//   <LaceButton variant="white|mocha|lavender">  a satin ribbon on a lace tag (900 x 418); the words sit on
-//      the satin (15% in from each side, 31% from the top, 30% from the bottom); no background or shadow of
-//      its own, so the page shows through the lace's mesh. Hover: 2px up. Press: .98.
+//   <LaceButton variant="mocha|lavender">  a satin band with a slim lace edge (900 x 264); the words on the
+//      satin (9% in from each side, 24% top, 23% bottom). variant="white": the ivory name tag (900 x 418, satin
+//      15% / 31% / 30%). No background or shadow of their own: the page shows through the lace's mesh.
+//      Hover: 2px up. Press: .98.
 //   <ClothPatch color="yellow|cream|pink|lavender">  a frayed cloth patch with running stitches (the patch
 //      image is the whole button: border-image with fill; no painted box behind the words).
 //   <StitchButton icon label>  a small round cloth button: linen, a dashed stitch ring, an icon and a word.
@@ -21,10 +22,11 @@ function Base({ href, className, style, children, type = "button", ...rest }: Co
   return <button type={type} className={className} style={style} {...rest}>{children}</button>;
 }
 
-/** a lace tag with a satin ribbon; `width` in px (its height follows the tag's 900:418) */
-export function LaceButton({ variant, width, className = "", style, children, ...rest }: Common & { variant: "white" | "mocha" | "lavender"; width: number }) {
+/** a slim lace button (mocha, lavender: 900:264) or the name tag (white: 900:418); `width` in px, or
+ *  "fill" for the room it is given (the phone's foot bars); the height follows the image */
+export function LaceButton({ variant, width, className = "", style, children, ...rest }: Common & { variant: "white" | "mocha" | "lavender"; width: number | "fill" }) {
   return (
-    <Base className={`dlace dlace-${variant} ${className}`} style={{ ...style, ["--lw" as string]: `${width}px` }} {...rest}>
+    <Base className={`dlace dlace-${variant}${width === "fill" ? " is-fill" : ""} ${className}`} style={{ ...style, ...(width === "fill" ? {} : { ["--lw" as string]: `${width}px` }) }} {...rest}>
       <span className="dlace-satin">{children}</span>
     </Base>
   );

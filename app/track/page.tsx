@@ -252,12 +252,12 @@ export function TrackScreen() {
         {wakeOn && <p className="mst-wake">● 화면 켜짐 유지 중</p>}
         <div className="ms-foot">
           <div className="ms-foot-row">
-            <button className="mst-undo" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5 3.5 8.5 7 12M4 8.5h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg><span>되돌리기</span>
-            </button>
+            <StitchButton icon={DiaryIcon.undo} label="되돌리기" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
             <div className="ms-go">
-              <button type="button" className="ms-ribbon mst-done" disabled={done} onClick={() => step(1)}><span>한 단 끝</span></button>
-              <p className="ms-go-sub">{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</p>
+              {/* the slim lavender lace: 한 단 끝, and the next row under it on the same satin */}
+              <LaceButton variant="lavender" width="fill" className="mst-done" disabled={done} onClick={() => step(1)}>
+                <span>한 단 끝</span><small>{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</small>
+              </LaceButton>
             </div>
           </div>
         </div>

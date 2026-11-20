@@ -15,6 +15,7 @@ import { ItemArt } from "@/components/newbook/ItemArt";
 import { useNewBook } from "@/components/newbook/NewBook";
 import { yarnStepOk } from "@/components/newbook/YarnStep";
 import { ITEM, itemIdOf } from "@/lib/items";
+import { LaceButton } from "@/components/diary/Diary";
 import { setSheet, useSheet } from "./sheetStore";
 
 const NAMES = ["이름", "품목", "실과 크기", "확인"];
@@ -106,9 +107,10 @@ export function MobileFlowWizard() {
         </div>
         <div className="mfw-foot">
           {step === 4 && last
-            ? <button type="submit" className="mfw-final" aria-disabled={s.blocked || undefined}>
-                <span className="mfw-final-face"><small>마지막 단계</small><span>완성 · 최종 도안 보기 →</span></span>
-              </button>
+            // ⑨ the slim mocha lace (Girl's Diary), the screen's width
+            ? <LaceButton variant="mocha" width="fill" type="submit" className="mfw-final-lace" aria-disabled={s.blocked || undefined}>
+                <small>마지막 단계</small><span>완성 · 최종 도안 보기 →</span>
+              </LaceButton>
             : <button type="submit" className="mf-label is-yellow mfw-next" aria-disabled={blocked || undefined}><span className="mf-label-in">{nextText}</span></button>}
         </div>
       </form>

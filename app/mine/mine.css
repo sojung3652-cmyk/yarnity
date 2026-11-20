@@ -106,9 +106,7 @@
   .bk-pop-btns{display:flex;align-items:center;gap:10px;margin-top:24px}
   /* Girl's Diary: the two patches, then the lace tag in the room left (up to 300px) */
   .bk-pop-btns .dpatch{flex:none}
-  .bk-pop-btns .bk-lace{flex:1 1 0;width:auto;min-width:0;max-width:300px}
-  .bk-lace .dlace-satin{font-size:13.5px}
-  .bk-label{display:inline-flex;flex:none;padding:0;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer}
+  .bk-pop-btns .bk-lace{flex:1 1 0;width:auto;min-width:0;max-width:300px}  .bk-label{display:inline-flex;flex:none;padding:0;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer}
   .bk-label>span{position:relative;display:inline-flex;align-items:center;height:44px;padding:0 22px;border-radius:2px;font-family:"Noto Serif KR",serif;font-size:13.5px;font-weight:500;color:#3A2E29;white-space:nowrap;
     background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lb);
     box-shadow:0 1px 2px rgba(110,90,50,.25),-3px 4px 8px -4px rgba(70,48,34,.35)}

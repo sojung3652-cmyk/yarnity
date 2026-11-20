@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp, type Removed } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { BookCover, GoldDefs, ProgressBar, tagOf, whereOf } from "@/components/BookCover";
+import { LaceButton } from "@/components/diary/Diary";
 import { PhotoLog } from "@/components/PhotoLog";
 import { CopyLot } from "@/components/YarnInfo";
 import { ITEM, itemIdOf } from "@/lib/items";
@@ -217,7 +218,7 @@ function Sheet({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: 
           </div>
           {w.done
             ? <button type="button" className="mm-label is-cream mm-again" onClick={() => act("again")}><span>다시 뜨기</span></button>
-            : <button type="button" className="mm-ribbon is-big" onClick={() => act("resume")}><span>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</span></button>}
+            : <LaceButton variant="lavender" width="fill" className="mm-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}
           {asking ? (
             <p className="mm-ask">이 작품을 지울까요? <button type="button" onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete")}>지우기</button></p>
           ) : (

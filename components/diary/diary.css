@@ -1,17 +1,28 @@
 /* Girl's Diary buttons (components/diary/Diary.tsx). Light from the upper right: shadows to the lower left. */
 
-/* ---- the lace tag with its satin ribbon (900 x 418) ---- */
-.dlace{position:relative;display:inline-block;flex:none;width:var(--lw,300px);max-width:100%;aspect-ratio:900 / 418;padding:0;border:0;
+/* ---- the slim lace buttons (900 x 264): a satin band with a thin lace edge; the words sit on the satin,
+   9% in from each side, 24% from the top, 23% from the bottom. Height follows the width. ---- */
+.dlace{position:relative;display:inline-block;flex:none;width:var(--lw,300px);max-width:100%;height:auto;aspect-ratio:900 / 264;padding:0;border:0;
   background:var(--lace) center / 100% 100% no-repeat;font:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
   transition:transform .15s ease}
-.dlace-white{--lace:url(/mobile/diary/lace_tag_white.webp);color:#3B302B}
-.dlace-mocha{--lace:url(/mobile/diary/lace_tag_mocha.webp);color:#F6E9CF}
-.dlace-lavender{--lace:url(/mobile/diary/lace_tag_lavender.webp);color:#3B2E4F}
-/* the satin: words centred on it */
-.dlace-satin{position:absolute;left:15%;right:15%;top:31%;bottom:30%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
-  font-family:"Noto Serif KR",serif;font-weight:600;font-size:15px;line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden}
-.dlace-satin small{font-size:10.5px;font-weight:500;letter-spacing:.14em;opacity:.85}
-.dlace:not(.is-tag):hover{transform:translateY(-2px)}
+.dlace-mocha{--lace:url(/mobile/diary/lace_btn_mocha.webp);color:#FBF3E2}
+.dlace-lavender{--lace:url(/mobile/diary/lace_btn_lavender.webp);color:#2F2622}
+.dlace-satin{position:absolute;left:9%;right:9%;top:24%;bottom:23%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-family:"Noto Serif KR",serif;font-weight:700;font-size:15.5px;line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden}
+.dlace-lavender .dlace-satin small{font-family:"Noto Sans KR",system-ui,sans-serif;font-size:11px;font-weight:500;color:#4A3D36}
+.dlace-mocha .dlace-satin{font-weight:600;font-size:15px}
+.dlace-mocha .dlace-satin small{font-size:10px;font-weight:500;letter-spacing:.22em;color:#E8D3A0}
+/* the name tag (900 x 418): the ivory lace tag, its satin 15% in at the sides, 31% top, 30% bottom */
+.dlace-white{--lace:url(/mobile/diary/lace_tag_name.webp);aspect-ratio:900 / 418;color:#3B302B}
+.dlace-white .dlace-satin{left:15%;right:15%;top:31%;bottom:30%;font-weight:600}
+.dlace.is-fill{flex:1 1 0;width:auto;min-width:0}
+/* the phone's foot bars and sheets: the lace as wide as its column (a column flex must not grow its height) */
+.ms-go>.dlace.is-fill,.mfw-foot>.dlace.is-fill,.mm-sheet .dlace.is-fill{flex:none;display:block;width:100%}
+.mm-sheet .dlace.is-fill{margin-top:10px}
+/* the phone's foot bars: the round cloth button, 14px, then the lace (screen - 26 x 2 - 46 - 14) */
+.ms-foot-row:has(.dstitch){align-items:center;gap:14px}
+.ms-foot-row .dstitch{flex:none;width:46px}
+@media (hover:hover){.dlace:not(.is-tag):hover{transform:translateY(-2px)}}
 .dlace:not(.is-tag):active{transform:scale(.98)}
 .dlace:focus-visible{outline:2px solid #3A2E29;outline-offset:2px;border-radius:6px}
 .dlace:disabled,.dlace[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}

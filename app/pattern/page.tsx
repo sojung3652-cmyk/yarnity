@@ -66,7 +66,7 @@ export function PatternScreen() {
           {/* Girl's Diary (components/diary): two round cloth buttons and the lavender lace tag */}
           <StitchButton icon={DiaryIcon.pen} label="고치기" onClick={() => book.editHere(p.id)} />
           <StitchButton icon={DiaryIcon.print} label="인쇄" onClick={() => window.print()} />
-          <LaceButton variant="lavender" width={240} id="startBtn" href="/track">{p.current > 0 ? (p.current >= pp.rows.length ? "뜨기 기록 보기" : `이어서 뜨기 · ${pp.rows[p.current].label}`) : "뜨기 시작"}</LaceButton>
+          <LaceButton variant="lavender" width={260} id="startBtn" href="/track">{p.current > 0 ? (p.current >= pp.rows.length ? "뜨기 기록 보기 →" : `이어서 뜨기 · ${pp.rows[p.current].label} →`) : "뜨기 시작 →"}</LaceButton>
         </div>
       </div>
 
