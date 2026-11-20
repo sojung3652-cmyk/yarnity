@@ -5,7 +5,7 @@
    Ribbons, cards and tags keep their own look. */
 html body .nav-label>span,html body .bk-new>span,html body .bk-label>span,html body .ps-label>span,html body .cloth-face,html body .pg-actions .pg-link,html body .tp-label{
   box-sizing:border-box;background:none;box-shadow:none;border-style:solid;border-width:var(--pw,12px);border-radius:0;
-  border-image-source:var(--patch,url(/mobile/diary/patch_cream.webp));border-image-slice:62 fill;border-image-repeat:round;
+  border-image-source:var(--patch,url(/mobile/diary/patch_cream.webp));border-image-slice:62 fill;border-image-repeat:stretch round;
   filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.16))}
 html body .nav-label>span::before,html body .nav-label>span::after,html body .bk-new>span::before,html body .bk-new>span::after,html body .bk-label>span::before,html body .bk-label>span::after,html body .ps-label>span::before,html body .ps-label>span::after,html body .cloth-face::before,html body .cloth-face::after,html body .pg-actions .pg-link::before,html body .pg-actions .pg-link::after,html body .tp-label::before,html body .tp-label::after{display:none}
 
