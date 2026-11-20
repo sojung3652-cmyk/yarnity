@@ -21,7 +21,7 @@ import { STATUS_KO, statusOf, type Status } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { useNewDraft } from "./useNewDraft";
-import { MobileTopBar, MoreButton, NewButton } from "./MobileTopBar";
+import { MobileTopBar, MoreButton } from "./MobileTopBar";
 import { MoreSheet } from "./MoreSheet";
 import "./mine-mobile.css";
 
@@ -83,10 +83,10 @@ export function MobileMine() {
   return (
     <main id="view-mine" className="mm">
       <GoldDefs />
-      {/* the top (Kim): ‹ · the My Patterns title where the wordmark was · + 새 도안 and ··· (처음으로, 새 도안) */}
+      {/* the top (Kim): ‹ · the My Patterns title where the wordmark was · ··· (처음으로, 새 도안 만들기) */}
       <MobileTopBar back={() => router.push("/")}
         center={<h1 className="mm-head-title" lang="en"><img src="/pic/my-patterns.png" alt="My Patterns · 나의 도안집" width={900} height={366} /></h1>}
-        right={<><NewButton onClick={newDraft} /><MoreButton onClick={() => setMore(true)} /></>} />
+        right={<MoreButton onClick={() => setMore(true)} />} />
       {more && <MoreSheet title={`나의 도안집 · ${projects.length}권`} skip={["mine"]} items={[]} onClose={() => setMore(false)} />}
 
       {!ready ? null : !projects.length && !undo ? (

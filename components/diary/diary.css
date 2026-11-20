@@ -80,7 +80,7 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 .dpatch-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
 .dpatch-cream{--patch:url(/mobile/diary/patch_cream.webp)}
 .dpatch-pink{--patch:url(/mobile/diary/patch_blue.webp)}
-.dpatch-lavender{--patch:url(/mobile/diary/patch_babypink.webp)}
+.dpatch-lavender{--patch:url(/mobile/diary/patch_pink.webp)}
 .dpatch:hover{transform:translateY(-1px)}
 .dpatch:active{transform:scale(.98)}
 .dpatch:focus-visible{outline:2px solid #3A2E29;outline-offset:2px}
