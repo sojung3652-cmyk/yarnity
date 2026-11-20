@@ -95,6 +95,8 @@
 /* the buttons above the sheet as small woven labels (like the book's): a cream weave, lavender stitches
    inside both ends, a slight tilt that straightens on hover; 뜨기 시작 woven in lavender */
 .ps-btns{gap:12px}
+/* Girl's Diary: the two round cloth buttons beside the lavender lace tag, centred on one line */
+.ps-btns{align-items:center;gap:14px}
 .ps-label{--tilt:-1deg;display:inline-flex;padding:3px 2px;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer}
 .ps-label:nth-child(2){--tilt:.8deg}
 .ps-label>span{position:relative;display:inline-flex;align-items:center;height:38px;padding:0 22px;border-radius:2px;font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#3A2E29;white-space:nowrap;

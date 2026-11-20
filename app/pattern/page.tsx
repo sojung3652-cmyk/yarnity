@@ -6,8 +6,8 @@ import { MobilePatternScreen } from "@/components/mobile/MobilePatternScreen";
 // finished shape drawn on graph paper, the supplies with the yarn amount, the gauge - then the rows in
 // numbered sections (01 바닥, 02 몸통...) as a ruled table, with notes in the margin where to measure.
 // The buttons (고치기 / 인쇄 / 뜨기 시작) sit above the sheet; printing shows the sheet alone (pattern.css).
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
 import { Fragment, useEffect } from "react";
 import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
@@ -63,9 +63,10 @@ export function PatternScreen() {
       <div className="ps-actions">
         <div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div>
         <div className="ps-btns">
-          <button type="button" className="ps-label" onClick={() => book.editHere(p.id)}><span>고치기</span></button>
-          <button type="button" className="ps-label" onClick={() => window.print()}><span>인쇄</span></button>
-          <Link className="ps-label ps-label-go" id="startBtn" href="/track"><span>{p.current > 0 ? (p.current >= pp.rows.length ? "뜨기 기록 보기" : `이어서 뜨기 · ${pp.rows[p.current].label}`) : "뜨기 시작"}</span></Link>
+          {/* Girl's Diary (components/diary): two round cloth buttons and the lavender lace tag */}
+          <StitchButton icon={DiaryIcon.pen} label="고치기" onClick={() => book.editHere(p.id)} />
+          <StitchButton icon={DiaryIcon.print} label="인쇄" onClick={() => window.print()} />
+          <LaceButton variant="lavender" width={240} id="startBtn" href="/track">{p.current > 0 ? (p.current >= pp.rows.length ? "뜨기 기록 보기" : `이어서 뜨기 · ${pp.rows[p.current].label}`) : "뜨기 시작"}</LaceButton>
         </div>
       </div>
 

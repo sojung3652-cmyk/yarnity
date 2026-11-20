@@ -5,6 +5,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useApp } from "@/components/AppProvider";
 import { drawTrack } from "@/lib/drawMap";
 import { StitchLegend } from "@/components/StitchLegend";
+import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
 import "../pattern/pattern.css";
 import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
@@ -334,15 +335,13 @@ export function TrackScreen() {
               )}
             </div>
 
-            {/* a wide ribbon to tap, and a small undo beside it */}
+            {/* Girl's Diary (components/diary): a round cloth undo, and the lavender lace tag to tap */}
             <div className="tk-acts">
-              <button className="tk-undo" id="undoBtn" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>↶<span>되돌리기</span></button>
-              <button className="tk-ribbon" id="doneBtn" type="button" disabled={done} onClick={() => step(1)}>
-                <span className="tk-ribbon-face">
-                  <span className="tk-ribbon-main">한 단 끝</span>
-                  <span className="tk-ribbon-next" id="doneNext">{done ? "" : (nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단")}</span>
-                </span>
-              </button>
+              <StitchButton icon={DiaryIcon.undo} label="되돌리기" id="undoBtn" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
+              <LaceButton variant="lavender" width={360} className="tk-done" id="doneBtn" disabled={done} onClick={() => step(1)}>
+                <span className="tk-done-main">한 단 끝</span>
+                <small id="doneNext">{done ? "" : (nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단")}</small>
+              </LaceButton>
             </div>
             {/* the keys as a small paper note taped under the ribbon (Kim: the key caps felt too digital) */}
             <p className="tk-keys">

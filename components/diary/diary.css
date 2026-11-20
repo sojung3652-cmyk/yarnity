@@ -1,0 +1,44 @@
+/* Girl's Diary buttons (components/diary/Diary.tsx). Light from the upper right: shadows to the lower left. */
+
+/* ---- the lace tag with its satin ribbon (900 x 418) ---- */
+.dlace{position:relative;display:inline-block;flex:none;width:var(--lw,300px);max-width:100%;aspect-ratio:900 / 418;padding:0;border:0;
+  background:var(--lace) center / 100% 100% no-repeat;font:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:transform .15s ease}
+.dlace-white{--lace:url(/mobile/diary/lace_tag_white.webp);color:#3B302B}
+.dlace-mocha{--lace:url(/mobile/diary/lace_tag_mocha.webp);color:#F6E9CF}
+.dlace-lavender{--lace:url(/mobile/diary/lace_tag_lavender.webp);color:#3B2E4F}
+/* the satin: words centred on it */
+.dlace-satin{position:absolute;left:15%;right:15%;top:31%;bottom:30%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-family:"Noto Serif KR",serif;font-weight:600;font-size:15px;line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden}
+.dlace-satin small{font-size:10.5px;font-weight:500;letter-spacing:.14em;opacity:.85}
+.dlace:not(.is-tag):hover{transform:translateY(-2px)}
+.dlace:not(.is-tag):active{transform:scale(.98)}
+.dlace:focus-visible{outline:2px solid #3A2E29;outline-offset:2px;border-radius:6px}
+.dlace:disabled,.dlace[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}
+
+/* ---- the cloth patch ---- */
+.dpatch{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;min-height:44px;padding:4px 10px;
+  border-style:solid;border-width:17px;border-image-source:var(--patch);border-image-slice:62 fill;border-image-repeat:stretch round;background:none;
+  filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));font:inherit;font-family:"Noto Serif KR",serif;font-size:13.5px;font-weight:500;color:#3A2E29;
+  text-decoration:none;white-space:nowrap;cursor:pointer;transition:transform .12s ease}
+.dpatch.is-small{border-width:12px;min-height:0;padding:0 8px;font-size:13px}
+.dpatch-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
+.dpatch-cream{--patch:url(/mobile/diary/patch_cream.webp)}
+.dpatch-pink{--patch:url(/mobile/diary/patch_pink.webp)}
+.dpatch-lavender{--patch:url(/mobile/diary/patch_lavender.webp)}
+.dpatch:hover{transform:translateY(-1px)}
+.dpatch:active{transform:scale(.98)}
+.dpatch:focus-visible{outline:2px solid #3A2E29;outline-offset:2px}
+
+/* ---- the round cloth button ---- */
+.dstitch{display:inline-flex;flex-direction:column;align-items:center;gap:5px;min-width:46px;padding:0;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dstitch-disc{position:relative;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;color:#6B5A48;
+  background:url(/mobile/linen_ivory.png) 0 0 / 90px 90px,#F6F0E4;background-blend-mode:multiply;box-shadow:-2px 3px 5px -2px rgba(70,48,34,.35);transition:transform .12s ease}
+.dstitch-disc::before{content:"";position:absolute;inset:4px;border-radius:50%;border:1.5px dashed rgba(160,130,95,.55);pointer-events:none}
+.dstitch-disc svg{width:17px;height:17px}
+.dstitch-label{font-family:"Noto Sans KR",system-ui,sans-serif;font-size:11.5px;line-height:1.2;color:#5E5048;white-space:nowrap}
+.dstitch:hover .dstitch-disc{transform:translateY(-1px)}
+.dstitch:active .dstitch-disc{transform:scale(.97)}
+.dstitch:disabled{opacity:.45;cursor:default}
+.dstitch:focus-visible{outline:none}.dstitch:focus-visible .dstitch-disc{outline:2px solid #3A2E29;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.dlace,.dpatch,.dstitch-disc{transition:none}}

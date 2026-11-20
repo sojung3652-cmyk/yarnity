@@ -12,6 +12,7 @@ import { useApp, type Removed } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { BookCover, GoldDefs, ProgressBar, tagOf, whereOf } from "@/components/BookCover";
 import { CopyLot } from "@/components/YarnInfo";
+import { ClothPatch, LaceButton } from "@/components/diary/Diary";
 import { PhotoLog } from "@/components/PhotoLog";
 import { dropOrphans, photoSummary } from "@/lib/photos";
 import { ITEM, itemIdOf } from "@/lib/items";
@@ -86,11 +87,12 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
           </div>
         </div>
         <div className="bk-pop-btns">
-          <Link className="bk-label is-cream" href="/pattern" onClick={() => act("view")}><span>도안 보기</span></Link>
-          <button type="button" className="bk-label is-rose" onClick={() => act("photos")}><span>사진 기록{photos ? ` ${photos}` : ""}</span></button>
+          {/* Girl's Diary (components/diary): two cloth patches and the lavender lace tag */}
+          <ClothPatch color="cream" href="/pattern" onClick={() => act("view")}>도안 보기</ClothPatch>
+          <ClothPatch color="pink" onClick={() => act("photos")}>사진 기록{photos ? ` ${photos}` : ""}</ClothPatch>
           {w.done
-            ? <button type="button" className="bk-ribbon" onClick={() => act("again")}><span>다시 뜨기</span></button>
-            : <button type="button" className="bk-ribbon" onClick={() => act("resume")}><span>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</span></button>}
+            ? <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("again")}>다시 뜨기</LaceButton>
+            : <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}
         </div>
         {asking ? (
           <p className="bk-ask" role="alert">이 작품을 지울까요? <span>6초 안에는 되돌릴 수 있어요.</span>

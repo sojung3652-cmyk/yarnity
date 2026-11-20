@@ -100,6 +100,13 @@ export async function paintPage(src: HTMLElement, box: PaintBox, side: "left" | 
           ctx.fill();
         }));
       }
+      // a picture as the background (the Girl's Diary lace tags, components/diary): drawn over the box
+      const bgUrl = cs.backgroundImage.match(/^url\(["']?([^"')]+)["']?\)$/)?.[1];
+      if (bgUrl) {
+        const img = new Image(); img.src = bgUrl;
+        loads.push(img.decode().catch(() => {}));
+        ops.push(clipped(el, () => { if (img.complete && img.naturalWidth) ctx.drawImage(img, x, y, w, h); }));
+      }
       // a border-image (the cloth patch labels, app/patches.css): the image in nine slices, as the browser draws
       // it (no shadow: drawn per slice it would leave seams) - and no line borders: their computed colour drew a
       // black frame around every patch on the turning leaf (Kim, 2026-11)

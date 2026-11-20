@@ -69,6 +69,8 @@ export function AiTab({ variant }: { variant: "menu" | "page" | "phone" }) {
           <text x={(W + 6) / 2} y={H / 2 + 3} fill="#5A3E10" fillOpacity=".78">AI</text>
         </g>
       </svg>
+      {/* the gold-thread star (Girl's Diary), as on the phone's AI와 상의 */}
+      <img className="ai-ftab-star" src="/mobile/diary/star.webp" alt="" aria-hidden="true" />
       <span className="ai-ftab-tip" aria-hidden="true">AI와 상의</span>
     </button>
   );

@@ -30,6 +30,7 @@ import { useMobile } from "@/components/mobile/useMobile";
 import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import { AskAiLine } from "@/components/AskAiLine";
 import { AiTab } from "@/components/AiTab";
+import { LaceButton } from "@/components/diary/Diary";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -478,13 +479,10 @@ export function useNewBook(inBook?: WizStep): NewBookView {
           <span className="nb-folio">{step * 2}</span>
           {step === 4
             // the last step: a wide dark ribbon with a gold edge, unlike the small labels of the steps before
-            ? <button type="submit" className="nb-final" aria-disabled={blockNext || undefined}>
-                <span className="nb-final-face">
-                  <svg className="nb-final-mark" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 9.4 6.6 14.5 8 9.4 9.4 8 14.5 6.6 9.4 1.5 8 6.6 6.6Z" fill="currentColor" /></svg>
-                  <span className="nb-final-text"><small>마지막 단계</small>완성 · 최종 도안 보기</span>
-                  <span className="nb-final-arrow" aria-hidden="true">→</span>
-                </span>
-              </button>
+            // the last step: the mocha lace tag (Girl's Diary), unlike the small cloth labels of the steps before
+            ? <LaceButton variant="mocha" width={360} type="submit" className="nb-final-lace" aria-disabled={blockNext || undefined}>
+                <small>마지막 단계</small>완성 · 최종 도안 보기 →
+              </LaceButton>
             : <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !stepOk)}>{nextLabel[step]}</ClothLabel>}
         </div>
       </section>

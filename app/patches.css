@@ -1,7 +1,8 @@
 /* Every cloth label on the web is a real patch (Kim): the patch images of the phone's home
    (public/mobile/diary: frayed edge, running stitches, the cloth itself; border-image with fill, the middle
    repeated, never stretched). No painted weave, no drawn dashed stitches. Yellow, pink and cream as before;
-   lavender (patch_lavender.webp) is the cream patch tinted to the book's lavender; apricot uses pink.
+   lavender (patch_lavender.webp) is the cream patch tinted to the book's lavender; 새 도안 만들기 (apricot) is cream.
+   The same patch as components/diary ClothPatch, kept here for the labels whose markup the book's pages share.
    Ribbons, cards and tags keep their own look. */
 html body .nav-label>span,html body .bk-new>span,html body .bk-label>span,html body .ps-label>span,html body .cloth-face,html body .pg-actions .pg-link,html body .tp-label{
   box-sizing:border-box;background:none;box-shadow:none;border-style:solid;border-width:var(--pw,12px);border-radius:0;
@@ -11,12 +12,13 @@ html body .nav-label>span::before,html body .nav-label>span::after,html body .bk
 
 /* colours */
 html body .nav-label,html body .bk-new,html body .pg-link.pg-link-lav{--patch:url(/mobile/diary/patch_yellow.webp)}
-html body .nav-label+.nav-label,html body .bk-label.is-rose,html body .pg-link.pg-link-rose,html body .pg-link.pg-link-apricot{--patch:url(/mobile/diary/patch_pink.webp)}
+html body .nav-label+.nav-label,html body .bk-label.is-rose,html body .pg-link.pg-link-rose{--patch:url(/mobile/diary/patch_pink.webp)}
+html body .pg-link.pg-link-apricot{--patch:url(/mobile/diary/patch_cream.webp)}
 html body .ps-label-go,html body .pg-link.pg-link-lilac{--patch:url(/mobile/diary/patch_lavender.webp)}
 html body .ps-label-go>span{background:none}
 
 /* edge widths: the patch edge takes the old padding's place, so the words keep their room */
-html body .nav-label>span{--pw:10px;padding:0 12px}
+html body .nav-label>span{--pw:12px;padding:0 12px}
 html body .bk-new>span{--pw:11px;padding:0 16px}
 html body .bk-label>span{--pw:12px;padding:0 12px}
 html body .ps-label>span{--pw:11px;padding:0 12px}
@@ -26,3 +28,22 @@ html body .pg-actions .pg-link.pg-link-sub{padding:calc(2px * var(--k,1)) calc(1
 html body .tp-label{--pw:18px;padding:8px 26px 6px}
 @media (max-width:899px){html body .tp-label{--pw:16px;padding:6px 22px 4px}}
 @media (max-width:640px){html body .nav-label>span{--pw:9px;padding:0 8px}}
+
+/* the AI tab: the gold-thread star sewn on the gold plate, above "AI" (its place and size unchanged) */
+html body .ai-ftab-star{position:absolute;left:calc(50% + 3 * var(--u));top:calc(7 * var(--u));width:calc(13 * var(--u));height:auto;transform:translateX(-50%);
+  filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3));pointer-events:none}
+html body .ai-ftab .ai-ftab-mark{transform:translateY(calc(6 * var(--u)))}
+html body .ai-ftab.is-inside .ai-ftab-star{left:calc(50% - 3 * var(--u))}
+
+/* the wizard's HANDMADE name tag on wide screens: the white lace tag (components/diary LaceTag look), 420px,
+   HANDMADE, the name (20px) and "with love · yarnity" on its satin (15% in at the sides, 31% top, 30% bottom:
+   padding % is of the width, so 31% / 30% of the 418/900 height). Phones keep their cloth patch. */
+@media (min-width:768px){
+  html body .tp-label{width:420px;max-width:100%;aspect-ratio:900 / 418;min-height:0;height:auto;overflow:hidden;box-sizing:border-box;padding:14.4% 15% 13.9%;gap:1px;justify-content:center;
+    border:0;border-image:none;background:url(/mobile/diary/lace_tag_white.webp) center / 100% 100% no-repeat;filter:none;box-shadow:none}
+  html body .tp-label>*{flex:none}
+  /* one line on the satin (TitlePage sizes rows for its own 26px; at 20px a name of 30 letters still fits) */
+  html body .tp-label .tp-input{font-size:20px!important;line-height:26px;min-height:0;height:27px;margin:0;padding:0;overflow:hidden;white-space:nowrap}
+  html body .tp-label .tp-label-top{font-size:9.5px}
+  html body .tp-label .tp-label-bottom{font-size:11px}
+}
