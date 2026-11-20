@@ -34,7 +34,7 @@ export function DeskButtons() {
   }, []);
   if (!box) return null;
   return (
-    <nav className={"m-desk-btns" + (typing ? " is-away" : "")} aria-label="책 밖으로" style={{ left: box.left, width: box.width, top: `min(${box.top}px, calc(100svh - 52px - env(safe-area-inset-bottom, 0px)))` }}>
+    <nav className={"m-desk-btns" + (typing ? " is-away" : "")} aria-label="책 밖으로" style={{ left: box.left, width: box.width, top: box.top }}>{/* always 26px under the page: the book leaves room for them and the home bar (MobileCssBook) */}
       <button type="button" className="m-desk-btn is-cream" onClick={book.toHome}>
         <span className="m-desk-face">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 3l5.5 4.5M4 6.6V13h3v-3.5h2V13h3V6.6" {...I} /></svg>처음으로

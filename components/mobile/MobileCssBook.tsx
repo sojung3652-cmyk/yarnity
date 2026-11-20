@@ -27,9 +27,11 @@ const INSET = { l: 3, t: 3, r: 4, b: 3 }; // the right page inside the board (de
 const ASPECT = 300 / 505; // the closed book (demo .book)
 const TURN_MS = 1150, ZOOM_MS = 1200, OPEN_MS = 1600;
 
-interface Geo { vw: number; vh: number }
-function layout({ vw, vh }: Geo) {
-  const pw = vw - P.leftShow - P.rightGap, ph = vh - P.topGap - P.bottomKeep;
+// the bottom keeps the desk buttons (26px gap + 44px + 20px) and, under them, the phone's home bar
+interface Geo { vw: number; vh: number; safe: number }
+const pageSize = ({ vw, vh, safe }: Geo) => ({ pw: vw - P.leftShow - P.rightGap, ph: vh - P.topGap - P.bottomKeep - safe });
+function layout(g: Geo) {
+  const { vw, vh } = g, { pw, ph } = pageSize(g);
   const bw = pw + INSET.l + INSET.r, bhOpen = ph + INSET.t + INSET.b, bh0 = Math.min(bhOpen, bw / ASPECT);
   const left = P.leftShow - INSET.l, top = P.topGap - INSET.t;
   // closed: 62% of the width, centred at 46% of the height; zoomed: 80% (and at most 74% of the height), at 50%
@@ -56,6 +58,11 @@ function layout({ vw, vh }: Geo) {
   } as CSSProperties;
 }
 
+/** env(safe-area-inset-bottom) in px (the home bar on phones without a home button) */
+function safeBottom() {
+  const d = document.createElement("div"); d.style.cssText = "position:fixed;left:0;bottom:0;width:1px;height:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none";
+  document.body.appendChild(d); const h = d.getBoundingClientRect().height; d.remove(); return Math.round(h);
+}
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const typing = () => { const a = document.activeElement; return !!a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || (a as HTMLElement).isContentEditable); };
 
@@ -74,7 +81,7 @@ function still(el: HTMLElement) {
 export function MobileCssBook() {
   const b = useBook(), sheet = useSheet(b.step);
   const open = b.view === "home" || b.view === "wizard";
-  const [geo, setGeo] = useState<Geo>(() => ({ vw: innerWidth, vh: innerHeight }));
+  const [geo, setGeo] = useState<Geo>(() => ({ vw: innerWidth, vh: innerHeight, safe: safeBottom() }));
   const [zooming, setZooming] = useState(false);
   const [anim, setAnim] = useState(false); // will-change only while something moves
   const root = useRef<HTMLDivElement>(null), tilt = useRef<HTMLDivElement>(null), content = useRef<HTMLDivElement>(null);
@@ -83,9 +90,12 @@ export function MobileCssBook() {
   // the screen's size: width at once, height after the address bar settles, not while the keyboard is up
   useEffect(() => {
     let t: ReturnType<typeof setTimeout> | undefined;
+    // the stage's own height (100dvh), so the book and the screen it sits on always agree
+    const H = () => root.current?.closest<HTMLElement>(".m-stage")?.clientHeight || innerHeight;
+    const next = () => { const vh = H(); setGeo(g => (g.vw === innerWidth && g.vh === vh ? g : { vw: innerWidth, vh, safe: safeBottom() })); };
+    next();
     const on = () => {
       clearTimeout(t);
-      const next = () => setGeo(g => (g.vw === innerWidth && g.vh === innerHeight ? g : { vw: innerWidth, vh: innerHeight }));
       if (innerWidth !== geo.vw) { next(); return; }
       t = setTimeout(() => { if (!typing()) next(); }, 250);
     };
@@ -162,7 +172,7 @@ export function MobileCssBook() {
     return () => el.removeEventListener("focusin", on);
   }, []);
 
-  const L = layout(geo), pw = geo.vw - P.leftShow - P.rightGap, ph = geo.vh - P.topGap - P.bottomKeep;
+  const L = layout(geo), { pw, ph } = pageSize(geo);
   // the page box: screen px (--k 1); the wizard reads its height for its own layout (MobileBookWizard)
   const pageBox = { width: pw + "px", height: ph + "px", "--k": "1", "--mbw-w": pw + "px" } as CSSProperties;
   const cls = "mcb" + (phase === "open" ? " is-open is-zoomed" : phase === "zoomed" ? " is-zoomed" : "") + (anim ? " is-anim" : "") + (b.instant && open ? " is-instant" : ""); // arriving already open: no motion
