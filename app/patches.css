@@ -29,6 +29,19 @@ html body .tp-label{--pw:18px;padding:8px 26px 6px}
 @media (max-width:899px){html body .tp-label{--pw:16px;padding:6px 22px 4px}}
 @media (max-width:640px){html body .nav-label>span{--pw:9px;padding:0 8px}}
 
+/* 나의 도안집's nav (components/Nav.tsx): My Patterns where the wordmark is, and a ··· menu */
+html body .nav .nav-mine-title{grid-column:2;margin:0;line-height:0}
+html body .nav .nav-mine-title img{display:block;width:auto;height:64px}
+@media (max-width:899px){html body .nav .nav-mine-title{grid-column:1}html body .nav .nav-mine-title img{height:46px}}
+.nav-more{position:relative}
+.nav-more-btn{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:none;color:#3A2E29;cursor:pointer}
+.nav-more-btn svg{width:22px;height:22px}
+.nav-more-btn:hover,.nav-more-btn[aria-expanded="true"]{background:rgba(251,246,239,.8)}
+.nav-more-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:12px;background:#FFFDF8;box-shadow:-4px 8px 22px rgba(60,42,34,.2)}
+.nav-more-menu button{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px;padding:0 12px;border:0;border-radius:8px;background:none;font:500 14px/1.3 "Noto Serif KR",serif;color:#3A2E29;text-align:left;cursor:pointer}
+.nav-more-menu button span{font:400 12px/1 "Noto Sans KR",sans-serif;color:#9A8B82}
+.nav-more-menu button:hover{background:#F6EEE6}
+
 /* the AI tab: the gold-thread star sewn on the gold plate, above "AI" (its place and size unchanged) */
 html body .ai-ftab-star{position:absolute;left:calc(50% + 3 * var(--u));top:calc(7 * var(--u));width:calc(13 * var(--u));height:auto;transform:translateX(-50%);
   filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3));pointer-events:none}
