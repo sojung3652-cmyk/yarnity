@@ -90,7 +90,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     const phone = isPhone();
     const bookPage = (p: string | null) => p === "/" || p === "/new" || (phone && !!bookPageOf(p));
     setSeenPath(path);
-    if (path === "/") setHomeOpen((seenPath === "/new" || (phone && !!bookPageOf(seenPath))) && !closing);
+    if (path === "/") setHomeOpen((seenPath === "/new" || (phone && (!!bookPageOf(seenPath) || seenPath === "/mine"))) && !closing);
     if (closing) setClosing(false);
     setInstant(!bookPage(seenPath) && !overlay);
     if (overlay) setOverlay(false); // going anywhere (the wizard, 내 작품) ends the overlay
