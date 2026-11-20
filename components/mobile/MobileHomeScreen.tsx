@@ -30,10 +30,9 @@ export function MobileHomeScreen() {
         <p className="mfh-cap" lang="en">Intelligent Crochet</p>
       </header>
 
-      {/* the bird picture in an ivory lace oval: a picture only (no words, not a button) */}
+      {/* the knitted bird in its lace oval (one picture, Kim): a picture only (no words, not a button) */}
       <div className="mfh-lace" aria-hidden="true">
-        <img className="mfh-lace-pic" src="/mobile/cover_bird.webp" alt="" />
-        <img className="mfh-lace-frame" src="/mobile/diary/lace_ivory.webp" alt="" />
+        <img className="mfh-lace-frame" src="/mobile/diary/lace_bird.webp" alt="" />
       </div>
 
       <div className="mfh-actions">

@@ -39,9 +39,8 @@
   /* the lace oval: the picture under the lace's inner edge; only a picture (no shadow, no words, no tap) */
   /* the lace as big as the screen allows: what is left after the logo, the labels and four even gaps
      (--mfh-rest: more labels when a work is on the hook), between 230 and 380px tall */
-  .mfh-lace{position:relative;flex:none;height:clamp(230px,calc(100dvh - var(--mfh-rest,400px)),380px);aspect-ratio:214 / 285;width:auto;margin:0 auto;pointer-events:none;cursor:default}
+  .mfh-lace{position:relative;flex:none;height:min(clamp(230px,calc(100dvh - var(--mfh-rest,400px)),380px),calc((100vw - 52px) * 1030 / 840));aspect-ratio:840 / 1030;width:auto;margin:0 auto;pointer-events:none;cursor:default}
   .mfh.has-resume{--mfh-rest:500px}
-  .mfh-lace-pic{position:absolute;left:12%;top:16.4%;width:76%;height:68.4%;border-radius:50%;object-fit:cover;object-position:60% 38%;transform:scale(1.12)}
   .mfh-lace-frame{position:absolute;inset:0;width:100%;height:100%}
 
   /* cloth patches: the whole patch is its image (border-image with fill) - the frayed edge and running
