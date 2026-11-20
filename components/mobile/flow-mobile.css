@@ -29,44 +29,55 @@
   .mf-label[aria-disabled="true"]{opacity:.5;cursor:default}
   .mf-label b{font-weight:700}
 
-  /* ---- ② home ---- */
-  .mfh-brand{display:flex;flex-direction:column;align-items:center;padding-top:6px}
-  .mfh-logo{width:120px;margin:0;line-height:0}
-  .mfh-foil{display:block;width:120px;height:55px;overflow:visible}
-  .mfh-cap{margin:8px 0 0;padding-left:.34em;font:600 9.5px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.34em;text-transform:uppercase;color:#8A7258}
-  .mfh-banner{position:relative;height:168px;margin-top:22px;border-radius:12px;overflow:hidden;box-shadow:-6px 8px 16px -10px rgba(70,48,34,.5)}
-  .mfh-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 38%}
-  .mfh-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(251,246,239,.92) 0%,rgba(251,246,239,.75) 46%,rgba(251,246,239,0) 72%)}
-  .mfh-banner-text{position:absolute;left:20px;top:50%;z-index:1;transform:translateY(-50%)}
-  .mfh-kick{margin:0;font:italic 500 15px/1.2 var(--font-cormorant),"Cormorant Garamond",serif;color:#7A6550}
-  .mfh-ask{margin:8px 0 0;font:700 18px/1.45 "Noto Serif KR",serif;color:#2F2622}
-  .mfh-make{margin-top:18px}
-  .mfh-make .mf-label-in{padding:18px 24px 18px 26px}
-  .mfh-make-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-  .mfh-make-text b{font:700 16px/1.35 "Noto Serif KR",serif}
-  .mfh-make-text small{font-size:12.5px;line-height:1.45;color:#6B5D55}
+  /* ---- ② home, "Girl's Diary" (MobileHomeScreen) ---- */
+  .mfh-brand{display:flex;flex-direction:column;align-items:center;padding-top:4px}
+  .mfh-logo{width:110px;margin:0;line-height:0}
+  .mfh-foil{display:block;width:110px;height:50px;overflow:visible}
+  .mfh-cap{margin:7px 0 0;padding-left:.34em;font:600 9.5px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.34em;text-transform:uppercase;color:#8A7258}
+  /* the lace oval: the picture under the lace's inner edge; only a picture (no shadow, no words, no tap) */
+  .mfh-lace{position:relative;width:214px;height:285px;margin:8px auto 0;pointer-events:none;cursor:default}
+  .mfh-lace-pic{position:absolute;left:12%;top:16.4%;width:76%;height:68.4%;border-radius:50%;object-fit:cover;object-position:60% 38%;transform:scale(1.12)}
+  .mfh-lace-frame{position:absolute;inset:0;width:100%;height:100%}
+
+  /* cloth patches: the image gives only the frayed edge and its running stitches (border-image, never
+     stretched over the middle: no fill); the middle is the patch's colour with the linen weave tiled on it,
+     so a patch of any size keeps a clean edge and an even weave */
+  .mf-patch{position:relative;display:flex;align-items:center;gap:12px;box-sizing:border-box;width:100%;min-height:44px;margin:0;padding:4px 8px;
+    border-style:solid;border-width:17px;border-image-source:var(--patch);border-image-slice:62;border-image-repeat:stretch;
+    background-color:var(--cloth);background-image:url(/mobile/linen_ivory.png);background-size:90px 90px;background-blend-mode:multiply;background-clip:padding-box;
+    filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));text-align:left;color:#3B302B;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+  .mf-patch:active{transform:scale(.98)}
+  /* the weave at about half strength on the cloth's colour: the colour sampled just inside each patch
+     image's edge (381 x 510, slice 62), so the middle runs on from the stitched border */
+  .mf-patch.is-yellow{--patch:url(/mobile/diary/patch_yellow.webp);--cloth:#F6EABE}
+  .mf-patch.is-cream{--patch:url(/mobile/diary/patch_cream.webp);--cloth:#F4EFE4}
+  .mf-patch.is-pink{--patch:url(/mobile/diary/patch_pink.webp);--cloth:#F3DBD8}
+  .mf-patch::before{content:"";position:absolute;inset:0;background:var(--cloth);opacity:.5;pointer-events:none}
+  .mf-patch>*{position:relative}
+
+  .mfh-make{margin-top:12px}
+  .mfh-make-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .mfh-make-text b{font:600 16px/1.35 "Noto Serif KR",serif}
+  .mfh-make-text small{font-size:12.5px;line-height:1.45;color:#5E5048}
   .mfh-go{flex:none;font:italic 500 15px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#5A4A3E;white-space:nowrap}
-  .mfh-resume{display:flex;align-items:center;gap:14px;width:100%;min-height:44px;margin-top:14px;padding:12px 10px 12px 12px;box-sizing:border-box;border:0;border-radius:10px;
-    background:rgba(251,246,239,.72);box-shadow:-4px 5px 12px -8px rgba(70,48,34,.45);text-align:left;cursor:pointer}
+  .mfh-resume{margin-top:8px}
   .mfh-resume .mm-cover{flex:none}
-  /* at 46px the cover keeps only its gold drawing (the tag and plate are for the shelf's bigger books) */
+  /* at 38px the cover keeps only its gold drawing (the tag and plate are for the shelf's bigger books) */
   .mfh-resume .mm-tag,.mfh-resume .mm-plate{display:none}
-  .mfh-resume-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .mfh-resume-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
   .mfh-resume-text small{font-size:11.5px;color:#7A6C64}
   .mfh-resume-text b{font:700 15px/1.35 "Noto Serif KR",serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mfh-where{font-size:12.5px;color:#6B5D55}
+  .mfh-where{font-size:12.5px;color:#5E5048}
   .mfh-resume .mm-bar{margin-top:4px}
-  .mfh-chev{flex:none;width:24px;text-align:center;font-size:22px;color:#8C7B72}
-  .mfh-foot{display:grid;grid-template-columns:1fr 1.2fr;gap:12px;margin-top:14px}
-  .mfh-foot .mf-label-in{min-height:64px;padding:12px 16px;gap:8px}
-  .mfh-two b,.mfh-two small{white-space:nowrap}
+  .mfh-resume .mm-bar i{background:#9F8CC9}
+  .mfh-chev{flex:none;width:20px;text-align:center;font-size:22px;color:#8C7B72}
+  .mfh-foot{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:8px}
+  .mfh-foot .mf-patch{min-height:76px}
   .mfh-two{display:flex;flex-direction:column;gap:2px;min-width:0}
-  .mfh-two b{font:700 14px/1.35 "Noto Serif KR",serif}
-  .mfh-two small{font-size:11.5px;line-height:1.4;color:#6B5D55}
-  .mfh-ai .mf-label-in{gap:10px}
-  .mfh-ai-badge{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;
-    font:700 11px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#5A4416;background:linear-gradient(160deg,#F0DDA8 0%,#C9A55A 40%,#EBD6A0 62%,#9C7834 100%);
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),-1px 2px 3px rgba(70,48,34,.35)}
+  .mfh-two b{font:700 14px/1.35 "Noto Serif KR",serif;white-space:nowrap}
+  .mfh-two small{font-size:11.5px;line-height:1.4;color:#5E5048;white-space:nowrap}
+  .mfh-ai{gap:8px}
+  .mfh-star{flex:none;width:34px;height:34px;filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3))}
 
   /* ---- ③-⑨ 도안 만들기: the frame ---- */
   .mfw{display:flex;flex-direction:column;height:100dvh;min-height:0;padding-bottom:0;overflow:hidden}
