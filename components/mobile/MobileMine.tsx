@@ -7,16 +7,15 @@
 // book opens a sheet from the bottom with everything about it. Light comes from the upper right: every
 // shadow falls to the lower left. Styles: mine-mobile.css.
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp, type Removed } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { FoilLogo } from "@/components/FoilLogo";
-import { ItemArt } from "@/components/newbook/ItemArt";
+import { BookCover, GoldDefs, ProgressBar, tagOf, whereOf } from "@/components/BookCover";
 import { PhotoLog } from "@/components/PhotoLog";
 import { CopyLot } from "@/components/YarnInfo";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { dropOrphans } from "@/lib/photos";
-import { PART_KO, plan } from "@/lib/pattern";
 import { STATUS_KO, statusOf, type Status } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
@@ -30,35 +29,8 @@ const haystack = (p: Project) => [p.name, ITEM[itemIdOf(p)].name, p.yarn, ...(p.
 const recent = (p: Project) => p.updatedAt ?? p.created;
 const I = { fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
-/** where a work is, in words: "바닥 3 / 42단 · 다음 4단", "42단 · 아직 시작 전", "완성 · 42단" */
-function where(p: Project) {
-  const pp = plan(p), total = pp.rows.length, cur = Math.min(p.current || 0, total), st = statusOf(p);
-  const nx = pp.rows[cur], done = st === "done" || cur >= total;
-  const short = done ? `완성 · ${total}단` : cur === 0 ? `${total}단 · 아직 시작 전` : `${cur} / ${total}단 · 다음 ${nx.label}`;
-  const long = done ? short : cur === 0 ? short : `${PART_KO[pp.rows[cur - 1].part]} ${short}`;
-  return { total, cur, pct: total ? cur / total : 0, short, long, next: nx?.label ?? "", started: cur > 0, done };
-}
-const tagOf = (p: Project) => { const st = statusOf(p); return st === "knitting" ? ((p.current || 0) > 0 ? "뜨는 중" : "시작 전") : STATUS_KO[st]; };
-
-/** One book: ivory linen tinted with the first yarn colour, a spine at the left, page edges at the right,
- *  the item drawn in gold lines on the cover with a paper name plate, the state as a small tag. */
-function Cover({ p, w }: { p: Project; w?: number }) {
-  const it = ITEM[itemIdOf(p)], st = statusOf(p), going = st === "knitting" && (p.current || 0) > 0;
-  const style = { "--tint": p.color ? hexA(p.color, 0.6) : "rgba(251,247,238,.55)", width: w } as CSSProperties;
-  return (
-    <span className="mm-cover" style={style} aria-hidden="true">
-      <span className={"mm-tag" + (going ? " is-going" : "")}>{tagOf(p)}</span>
-      <span className="mm-icon"><ItemArt id={it.id} line stroke="url(#mmGold)" /></span>
-      <span className="mm-plate">{it.name}</span>
-    </span>
-  );
-}
-function hexA(hex: string, a: number) {
-  const m = hex.replace("#", ""), n = m.length === 3 ? m.split("").map(c => c + c).join("") : m;
-  const v = parseInt(n, 16); if (!Number.isFinite(v)) return `rgba(251,247,238,.55)`;
-  return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`;
-}
-const Bar = ({ pct }: { pct: number }) => <span className="mm-bar" aria-hidden="true"><i style={{ width: `${Math.round(pct * 100)}%` }} /></span>;
+const where = whereOf;
+const Cover = BookCover, Bar = ProgressBar;
 
 export function MobileMine() {
   const { ready, projects, setActive, updateProject, addProject, removeProjects, restoreProjects } = useApp();
@@ -104,10 +76,7 @@ export function MobileMine() {
 
   return (
     <main id="view-mine" className="mm">
-      {/* the gold the covers' line drawings are painted with */}
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
-        <defs><linearGradient id="mmGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8A6E3A" /><stop offset=".35" stopColor="#C9AB6C" /><stop offset=".55" stopColor="#EADBB2" /><stop offset=".75" stopColor="#B4924F" /><stop offset="1" stopColor="#8F7038" /></linearGradient></defs>
-      </svg>
+      <GoldDefs />
       <header className="mm-top">
         <button type="button" className="mm-back" aria-label="처음으로" onClick={() => router.push("/")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" {...I} /></svg></button>
         <span className="mm-brand" aria-hidden="true"><FoilLogo className="mm-foil" /></span>

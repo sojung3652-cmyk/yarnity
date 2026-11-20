@@ -33,7 +33,7 @@
   .mm-title p{margin:0 0 4px;font-size:12.5px;color:#6B5D55;white-space:nowrap}
 
   /* the cover of a book */
-  .mm-cover{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;aspect-ratio:3 / 4;padding:14% 12% 10% 16%;
+  .mm-cover{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;aspect-ratio:3 / 4;padding:22px 12px 14px 20px;
     border-radius:2px 5px 5px 2px;background:linear-gradient(var(--tint),var(--tint)),url(/mobile/linen_ivory.png) 0 0/120px,#EFE6D8;
     box-shadow:inset 9px 0 0 rgba(60,40,30,.16),inset 10px 0 0 rgba(255,250,240,.45),-5px 6px 10px -4px rgba(70,48,34,.42)}
   /* the page edges at the fore edge */
@@ -60,7 +60,7 @@
   .mm-card::before{left:7px}.mm-card::after{right:7px}
   .mm-card-in{display:flex;gap:14px;align-items:flex-start}
   .mm-card-cover{flex:none;padding:0;border:0;background:none;cursor:pointer}
-  .mm-card-cover .mm-cover{padding:12% 10% 8% 16%;gap:4px}
+  .mm-card-cover .mm-cover{padding:10px 8px 8px 14px;gap:4px}
   .mm-card-cover .mm-icon{width:30px;height:30px}
   .mm-card-cover .mm-plate,.mm-card-cover .mm-tag{display:none}
   .mm-card-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
@@ -122,7 +122,7 @@
   .mm-grip{display:block;width:40px;height:4px;margin:0 auto 12px;border-radius:2px;background:#DDCFC6}
   .mm-sheet-scroll{overflow-y:auto;overscroll-behavior:contain}
   .mm-sheet-head{display:flex;gap:16px;align-items:flex-start}
-  .mm-sheet-head .mm-cover{flex:none;padding:12% 10% 8% 16%;gap:4px}
+  .mm-sheet-head .mm-cover{flex:none;padding:14px 10px 10px 18px;gap:4px}
   .mm-sheet-head .mm-icon{width:38px;height:38px}
   .mm-sheet-head .mm-plate{font-size:11px;padding:2px 5px}
   .mm-sheet-head .mm-tag{display:none}

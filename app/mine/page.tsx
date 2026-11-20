@@ -1,17 +1,20 @@
 "use client";
-// 내 작품: search, filter by status, sort, and per-work actions (⋯ menu: 이어 뜨기, 도안 고치기, 중단/다시 시작,
-// 완성으로 표시, 이름 바꾸기, 복제, 삭제). Each card: 도안 보기 / 이어서 뜨기 / 사진 기록, its newest photo as a cover. Deleting asks in place (no confirm()) and can be undone for 6 seconds;
-// "고르기" deletes several at once. Paper and hairline styling (mine.css), no rounded boxes.
+// 내 작품 (나의 도안집): search, filter by status, sort, "고르기" (delete several at once), and the works as books
+// on shelves - five to a shelf, four or three when the page is narrower (the same covers as the phone's
+// 도안집, components/BookCover.tsx). A book opens its details in a popup: its cover, where it is, what it is
+// made with (LOT with copy), 도안 보기 / 사진 기록 / 이어서 뜨기, and the old ⋯ menu as small links
+// (도안 고치기, 중단 / 다시 시작, 완성으로 표시, 이름 바꾸기, 복제, 지우기). Deleting asks first and can be undone
+// for 6 seconds. Light from the upper right: every shadow falls to the lower left (mine.css).
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useApp, type Removed } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
+import { BookCover, GoldDefs, ProgressBar, tagOf, whereOf } from "@/components/BookCover";
 import { CopyLot } from "@/components/YarnInfo";
 import { PhotoLog } from "@/components/PhotoLog";
 import { dropOrphans, photoSummary } from "@/lib/photos";
 import { ITEM, itemIdOf } from "@/lib/items";
-import { plan } from "@/lib/pattern";
 import { STATUS_KO, statusOf, type Status } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
@@ -22,69 +25,84 @@ import { MobileMine } from "@/components/mobile/MobileMine";
 type Filter = "all" | Status;
 type Sort = "recent" | "created" | "name";
 const SORT_KO: Record<Sort, string> = { recent: "최근에 뜬 순", created: "만든 순", name: "이름순" };
-const day = (t: number) => new Date(t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
 
 /** everything a search can match: name, item, yarn, materials, colour (+ number), LOT */
 const haystack = (p: Project) => [p.name, ITEM[itemIdOf(p)].name, p.yarn, ...(p.materials ?? []), p.blend, p.colorName, p.colorNo, p.lot].filter(Boolean).join(" ").toLowerCase();
 
-function Menu({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: string) => void }) {
-  const ref = useRef<HTMLDivElement>(null), st = statusOf(p);
-  useEffect(() => {
-    ref.current?.querySelector<HTMLElement>("button")?.focus();
-    const out = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node) && !(e.target as Element).closest?.(".mc-more")) onClose(); };
-    document.addEventListener("mousedown", out); return () => document.removeEventListener("mousedown", out);
-  }, [onClose]);
-  const items: [string, string][] = [["resume", "이어 뜨기"], ["edit", "도안 고치기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단하기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["copy", "복제"], ["delete", "삭제"]];
-  return (
-    <div ref={ref} className="mc-menu" role="menu" aria-label={`${p.name} 메뉴`}
-      onKeyDown={e => {
-        const bs = [...(ref.current?.querySelectorAll<HTMLButtonElement>("button") ?? [])], i = bs.indexOf(document.activeElement as HTMLButtonElement);
-        if (e.key === "Escape") { e.preventDefault(); onClose(); }
-        if (e.key === "ArrowDown") { e.preventDefault(); bs[(i + 1) % bs.length]?.focus(); }
-        if (e.key === "ArrowUp") { e.preventDefault(); bs[(i - 1 + bs.length) % bs.length]?.focus(); }
-      }}>
-      {items.map(([k, t]) => <button key={k} type="button" role="menuitem" className={k === "delete" ? "danger" : ""} onClick={() => act(k)}>{t}</button>)}
-    </div>
-  );
+/** books per shelf from the shelves' width: 5, then 4, then 3 */
+function useColumns() {
+  const ref = useRef<HTMLDivElement>(null), [cols, setCols] = useState(5);
+  useLayoutEffect(() => {
+    const el = ref.current; if (!el) return;
+    const fit = () => { const w = el.clientWidth; setCols(w >= 1080 ? 5 : w >= 820 ? 4 : 3); };
+    fit(); const ro = new ResizeObserver(fit); ro.observe(el); return () => ro.disconnect();
+  });
+  return [ref, cols] as const;
 }
 
-function Card({ p, picking, picked, onPick, menuOpen, setMenu, confirm, setConfirm, act, cover }: {
-  p: Project; picking: boolean; picked: boolean; onPick: () => void; menuOpen: boolean; setMenu: (o: boolean) => void;
-  confirm: boolean; setConfirm: (o: boolean) => void; act: (a: string, v?: string) => void; cover?: { n: number; url: string };
-}) {
-  const pp = plan(p), total = pp.rows.length, cur = Math.min(p.current || 0, total), st = statusOf(p);
-  const [renaming, setRenaming] = useState(false), [name, setName] = useState(p.name);
-  const yarn = [p.yarn, p.materials?.join("·"), p.colorName ? p.colorName + (p.colorNo ? ` ${p.colorNo}` : "") : "", yarnWeightText(p), hookLabel(hookMmOf(p))].filter(Boolean).join(" · ");
-  const where = st === "done" ? "완성" : st === "paused" ? `${cur ? `${pp.rows[cur - 1].label}에서 멈춤` : "시작 전에 멈춤"}${p.pausedAt ? ` · ${day(p.pausedAt)}` : ""}` : cur ? `${cur} / ${total} · 다음 ${pp.rows[cur].label}` : `${total}단 · 아직 시작 전`;
-  const commitName = () => { const n = name.trim().slice(0, 30); if (n && n !== p.name) act("rename-save", n); setRenaming(false); };
-
-  if (confirm) return (
-    <article className="mc mc-confirm" aria-live="polite">
-      <p>이 작품을 지울까요? <span>되돌릴 수 없어요.</span></p>
-      <div className="mc-actions">
-        <button type="button" className="mc-text" autoFocus onClick={() => setConfirm(false)}>취소</button>
-        <button type="button" className="mc-text danger" onClick={() => act("delete-now")}>지우기</button>
-      </div>
-    </article>
-  );
+/** A work's details in a popup over the page: Esc, ✕ or the dim close it; focus stays inside while it is
+ *  open and goes back to the book after; the page behind does not scroll. */
+function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; act: (a: string, v?: string) => void; photos?: number }) {
+  const it = ITEM[itemIdOf(p)], st = statusOf(p), w = whereOf(p), box = useRef<HTMLDivElement>(null);
+  const [asking, setAsking] = useState(false), [renaming, setRenaming] = useState(false), [name, setName] = useState(p.name);
+  useEffect(() => {
+    const back = document.activeElement as HTMLElement | null, body = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    box.current?.querySelector<HTMLElement>(".bk-x")?.focus();
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.preventDefault(); onClose(); return; }
+      if (e.key !== "Tab" || !box.current) return;
+      const f = [...box.current.querySelectorAll<HTMLElement>("button, a[href], input, [tabindex]:not([tabindex='-1'])")].filter(x => !x.hasAttribute("disabled"));
+      if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    };
+    document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("keydown", key); document.body.style.overflow = body; back?.focus?.({ preventScroll: true }); };
+  }, [onClose]);
+  const yarn = [p.yarn, p.colorName ? p.colorName + (p.colorNo ? ` ${p.colorNo}` : "") : "", yarnWeightText(p) !== "—" ? yarnWeightText(p) : ""].filter(Boolean).join(" · ");
+  const hook = hookLabel(hookMmOf(p));
+  const menu: [string, string][] = [["edit", "도안 고치기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단으로 옮기기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["copy", "복제"]];
+  const commit = () => { const n = name.trim().slice(0, 30); if (n && n !== p.name) act("rename-save", n); setRenaming(false); };
   return (
-    <article className={`mc mc-${st}` + (picked ? " picked" : "") + (menuOpen ? " is-menu" : "")}>
-      {cover && <button type="button" className="mc-cover" aria-label={`${p.name} 사진 기록 ${cover.n}장`} onClick={() => act("photos")}><img src={cover.url} alt="" /><span>{cover.n}</span></button>}
-      {picking && <label className="mc-check"><input type="checkbox" checked={picked} onChange={onPick} /><span className="sr">{p.name} 고르기</span></label>}
-      <div className="mc-top">
-        <span className="mc-item">{ITEM[itemIdOf(p)].name}{st !== "knitting" && <em className={`mc-badge ${st}`}>{STATUS_KO[st]}</em>}</span>
-        {!picking && <button type="button" className="mc-more" aria-haspopup="menu" aria-expanded={menuOpen} aria-label={`${p.name} 메뉴`} onClick={() => setMenu(!menuOpen)}>⋯</button>}
+    <div className="bk-dim" onClick={onClose}>
+      <div ref={box} className="bk-pop" role="dialog" aria-modal="true" aria-labelledby="bkName" onClick={e => e.stopPropagation()}>
+        <button type="button" className="bk-x" aria-label="닫기" onClick={onClose}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg></button>
+        <div className="bk-pop-top">
+          <BookCover p={p} w={170} />
+          <div className="bk-pop-text">
+            <p className="bk-pop-kind">{it.name} · <span className={"bk-pop-tag" + (tagOf(p) === "뜨는 중" ? " is-going" : "")}>{tagOf(p)}</span></p>
+            {renaming ? (
+              <input id="bkName" className="bk-rename" autoFocus maxLength={30} aria-label="새 이름" value={name} onChange={e => setName(e.target.value)} onBlur={commit}
+                onKeyDown={e => { if (e.key === "Enter") commit(); if (e.key === "Escape") { e.stopPropagation(); setName(p.name); setRenaming(false); } }} />
+            ) : <h2 id="bkName">{p.name}</h2>}
+            <p className="bk-pop-where">{w.long}</p>
+            <ProgressBar pct={w.pct} />
+            <dl className="bk-info">
+              {yarn && <div><dt>실</dt><dd>{yarn}</dd></div>}
+              {hook && hook !== "—" && <div><dt>바늘</dt><dd>{hook}</dd></div>}
+              {p.lot && <div><dt>LOT</dt><dd><b>{p.lot}</b> <CopyLot lot={p.lot} /></dd></div>}
+            </dl>
+          </div>
+        </div>
+        <div className="bk-pop-btns">
+          <Link className="bk-label is-cream" href="/pattern" onClick={() => act("view")}><span>도안 보기</span></Link>
+          <button type="button" className="bk-label is-rose" onClick={() => act("photos")}><span>사진 기록{photos ? ` ${photos}` : ""}</span></button>
+          {w.done
+            ? <button type="button" className="bk-ribbon" onClick={() => act("again")}><span>다시 뜨기</span></button>
+            : <button type="button" className="bk-ribbon" onClick={() => act("resume")}><span>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</span></button>}
+        </div>
+        {asking ? (
+          <p className="bk-ask" role="alert">이 작품을 지울까요? <span>6초 안에는 되돌릴 수 있어요.</span>
+            <button type="button" autoFocus onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete-now")}>지우기</button></p>
+        ) : (
+          <nav className="bk-menu" aria-label="더 보기">
+            {menu.map(([k, t]) => <button key={k} type="button" onClick={() => (k === "rename" ? (setName(p.name), setRenaming(true)) : act(k))}>{t}</button>)}
+            <button type="button" className="danger" onClick={() => setAsking(true)}>지우기</button>
+          </nav>
+        )}
       </div>
-      {renaming ? (
-        <input className="mc-rename" autoFocus maxLength={30} aria-label="새 이름" value={name} onChange={e => setName(e.target.value)} onBlur={commitName}
-          onKeyDown={e => { if (e.key === "Enter") commitName(); if (e.key === "Escape") { setName(p.name); setRenaming(false); } }} />
-      ) : picking ? <h3 className="mc-name">{p.name}</h3> : <h3 className="mc-name"><Link href="/track" onClick={() => act("open")}>{p.name}</Link></h3>}
-      <div className="mc-bar" aria-hidden="true"><i style={{ width: `${st === "done" ? 100 : Math.round((cur / total) * 100)}%` }} /></div>
-      <p className="mc-where">{where}</p>
-      <p className="mc-yarn">{yarn}{p.lot && <span className="mc-lot">LOT <b>{p.lot}</b><CopyLot lot={p.lot} /></span>}</p>
-      {!picking && <p className="mc-links"><Link href="/pattern" onClick={() => act("view")}>도안 보기</Link><Link href="/track" onClick={() => act("open")}>{st === "done" ? "뜨기 기록" : "이어서 뜨기"}</Link><button type="button" onClick={() => act("photos")}>사진 기록{cover ? ` ${cover.n}` : ""}</button></p>}
-      {menuOpen && <Menu p={p} onClose={() => setMenu(false)} act={k => { setMenu(false); if (k === "rename") { setName(p.name); setRenaming(true); } else act(k); }} />}
-    </article>
+    </div>
   );
 }
 
@@ -92,23 +110,21 @@ function List() {
   const { ready, projects, setActive, updateProject, addProject, removeProjects, restoreProjects } = useApp();
   const router = useRouter(), book = useBook();
   const [q, setQ] = useState(""), [filter, setFilter] = useState<Filter>("all"), [sort, setSort] = useState<Sort>("recent");
-  const [menu, setMenu] = useState<string | null>(null), [confirm, setConfirm] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
   const [picking, setPicking] = useState(false), [picked, setPicked] = useState<string[]>([]), [askMany, setAskMany] = useState(false);
   const [undo, setUndo] = useState<{ r: Removed; n: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  const [shelvesRef, cols] = useColumns();
 
-  // photos: each work's count and newest photo (as an object URL for the card's cover); the dialog's work
-  const [covers, setCovers] = useState<Record<string, { n: number; url: string }>>({});
+  // photos: how many each work has (shown on 사진 기록); the dialog's work
+  const [photoN, setPhotoN] = useState<Record<string, number>>({});
   const [photoFor, setPhotoFor] = useState<string | null>(null);
-  const loadCovers = async () => {
-    try {
-      const s = await photoSummary(), c: Record<string, { n: number; url: string }> = {};
-      for (const [id, v] of Object.entries(s)) c[id] = { n: v.n, url: URL.createObjectURL(v.latest.blob) };
-      setCovers(old => { Object.values(old).forEach(o => URL.revokeObjectURL(o.url)); return c; });
-    } catch { /* no IndexedDB (private mode): no covers */ }
+  const loadPhotos = async () => {
+    try { const s = await photoSummary(), c: Record<string, number> = {}; for (const [id, v] of Object.entries(s)) c[id] = v.n; setPhotoN(c); }
+    catch { /* no IndexedDB (private mode) */ }
   };
-  useEffect(() => { loadCovers(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { loadPhotos(); }, []);
   // photos of works deleted for good (no undo pending) are dropped
   useEffect(() => { if (ready && !undo) dropOrphans(projects.map(p => p.id)).catch(() => {}); }, [ready, undo, projects]);
 
@@ -118,29 +134,42 @@ function List() {
     const list = projects.filter(p => (filter === "all" || statusOf(p) === filter) && words.every(w => haystack(p).includes(w)));
     return [...list].sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "ko") : sort === "created" ? b.created - a.created : (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created));
   }, [projects, q, filter, sort]);
+  const shelves = useMemo(() => { const out: Project[][] = []; for (let i = 0; i < shown.length; i += cols) out.push(shown.slice(i, i + cols)); return out; }, [shown, cols]);
 
   const removed = (r: Removed) => {
     if (timer.current) clearTimeout(timer.current);
     setUndo({ r, n: r.items.length }); timer.current = setTimeout(() => setUndo(null), 6000);
   };
   const act = (p: Project) => (a: string, v?: string) => {
-    if (a === "open" || a === "resume") { setActive(p.id); if (statusOf(p) === "paused") updateProject(p.id, { status: "knitting", pausedAt: null }); if (a === "resume") router.push("/track"); }
+    if (a === "resume") { setActive(p.id); if (statusOf(p) === "paused") updateProject(p.id, { status: "knitting", pausedAt: null }); router.push("/track"); }
+    else if (a === "again") { // 다시 뜨기: a fresh copy to knit; the finished one keeps its record
+      const now = Date.now(), id = "p" + now.toString(36);
+      addProject({ ...p, id, current: 0, measuredH: null, measuredW: null, status: "knitting", pausedAt: null, created: now, updatedAt: now });
+      setActive(id); router.push("/track");
+    }
     else if (a === "view") setActive(p.id);
     else if (a === "photos") setPhotoFor(p.id);
-    else if (a === "edit") book.editHere(p.id); // the book rises over this list; closing it comes back here
+    else if (a === "edit") { setOpen(null); book.editHere(p.id); } // the book rises over this list; closing it comes back here
     else if (a === "pause") updateProject(p.id, { status: "paused", pausedAt: Date.now() });
     else if (a === "unpause") updateProject(p.id, { status: "knitting", pausedAt: null });
     else if (a === "done") updateProject(p.id, { status: "done", pausedAt: null });
     else if (a === "rename-save" && v) updateProject(p.id, { name: v });
     else if (a === "copy") { const now = Date.now(); addProject({ ...p, id: "p" + now.toString(36), name: `${p.name} (복제)`.slice(0, 30), current: 0, measuredH: null, measuredW: null, status: "knitting", pausedAt: null, created: now, updatedAt: now }); }
-    else if (a === "delete") setConfirm(p.id);
-    else if (a === "delete-now") { setConfirm(null); removed(removeProjects([p.id])); }
+    else if (a === "delete-now") { setOpen(null); removed(removeProjects([p.id])); }
   };
+  const openP = open ? projects.find(x => x.id === open) ?? null : null;
 
   if (!ready) return null;
-  if (!projects.length && !undo) return <div className="mine-empty"><p>아직 작품이 없어요.</p><Link className="mine-link" href="/new">첫 도안 만들기 →</Link></div>;
+  if (!projects.length && !undo) return (
+    <section className="bk-empty">
+      <div className="bk-shelf" aria-hidden="true" />
+      <p>아직 도안이 없어요</p>
+      <button type="button" className="bk-new" onClick={book.openHere}><span>새 도안 만들기</span></button>
+    </section>
+  );
   return (
     <>
+      <GoldDefs />
       <div className="mine-tools">
         {/* a small search box with a magnifier (Kim: the long underlined field was too big) */}
         <label className="mine-find" htmlFor="mineSearch">
@@ -162,7 +191,7 @@ function List() {
                   <button type="button" className="mine-link" disabled={!picked.length} onClick={() => setAskMany(true)}>{picked.length}개 지우기</button>
                   <button type="button" className="mine-link muted" onClick={() => { setPicking(false); setPicked([]); setAskMany(false); }}>그만 고르기</button>
                 </>
-              : <button type="button" className="mine-link" onClick={() => { setPicking(true); setMenu(null); }}>고르기</button>}
+              : <button type="button" className="mine-link" onClick={() => setPicking(true)}>고르기</button>}
           </div>
         </div>
         {askMany && (
@@ -173,15 +202,33 @@ function List() {
           </div>
         )}
       </div>
-      {shown.length ? (
-        <div className="mine-cards">
-          {shown.map(p => (
-            <Card key={p.id} p={p} picking={picking} picked={picked.includes(p.id)} onPick={() => setPicked(x => (x.includes(p.id) ? x.filter(i => i !== p.id) : [...x, p.id]))}
-              menuOpen={menu === p.id} setMenu={o => setMenu(o ? p.id : null)} confirm={confirm === p.id} setConfirm={o => setConfirm(o ? p.id : null)} act={act(p)} cover={covers[p.id]} />
-          ))}
-        </div>
-      ) : <p className="mine-none">찾는 작품이 없어요</p>}
-      {photoFor && <PhotoLog projectId={photoFor} name={projects.find(x => x.id === photoFor)?.name ?? ""} onClose={() => setPhotoFor(null)} onChange={loadCovers} />}
+      <div ref={shelvesRef} className="bk-shelves" style={{ "--cols": cols } as React.CSSProperties}>
+        {shown.length ? shelves.map((row, i) => (
+          <div key={i} className="bk-row">
+            <ul className="bk-books">
+              {row.map(p => {
+                const w = whereOf(p), on = picked.includes(p.id);
+                return (
+                  <li key={p.id}>
+                    {/* the whole book is one button: it opens the details, or picks it while 고르기 is on */}
+                    <button type="button" className={"bk-book" + (open === p.id ? " is-open" : "") + (on ? " is-picked" : "")}
+                      aria-pressed={picking ? on : undefined} aria-haspopup={picking ? undefined : "dialog"}
+                      onClick={() => (picking ? setPicked(x => (x.includes(p.id) ? x.filter(i => i !== p.id) : [...x, p.id])) : setOpen(p.id))}>
+                      <span className="bk-cover-wrap"><BookCover p={p} />{picking && <span className="bk-check" aria-hidden="true">{on ? "✓" : ""}</span>}</span>
+                      <span className="bk-name">{p.name}</span>
+                      <span className="bk-where">{w.short}</span>
+                      <ProgressBar pct={w.pct} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="bk-shelf" aria-hidden="true" />
+          </div>
+        )) : <p className="mine-none">찾는 작품이 없어요</p>}
+      </div>
+      {openP && <Detail p={openP} onClose={() => setOpen(null)} act={act(openP)} photos={photoN[openP.id]} />}
+      {photoFor && <PhotoLog projectId={photoFor} name={projects.find(x => x.id === photoFor)?.name ?? ""} onClose={() => setPhotoFor(null)} onChange={loadPhotos} />}
       {undo && (
         <div className="mine-undo" role="status">
           <span>{undo.n > 1 ? `${undo.n}개를 지웠어요` : "지웠어요"}</span>
