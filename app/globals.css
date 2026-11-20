@@ -4,10 +4,10 @@
   /* home book: tune here. Lavender book cloth (pastel, no more saturated than the photo's crochet motif),
      its shaded tone, shadow darkness (1 = as designed), film grain over the book and the photo, and the
      softening of the book's rendered edges */
-  --book-lav:#C4B5DD; --book-lav-shade:#AFA0CB; --book-shadow:1; --grain:.035; --book-soften:.35px;
+  --book-lav:#C4B5DD; --book-lav-shade:#AFA0CB; /* the 3D book's own cloth stays lavender (the UI's accents are baby pink) */ --book-shadow:1; --grain:.035; --book-soften:.35px;
   --book-saturate:.68; /* the whole closed book's colour strength (1 = as rendered) */
   --bg:#F7ECEA; --surface:#FFFFFF; --ink:#2E2420; --muted:#73665F; --line:#EADFD6; --soft:#F2E8E0;
-  --accent:#B9A5DD; --btn:#3A322F; --on-btn:#FFFFFF;
+  --accent:#DBA7B2; --btn:#3A322F; --on-btn:#FFFFFF;
   --dot:#D3CBC5; --dot-now:#2B2523; --dot-future:#EFEAE5; color-scheme:light;
   --sans:"Newsreader","Noto Serif KR",Georgia,"AppleMyungjo",serif;
   --serif:"Newsreader","Noto Serif KR",Georgia,"AppleMyungjo",serif;
@@ -236,7 +236,7 @@ body:has(#view-new .book-stage-space) footer{display:none}
 /* "만들던 도안을 저장할까요?" (BookProvider): a small paper card over a dimmed desk */
 .leave-bg{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(58,46,41,.28)}
 .leave{width:min(100%,380px);box-sizing:border-box;padding:28px 28px 18px;border-radius:6px;background:#FBF3EA;color:#3A2E29;font-family:"Noto Serif KR",serif;text-align:center;
-  box-shadow:0 20px 50px -20px rgba(50,35,25,.5),0 0 0 1px rgba(201,184,224,.6)}
+  box-shadow:0 20px 50px -20px rgba(50,35,25,.5),0 0 0 1px rgba(222,186,193,.6)}
 .leave h2{margin:0 0 10px;font-size:18px;font-weight:600}
 .leave p{margin:0 0 22px;font-size:13.5px;line-height:1.6;color:#6B5C55}
 .leave-btns{display:flex;flex-direction:column;gap:8px}
@@ -300,14 +300,14 @@ body:has(#view-new .book-stage-space) footer{display:none}
 /* 사진 기록 (components/PhotoLog.tsx): a paper dialog over a dimmed desk */
 .pl-bg{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(58,46,41,.32)}
 .pl{width:min(100%,640px);max-height:min(88svh,760px);overflow:auto;box-sizing:border-box;padding:22px 24px 18px;border-radius:6px;background:#FBF3EA;color:#3A2E29;font-family:"Noto Serif KR",serif;
-  box-shadow:0 20px 50px -20px rgba(50,35,25,.5),0 0 0 1px rgba(201,184,224,.6)}
+  box-shadow:0 20px 50px -20px rgba(50,35,25,.5),0 0 0 1px rgba(222,186,193,.6)}
 .pl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
 .pl-head h2{display:flex;flex-direction:column;gap:2px;margin:0;font-size:18px;font-weight:600}
 .pl-head h2 span{font-size:12.5px;font-weight:400;color:#7A6A63}
 .pl-x{width:36px;height:36px;border:0;border-radius:50%;background:none;font-size:22px;line-height:1;color:#6B5C55;cursor:pointer}
-.pl-x:hover{background:rgba(201,184,224,.25)}
-.pl-add{position:relative;display:flex;align-items:center;justify-content:center;height:52px;border:1.5px dashed #B9A3E3;border-radius:4px;background:#FFFBF5;font-size:14px;color:#3A2E29;cursor:pointer}
-.pl-add:hover,.pl-add:focus-visible{background:#F4EEF9;outline:none}
+.pl-x:hover{background:rgba(222,186,193,.25)}
+.pl-add{position:relative;display:flex;align-items:center;justify-content:center;height:52px;border:1.5px dashed #E0A6B1;border-radius:4px;background:#FFFBF5;font-size:14px;color:#3A2E29;cursor:pointer}
+.pl-add:hover,.pl-add:focus-visible{background:#F9EEF0;outline:none}
 .pl-add input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .pl-err{margin:8px 0 0;font-size:12.5px;color:#A4493D}
 .pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin:16px 0 0;padding:0;list-style:none}

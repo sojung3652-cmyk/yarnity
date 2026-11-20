@@ -31,7 +31,7 @@
   body .mbz .nb-stack>.nb-sec:first-child,body .mbz .nb-page>.nb-turn>.nb-sec:first-child{margin-top:24px}
   body .mbz .nb-sec-title{margin:0 0 14px;padding-bottom:6px;font-family:"Noto Serif KR",serif;font-weight:700;font-size:14px;color:#2E2420;border-bottom:1px solid #E2D6CB}
   /* field labels: a 2px lavender line at the left, 10 above the input */
-  body .mbz .nb-lbl,body .mbz .nb-field>label{display:block;margin:0 0 10px;padding-left:8px;border-left:2px solid #B7A6DA;font-family:"Noto Serif KR",serif;font-weight:600;font-size:12.5px;line-height:1.4;color:#3A2E29}
+  body .mbz .nb-lbl,body .mbz .nb-field>label{display:block;margin:0 0 10px;padding-left:8px;border-left:2px solid #EEABB9;font-family:"Noto Serif KR",serif;font-weight:600;font-size:12.5px;line-height:1.4;color:#3A2E29}
   body .mbz .nb-field{margin:0 0 18px}
   body .mbz .nb-input,body .mbz .nb-input-sm,body .mbz select,body .mbz textarea{font-size:16px} /* iOS does not zoom into 16px fields */
   body .mbz .nb-input{height:44px}
@@ -83,7 +83,7 @@
     font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#3A2E29;white-space:nowrap;
     background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
     box-shadow:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.08)}
-  body .mbz-face::before,body .mbz-face::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed #C4B5DD}
+  body .mbz-face::before,body .mbz-face::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed #EEBEC7}
   body .mbz-face::before{left:7px}body .mbz-face::after{right:7px}
   body .mbz-back .mbz-face{transform:rotate(1deg)}
   body .mbz-next .mbz-face{transform:rotate(-1deg)}

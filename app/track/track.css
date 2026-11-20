@@ -1,7 +1,7 @@
 /* 따라 뜨기 on the pattern sheet: the same cream paper and thin warm ink as the pattern page (pattern.css,
    whose woven .ps-label this page also uses). Left: the chart on graph paper. Right: the row as an index
    card (a red-brown margin line and faint rules, like a recipe card), a wide ribbon to tap, the rows. */
-.tk-main{--tk-ink:#3A2E29;--tk-soft:#7A6A63;--tk-rule:#D9CBBE;--tk-hair:#E8DDD2;--tk-paper:#FBF3EA;--tk-lav:#C9B8E0;--tk-lav-ink:#8C74BC;padding-bottom:56px}
+.tk-main{--tk-ink:#3A2E29;--tk-soft:#7A6A63;--tk-rule:#D9CBBE;--tk-hair:#E8DDD2;--tk-paper:#FBF3EA;--tk-lav:#F0C1CA;--tk-lav-ink:#D77286;padding-bottom:56px}
 .tk-sheet-page{position:relative;max-width:1120px;margin:16px auto 0;box-sizing:border-box;padding:34px 40px 36px;color:var(--tk-ink);font-family:"Noto Serif KR",serif;background:var(--tk-paper);border-radius:2px;
   box-shadow:0 1px 1px rgba(70,50,40,.08),0 10px 30px -12px rgba(70,50,40,.25),0 30px 60px -40px rgba(70,50,40,.3)}
 .tk-sheet-page::before{content:"";position:absolute;inset:14px;border:1px solid var(--tk-hair);pointer-events:none}
@@ -26,15 +26,15 @@
 /* the chart on graph paper */
 .tk-chart{position:sticky;top:16px}
 .tk-graph{border:1px solid var(--tk-hair);background-color:#FDF8F1;
-  background-image:linear-gradient(rgba(201,184,224,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(201,184,224,.35) 1px,transparent 1px),
-    linear-gradient(rgba(201,184,224,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(201,184,224,.16) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(240,193,202,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(240,193,202,.35) 1px,transparent 1px),
+    linear-gradient(rgba(240,193,202,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(240,193,202,.16) 1px,transparent 1px);
   background-size:50px 50px,50px 50px,10px 10px,10px 10px}
 .tk-graph canvas{display:block;width:100%;aspect-ratio:1;max-height:62svh}
 .tk-chart .legend{padding:12px 2px 0}
 
 /* the row as an index card */
 .tk-card{position:relative;padding:18px 20px 18px 34px;background:#FFFDF8;border:1px solid var(--tk-hair);border-radius:2px;
-  background-image:repeating-linear-gradient(transparent 0 27px,rgba(155,134,196,.16) 27px 28px);background-position:0 46px;
+  background-image:repeating-linear-gradient(transparent 0 27px,rgba(221,134,152,.16) 27px 28px);background-position:0 46px;
   box-shadow:0 1px 2px rgba(70,50,40,.1),0 6px 16px -10px rgba(70,50,40,.25)}
 .tk-card::before{content:"";position:absolute;top:0;bottom:0;left:22px;border-left:1px solid rgba(196,120,110,.45)} /* the card's margin line */
 .tk-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
@@ -60,7 +60,7 @@
 .tk-undo:disabled{opacity:.4;cursor:default}
 .tk-ribbon{flex:1;min-width:0;padding:0;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tk-ribbon-face{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:72px;padding:12px 30px;color:var(--tk-ink);
-  background:repeating-linear-gradient(0deg,rgba(80,60,110,.06) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(80,60,110,.05) 0 1px,transparent 1px 3px),#D9CCEB;
+  background:repeating-linear-gradient(0deg,rgba(108,62,71,.06) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(108,62,71,.05) 0 1px,transparent 1px 3px),#F9D8DF;
   clip-path:polygon(0 0,100% 0,calc(100% - 14px) 50%,100% 100%,0 100%,14px 50%);transition:transform .12s ease,filter .12s ease}
 .tk-ribbon-face::before{content:"";position:absolute;inset:6px 22px;border-top:1.5px dashed rgba(251,243,234,.95);border-bottom:1.5px dashed rgba(251,243,234,.95);pointer-events:none}
 .tk-ribbon-main{font-size:18px;font-weight:600;letter-spacing:.04em}
@@ -74,17 +74,17 @@
 /* the keys: a small paper note taped under the ribbon - faint rules, a strip of lavender washi tape, the
    key names underlined in pencil (Kim: the boxed key caps felt too digital) */
 .tk-keys{position:relative;margin:14px 6px 0;padding:14px 16px 10px;background:#FFFDF6;font-size:12.5px;line-height:24px;color:var(--tk-ink);transform:rotate(-.6deg);
-  background-image:repeating-linear-gradient(transparent 0 23px,rgba(155,134,196,.18) 23px 24px);background-position:0 12px;
+  background-image:repeating-linear-gradient(transparent 0 23px,rgba(221,134,152,.18) 23px 24px);background-position:0 12px;
   box-shadow:0 1px 2px rgba(70,50,40,.12),0 4px 10px -6px rgba(70,50,40,.25)}
-.tk-keys-tape{position:absolute;top:-7px;left:50%;width:64px;height:16px;margin-left:-32px;background:rgba(201,184,224,.55);transform:rotate(2deg);
-  box-shadow:0 0 0 .5px rgba(155,134,196,.25) inset}
-.tk-keys b{font-weight:600;text-decoration:underline;text-decoration-color:rgba(140,116,188,.7);text-decoration-thickness:1.5px;text-underline-offset:3px;text-decoration-style:wavy}
+.tk-keys-tape{position:absolute;top:-7px;left:50%;width:64px;height:16px;margin-left:-32px;background:rgba(240,193,202,.55);transform:rotate(2deg);
+  box-shadow:0 0 0 .5px rgba(221,134,152,.25) inset}
+.tk-keys b{font-weight:600;text-decoration:underline;text-decoration-color:rgba(215,114,134,.7);text-decoration-thickness:1.5px;text-underline-offset:3px;text-decoration-style:wavy}
 @media (hover:none){.tk-keys{display:none}}
 
 /* the rows: ruled, done ones ticked in pencil, this one marked */
 .tk-rows{margin-top:22px}
 .tk-rows-head{display:flex;justify-content:space-between;align-items:baseline}
-.tk-more{padding:4px 0;border:0;background:none;font:inherit;font-size:12.5px;color:var(--tk-ink);text-decoration:underline;text-decoration-color:rgba(155,134,196,.6);text-underline-offset:4px;cursor:pointer}
+.tk-more{padding:4px 0;border:0;background:none;font:inherit;font-size:12.5px;color:var(--tk-ink);text-decoration:underline;text-decoration-color:rgba(221,134,152,.6);text-underline-offset:4px;cursor:pointer}
 .tk-list{margin:0;padding:0;list-style:none;border-top:1.5px solid var(--tk-ink)}
 .tk-list li{position:relative;display:grid;grid-template-columns:76px minmax(0,1fr) 54px;gap:12px;padding:9px 6px 9px 22px;border-bottom:1px solid var(--tk-hair);font-size:13px;line-height:1.5;align-items:baseline}
 .tk-l-no{font-size:12px;color:var(--tk-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -94,7 +94,7 @@
 .tk-list .is-done{color:#9F918A}
 .tk-list .is-done::before{content:"✓";position:absolute;left:4px;top:9px;font-size:13px;color:#8C7E77;transform:rotate(-8deg)}
 .tk-list .is-done .tk-l-how{text-decoration:line-through;text-decoration-color:rgba(110,95,88,.55);text-decoration-thickness:1px}
-.tk-list .is-now{background:rgba(201,184,224,.28);color:var(--tk-ink);font-weight:600}
+.tk-list .is-now{background:rgba(240,193,202,.28);color:var(--tk-ink);font-weight:600}
 .tk-list .is-now::before{content:"▸";position:absolute;left:6px;top:9px;color:var(--tk-lav-ink)}
 .tk-list .is-now .tk-l-no{color:var(--tk-ink)}
 
@@ -114,9 +114,9 @@
 /* 이전 단 / 다음 단 on the card: read another row; the card turns grey-lavender while it shows one */
 .tk-peek{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-6px -8px 10px -14px;padding-bottom:8px;border-bottom:1px dashed var(--tk-hair)}
 .tk-peek>button{min-height:34px;padding:0 10px;border:0;border-radius:3px;background:none;font:inherit;font-size:12.5px;color:var(--tk-ink);cursor:pointer;white-space:nowrap}
-.tk-peek>button:hover{background:rgba(201,184,224,.22)}
+.tk-peek>button:hover{background:rgba(240,193,202,.22)}
 .tk-peek>button:disabled{opacity:.35;cursor:default;background:none}
 .tk-peek-state{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tk-soft);text-align:center}
 .tk-peek-back{padding:2px 8px;border:1px solid var(--tk-lav);border-radius:10px;background:#FFFDF8;font:inherit;font-size:11.5px;color:var(--tk-ink);cursor:pointer}
-.tk-card.is-other{background-color:#F7F3FB}
+.tk-card.is-other{background-color:#FCE8ED}
 .tk-card.is-other .tk-row,.tk-card.is-other .tk-how{color:#5E4E66}

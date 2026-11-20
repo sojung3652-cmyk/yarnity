@@ -72,7 +72,7 @@
   .m-desk-face::before,.m-desk-face::after{content:"";position:absolute;top:7px;bottom:7px;border-left:1.5px dashed var(--ls);pointer-events:none}
   .m-desk-face::before{left:8px}.m-desk-face::after{right:8px}
   .m-desk-face svg{flex:none;width:14px;height:14px}
-  .m-desk-btn.is-cream{--lb:#F6EFE2;--ls:#C4B5DD}
+  .m-desk-btn.is-cream{--lb:#F6EFE2;--ls:#EEBEC7}
   .m-desk-btn.is-rose{--lb:#F3E0DF;--ls:#D9AFAA}
   .m-desk-btn:active .m-desk-face{transform:translateY(1px)}
   .m-desk-btn:focus-visible{outline:none}

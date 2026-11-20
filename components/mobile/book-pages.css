@@ -49,7 +49,7 @@
   body .mbp-track .mt-rows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;gap:12px;margin:0 -8px 0 0;padding:20px 8px 16px 0}
   body .mbp-track .mt-prev{font-size:11.5px;color:#6B5D55;opacity:1}
   body .mbp-track .mt-now{padding:16px 16px 18px;border:1px solid #E6DCCF;border-radius:4px;background:rgba(255,253,248,.7);box-shadow:0 1px 2px rgba(70,50,40,.06)}
-  body .mbp-track .mt-sec{font-size:11.5px;color:#7E6AA8}
+  body .mbp-track .mt-sec{font-size:11.5px;color:#C3687B}
   body .mbp-track .mt-row{font-family:"Noto Serif KR",serif;font-weight:600;font-size:26px;line-height:1.2}
   body .mbp-track .mt-count{font-family:"Noto Serif KR",serif;font-weight:600;font-size:22px}
   body .mbp-track .mt-count small{font-size:15px}

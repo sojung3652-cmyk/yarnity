@@ -6,7 +6,9 @@ import { RULES, safeParseReply, type ChatErrorCode, type ChatRequest } from "@/l
 
 export const runtime = "nodejs";
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
+// Haiku, always (Kim: the API cost). Not taken from ANTHROPIC_MODEL, so a server variable left on a bigger
+// model cannot raise the bill; change it here on purpose if ever needed.
+const MODEL = "claude-haiku-5-5";
 // A reply is 2-4 sentences + a small JSON object (~300 tokens). 1500 leaves headroom so the
 // JSON is never cut off mid-object (Rule 5; the prototype's truncation bug).
 const MAX_TOKENS = 1500;

@@ -6,7 +6,7 @@
   background:var(--lace) center / 100% 100% no-repeat;font:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
   transition:transform .15s ease}
 .dlace-mocha{--lace:url(/mobile/diary/lace_btn_mocha.webp);color:#FBF3E2}
-.dlace-lavender{--lace:url(/mobile/diary/lace_btn_lavender.webp);color:#2F2622}
+.dlace-lavender{--lace:url(/mobile/diary/lace_btn_pink.webp);color:#2F2622}
 .dlace-satin{position:absolute;left:9%;right:9%;top:24%;bottom:23%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   font-family:"Noto Serif KR",serif;font-weight:700;font-size:15.5px;line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden}
 .dlace-lavender .dlace-satin small{font-family:"Noto Sans KR",system-ui,sans-serif;font-size:11px;font-weight:500;color:#4A3D36}
@@ -52,7 +52,7 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 .cpk-item{display:block;padding:6px;border:0;border-radius:8px;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .cpk-item .mm-cover{width:100%}
 .cpk-item .mm-tag{display:none}
-.cpk-item.is-on{background:rgba(159,140,201,.18);box-shadow:inset 0 0 0 2px #9F8CC9}
+.cpk-item.is-on{background:rgba(226,141,159,.18);box-shadow:inset 0 0 0 2px #E28D9F}
 .cpk-item:focus-visible{outline:2px solid #3A2E29;outline-offset:2px}
 .cpk-foot{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:12px 22px 0;border-top:1px solid #EDE2DA}
 .cpk-later{min-height:44px;padding:0 6px;border:0;background:none;font-size:13.5px;color:#6B5D55;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -79,8 +79,8 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 .dpatch.is-small{border-width:12px;min-height:0;padding:0 8px;font-size:13px}
 .dpatch-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
 .dpatch-cream{--patch:url(/mobile/diary/patch_cream.webp)}
-.dpatch-pink{--patch:url(/mobile/diary/patch_pink.webp)}
-.dpatch-lavender{--patch:url(/mobile/diary/patch_lavender.webp)}
+.dpatch-pink{--patch:url(/mobile/diary/patch_blue.webp)}
+.dpatch-lavender{--patch:url(/mobile/diary/patch_pink.webp)}
 .dpatch:hover{transform:translateY(-1px)}
 .dpatch:active{transform:scale(.98)}
 .dpatch:focus-visible{outline:2px solid #3A2E29;outline-offset:2px}

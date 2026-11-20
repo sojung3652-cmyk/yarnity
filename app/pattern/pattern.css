@@ -1,7 +1,7 @@
 /* 도안 as a printed pattern sheet: one sheet of cream paper on the desk, drafted in thin warm-brown ink.
    Type: Noto Serif KR for the text, Cormorant for the small English lines and the numbers that are
    ornaments (section numbers, the gauge). Printing (@media print) leaves the sheet alone on white. */
-.ps-main{--ps-ink:#3A2E29;--ps-soft:#7A6A63;--ps-rule:#D9CBBE;--ps-hair:#E8DDD2;--ps-paper:#FBF3EA;--ps-lav:#C9B8E0;padding-bottom:64px}
+.ps-main{--ps-ink:#3A2E29;--ps-soft:#7A6A63;--ps-rule:#D9CBBE;--ps-hair:#E8DDD2;--ps-paper:#FBF3EA;--ps-lav:#F0C1CA;padding-bottom:64px}
 .ps-actions{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;max-width:860px;margin:28px auto 16px}
 .ps-btns{display:flex;gap:8px;flex-wrap:wrap}
 
@@ -25,8 +25,8 @@
 .ps-box-title{margin:0 0 12px;font-size:11px;font-weight:600;letter-spacing:.2em;color:var(--ps-soft)}
 /* graph paper under the drawing (fine 5mm-ish squares, a stronger line every 5) */
 .ps-grid{padding:6px;background-color:#FDF8F1;
-  background-image:linear-gradient(rgba(201,184,224,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(201,184,224,.35) 1px,transparent 1px),
-    linear-gradient(rgba(201,184,224,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(201,184,224,.16) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(240,193,202,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(240,193,202,.35) 1px,transparent 1px),
+    linear-gradient(rgba(240,193,202,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(240,193,202,.16) 1px,transparent 1px);
   background-size:50px 50px,50px 50px,10px 10px,10px 10px;border:1px solid var(--ps-hair)}
 .ps-grid .small{display:none} /* the drawing's own "완성 모양" caption: the box has a title */
 .ps-grid svg{display:block;width:100%;height:auto;max-height:190px}
@@ -49,7 +49,7 @@
 /* the rows */
 .ps-part+.ps-part{margin-top:30px}
 .ps-part-title{display:flex;align-items:baseline;gap:12px;margin:0 0 6px;padding-bottom:8px;border-bottom:1.5px solid var(--ps-ink);font-size:16px;font-weight:600}
-.ps-part-no{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:#9B86C4;letter-spacing:.02em}
+.ps-part-no{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:#DD8698;letter-spacing:.02em}
 .ps-part-cnt{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--ps-soft)}
 .ps-table{width:100%;border-collapse:collapse;font-size:13px}
 .ps-table tr{border-bottom:1px solid var(--ps-hair)}
@@ -60,8 +60,8 @@
 .ps-n span{margin-left:2px;font-family:"Noto Serif KR",serif;font-size:11px;font-weight:400;color:var(--ps-soft)}
 /* a note in the margin: lavender wash, a reference mark */
 .ps-note{border-bottom:0!important}
-.ps-note td{padding:8px 12px;font-size:12.5px;color:var(--ps-ink);background:rgba(201,184,224,.18);border-left:2px solid var(--ps-lav)}
-.ps-note td span{margin-right:8px;color:#8C74BC}
+.ps-note td{padding:8px 12px;font-size:12.5px;color:var(--ps-ink);background:rgba(240,193,202,.18);border-left:2px solid var(--ps-lav)}
+.ps-note td span{margin-right:8px;color:#D77286}
 .ps-foot{display:flex;justify-content:space-between;margin-top:36px;padding-top:12px;border-top:1px solid var(--ps-hair);font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ps-soft)}
 
 @media (max-width:760px){
@@ -102,9 +102,9 @@
 .ps-label>span{position:relative;display:inline-flex;align-items:center;height:38px;padding:0 22px;border-radius:2px;font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#3A2E29;white-space:nowrap;
   background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
   box-shadow:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.08);transform:rotate(var(--tilt));transition:transform .18s ease}
-.ps-label>span::before,.ps-label>span::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed #C4B5DD}
+.ps-label>span::before,.ps-label>span::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed #EEBEC7}
 .ps-label>span::before{left:7px}.ps-label>span::after{right:7px}
-.ps-label-go>span{background:repeating-linear-gradient(0deg,rgba(80,60,110,.07) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(80,60,110,.06) 0 1px,transparent 1px 3px),#D9CCEB;font-weight:600}
+.ps-label-go>span{background:repeating-linear-gradient(0deg,rgba(108,62,71,.07) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(108,62,71,.06) 0 1px,transparent 1px 3px),#F9D8DF;font-weight:600}
 .ps-label-go>span::before,.ps-label-go>span::after{border-color:#FBF3EA}
 .ps-label:hover>span{transform:rotate(0) translateY(-1px)}
 .ps-label:focus-visible{outline:none}

@@ -24,7 +24,7 @@
   .mf-label-in::before{left:7px}.mf-label-in::after{right:7px}
   .mf-label.is-yellow{--lbl:#F4EBC0;--st:#CDB46F}
   .mf-label.is-pink{--lbl:#F3E0DF;--st:#D2A7A6}
-  .mf-label.is-cream{--lbl:#F7F1E6;--st:#C4B5DD}
+  .mf-label.is-cream{--lbl:#F7F1E6;--st:#EEBEC7}
   .mf-label:active .mf-label-in{filter:brightness(.97)}
   .mf-label[aria-disabled="true"]{opacity:.5;cursor:default}
   .mf-label b{font-weight:700}
@@ -52,7 +52,7 @@
   .mf-patch:active{transform:scale(.98)}
   .mf-patch.is-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
   .mf-patch.is-cream{--patch:url(/mobile/diary/patch_cream.webp)}
-  .mf-patch.is-pink{--patch:url(/mobile/diary/patch_pink.webp)}
+  .mf-patch.is-pink{--patch:url(/mobile/diary/patch_blue.webp)}
   .mf-patch>*{position:relative}
 
   .mfh-actions{display:flex;flex-direction:column}
@@ -75,7 +75,7 @@
   .mfh-resume-text b{font:700 14px/1.35 "Noto Serif KR",serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mfh-where{font-size:12px;color:#5E5048}
   .mfh-resume .mm-bar{margin-top:4px}
-  .mfh-resume .mm-bar i{background:#9F8CC9}
+  .mfh-resume .mm-bar i{background:#E28D9F}
   .mfh-chev{flex:none;width:20px;text-align:center;font-size:22px;color:#8C7B72}
   .mfh-foot{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:8px}
   .mfh-foot .mf-patch{min-height:62px}
@@ -93,8 +93,8 @@
   .mfw-where{margin:0;text-align:center;font-size:13.5px;color:#7A6C64}
   .mfw-where b{color:#2F2622;font-weight:700}
   .mfw-prog{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:6px 0 0;padding:0;list-style:none}
-  .mfw-prog li{height:3px;border-radius:2px;background:#E6DAEE}
-  .mfw-prog li.on{background:#9F8CC9}
+  .mfw-prog li{height:3px;border-radius:2px;background:#F9E8EB}
+  .mfw-prog li.on{background:#E28D9F}
   .mfw-form{flex:1;min-height:0;display:flex;flex-direction:column;margin:0 -26px}
   .mfw-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:0 26px 24px;-webkit-overflow-scrolling:touch}
   .mfw-screen{animation:mfw-in .3s cubic-bezier(.22,.61,.36,1) both}
@@ -120,7 +120,7 @@
   body .mfw .ask-text{font-size:13px;text-decoration:underline dotted;text-underline-offset:4px}
   body .mfw .nb-sec{margin:28px 0 0}
   body .mfw .nb-sec-title{margin:0 0 16px;padding-bottom:6px;font:700 15px/1.4 "Noto Serif KR",serif;color:#2F2622;border-bottom:1px solid #E2D6CB}
-  body .mfw .nb-lbl,body .mfw .nb-field>label{display:block;margin:0 0 10px;padding-left:8px;border-left:2px solid #B7A6DA;font:600 14px/1.4 "Noto Serif KR",serif;color:#3B302B}
+  body .mfw .nb-lbl,body .mfw .nb-field>label{display:block;margin:0 0 10px;padding-left:8px;border-left:2px solid #EEABB9;font:600 14px/1.4 "Noto Serif KR",serif;color:#3B302B}
   body .mfw .nb-field{margin:0 0 28px}
   body .mfw .nb-input,body .mfw .nb-input-sm,body .mfw select{font-size:17px;height:44px;border:0;border-bottom:1px solid #CDBFB4;border-radius:0;background:transparent}
   body .mfw textarea{font-size:16px}
@@ -173,7 +173,7 @@
   .mfw-tag-hole{position:absolute;left:50%;top:9px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:#EADFD3;box-shadow:inset 0 1px 1px rgba(70,48,34,.3)}
   .mfw-tag .nb-art{width:66px;height:66px;margin-top:10px}
   .mfw-intro-text{flex:1;min-width:0}
-  .mfw-group{margin:4px 0 0;font-size:12.5px;color:#8C78B8}
+  .mfw-group{margin:4px 0 0;font-size:12.5px;color:#D17889}
   .mfw-intro-text h2{margin:4px 0 0;font:700 22px/1.35 "Noto Serif KR",serif;color:#2F2622}
   .mfw-intro-text p:last-child{margin:8px 0 0;font-size:14px;line-height:1.6;color:#4F423B}
   .mfw-facts{display:grid;grid-template-columns:repeat(3,1fr);margin:20px 0 0;border-top:1px solid #E6DCCF;border-bottom:1px solid #E6DCCF}
@@ -200,8 +200,8 @@
   body .mst-yellow>span::before,body .mst-yellow>span::after,body .ms-label>span::before,body .ms-label>span::after,body .mm-label>span::before,body .mm-label>span::after{display:none}
   /* colours: yellow / cream / pink patches */
   body .mf-label.is-yellow,body .mtb-new,body .mm-new,body .mst-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
-  body .mf-label.is-pink,body .mm-label.is-rose{--patch:url(/mobile/diary/patch_pink.webp)}
-  body .mm-label.is-lavender{--patch:url(/mobile/diary/patch_lavender.webp)}
+  body .mf-label.is-pink,body .mm-label.is-rose{--patch:url(/mobile/diary/patch_blue.webp)}
+  body .mm-label.is-lavender{--patch:url(/mobile/diary/patch_pink.webp)}
   /* edge widths: the small ones thinner; the padding gives back what the edge takes */
   body .mtb-new>span,body .mm-new>span{--pw:9px;padding:0 10px}
   body .mm-new.is-big>span{--pw:10px;padding:0 14px}

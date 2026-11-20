@@ -4,11 +4,11 @@
 import type { ItemId } from "@/lib/items";
 
 const PASTEL: Record<ItemId, string> = {
-  coaster: "#F4CFD3", scrubber: "#F5E3A6", trivet: "#F7CDB0", placemat: "#CBD8BF", rug: "#D9CCEB",
-  basket: "#EBD7B8", planter: "#F7CDB0", pencil: "#CFE2F0", cupholder: "#D9CCEB",
-  minibag: "#D9CCEB", bucket: "#F4CFD3", pouch: "#CFE2F0",
+  coaster: "#F4CFD3", scrubber: "#F5E3A6", trivet: "#F7CDB0", placemat: "#CBD8BF", rug: "#F9D8DF",
+  basket: "#EBD7B8", planter: "#F7CDB0", pencil: "#CFE2F0", cupholder: "#F9D8DF",
+  minibag: "#F9D8DF", bucket: "#F4CFD3", pouch: "#CFE2F0",
   scarf: "#F7CDB0", neckwarmer: "#CBD8BF", headband: "#F4CFD3",
-  dishcloth: "#CFE2F0", bookmark: "#F5E3A6", blanket: "#D9CCEB", beanie: "#F4CFD3",
+  dishcloth: "#CFE2F0", bookmark: "#F5E3A6", blanket: "#F9D8DF", beanie: "#F4CFD3",
 };
 const LEAF = "#B5C9A4";
 
