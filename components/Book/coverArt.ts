@@ -12,7 +12,7 @@ export function cssVar(name: string, fallback: string) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 }
 /** Book cloth lavender: --book-lav (pastel, matched against the photo's crochet motif). */
-export const lavender = () => cssVar("--book-lav", "#C4B5DD");
+export const lavender = () => cssVar("--book-lav", "#EEBDC7");
 export const BAND = 0.07;                       // spine cloth turned onto the cover (fraction of the width)
 /** Label rect as fractions of the cover: 42% wide, height 38% of its width, 15% from the left, 8% from the bottom. */
 export const LABEL = { x: 0.15, w: 0.42, aspect: 0.38, bottom: 0.08 };
@@ -63,7 +63,7 @@ export function drawCover(cv: HTMLCanvasElement, a: { bird: HTMLImageElement; lo
   if (opts.weave) { weave(ctx, 0, 0, bx, h, 0.07); weave(ctx, bx, 0, pw, h, 0.035); }
   // hinge groove where the cloth meets the picture: a thin dark line with a soft fall-off on both sides
   const g = ctx.createLinearGradient(bx - w * 0.012, 0, bx + w * 0.012, 0);
-  g.addColorStop(0, "rgba(40,25,60,0)"); g.addColorStop(0.42, "rgba(40,25,60,.18)"); g.addColorStop(0.5, "rgba(40,25,60,.42)"); g.addColorStop(0.58, "rgba(40,25,60,.16)"); g.addColorStop(1, "rgba(40,25,60,0)");
+  g.addColorStop(0, "rgba(59,26,33,0)"); g.addColorStop(0.42, "rgba(59,26,33,.18)"); g.addColorStop(0.5, "rgba(59,26,33,.42)"); g.addColorStop(0.58, "rgba(59,26,33,.16)"); g.addColorStop(1, "rgba(59,26,33,0)");
   ctx.fillStyle = g; ctx.fillRect(bx - w * 0.012, 0, w * 0.024, h);
   ctx.fillStyle = "rgba(255,255,255,.18)"; ctx.fillRect(bx + w * 0.004, 0, Math.max(1, w * 0.0015), h); // lit lip of the groove
   // label: a thin paper sitting just above the cloth -> soft shadow down-right (light from the upper left)

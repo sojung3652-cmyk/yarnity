@@ -4,7 +4,7 @@
   /* home book: tune here. Lavender book cloth (pastel, no more saturated than the photo's crochet motif),
      its shaded tone, shadow darkness (1 = as designed), film grain over the book and the photo, and the
      softening of the book's rendered edges */
-  --book-lav:#C4B5DD; --book-lav-shade:#AFA0CB; /* the 3D book's own cloth stays lavender (the UI's accents are baby pink) */ --book-shadow:1; --grain:.035; --book-soften:.35px;
+  --book-lav:#EEBDC7; --book-lav-shade:#DFA6B1; /* the 3D book's cloth: baby pink, as the UI's signature (Kim; it was lavender) */ --book-shadow:1; --grain:.035; --book-soften:.35px;
   --book-saturate:.68; /* the whole closed book's colour strength (1 = as rendered) */
   --bg:#F7ECEA; --surface:#FFFFFF; --ink:#2E2420; --muted:#73665F; --line:#EADFD6; --soft:#F2E8E0;
   --accent:#DBA7B2; --btn:#3A322F; --on-btn:#FFFFFF;

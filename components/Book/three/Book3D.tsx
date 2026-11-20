@@ -287,7 +287,7 @@ function Leaf({ anim, mat }: { anim: Anim; mat: { front: THREE.Material; back: T
 
 /** Lavender ribbon bookmark: from the gutter, out past the tail of the book; seen only when open. */
 function Bookmark({ anim }: { anim: Anim }) {
-  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: cssVar("--book-lav", "#C4B5DD"), roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: THREE.DoubleSide }), []);
+  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: cssVar("--book-lav", "#EEBDC7"), roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: THREE.DoubleSide }), []);
   const mesh = useRef<THREE.Mesh>(null);
   useFrame(() => { const o = clamp01((anim.t - 0.9) / 0.1); mat.opacity = o; if (mesh.current) mesh.current.visible = o > 0; });
   useEffect(() => () => mat.dispose(), [mat]);
