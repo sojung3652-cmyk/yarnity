@@ -26,6 +26,10 @@
   .mm-new>span::before{left:6px}.mm-new>span::after{right:6px}
   .mm-new.is-big>span{height:40px;padding:0 22px;font-size:13px}
 
+  /* the My Patterns title in the top bar, where the wordmark was */
+  .mm-head-title{margin:0;line-height:0;justify-self:center}
+  .mm-head-title img{display:block;width:auto;height:34px}
+  .mm .mtb-right{gap:2px}
   /* the title */
   .mm-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:18px 0 0}
   .mm-title h1{margin:0;line-height:0}

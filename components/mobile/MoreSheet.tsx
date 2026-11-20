@@ -21,7 +21,8 @@ export const ICONS: Record<string, ReactNode> = {
 
 export interface MoreItem { key: string; icon: string; label: string; sub?: string; danger?: boolean; confirm?: string; onClick: () => void }
 
-export function MoreSheet({ title, items, onClose }: { title: string; items: MoreItem[]; onClose: () => void }) {
+/** `skip`: common rows to leave out (나의 도안집 does not offer 나의 도안집) */
+export function MoreSheet({ title, items, onClose, skip = [] }: { title: string; items: MoreItem[]; onClose: () => void; skip?: string[] }) {
   const router = useRouter(), newDraft = useNewDraft();
   const [asking, setAsking] = useState<string | null>(null), y0 = useRef<number | null>(null), [drag, setDrag] = useState(0);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [onClose]);
@@ -51,8 +52,8 @@ export function MoreSheet({ title, items, onClose }: { title: string; items: Mor
         onTouchEnd={() => { if (drag > 80) onClose(); setDrag(0); y0.current = null; }}>
         <span className="ms-grip" aria-hidden="true" />
         <p className="ms-title">{title}</p>
-        <div className="ms-group">{common.map(row)}</div>
-        <div className="ms-group">{items.map(row)}</div>
+        <div className="ms-group">{common.filter(c => !skip.includes(c.key)).map(row)}</div>
+        {items.length > 0 && <div className="ms-group">{items.map(row)}</div>}
       </div>
     </div>
   );

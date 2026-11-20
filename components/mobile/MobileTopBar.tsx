@@ -9,7 +9,8 @@ import { FoilLogo } from "@/components/FoilLogo";
 
 const TIP_KEY = "m.logoTip";
 
-export function MobileTopBar({ back, logo = 84, right, tip }: { back: () => void; logo?: number; right?: ReactNode; tip?: boolean }) {
+/** `center`: in place of the gold wordmark (나의 도안집 shows its My Patterns title there) */
+export function MobileTopBar({ back, logo = 84, right, tip, center }: { back: () => void; logo?: number; right?: ReactNode; tip?: boolean; center?: ReactNode }) {
   const book = useBook(), [showTip, setShowTip] = useState(false);
   useEffect(() => {
     if (!tip) return;
@@ -19,10 +20,12 @@ export function MobileTopBar({ back, logo = 84, right, tip }: { back: () => void
   return (
     <header className="mt-bar-top">
       <button type="button" className="mtb-back" aria-label="뒤로" onClick={back}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
-      <button type="button" className="mtb-logo" aria-label="처음으로" style={{ width: logo }} onClick={book.toDesk}>
-        <FoilLogo className="mtb-foil" />
-        {showTip && <span className="mtb-tip" role="status">로고를 누르면 처음으로 가요</span>}
-      </button>
+      {center ?? (
+        <button type="button" className="mtb-logo" aria-label="처음으로" style={{ width: logo }} onClick={book.toDesk}>
+          <FoilLogo className="mtb-foil" />
+          {showTip && <span className="mtb-tip" role="status">로고를 누르면 처음으로 가요</span>}
+        </button>
+      )}
       <div className="mtb-right">{right}</div>
     </header>
   );

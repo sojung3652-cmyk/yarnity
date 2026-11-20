@@ -21,7 +21,8 @@ import { STATUS_KO, statusOf, type Status } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { useNewDraft } from "./useNewDraft";
-import { MobileTopBar, NewButton } from "./MobileTopBar";
+import { MobileTopBar, MoreButton, NewButton } from "./MobileTopBar";
+import { MoreSheet } from "./MoreSheet";
 import "./mine-mobile.css";
 
 type Filter = "all" | Status;
@@ -37,6 +38,7 @@ const Cover = BookCover, Bar = ProgressBar;
 export function MobileMine() {
   const { ready, projects, setActive, updateProject, addProject, removeProjects, restoreProjects } = useApp();
   const router = useRouter(), book = useBook(), newDraft = useNewDraft();
+  const [more, setMore] = useState(false);
   const [q, setQ] = useState(""), [finding, setFinding] = useState(false), [filter, setFilter] = useState<Filter>("all"), [sort, setSort] = useState<Sort>("recent");
   const [open, setOpen] = useState<string | null>(null), [photoFor, setPhotoFor] = useState<string | null>(null);
   const [undo, setUndo] = useState<Removed | null>(null), timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,11 +83,11 @@ export function MobileMine() {
   return (
     <main id="view-mine" className="mm">
       <GoldDefs />
-      <MobileTopBar back={() => router.push("/")} logo={96} right={<NewButton onClick={newDraft} />} />
-      <div className="mm-title">
-        <h1 lang="en"><img src="/pic/my-patterns.png" alt="My Patterns" width={900} height={366} /></h1>
-        <p>나의 도안집 · {projects.length}권</p>
-      </div>
+      {/* the top (Kim): ‹ · the My Patterns title where the wordmark was · + 새 도안 and ··· (처음으로, 새 도안) */}
+      <MobileTopBar back={() => router.push("/")}
+        center={<h1 className="mm-head-title" lang="en"><img src="/pic/my-patterns.png" alt="My Patterns · 나의 도안집" width={900} height={366} /></h1>}
+        right={<><NewButton onClick={newDraft} /><MoreButton onClick={() => setMore(true)} /></>} />
+      {more && <MoreSheet title={`나의 도안집 · ${projects.length}권`} skip={["mine"]} items={[]} onClose={() => setMore(false)} />}
 
       {!ready ? null : !projects.length && !undo ? (
         <section className="mm-empty">
