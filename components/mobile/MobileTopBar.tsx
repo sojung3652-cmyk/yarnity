@@ -1,16 +1,16 @@
 "use client";
 // The phone's top bar on its own screens (나의 도안집, 완성 도안, 따라 뜨기): ‹ goes one screen back (따라 뜨기 ->
-// 완성 도안 -> 나의 도안집 -> the book), the gold wordmark always goes to the book's first page, and the right
+// 완성 도안 -> 나의 도안집 -> the book), the gold wordmark goes to the desk with the book closed (Kim), and the right
 // side is the screen's own (+ 새 도안, or ···). The wordmark explains itself once ("로고를 누르면 처음으로
 // 가요") the first time a screen asks for it (tip), then never again.
-import { useRouter } from "next/navigation";
+import { useBook } from "@/components/Book/BookProvider";
 import { useEffect, useState, type ReactNode } from "react";
 import { FoilLogo } from "@/components/FoilLogo";
 
 const TIP_KEY = "m.logoTip";
 
 export function MobileTopBar({ back, logo = 84, right, tip }: { back: () => void; logo?: number; right?: ReactNode; tip?: boolean }) {
-  const router = useRouter(), [showTip, setShowTip] = useState(false);
+  const book = useBook(), [showTip, setShowTip] = useState(false);
   useEffect(() => {
     if (!tip) return;
     try { if (localStorage.getItem(TIP_KEY)) return; localStorage.setItem(TIP_KEY, "1"); } catch { return; }
@@ -19,7 +19,7 @@ export function MobileTopBar({ back, logo = 84, right, tip }: { back: () => void
   return (
     <header className="mt-bar-top">
       <button type="button" className="mtb-back" aria-label="뒤로" onClick={back}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
-      <button type="button" className="mtb-logo" aria-label="처음으로" style={{ width: logo }} onClick={() => router.push("/")}>
+      <button type="button" className="mtb-logo" aria-label="처음으로" style={{ width: logo }} onClick={book.toDesk}>
         <FoilLogo className="mtb-foil" />
         {showTip && <span className="mtb-tip" role="status">로고를 누르면 처음으로 가요</span>}
       </button>

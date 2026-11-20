@@ -51,6 +51,8 @@ interface BookCtx {
   /** leave 도안 만들기 for another address (the phone's buttons on the desk); a pattern half made asks first,
    *  as closing does */
   leaveTo: (path: string) => void;
+  /** phones: to / with the book closed on the desk (the top bar's logo; Kim) */
+  toDesk: () => void;
 }
 
 const Ctx = createContext<BookCtx | null>(null);
@@ -168,12 +170,19 @@ export function BookProvider({ children }: { children: ReactNode }) {
     const to = leaving; setLeaving(null);
     if (to === "close") doClose(); else if (to && typeof to === "object") { setInstant(false); router.push(to.path, { scroll: false }); } else doHome();
   };
-  const startWizard = useCallback((step?: WizStep) => { setInstant(false); router.push(`/new?step=${step ?? savedStep()}`, { scroll: false }); }, [router]);
+  // started from a screen outside the book (the phone's 새 도안 on 나의 도안집, 완성 도안, 따라 뜨기): closing the
+  // book goes back there, not to the first screen (Kim). From the book's own menu (/) nothing is remembered.
+  const startWizard = useCallback((step?: WizStep) => {
+    setInstant(false);
+    if (path !== "/" && path !== "/new") setOrigin(path + location.search);
+    router.push(`/new?step=${step ?? savedStep()}`, { scroll: false });
+  }, [router, path]);
   const goStep = useCallback((s: WizStep) => {
     const sp = new URLSearchParams(location.search); sp.set("step", String(s));
     router.push(`/new?${sp}`, { scroll: false });
   }, [router]);
   const toHome = useCallback(() => { if (asks()) setLeaving("home"); else doHome(); }, [asks, doHome]);
+  const toDesk = useCallback(() => { setClosing(true); router.push("/", { scroll: false }); }, [router]);
   const leaveTo = useCallback((to: string) => { if (asks()) setLeaving({ path: to }); else { setInstant(false); router.push(to, { scroll: false }); } }, [asks, router]);
 
   // Esc closes the book, from the menu or the wizard alike (one book; Kim's call), never while a Korean
@@ -186,8 +195,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [view, close, leaving]);
 
-  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo }),
-    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo]);
+  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk }),
+    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk]);
   return (
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>

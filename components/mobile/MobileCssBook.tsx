@@ -10,7 +10,7 @@
 //   states: closed (small, on the desk) -> zoomed (1.2s) -> open (tilt 26° -> 5°, the cover turns -180°, 1.5s)
 //   page turns (1.15s): forward, the page as it was is copied onto the sheet's front and the sheet turns left;
 //   back, the sheet comes back from the left carrying the new page, over a copy of the old one.
-// One tap on the closed book brings it closer and opens it (the zoom, then the cover).
+// One tap on the closed book lifts it off the desk to the screen in one motion, the cover opening on the way.
 // Sizes: the open right page keeps the place the 3D book had (36px of the left page showing, 14px right, 40px
 // top, 90px for the desk buttons); the closed book is 62% of the width at 46% of the height. Recomputed on a
 // width change at once, on a height change after 250ms (the address bar), never while the keyboard is up.
@@ -118,11 +118,9 @@ export function MobileCssBook() {
   useEffect(() => { if (!anim) return; const t = setTimeout(() => setAnim(false), OPEN_MS + 100); return () => clearTimeout(t); }, [anim, phase]);
 
   // one tap: closer (1.2s), then the cover opens
-  const tap = () => {
-    if (open || zooming) return;
-    if (reduced()) { b.open(); return; }
-    setZooming(true);
-  };
+  // Kim: one continuous lift - the book rises off the desk and comes to the screen while its cover opens
+  // (mobile-css-book.css "lift"), no stop at the zoomed pose
+  const tap = () => { if (!open) b.open(); };
   useEffect(() => { if (!zooming) return; const t = setTimeout(() => { b.open(); setZooming(false); }, ZOOM_MS); return () => clearTimeout(t); }, [zooming, b]);
   useEffect(() => { if (!open) setZooming(false); }, [open]);
 

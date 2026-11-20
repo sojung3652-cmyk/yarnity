@@ -2,7 +2,7 @@
    layers, numbers and timings. The demo's 300 x 505 book is given here in % of the book (or px where the demo
    gives fixed px); its size and place come from MobileCssBook's layout() as --mcb-* variables. Phones only. */
 @media (max-width:767.98px){
-  .mcb{--ease-book:cubic-bezier(.45,.05,.2,1);--ease-zoom:cubic-bezier(.22,.7,.2,1);--ease-leaf:cubic-bezier(.45,.05,.25,1);
+  .mcb{--ease-lift:cubic-bezier(.22,.8,.3,1);--ease-book:cubic-bezier(.45,.05,.2,1);--ease-zoom:cubic-bezier(.22,.7,.2,1);--ease-leaf:cubic-bezier(.45,.05,.25,1);
     position:absolute;inset:0;z-index:2;pointer-events:none}
   .mcb-abs{position:absolute}
 
@@ -98,6 +98,16 @@
   .m-stage[data-book="zoomed"] .m-desk-bg{transform:scale(var(--mcb-dz,1.3))}
   .m-stage[data-book="open"] .m-desk-bg{transform:scale(var(--mcb-do,1.4));transition:transform 1.6s cubic-bezier(.45,.05,.2,1)}
   .m-stage[data-book="zoomed"] .m-tap{opacity:0;transition:opacity .3s ease}
+
+  /* opening (Kim: "책째로 떠오름"): one 1.4s motion that eases out softly - the book lifts off the desk (its
+     shadow spreads, then settles) and comes to the screen; the cover opens from 0.25s; the page shows last */
+  .mcb.is-open .mcb-book{transition:transform 1.4s var(--ease-lift),height 1.4s var(--ease-lift)}
+  .mcb.is-open .mcb-tilt{transition:transform 1.4s var(--ease-lift)}
+  .mcb.is-open .mcb-cover{transition:transform 1.1s cubic-bezier(.4,.1,.25,1) .25s}
+  .mcb.is-open .mcb-content,.mcb.is-open .mcb-aibox,.mcb.is-open .mcb-ribbon{transition:opacity .45s ease 1s}
+  .mcb.is-open .mcb-shadow-l{transition:opacity .6s ease .8s}
+  .mcb.is-open:not(.is-instant) .mcb-shadow-r{animation:mcb-lift 1.4s var(--ease-lift)}
+  .m-stage[data-book="open"] .m-desk-bg{transition:transform 1.4s var(--ease-lift,cubic-bezier(.22,.8,.3,1))}
   .m-stage[data-book] .m-tap{top:var(--mcb-tapy)}
 
   /* while something moves only */
@@ -112,6 +122,12 @@
   .m-stage.is-sink .mcb{animation:m-book-sink .4s cubic-bezier(.5,0,.75,0) forwards}
 }
 @keyframes mcb-fade{from{opacity:0}}
+/* the book held up off the desk for a moment: the shadow falls further and softer, then settles */
+@keyframes mcb-lift{
+  0%{box-shadow:0 0 2px 1px rgba(60,40,28,.55),-6px 7px 8px 0 rgba(70,48,34,.38),-22px 24px 30px 2px rgba(90,62,44,.30)}
+  40%{box-shadow:0 0 6px 2px rgba(60,40,28,.30),-18px 22px 24px 0 rgba(70,48,34,.30),-46px 52px 60px 6px rgba(90,62,44,.24)}
+  100%{box-shadow:0 0 2px 1px rgba(60,40,28,.55),-6px 7px 8px 0 rgba(70,48,34,.38),-22px 24px 30px 2px rgba(90,62,44,.30)}
+}
 @media (max-width:767.98px) and (prefers-reduced-motion:reduce){
   /* no turning: the states change at once, the page fades in (0.2s) */
   .mcb-book,.mcb-tilt,.mcb-cover,.mcb-sheet,.m-stage .m-desk-bg{transition:none!important}
