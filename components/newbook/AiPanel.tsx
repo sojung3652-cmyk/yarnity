@@ -119,7 +119,13 @@ export function AiPanel({ draft, step, onApply }: { draft: Draft; step: number; 
   const [menu, setMenu] = useState<null | "main" | "rename" | "link">(null), [ask, setAsk] = useState<string | null>(null), [name, setName] = useState("");
   const [slid, setSlid] = useState<string | null>(null), [rowMenu, setRowMenu] = useState<string | null>(null);
   const msgsRef = useRef<HTMLDivElement>(null), inputRef = useRef<HTMLTextAreaElement>(null), wasOpen = useRef(false);
-  const setOpen = (o: boolean) => setChat(c => ({ ...c, open: o }));
+  const setOpen = (o: boolean) => {
+    if (o || !phone) { setChat(c => ({ ...c, open: o })); return; }
+    // phones: the sheet goes back down first (0.22s), then it is gone
+    setSinking(true); setTimeout(() => { setSinking(false); setDrag(0); setChat(c => ({ ...c, open: false })); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220);
+  };
+  // phones: the sheet is pulled down by its top (the handle or the bar) and put away past 110px
+  const [drag, setDrag] = useState(0), [sinking, setSinking] = useState(false), y0 = useRef<number | null>(null);
   const go = (id: string | null) => { setMenu(null); setChat(c => ({ ...c, conv: id })); };
   const offChat = () => setChat(c => ({ ...c, off: true, checked: true }));
 
@@ -375,9 +381,14 @@ export function AiPanel({ draft, step, onApply }: { draft: Draft; step: number; 
   if (!open) return null;
   const phoneScreen: ReactNode = convId === null ? (counts.live || counts.arch ? list : chatPane) : chatPane;
   return (
-    <div className={"aic-root" + (phone ? " is-phone" : " is-wide") + (sheet ? " is-sheet" : "")}>
+    <div className={"aic-root" + (phone ? " is-phone" : " is-wide") + (sheet ? " is-sheet" : "") + (sinking ? " is-sinking" : "")}>
       <div className="aic-dim aic-back" onClick={() => setOpen(false)} />
-      <div className="aic-panel" role="dialog" aria-modal="true" aria-label="AI와 상의">
+      <div className="aic-panel" role="dialog" aria-modal="true" aria-label="AI와 상의"
+        style={phone && drag ? { transform: `translateY(${drag}px)`, transition: "none" } : undefined}
+        onTouchStart={phone ? e => { const top = e.currentTarget.getBoundingClientRect().top; y0.current = e.touches[0].clientY - top < 64 ? e.touches[0].clientY : null; } : undefined}
+        onTouchMove={phone ? e => { if (y0.current != null) setDrag(Math.max(0, e.touches[0].clientY - y0.current)); } : undefined}
+        onTouchEnd={phone ? () => { if (y0.current != null && drag > 110) setOpen(false); else setDrag(0); y0.current = null; } : undefined}>
+        {phone && <span className="aic-handle" aria-hidden="true" />}
         {phone ? phoneScreen : (
           <>
             {list}

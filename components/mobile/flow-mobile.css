@@ -201,7 +201,7 @@
   /* colours: yellow / cream / pink patches */
   body .mf-label.is-yellow,body .mtb-new,body .mm-new,body .mst-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
   body .mf-label.is-pink,body .mm-label.is-rose{--patch:url(/mobile/diary/patch_blue.webp)}
-  body .mm-label.is-lavender{--patch:url(/mobile/diary/patch_pink.webp)}
+  body .mm-label.is-lavender{--patch:url(/mobile/diary/patch_babypink.webp)}
   /* edge widths: the small ones thinner; the padding gives back what the edge takes */
   body .mtb-new>span,body .mm-new>span{--pw:9px;padding:0 10px}
   body .mm-new.is-big>span{--pw:10px;padding:0 14px}

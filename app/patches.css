@@ -1,7 +1,7 @@
 /* Every cloth label on the web is a real patch (Kim): the patch images of the phone's home
    (public/mobile/diary: frayed edge, running stitches, the cloth itself; border-image with fill, the middle
    repeated, never stretched). No painted weave, no drawn dashed stitches. Yellow, pink and cream as before;
-   lavender (patch_pink.webp) is the cream patch tinted to the book's lavender; 새 도안 만들기 (apricot) is cream.
+   lavender (patch_babypink.webp) is the cream patch tinted to the book's lavender; 새 도안 만들기 (apricot) is cream.
    The same patch as components/diary ClothPatch, kept here for the labels whose markup the book's pages share.
    Ribbons, cards and tags keep their own look. */
 html body .nav-label>span,html body .bk-new>span,html body .bk-label>span,html body .ps-label>span,html body .cloth-face,html body .pg-actions .pg-link,html body .tp-label{
@@ -14,7 +14,7 @@ html body .nav-label>span::before,html body .nav-label>span::after,html body .bk
 html body .nav-label,html body .bk-new,html body .pg-link.pg-link-lav{--patch:url(/mobile/diary/patch_yellow.webp)}
 html body .nav-label+.nav-label,html body .bk-label.is-rose,html body .pg-link.pg-link-rose{--patch:url(/mobile/diary/patch_blue.webp)}
 html body .pg-link.pg-link-apricot{--patch:url(/mobile/diary/patch_cream.webp)}
-html body .ps-label-go,html body .pg-link.pg-link-lilac{--patch:url(/mobile/diary/patch_pink.webp)}
+html body .ps-label-go,html body .pg-link.pg-link-lilac{--patch:url(/mobile/diary/patch_babypink.webp)}
 html body .ps-label-go>span{background:none}
 
 /* edge widths: the patch edge takes the old padding's place, so the words keep their room */
