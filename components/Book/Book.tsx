@@ -27,7 +27,7 @@ function noteFail(e: unknown) {
 function Why() {
   let saved = "(기록 없음)", gl = "?";
   try { saved = localStorage.getItem(FAIL_KEY) ?? saved; } catch {}
-  try { const c = document.createElement("canvas"); gl = c.getContext("webgl2") ? "webgl2" : c.getContext("webgl") ? "webgl1" : "none"; } catch (e) { gl = String(e); }
+  try { const c = document.createElement("canvas"), g2 = c.getContext("webgl2"), g = g2 || c.getContext("webgl"); gl = g2 ? "webgl2" : g ? "webgl1" : "none"; g?.getExtension("WEBGL_lose_context")?.loseContext(); } catch (e) { gl = String(e); }
   return <pre style={{ position: "fixed", inset: "auto 8px 90px", zIndex: 99999, background: "#fff", color: "#222", font: "11px/1.4 monospace", padding: 10, whiteSpace: "pre-wrap", wordBreak: "break-all", border: "1px solid #999", borderRadius: 6 }}>{`${gl}\n${navigator.userAgent}\n\n${saved}`}</pre>;
 }
 

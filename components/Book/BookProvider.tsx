@@ -56,7 +56,8 @@ interface BookCtx {
 const Ctx = createContext<BookCtx | null>(null);
 
 function hasWebGL() {
-  try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; }
+  // the test context is handed back at once: phones allow few live contexts and little GPU memory
+  try { const c = document.createElement("canvas"), g = c.getContext("webgl2") || c.getContext("webgl"); g?.getExtension("WEBGL_lose_context")?.loseContext(); return !!g; } catch { return false; }
 }
 const savedStep = (): WizStep => { const s = store.get<number>(STEP_KEY, 1); return (s >= 1 && s <= 4 ? s : 1) as WizStep; };
 const parseStep = (v: string | null): WizStep | null => { const n = Number(v); return n >= 1 && n <= 4 && Number.isInteger(n) ? (n as WizStep) : null; };

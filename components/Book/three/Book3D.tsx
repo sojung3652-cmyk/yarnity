@@ -724,7 +724,8 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
   return (
     <div className={"book3d" + (ready ? " ready" : "") + (open || page ? " is-open" : "")} id="book">
       <Canvas
-        dpr={[1, 2]}
+        // phones: a little under 2x, so a phone's GPU is less likely to take the context back (see onCreated)
+        dpr={phone ? [1, 1.6] : [1, 2]}
         // open (menu or wizard: it is one book): a click on the empty desk around the book closes it. R3F calls
         // this when a click hits none of the objects with handlers (the book's meshes have one; the page
         // content is DOM above the canvas). The wizard's draft is saved on every change, so nothing is lost.
@@ -733,9 +734,15 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance", logarithmicDepthBuffer: true }}
-        onCreated={({ gl }) => {
+        onCreated={({ gl, invalidate }) => {
           gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.12; // outputColorSpace stays sRGB (default); exposure set so the lit cloth reads close to its hex (--book-lav)
-          gl.domElement.addEventListener("webglcontextlost", e => { e.preventDefault(); onFail(); });
+          // A lost context is often given back: Android WebViews (KakaoTalk on a Pixel, 2026-11) take it while
+          // the page loads and return it. three.js re-uploads everything on restore, so wait for that and
+          // redraw; only a context still gone after 3s drops to the CSS book. Do not "simplify" back to an
+          // immediate onFail: that left those phones on the flat CSS book for good.
+          let lost: ReturnType<typeof setTimeout> | undefined;
+          gl.domElement.addEventListener("webglcontextlost", e => { e.preventDefault(); clearTimeout(lost); lost = setTimeout(onFail, 3000); });
+          gl.domElement.addEventListener("webglcontextrestored", () => { clearTimeout(lost); invalidate(); });
           requestAnimationFrame(() => setReady(true));
         }}
       >
