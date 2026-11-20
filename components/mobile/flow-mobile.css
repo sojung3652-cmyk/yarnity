@@ -1,0 +1,179 @@
+/* Phones (767px and narrower): the app flow without the book (Kim's spec) - the splash (MobileSplash), the home
+   (MobileHomeScreen) and 도안 만들기 (MobileFlowWizard). The same rules as 완성 도안 and 나의 도안집: the pink
+   page lit from the upper right, 26px sides, shadows to the lower left, type never under 11px, touch areas
+   44 x 44, fields 16px and up. The wizard's steps are the web's own pages; only their layout and type change
+   here (prefixed with body to win over newbook.css). */
+@media (max-width:767.98px){
+  body:has(.mf){background:radial-gradient(130% 70% at 100% 0%,#FBF4F1 0%,#F7EDEB 55%,#F3E6E3 100%) fixed #F7EDEB}
+  body:has(.mf) .m-nav{display:none}
+  body:has(.mf) .wrap{padding-bottom:0}
+  .mf{box-sizing:border-box;margin:0 -20px;padding:calc(env(safe-area-inset-top,0px) + 10px) 26px calc(env(safe-area-inset-bottom,0px) + 30px);min-height:100dvh;
+    font-family:"Noto Sans KR",system-ui,sans-serif;color:#3B302B;word-break:keep-all;overflow-wrap:anywhere}
+  .mf button{font:inherit;color:inherit}
+  .mf .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  /* the splash: over everything until its logo is tapped */
+  .mf-splash{position:fixed;inset:0;z-index:120}
+
+  /* ---- the cloth labels: linen weave, dashed stitches at both ends (yellow / pink / cream) ---- */
+  .mf-label{display:flex;width:100%;min-height:44px;padding:0;border:0;background:none;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .mf-label-in{position:relative;flex:1;display:flex;align-items:center;gap:10px;box-sizing:border-box;min-height:44px;padding:12px 22px;border-radius:2px;
+    background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lbl,#F7F1E6);
+    box-shadow:0 1px 2px rgba(110,90,50,.25),-4px 5px 10px -5px rgba(70,48,34,.38)}
+  .mf-label-in::before,.mf-label-in::after{content:"";position:absolute;top:7px;bottom:7px;border-left:1.5px dashed var(--st,#C9B9A2)}
+  .mf-label-in::before{left:7px}.mf-label-in::after{right:7px}
+  .mf-label.is-yellow{--lbl:#F4EBC0;--st:#CDB46F}
+  .mf-label.is-pink{--lbl:#F3E0DF;--st:#D2A7A6}
+  .mf-label.is-cream{--lbl:#F7F1E6;--st:#C4B5DD}
+  .mf-label:active .mf-label-in{filter:brightness(.97)}
+  .mf-label[aria-disabled="true"]{opacity:.5;cursor:default}
+  .mf-label b{font-weight:700}
+
+  /* ---- ② home ---- */
+  .mfh-brand{display:flex;flex-direction:column;align-items:center;padding-top:6px}
+  .mfh-logo{width:120px;margin:0;line-height:0}
+  .mfh-foil{display:block;width:120px;height:55px;overflow:visible}
+  .mfh-cap{margin:8px 0 0;padding-left:.34em;font:600 9.5px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.34em;text-transform:uppercase;color:#8A7258}
+  .mfh-banner{position:relative;height:168px;margin-top:22px;border-radius:12px;overflow:hidden;box-shadow:-6px 8px 16px -10px rgba(70,48,34,.5)}
+  .mfh-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 38%}
+  .mfh-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(251,246,239,.92) 0%,rgba(251,246,239,.75) 46%,rgba(251,246,239,0) 72%)}
+  .mfh-banner-text{position:absolute;left:20px;top:50%;z-index:1;transform:translateY(-50%)}
+  .mfh-kick{margin:0;font:italic 500 15px/1.2 var(--font-cormorant),"Cormorant Garamond",serif;color:#7A6550}
+  .mfh-ask{margin:8px 0 0;font:700 18px/1.45 "Noto Serif KR",serif;color:#2F2622}
+  .mfh-make{margin-top:18px}
+  .mfh-make .mf-label-in{padding:18px 24px 18px 26px}
+  .mfh-make-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .mfh-make-text b{font:700 16px/1.35 "Noto Serif KR",serif}
+  .mfh-make-text small{font-size:12.5px;line-height:1.45;color:#6B5D55}
+  .mfh-go{flex:none;font:italic 500 15px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#5A4A3E;white-space:nowrap}
+  .mfh-resume{display:flex;align-items:center;gap:14px;width:100%;min-height:44px;margin-top:14px;padding:12px 10px 12px 12px;box-sizing:border-box;border:0;border-radius:10px;
+    background:rgba(251,246,239,.72);box-shadow:-4px 5px 12px -8px rgba(70,48,34,.45);text-align:left;cursor:pointer}
+  .mfh-resume .mm-cover{flex:none}
+  /* at 46px the cover keeps only its gold drawing (the tag and plate are for the shelf's bigger books) */
+  .mfh-resume .mm-tag,.mfh-resume .mm-plate{display:none}
+  .mfh-resume-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .mfh-resume-text small{font-size:11.5px;color:#7A6C64}
+  .mfh-resume-text b{font:700 15px/1.35 "Noto Serif KR",serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mfh-where{font-size:12.5px;color:#6B5D55}
+  .mfh-resume .mm-bar{margin-top:4px}
+  .mfh-chev{flex:none;width:24px;text-align:center;font-size:22px;color:#8C7B72}
+  .mfh-foot{display:grid;grid-template-columns:1fr 1.2fr;gap:12px;margin-top:14px}
+  .mfh-foot .mf-label-in{min-height:64px;padding:12px 16px;gap:8px}
+  .mfh-two b,.mfh-two small{white-space:nowrap}
+  .mfh-two{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .mfh-two b{font:700 14px/1.35 "Noto Serif KR",serif}
+  .mfh-two small{font-size:11.5px;line-height:1.4;color:#6B5D55}
+  .mfh-ai .mf-label-in{gap:10px}
+  .mfh-ai-badge{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;
+    font:700 11px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#5A4416;background:linear-gradient(160deg,#F0DDA8 0%,#C9A55A 40%,#EBD6A0 62%,#9C7834 100%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),-1px 2px 3px rgba(70,48,34,.35)}
+
+  /* ---- ③-⑨ 도안 만들기: the frame ---- */
+  .mfw{display:flex;flex-direction:column;height:100dvh;min-height:0;padding-bottom:0;overflow:hidden}
+  .mfw-bar{flex:none;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;height:44px;margin:0 -12px}
+  .mfw-icon{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;background:none;cursor:pointer;color:#3B302B}
+  .mfw-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .mfw-where{margin:0;text-align:center;font-size:13.5px;color:#7A6C64}
+  .mfw-where b{color:#2F2622;font-weight:700}
+  .mfw-prog{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:6px 0 0;padding:0;list-style:none}
+  .mfw-prog li{height:3px;border-radius:2px;background:#E6DAEE}
+  .mfw-prog li.on{background:#9F8CC9}
+  .mfw-form{flex:1;min-height:0;display:flex;flex-direction:column;margin:0 -26px}
+  .mfw-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:0 26px 24px;-webkit-overflow-scrolling:touch}
+  .mfw-screen{animation:mfw-in .3s cubic-bezier(.22,.61,.36,1) both}
+  .mfw-screen.is-back{animation-name:mfw-in-back}
+  .mfw-q{margin:30px 0 0;font:700 21px/1.45 "Noto Serif KR",serif;color:#2F2622;letter-spacing:-.01em}
+  .mfw-sub{margin:8px 0 0;font-size:13.5px;line-height:1.6;color:#5E5048}
+  /* the fixed foot: one full-width yellow label, the page fading out above it */
+  .mfw-foot{flex:none;padding:18px 26px calc(env(safe-area-inset-bottom,0px) + 30px);margin-top:-18px;position:relative;z-index:2;
+    background:linear-gradient(to bottom,rgba(247,237,235,0),#F7EDEB 18px)}
+  .mfw-next .mf-label-in{justify-content:center;padding:14px 22px;font:600 15px/1.4 "Noto Serif KR",serif;text-align:center}
+  /* ⑨ the dark ribbon: gold words, notched ends */
+  .mfw-final{display:flex;width:100%;min-height:44px;padding:0;border:0;background:none;cursor:pointer;filter:drop-shadow(-3px 4px 5px rgba(50,34,28,.35))}
+  .mfw-final-face{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 26px;background:#4A3830;color:#E9D49C;
+    font:600 15px/1.35 "Noto Serif KR",serif;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%,12px 50%)}
+  .mfw-final-face small{font-size:11px;letter-spacing:.06em;color:#C9B07A}
+  .mfw-final[aria-disabled="true"]{opacity:.5}
+
+  /* ---- the web's pages inside: their own headings, bars and buttons are the frame's here ---- */
+  body .mfw .nb-page{display:block;min-width:0;padding:0;border-radius:0;background:none;box-shadow:none;color:#3B302B}
+  body .mfw .nb-progress,body .mfw .nb-foot,body .mfw .nb-ribbon,body .mfw .tp-progress,body .mfw .tp-ask,body .mfw #nbTitle,body .mfw .nb-marker{display:none}
+  body .mfw .nb-turn{animation:none!important}
+  body .mfw .ask-line{display:inline-flex;align-items:center;min-height:44px;margin:4px 0 0;font-size:13px}
+  body .mfw .ask-text{font-size:13px;text-decoration:underline dotted;text-underline-offset:4px}
+  body .mfw .nb-sec{margin:28px 0 0}
+  body .mfw .nb-sec-title{margin:0 0 16px;padding-bottom:6px;font:700 15px/1.4 "Noto Serif KR",serif;color:#2F2622;border-bottom:1px solid #E2D6CB}
+  body .mfw .nb-lbl,body .mfw .nb-field>label{display:block;margin:0 0 10px;padding-left:8px;border-left:2px solid #B7A6DA;font:600 14px/1.4 "Noto Serif KR",serif;color:#3B302B}
+  body .mfw .nb-field{margin:0 0 28px}
+  body .mfw .nb-input,body .mfw .nb-input-sm,body .mfw select{font-size:17px;height:44px;border:0;border-bottom:1px solid #CDBFB4;border-radius:0;background:transparent}
+  body .mfw textarea{font-size:16px}
+  body .mfw .nb-help,body .mfw .nb-hint,body .mfw .nb-none,body .mfw small{font-size:12.5px;line-height:1.6;color:#6B5D55}
+  body .mfw .nb-err,body .mfw .nb-warn{font-size:12.5px;line-height:1.6}
+  body .mfw .nb-link{display:inline-flex;align-items:center;min-height:44px;font-size:13px}
+  body .mfw .nb-unit,body .mfw .nb-mm{font-size:13.5px}
+  /* chips: round pills; picked = dark */
+  body .mfw .nb-chips{gap:8px}
+  body .mfw .nb-chip{min-height:44px;padding:0 16px;border-radius:22px;font-size:14px}
+  body .mfw .nb-chip[aria-checked="true"]{background:#6E5A54;border-color:#6E5A54;color:#fff}
+  /* the groups (accordion): 54px rows; open: three columns of 84px tiles */
+  body .mfw .nb-fold-row{min-height:54px}
+  body .mfw .nb-fold-label{font:600 15px/1.4 "Noto Serif KR",serif;color:#3B302B}
+  body .mfw .nb-fold-value{font-size:13.5px;color:#6B5D55}
+  body .mfw .nb-items{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  body .mfw .nb-item{height:84px;box-sizing:border-box;justify-content:center;gap:6px;padding:8px 4px;border-radius:12px;font-size:13.5px;line-height:1.25}
+  body .mfw .nb-item .nb-art{width:34px;height:34px;flex:none}
+  body .mfw .nb-item>span{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body .mfw .nb-item[aria-checked="true"]{border-color:#6E5A54;box-shadow:inset 0 0 0 1px #6E5A54}
+  body .mfw button,body .mfw [role="radio"]{min-height:44px}
+
+  /* ③ the name: the HANDMADE label, 34 under the question */
+  body .mfw .tp{min-height:0}
+  body .mfw .tp-name{gap:14px;margin:34px 0 0}
+  body .mfw .tp-label{padding:22px 28px 18px}
+  body .mfw .tp-label-top{font-size:11px;letter-spacing:.3em}
+  body .mfw .tp-input{font-size:24px!important}
+  body .mfw .tp-label-bottom{font-size:14px}
+  /* ⑥ 3-1 the yarn only (its section title is the question); ⑦ 3-2 the hook, then shape and size */
+  body .mfw-s3-0 section[aria-labelledby="secHook"],body .mfw-s3-0 #secYarn{display:none}
+  body .mfw-s3-0 section[aria-labelledby="secYarn"]{margin-top:12px}
+  body .mfw-s3-1 .nb-left .nb-turn>.ask-line,body .mfw-s3-1 section[aria-labelledby="secYarn"]{display:none}
+  body .mfw-s3-1 section[aria-labelledby="secHook"]{margin-top:24px}
+  /* ⑧ supplies: the yarn amount big; ⑨ the drawing 190px */
+  body .mfw .nb-sup-use-num b{font-size:28px;line-height:1.15}
+  body .mfw .nb-counts b{font-size:19px;line-height:1.35}
+  body .mfw .nb-preview h3{display:none}
+  body .mfw .nb-drawing{display:flex;justify-content:center;margin-top:20px}
+  body .mfw .nb-drawing svg{width:auto;max-width:100%;height:190px}
+
+  /* ⑤ the item's intro: a sheet from the bottom */
+  .mfw-dim{position:fixed;inset:0;z-index:85;display:flex;align-items:flex-end;background:rgba(60,42,34,.3);animation:ms-dim .2s ease}
+  .mfw-sheet{width:100%;box-sizing:border-box;max-height:88dvh;overflow-y:auto;padding:10px 22px calc(env(safe-area-inset-bottom,0px) + 18px);border-radius:18px 18px 0 0;background:#FBF6EF;
+    box-shadow:0 -6px 24px rgba(60,42,34,.18);animation:ms-up .28s cubic-bezier(.22,.61,.36,1);font-family:"Noto Sans KR",sans-serif;color:#3B302B}
+  .mfw-grip{display:block;width:40px;height:4px;margin:0 auto 16px;border-radius:2px;background:#DCCFC6}
+  .mfw-intro{display:flex;gap:18px;align-items:flex-start}
+  .mfw-tag{position:relative;flex:none;display:grid;place-items:center;width:110px;height:130px;border-radius:6px 6px 10px 10px;transform:rotate(-2deg);
+    background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),#F7F1E6;box-shadow:-4px 6px 12px -6px rgba(70,48,34,.45)}
+  .mfw-tag-hole{position:absolute;left:50%;top:9px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:#EADFD3;box-shadow:inset 0 1px 1px rgba(70,48,34,.3)}
+  .mfw-tag .nb-art{width:66px;height:66px;margin-top:10px}
+  .mfw-intro-text{flex:1;min-width:0}
+  .mfw-group{margin:4px 0 0;font-size:12.5px;color:#8C78B8}
+  .mfw-intro-text h2{margin:4px 0 0;font:700 22px/1.35 "Noto Serif KR",serif;color:#2F2622}
+  .mfw-intro-text p:last-child{margin:8px 0 0;font-size:14px;line-height:1.6;color:#4F423B}
+  .mfw-facts{display:grid;grid-template-columns:repeat(3,1fr);margin:20px 0 0;border-top:1px solid #E6DCCF;border-bottom:1px solid #E6DCCF}
+  .mfw-facts>div{padding:12px 8px;border-left:1px solid #E6DCCF}
+  .mfw-facts>div:first-child{border-left:0;padding-left:0}
+  .mfw-facts dt{font-size:11.5px;color:#7A6C64}
+  .mfw-facts dd{margin:4px 0 0;font-size:13px;line-height:1.45}
+  .mfw-dots{display:inline-flex;gap:3px;margin-right:6px;vertical-align:middle}
+  .mfw-dots i{width:7px;height:7px;border-radius:50%;border:1px solid #6E5A54}
+  .mfw-dots i.on{background:#6E5A54}
+  .mfw-note{margin:12px 0 0;font-size:12.5px;line-height:1.6;color:#6B5D55}
+  .mfw-sheet .mfw-next{margin-top:20px}
+  .mfw-other{display:block;width:100%;min-height:44px;margin-top:6px;border:0;background:none;font-size:13.5px;color:#6B5D55;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+}
+@keyframes mfw-in{from{opacity:0;transform:translateX(28px)}}
+@keyframes mfw-in-back{from{opacity:0;transform:translateX(-28px)}}
+@media (max-width:767.98px) and (prefers-reduced-motion:reduce){
+  .mfw-screen,.mfw-screen.is-back{animation:mfw-fade .2s ease both}
+}
+@keyframes mfw-fade{from{opacity:0}}
