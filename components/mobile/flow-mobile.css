@@ -30,13 +30,17 @@
   .mf-label b{font-weight:700}
 
   /* ---- ② home, "Girl's Diary" (MobileHomeScreen) ---- */
-  .mfh-brand{display:flex;flex-direction:column;align-items:center;padding-top:4px}
-  .mfh-logo{width:110px;margin:0;line-height:0}
-  .mfh-foil{display:block;width:110px;height:50px;overflow:visible}
+  /* the four gaps are the same (Kim): screen top -> logo, logo -> lace, lace -> labels, labels -> screen foot */
+  .mfh{display:flex;flex-direction:column;justify-content:space-evenly;min-height:100dvh;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .mfh-brand{display:flex;flex-direction:column;align-items:center}
+  .mfh-logo{width:140px;margin:0;line-height:0}
+  .mfh-foil{display:block;width:140px;height:64px;overflow:visible}
   .mfh-cap{margin:7px 0 0;padding-left:.34em;font:600 9.5px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.34em;text-transform:uppercase;color:#8A7258}
   /* the lace oval: the picture under the lace's inner edge; only a picture (no shadow, no words, no tap) */
-  /* air between the logo, the lace and the buttons (Kim): more on tall phones, less on short ones */
-  .mfh-lace{position:relative;width:214px;height:285px;margin:clamp(14px,2.6dvh,26px) auto 0;pointer-events:none;cursor:default}
+  /* the lace as big as the screen allows: what is left after the logo, the labels and four even gaps
+     (--mfh-rest: more labels when a work is on the hook), between 230 and 380px tall */
+  .mfh-lace{position:relative;flex:none;height:clamp(230px,calc(100dvh - var(--mfh-rest,400px)),380px);aspect-ratio:214 / 285;width:auto;margin:0 auto;pointer-events:none;cursor:default}
+  .mfh.has-resume{--mfh-rest:500px}
   .mfh-lace-pic{position:absolute;left:12%;top:16.4%;width:76%;height:68.4%;border-radius:50%;object-fit:cover;object-position:60% 38%;transform:scale(1.12)}
   .mfh-lace-frame{position:absolute;inset:0;width:100%;height:100%}
 
@@ -52,7 +56,8 @@
   .mf-patch.is-pink{--patch:url(/mobile/diary/patch_pink.webp)}
   .mf-patch>*{position:relative}
 
-  .mfh-make{margin-top:clamp(18px,3dvh,30px)}
+  .mfh-actions{display:flex;flex-direction:column}
+  .mfh-make{margin-top:0}
   .mfh-make-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
   .mfh-make-text b{font:600 16px/1.35 "Noto Serif KR",serif}
   .mfh-make-text small{font-size:12.5px;line-height:1.45;color:#5E5048}

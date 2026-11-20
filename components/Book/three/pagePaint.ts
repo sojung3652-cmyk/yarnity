@@ -100,8 +100,31 @@ export async function paintPage(src: HTMLElement, box: PaintBox, side: "left" | 
           ctx.fill();
         }));
       }
+      // a border-image (the cloth patch labels, app/patches.css): the image in nine slices, as the browser draws
+      // it (no shadow: drawn per slice it would leave seams) - and no line borders: their computed colour drew a
+      // black frame around every patch on the turning leaf (Kim, 2026-11)
+      const bis = cs.borderImageSource;
+      if (bis && bis !== "none") {
+        const url = bis.match(/url\(["']?([^"')]+)["']?\)/)?.[1];
+        const sl = parseFloat(cs.borderImageSlice) || 0, fill = cs.borderImageSlice.includes("fill");
+        const bt = parseFloat(cs.borderTopWidth) * S, br = parseFloat(cs.borderRightWidth) * S, bb = parseFloat(cs.borderBottomWidth) * S, bl = parseFloat(cs.borderLeftWidth) * S;
+        if (url) {
+          const img = new Image(); img.src = url;
+          loads.push(img.decode().catch(() => {}));
+          ops.push(clipped(el, () => {
+            if (!img.complete || !img.naturalWidth) return;
+            const iw = img.naturalWidth, ih = img.naturalHeight, s = Math.min(sl, iw / 2, ih / 2);
+            const sx = [0, s, iw - s, iw], sy = [0, s, ih - s, ih], dx = [x, x + bl, x + w - br, x + w], dy = [y, y + bt, y + h - bb, y + h];
+            for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+              if (r === 1 && c === 1 && !fill) continue;
+              const sw = sx[c + 1] - sx[c], sh = sy[r + 1] - sy[r], dw = dx[c + 1] - dx[c], dh = dy[r + 1] - dy[r];
+              if (sw > 0 && sh > 0 && dw > 0 && dh > 0) ctx.drawImage(img, sx[c], sy[r], sw, sh, dx[c], dy[r], dw, dh);
+            }
+          }));
+        }
+      }
       // borders
-      for (const [sd, x0, y0, x1, y1] of [["Top", x, y, x + w, y], ["Bottom", x, y + h, x + w, y + h], ["Left", x, y, x, y + h], ["Right", x + w, y, x + w, y + h]] as const) {
+      if (!bis || bis === "none") for (const [sd, x0, y0, x1, y1] of [["Top", x, y, x + w, y], ["Bottom", x, y + h, x + w, y + h], ["Left", x, y, x, y + h], ["Right", x + w, y, x + w, y + h]] as const) {
         const bw = parseFloat(cs.getPropertyValue(`border-${sd.toLowerCase()}-width`)), st = cs.getPropertyValue(`border-${sd.toLowerCase()}-style`), col = cs.getPropertyValue(`border-${sd.toLowerCase()}-color`);
         if (!bw || st === "none" || st === "hidden" || alphaOf(col) === 0) continue;
         if (cs.borderTopLeftRadius !== "0px" && cs.borderTopLeftRadius === cs.borderBottomRightRadius && parseFloat(cs.borderTopLeftRadius) > 4 && sd !== "Top") continue; // round outline: drawn once below

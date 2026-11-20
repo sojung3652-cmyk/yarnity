@@ -23,7 +23,7 @@ export function MobileHomeScreen() {
   const resume = () => { if (!hook) return; setActive(hook.id); router.push("/track"); };
 
   return (
-    <main id="view-m-home" className="mf mfh">
+    <main id="view-m-home" className={"mf mfh" + (ready && hook ? " has-resume" : "")}>
       <GoldDefs />
       <header className="mfh-brand">
         <h1 className="mfh-logo"><span className="sr">Yarnity</span><FoilLogo className="mfh-foil" /></h1>
@@ -36,6 +36,7 @@ export function MobileHomeScreen() {
         <img className="mfh-lace-frame" src="/mobile/diary/lace_ivory.webp" alt="" />
       </div>
 
+      <div className="mfh-actions">
       <button type="button" className="mf-patch is-yellow mfh-make" onClick={start}>
         <span className="mfh-make-text"><b>도안 만들기</b><small>실과 크기만 정하면 코 수를 계산해요</small></span>
         <span className="mfh-go" lang="en">시작 →</span>
@@ -63,6 +64,7 @@ export function MobileHomeScreen() {
           <span className="mfh-two"><b>AI와 상의</b><small>막힐 땐 물어봐요</small></span>
         </button>
       </nav>
+      </div>
     </main>
   );
 }
