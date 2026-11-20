@@ -1,0 +1,157 @@
+/* "AI와 상의" (components/newbook/AiPanel.tsx): phones - a full screen, or a half sheet inside 도안 만들기;
+   wide screens - a panel from the right with the list and the conversation. Light from the upper right:
+   shadows fall to the lower left. Type never under 11px; touch areas 44 x 44; the input 16px. */
+.aic-root{position:fixed;inset:0;z-index:140;font-family:"Noto Sans KR",system-ui,sans-serif;color:#3B302B;word-break:keep-all;overflow-wrap:anywhere}
+.aic-root button{font:inherit;color:inherit}
+.aic-root .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.aic-dim{position:fixed;inset:0;background:rgba(60,42,34,.3);animation:aic-fade .2s ease}
+.aic-panel{position:absolute;display:flex;background:radial-gradient(130% 70% at 100% 0%,#FBF4F1 0%,#F7EDEB 55%,#F3E6E3 100%) #F7EDEB}
+.aic-star{flex:none;display:block;object-fit:contain;filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3))}
+.aic-icon{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;background:none;cursor:pointer;color:#3B302B}
+.aic-icon svg{width:22px;height:22px}
+
+/* ---- phones: the whole screen ---- */
+.aic-root.is-phone .aic-back{display:none}
+.aic-root.is-phone .aic-panel{inset:0;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+/* inside 도안 만들기: a half sheet (about 560px) over the dimmed step */
+.aic-root.is-sheet .aic-back{display:block}
+.aic-root.is-sheet .aic-panel{inset:auto 0 0 0;height:min(560px,88dvh);padding-top:0;border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(60,42,34,.18);animation:aic-up .28s cubic-bezier(.22,.61,.36,1)}
+
+/* ---- wide screens: a panel from the right, the list and the conversation side by side ---- */
+.aic-root.is-wide .aic-panel{top:0;right:0;bottom:0;width:min(760px,100vw);box-shadow:-10px 0 30px rgba(60,42,34,.18);animation:aic-in .28s cubic-bezier(.22,.61,.36,1)}
+.aic-root.is-wide .aic-list{flex:none;width:260px;border-right:1px solid #EADFD7;background:rgba(251,246,239,.55)}
+.aic-right{position:relative;flex:1;min-width:0;display:flex}
+.aic-right .aic-chat{flex:1}
+.aic-close{position:absolute;right:8px;top:8px;z-index:2}
+.aic-root.is-wide .aic-chat-bar{padding-right:52px}
+
+/* ---- the bar ---- */
+.aic-bar{flex:none;display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:6px;min-height:52px;padding:4px 12px 4px 10px;box-sizing:border-box}
+.aic-bar h2{margin:0;font:700 16px/1.3 "Noto Serif KR",serif;color:#2F2622}
+.aic-list .aic-bar{grid-template-columns:44px 1fr auto}
+.aic-root.is-wide .aic-list .aic-bar{grid-template-columns:0 1fr auto;padding-left:16px}
+.aic-new.dpatch{font-size:12.5px;white-space:nowrap}
+.aic-title{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.aic-title b{max-width:100%;font:600 15px/1.3 "Noto Serif KR",serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aic-tag{display:inline-block;max-width:100%;padding:2px 8px;border-radius:99px;background:#ECE4F6;color:#4E3E7C;font-size:11px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aic-sheet-title{display:flex;align-items:center;gap:8px;font:700 15px/1 "Noto Serif KR",serif;color:#2F2622}
+.aic-root.is-sheet .aic-chat-bar{grid-template-columns:1fr auto 44px;padding-left:18px}
+.aic-full{min-height:44px;padding:0 6px;border:0;background:none;font-size:13px;color:#6E5350;cursor:pointer}
+.aic-steptag{margin:0;padding:0 18px 6px}
+
+/* ---- the list ---- */
+.aic-list{display:flex;flex-direction:column;min-height:0;flex:1}
+.aic-search{display:flex;align-items:center;gap:8px;height:40px;margin:4px 16px 0;padding:0 14px;border-radius:20px;background:rgba(255,253,248,.85);box-shadow:inset 0 0 0 1px #E6DAD0}
+.aic-search svg{flex:none;width:17px;height:17px;color:#8C7B72}
+.aic-search input{flex:1;min-width:0;border:0;background:none;font:16px/1 "Noto Sans KR",sans-serif;color:#3B302B;outline:none}
+.aic-tabs{display:flex;gap:18px;margin:10px 16px 0;border-bottom:1px solid #EADFD7}
+.aic-tabs button{min-height:44px;padding:0 2px;border:0;border-bottom:2px solid transparent;background:none;font-size:14px;color:#7A6C64;cursor:pointer}
+.aic-tabs button[aria-selected="true"]{border-bottom-color:#3B302B;color:#2F2622;font-weight:600}
+.aic-rows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 20px)}
+.aic-day{margin:16px 16px 4px;font-size:12px;font-weight:500;color:#9A8B82}
+.aic-empty{margin:28px 16px;font-size:13px;color:#7A6C64;text-align:center}
+.aic-row{position:relative;overflow:hidden}
+.aic-row-main{position:relative;z-index:1;display:flex;align-items:flex-start;gap:12px;width:100%;min-height:64px;padding:12px 16px;box-sizing:border-box;border:0;
+  background:#F7EDEB;text-align:left;cursor:pointer;transition:transform .22s ease}
+.aic-root.is-wide .aic-row-main{background:#F8F1EE}
+.aic-row.is-on .aic-row-main{background:#F1E6EE}
+.aic-row.is-slid .aic-row-main{transform:translateX(-148px)}
+.aic-row-acts{position:absolute;right:0;top:0;bottom:0;display:flex}
+.aic-row-acts button{width:74px;border:0;font-size:13px;font-weight:600;cursor:pointer}
+.aic-row-acts .is-arch{background:#E3DAF2;color:#4E3E7C}
+.aic-row-acts .is-del{background:#F3D9D8;color:#9B3A3A}
+.aic-row-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.aic-row-top{display:flex;align-items:baseline;gap:8px}
+.aic-row-top b{flex:1;min-width:0;font:600 15px/1.35 "Noto Serif KR",serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aic-row-top time{flex:none;font-size:11.5px;color:#9A8B82}
+.aic-row-last{font-size:13px;line-height:1.45;color:#6B5D55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aic-row-text .aic-tag{align-self:flex-start;margin-top:2px}
+.aic-row-more{position:absolute;right:6px;top:10px;z-index:2;width:36px;height:36px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:rgba(251,246,239,.9);cursor:pointer;opacity:0;transition:opacity .15s}
+.aic-row-more svg{width:18px;height:18px}
+.aic-row:hover .aic-row-more,.aic-row-more:focus-visible{opacity:1}
+.aic-pop{position:absolute;right:8px;top:46px;z-index:5;display:flex;flex-direction:column;min-width:150px;padding:6px;border-radius:10px;background:#FFFDF8;box-shadow:-4px 8px 20px rgba(60,42,34,.2)}
+.aic-pop button{min-height:40px;padding:0 12px;border:0;border-radius:6px;background:none;text-align:left;font-size:13.5px;cursor:pointer}
+.aic-pop button:hover{background:#F6EEE6}
+.aic-root .danger{color:#B04040}
+
+/* ---- the conversation ---- */
+.aic-chat{display:flex;flex-direction:column;flex:1;min-height:0}
+.aic-msgs{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:10px 18px 16px;display:flex;flex-direction:column;gap:16px}
+.aic-ai{display:flex;gap:10px;align-items:flex-start}
+.aic-ai>div{flex:1;min-width:0}
+.aic-ai p{margin:2px 0 0;font:400 14.5px/1.7 "Noto Serif KR",serif;color:#2F2622;white-space:pre-wrap}
+.aic-me{align-self:flex-end;max-width:78%;padding:10px 14px;border-radius:16px 16px 4px 16px;
+  background:repeating-linear-gradient(0deg,rgba(150,100,100,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,100,100,.04) 0 1px,transparent 1px 3px),#F3E0DF;
+  box-shadow:-2px 3px 6px -3px rgba(90,62,44,.3)}
+.aic-me p{margin:0;font-size:14.5px;line-height:1.6;white-space:pre-wrap}
+.aic-me img{display:block;max-width:100%;max-height:180px;margin-bottom:8px;border-radius:10px}
+.aic-notice{align-self:center;margin:0;padding:8px 12px;border-radius:10px;background:rgba(255,253,248,.8);font-size:12.5px;line-height:1.5;color:#6B5D55;text-align:center}
+.aic-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.aic-chips button{min-height:36px;padding:0 14px;border:1.5px solid #C4B5DD;border-radius:18px;background:rgba(255,253,248,.7);font-size:13px;color:#4E3E7C;cursor:pointer}
+.aic-chips button:disabled{opacity:.5;cursor:default}
+.aic-dots{display:inline-flex;gap:3px;margin-left:4px;vertical-align:middle}
+.aic-dots i{width:4px;height:4px;border-radius:50%;background:#9F8CC9;animation:aic-dot 1.2s ease-in-out infinite}
+.aic-dots i:nth-child(2){animation-delay:.15s}.aic-dots i:nth-child(3){animation-delay:.3s}
+/* the proposal: a cream patch */
+.aic-prop{margin-top:12px;padding:6px 8px;border-style:solid;border-width:14px;border-image:url(/mobile/diary/patch_cream.webp) 62 fill / 14px stretch round;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14))}
+.aic-prop-kick{margin:0;font-size:11.5px;letter-spacing:.04em;color:#8A7258}
+.aic-prop ul{margin:6px 0 0;padding:0;list-style:none;font-size:14px;line-height:1.6}
+.aic-prop li span{color:#6B5D55}
+.aic-prop s{color:#9A8B82}
+.aic-prop-note{margin:6px 0 0;font-size:12px;color:#6B5D55}
+.aic-prop-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.aic-prop-done{margin:8px 0 0;font-size:12.5px;color:#4E3E7C}
+/* a new conversation */
+.aic-fresh{display:flex;flex-direction:column;align-items:center;margin:auto 0;padding:16px 4px;text-align:center}
+.aic-fresh>.aic-ai{align-self:stretch;text-align:left}
+.aic-fresh:has(>.aic-ai){margin:0;padding-top:6px}
+.aic-fresh h3{margin:14px 0 0;font:700 19px/1.4 "Noto Serif KR",serif;color:#2F2622}
+.aic-fresh>p{margin:8px 0 0;max-width:320px;font-size:13.5px;line-height:1.6;color:#5E5048}
+.aic-starters{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-top:22px}
+.aic-starters button{min-height:48px;padding:0 16px;border:1px solid #E1D3C6;border-radius:12px;background:rgba(255,253,248,.85);font-size:14px;color:#3B302B;cursor:pointer;box-shadow:-2px 3px 6px -4px rgba(90,62,44,.3)}
+.aic-note{margin:22px 0 0;font-size:11.5px;line-height:1.6;color:#8C7B72}
+/* the input bar */
+.aic-compose{flex:none;padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 30px);background:linear-gradient(to bottom,rgba(247,237,235,0),#F7EDEB 12px)}
+.aic-root.is-wide .aic-compose,.aic-root.is-sheet .aic-compose{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 14px)}
+.aic-row-in{display:flex;align-items:flex-end;gap:8px}
+.aic-photo{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#FFFDF8;box-shadow:inset 0 0 0 1px #E1D3C6;color:#6B5A48;cursor:pointer}
+.aic-photo svg{width:20px;height:20px}
+.aic-compose textarea{flex:1;min-width:0;min-height:44px;max-height:120px;box-sizing:border-box;padding:11px 16px;border:0;border-radius:22px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #E1D3C6;
+  font:16px/1.4 "Noto Sans KR",sans-serif;color:#3B302B;resize:none;outline:none}
+.aic-compose textarea:focus{box-shadow:inset 0 0 0 1.5px #9F8CC9}
+.aic-send{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:#4A3830;color:#fff;cursor:pointer}
+.aic-send svg{width:20px;height:20px}
+.aic-send:disabled{opacity:.4;cursor:default}
+.aic-attached{display:inline-flex;align-items:center;gap:8px;margin:0 0 8px 52px;font-size:12px;color:#6B5D55}
+.aic-attached img{width:36px;height:36px;object-fit:cover;border-radius:6px}
+.aic-attached button{width:28px;height:28px;border:0;background:none;cursor:pointer}
+
+/* ---- ··· and the delete question ---- */
+.aic-menu-dim{display:flex;align-items:flex-end;justify-content:center;z-index:2}
+.aic-menu{width:100%;max-width:520px;box-sizing:border-box;padding:10px 20px calc(env(safe-area-inset-bottom,0px) + 18px);border-radius:18px 18px 0 0;background:#FBF6EF;box-shadow:0 -6px 24px rgba(60,42,34,.18);animation:aic-up .25s ease}
+.aic-grip{display:block;width:40px;height:4px;margin:0 auto 12px;border-radius:2px;background:#DCCFC6}
+.aic-mi{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:52px;padding:0 4px;border:0;border-bottom:1px solid #EDE2DA;background:none;font:500 15px/1.3 "Noto Serif KR",serif;text-align:left;cursor:pointer}
+.aic-mi span{font:400 12px/1.3 "Noto Sans KR",sans-serif;color:#9A8B82}
+.aic-mi.danger span{color:#B04040}
+.aic-menu-title{margin:0 0 8px;font:600 14px/1.4 "Noto Serif KR",serif}
+.aic-link button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:52px;padding:8px 4px;border:0;border-bottom:1px solid #EDE2DA;background:none;text-align:left;cursor:pointer}
+.aic-link button[aria-pressed="true"] b{color:#4E3E7C}
+.aic-link b{font:600 14px/1.3 "Noto Serif KR",serif}
+.aic-link span{font-size:12px;color:#7A6C64}
+.aic-rename{display:flex;flex-direction:column;gap:10px}
+.aic-rename label{font:600 14px/1.3 "Noto Serif KR",serif}
+.aic-rename input{height:44px;padding:0 12px;border:1px solid #E1D3C6;border-radius:8px;background:#FFFDF8;font-size:16px}
+.aic-rename .dpatch{align-self:flex-end}
+.aic-dim:has(.aic-ask){display:grid;place-items:center;z-index:3}
+.aic-ask{width:min(320px,calc(100vw - 48px));padding:20px;border-radius:14px;background:#FBF6EF;box-shadow:-6px 10px 30px rgba(60,42,34,.25)}
+.aic-ask p{margin:0;font:500 15px/1.5 "Noto Serif KR",serif}
+.aic-ask div{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.aic-ask button{min-height:44px;padding:0 16px;border:0;border-radius:8px;background:#EFE6DC;cursor:pointer;font-size:14px}
+.aic-ask button.danger{background:#F3D9D8;color:#9B3A3A;font-weight:600}
+@media (min-width:768px){.aic-menu-dim{align-items:center}.aic-menu{border-radius:14px;padding-bottom:18px}.aic-grip{display:none}}
+
+@keyframes aic-fade{from{opacity:0}}
+@keyframes aic-up{from{transform:translateY(40px);opacity:0}}
+@keyframes aic-in{from{transform:translateX(40px);opacity:0}}
+@keyframes aic-dot{0%,100%{opacity:.3}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.aic-dim,.aic-panel,.aic-menu,.aic-row-main,.aic-dots i{animation:none!important;transition:none!important}}

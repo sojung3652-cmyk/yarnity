@@ -16,7 +16,10 @@ export interface ChatTurn { role: "user" | "assistant"; content: string }
 export interface ChatState { msgs: ChatMsg[]; chips: string[]; off: boolean; images: boolean; checked: boolean;
   /** the AI sheet is open; a question to put in its box (AskAiLine; the user sends it); bumped each time a
    *  proposal is applied with 책에 적용 (도안 만들기 refreshes its fields) */
-  open?: boolean; prefill?: string | null; applied?: number }
+  open?: boolean; prefill?: string | null; applied?: number;
+  /** the conversation shown (lib/conversations.ts id; "new" for a new one; null: the list on phones);
+   *  sheet: opened inside 도안 만들기 on a phone (a half sheet until 전체 화면) */
+  conv?: string | null; sheet?: boolean }
 
 interface AppCtx {
   ready: boolean;
