@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp, type Removed } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
-import { FoilLogo } from "@/components/FoilLogo";
 import { BookCover, GoldDefs, ProgressBar, tagOf, whereOf } from "@/components/BookCover";
 import { PhotoLog } from "@/components/PhotoLog";
 import { CopyLot } from "@/components/YarnInfo";
@@ -20,6 +19,7 @@ import { STATUS_KO, statusOf, type Status } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { useNewDraft } from "./useNewDraft";
+import { MobileTopBar, NewButton } from "./MobileTopBar";
 import "./mine-mobile.css";
 
 type Filter = "all" | Status;
@@ -77,11 +77,7 @@ export function MobileMine() {
   return (
     <main id="view-mine" className="mm">
       <GoldDefs />
-      <header className="mm-top">
-        <button type="button" className="mm-back" aria-label="처음으로" onClick={() => router.push("/")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" {...I} /></svg></button>
-        <span className="mm-brand" aria-hidden="true"><FoilLogo className="mm-foil" /></span>
-        <button type="button" className="mm-new" onClick={newDraft}><span>+ 새 도안</span></button>
-      </header>
+      <MobileTopBar back={() => router.push("/")} logo={96} right={<NewButton onClick={newDraft} />} />
       <div className="mm-title">
         <h1 lang="en"><img src="/pic/my-patterns.png" alt="My Patterns" width={900} height={366} /></h1>
         <p>나의 도안집 · {projects.length}권</p>

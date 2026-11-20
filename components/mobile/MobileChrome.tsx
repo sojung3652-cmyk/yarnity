@@ -11,6 +11,7 @@ import { useBook } from "@/components/Book/BookProvider";
 import { AiPanel } from "@/components/newbook/AiPanel";
 import { FirstPage } from "./MobileHome";
 import { MobileNavBar } from "./MobileNavBar";
+import { SavedToast } from "./MoreSheet";
 import { useMobile } from "./useMobile";
 import "@/components/newbook/newbook.css";
 import "./mobile.css";
@@ -18,6 +19,7 @@ import "./home-page.css";
 import "./wizard-page.css";
 import "./book-pages.css";
 import "./readable.css";
+import "./screens-mobile.css";
 
 export function MobileChrome() {
   const m = useMobile(), b = useBook(), { draft, setDraft } = useApp(), path = usePathname();
@@ -41,6 +43,8 @@ export function MobileChrome() {
         </div>
       )}
       <MobileNavBar onNew={raise} bookUp={!!up} />
+      {/* "n단까지 저장했어요" after leaving 따라 뜨기, on whichever screen comes next */}
+      <SavedToast key={path} />
       <AiPanel draft={draft} step={b.view === "wizard" ? b.step : 0} onApply={p => setDraft({ ...draft, ...p })} />
     </>
   );

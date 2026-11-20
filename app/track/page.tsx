@@ -11,6 +11,8 @@ import type { StitchSym } from "@/lib/stitchSymbols";
 import { clamp, fmt, PART_KO, plan, withChains, type Row } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
 import { useMobile } from "@/components/mobile/useMobile";
+import { MobileTopBar, MoreButton } from "@/components/mobile/MobileTopBar";
+import { MoreSheet, SAVED_KEY } from "@/components/mobile/MoreSheet";
 
 function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
   const pp = plan(p), exp = 6 * pp.g.h;
@@ -79,11 +81,27 @@ function MeasureRows({ p, onApply }: { p: Project; onApply: (h: number, w: numbe
 // row being made as an index card on the right with a wide ribbon for 한 단 끝 (and 되돌리기), and the
 // rows below it: the last ones done ticked in pencil, this one marked, the next ones; "전체 단" shows all.
 // Space = 한 단 끝, Backspace = 되돌리기. The screen is kept on while this page is open.
-// phones: 따라 뜨기 is the open book's right page (components/mobile/MobileBookPages.tsx)
+// phones: the same screen, laid out for a phone (its own screen, outside the book; screens-mobile.css)
 export default function TrackPage() {
-  const m = useMobile();
-  if (m) return <main id="view-track" className="m-root m-in-book"><h1 className="sr">따라 뜨기</h1></main>;
   return <TrackScreen />;
+}
+
+/** Phones: the measuring card at 3단 끝 (rounds; the flat pieces keep MeasureRows): the same numbers as Measure. */
+function PhoneMeasure({ p, onApply, onLater }: { p: Project; onApply: (h: number) => void; onLater: () => void }) {
+  const pp = plan(p), exp = 6 * pp.g.h, [val, setVal] = useState(fmt(exp)), v = +val;
+  return (
+    <div className="mst-measure">
+      <p className="mst-measure-title">3단 끝! 지름을 재 볼까요?</p>
+      <p className="mst-measure-text">지금까지 뜬 바닥의 지름을 재면, 남은 단을 내 손에 맞게 다시 계산해요.</p>
+      <div className="mst-measure-row">
+        <label className="sr" htmlFor="mstVal">잰 지름 cm</label>
+        <input id="mstVal" type="number" inputMode="decimal" step={0.1} min={1} max={20} value={val} onChange={e => setVal(e.target.value)} />
+        <span>cm</span>
+        <button type="button" className="mst-yellow" onClick={() => { if (v > 0) onApply(v / 6); }}><span>다시 계산</span></button>
+      </div>
+      <p className="mst-measure-foot">예상은 약 {fmt(exp)}cm예요 · <button type="button" onClick={onLater}>나중에 잴게요</button></p>
+    </div>
+  );
 }
 
 export function TrackScreen() {
@@ -97,6 +115,9 @@ export function TrackScreen() {
   const [view, setView] = useState<number | null>(null);
   const wake = useRef<WakeLockSentinel | null>(null);
   const m = useMobile();
+  // phones: the ··· menu, the chart in full screen, "나중에 잴게요"
+  const [more, setMore] = useState(false), [bigChart, setBigChart] = useState(false), [measureLater, setMeasureLater] = useState(false);
+  const bigRef = useRef<HTMLCanvasElement>(null), [bigZoom, setBigZoom] = useState(1);
 
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
 
@@ -123,6 +144,12 @@ export function TrackScreen() {
   }, [redraw]);
 
   useEffect(() => { setView(null); }, [current]);
+  // phones: leaving 따라 뜨기 says where it was saved, on the next screen (MoreSheet SavedToast)
+  const savedAt = useRef("");
+  useEffect(() => { savedAt.current = pp && current > 0 ? pp.rows[Math.min(current, total) - 1].label : ""; }, [pp, current, total]);
+  useEffect(() => () => { if (m && savedAt.current) try { sessionStorage.setItem(SAVED_KEY, `${savedAt.current}까지 저장했어요`); } catch {} }, [m]);
+  // phones: the chart in full screen
+  useEffect(() => { if (bigChart && p && pp && bigRef.current) drawTrack(bigRef.current, { ...p, current }, pp); }, [bigChart, bigZoom, p, pp, current]);
   const peek = useCallback((d: number) => setView(v => clamp((v ?? Math.min(current, total - 1)) + d, 0, Math.max(0, total - 1))), [current, total]);
   // keyboard: Space = 한 단 끝, Backspace = 되돌리기, ← / → = 이전 단 / 다음 단 (to read)
   useEffect(() => {
@@ -178,56 +205,77 @@ export function TrackScreen() {
   // the rows under the card: two done, this one, five to come (or all of them)
   const shown = allRows ? pp.rows : pp.rows.slice(Math.max(0, current - 2), current + 6);
 
-  // phones: the same row, counts and actions on a ruled notebook page (components/mobile); no chart
+  // phones: its own screen (screens-mobile.css): the bar, where you are, the row as a card (이전 / 다음 단 to
+  // read ahead), a small chart (or the measuring card at 3단 끝), and 되돌리기 + 한 단 끝 at the foot
   if (m) {
-    const prev = current > 0 ? pp.rows[current - 1] : null;
+    const part = r.part === "start" ? "시작 사슬" : PART_KO[r.part];
+    const measuring = !measureLater && (showMeasure || showMeasureRows);
     return (
-      <div className="mt mt-page">
-          <header className="mt-head">
-            <p className="mt-kicker" lang="en">Crochet along</p>
-            <Link className="mt-to-pattern" href="/pattern">도안 보기</Link>
-            <h1 id="trTitle">{p.name}</h1>
-            <div className="mt-progress">
-              <div className="mt-bar" aria-hidden="true"><i style={{ width: (current / total * 100) + "%" }} /></div>
-              <span className="mt-pos">{Math.min(current + 1, total)} / {total}</span>
-            </div>
-            {wakeOn && <p className="mt-wake">화면 켜짐 유지 중</p>}
-          </header>
-          <section className="mt-rows" aria-label="지금 뜨는 단">
-            {prev && <p className="mt-prev"><s>{prev.label} · {prev.n}코</s></p>}
-            {done ? (
-              <div className="mt-now">
-                <p className="mt-row">완성</p>
-                <p className="mt-how">마지막 단까지 다 떴어요.</p>
-                <p className="mt-links"><Link href="/pattern">도안 다시 보기</Link><Link href="/library">사진 남기기</Link></p>
-              </div>
-            ) : (
-              <div className="mt-now">
-                <p className="mt-sec">{r.part === "start" ? "시작 사슬" : PART_KO[r.part]}</p>
-                <div className="mt-now-top"><span className="mt-row">{r.label}</span>
-                  <span className="mt-count">{(() => { const f = pp.rows[r.idx - 1] && ((r.part === "bottom" && (r.no as number) > 1) || (r.part === "body" && r.inc)) ? pp.rows[r.idx - 1].n : null; return f != null ? <small>{f}→</small> : null; })()}{r.n}<span>코</span></span></div>
-                <p className="mt-how">{r.how}</p>
-                {r.why && <p className="mt-why">{r.why}</p>}
-                {flag && <p className="mt-flag">{flag}</p>}
-                {(showMeasure || showMeasureRows) && (
-                  <div className="mt-measure">
-                    {showMeasure && <><p className="mt-measure-title">3단까지 뜬 지름을 재 주세요</p><Measure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} /></>}
-                    {showMeasureRows && <><p className="mt-measure-title">5단까지 뜬 폭과 높이를 재 주세요</p><MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} /></>}
-                  </div>
-                )}
-              </div>
-            )}
-            {!done && nx && <p className="mt-next"><span>다음</span>{nx.label} · {nx.n}코 · {nx.how}</p>}
-          </section>
-          <div className="mt-acts">
-            <button className="mt-undo" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>
-              <span className="mt-undo-in"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5 3.5 8.5 7 12M4 8.5h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>되돌리기</span>
-            </button>
-            <button className="mt-done" type="button" disabled={done} onClick={() => step(1)}>
-              <span className="mt-done-face"><b>한 단 끝</b><small>{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</small></span>
-            </button>
+      <main id="view-track" className="ms-screen mst">
+        <MobileTopBar back={() => router.push("/pattern")} logo={70} right={<MoreButton onClick={() => setMore(true)} />} />
+        <h1 className="mst-name">{p.name}</h1>
+        <div className="mst-progress">
+          <span className="mst-part"><b>{secNo(r.part)}</b> {part}</span>
+          <span className="mst-bar" aria-hidden="true"><i style={{ width: (current / total * 100) + "%" }} /></span>
+          <span className="mst-pos"><b>{Math.min(current + (done ? 0 : 1), total)}</b> / {total}단</span>
+        </div>
+        <section className="mst-card" aria-label="지금 뜨는 단">
+          <div className="mst-peek">
+            <button type="button" onClick={() => peek(-1)} disabled={v <= 0}>‹ 이전 단</button>
+            <span aria-live="polite">{other ? (v < current ? "지난 단" : "앞으로 뜰 단") : done ? "완성" : "지금 뜨는 단"}{other && <button type="button" className="mst-now" onClick={() => setView(null)}>지금 단으로</button>}</span>
+            <button type="button" onClick={() => peek(1)} disabled={v >= total - 1}>다음 단 ›</button>
           </div>
-      </div>
+          {done && !other ? (
+            <><p className="mst-row">완성</p><p className="mst-how">마지막 단까지 다 떴어요.</p></>
+          ) : (
+            <>
+              <div className="mst-top"><span className="mst-row">{vr.label}</span><span className="mst-count">{fromN != null && <small>{fromN}→</small>}<b>{vr.n}</b> 코</span></div>
+              <p className="mst-how">{vr.how}</p>
+              <p className="mst-why">{vr.why || "시작"}</p>
+              {!other && flag && <p className="mst-tip">{flag}</p>}
+            </>
+          )}
+        </section>
+        {measuring ? (
+          showMeasure
+            ? <PhoneMeasure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} onLater={() => setMeasureLater(true)} />
+            : <div className="mst-measure"><p className="mst-measure-title">5단까지 떴어요! 폭과 높이를 재 볼까요?</p><MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} />
+                <p className="mst-measure-foot"><button type="button" onClick={() => setMeasureLater(true)}>나중에 잴게요</button></p></div>
+        ) : (
+          <section className="mst-chart" aria-label="코 도안">
+            <div className="mst-chart-pic"><canvas ref={cvRef} role="img" aria-label="코 도안" /></div>
+            <div><p className="mst-chart-title">코 도안</p><p className="mst-chart-text">진하게 보이는 줄이 지금 뜨는 단이에요.</p>
+              <button type="button" className="mst-link" onClick={() => setBigChart(true)}>크게 보기</button></div>
+          </section>
+        )}
+        {wakeOn && <p className="mst-wake">● 화면 켜짐 유지 중</p>}
+        <div className="ms-foot">
+          <div className="ms-foot-row">
+            <button className="mst-undo" type="button" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)}>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5 3.5 8.5 7 12M4 8.5h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg><span>되돌리기</span>
+            </button>
+            <div className="ms-go">
+              <button type="button" className="ms-ribbon mst-done" disabled={done} onClick={() => step(1)}><span>한 단 끝</span></button>
+              <p className="ms-go-sub">{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</p>
+            </div>
+          </div>
+        </div>
+        {bigChart && (
+          <div className="mst-big" role="dialog" aria-modal="true" aria-label="코 도안 크게 보기">
+            <div className="mst-big-bar"><span>코 도안 · {vr.label}</span>
+              <button type="button" aria-label="작게" onClick={() => setBigZoom(z => Math.max(1, z - 0.5))}>−</button>
+              <button type="button" aria-label="크게" onClick={() => setBigZoom(z => Math.min(3, z + 0.5))}>+</button>
+              <button type="button" aria-label="닫기" onClick={() => { setBigChart(false); setBigZoom(1); }}>✕</button></div>
+            <div className="mst-big-pic"><canvas ref={bigRef} style={{ width: `${bigZoom * 100}%`, aspectRatio: "1" }} /></div>
+          </div>
+        )}
+        {more && (
+          <MoreSheet title="나가도 지금 단까지 저장돼요" onClose={() => setMore(false)} items={[
+            { key: "sheet", icon: "sheet", label: "도안 전체 보기", onClick: () => router.push("/pattern") },
+            { key: "again", icon: "again", label: "처음 단부터 다시", danger: true, confirm: "지금까지 뜬 단을 지우고 1단부터 다시 할까요?", onClick: () => { setMore(false); updateProject(p.id, { current: 0, status: "knitting", pausedAt: null }); } },
+          ]} />
+        )}
+      </main>
     );
   }
 

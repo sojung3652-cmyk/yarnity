@@ -41,6 +41,7 @@ export function MobileBookWizard({ sheet = 0 }: { sheet?: number }) {
     // step 3 checks the yarn too: when that is what is missing, turn back to its sheet to show it
     if (s.step === 3 && !yarnStepOk(draft)) { setSheet(3, 0); setTimeout(s.next, 900); return; }
     setSheet(s.step + 1, 0);
+    if (s.final && !s.blocked) try { sessionStorage.setItem("m.justMade", "1"); } catch {} // 완성 도안 offers + 새 도안 · 나의 도안집 once
     s.next();
   };
 

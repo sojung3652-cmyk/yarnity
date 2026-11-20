@@ -4,7 +4,8 @@
 import { MOBILE_QUERY } from "./useMobile";
 
 // (after the menu 0 and 도안 만들기's sheets, step x 2 + sheet: up to 9)
-export const BOOK_PAGES: Record<string, number> = { "/pattern": 11, "/track": 12 };
+// (none for now: 나의 도안집, 완성 도안 and 따라 뜨기 are their own screens on phones)
+export const BOOK_PAGES: Record<string, number> = {};
 /** the page a path shows in the book on phones, or null */
 export const bookPageOf = (path: string | null | undefined) => (path && path in BOOK_PAGES ? path : null);
 export const isPhone = () => typeof window !== "undefined" && matchMedia(MOBILE_QUERY).matches;
