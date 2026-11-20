@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
+import "./patches.css";
 import { AppProvider } from "@/components/AppProvider";
 import { Nav } from "@/components/Nav";
 import { FoilLogo } from "@/components/FoilLogo";

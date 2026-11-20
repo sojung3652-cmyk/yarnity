@@ -35,7 +35,8 @@
   .mfh-foil{display:block;width:110px;height:50px;overflow:visible}
   .mfh-cap{margin:7px 0 0;padding-left:.34em;font:600 9.5px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.34em;text-transform:uppercase;color:#8A7258}
   /* the lace oval: the picture under the lace's inner edge; only a picture (no shadow, no words, no tap) */
-  .mfh-lace{position:relative;width:214px;height:285px;margin:8px auto 0;pointer-events:none;cursor:default}
+  /* air between the logo, the lace and the buttons (Kim): more on tall phones, less on short ones */
+  .mfh-lace{position:relative;width:214px;height:285px;margin:clamp(14px,2.6dvh,26px) auto 0;pointer-events:none;cursor:default}
   .mfh-lace-pic{position:absolute;left:12%;top:16.4%;width:76%;height:68.4%;border-radius:50%;object-fit:cover;object-position:60% 38%;transform:scale(1.12)}
   .mfh-lace-frame{position:absolute;inset:0;width:100%;height:100%}
 
@@ -51,14 +52,18 @@
   .mf-patch.is-pink{--patch:url(/mobile/diary/patch_pink.webp)}
   .mf-patch>*{position:relative}
 
-  .mfh-make{margin-top:12px}
+  .mfh-make{margin-top:clamp(18px,3dvh,30px)}
   .mfh-make-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
   .mfh-make-text b{font:600 16px/1.35 "Noto Serif KR",serif}
   .mfh-make-text small{font-size:12.5px;line-height:1.45;color:#5E5048}
   .mfh-go{flex:none;font:italic 500 15px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#5A4A3E;white-space:nowrap}
   .mfh-resume{margin-top:8px}
-  .mfh-resume .mm-cover{flex:none}
-  /* at 38px the cover keeps only its gold drawing (the tag and plate are for the shelf's bigger books) */
+  /* the small book: the shelf's cover at 38 x 51, laid out for that size (the shelf's padding and its 44px
+     drawing would crush it): the spine, the page edges and the gold drawing, whole and centred */
+  .mfh-resume .mm-cover{flex:none;align-self:center;width:38px;height:auto;aspect-ratio:3 / 4;padding:4px 3px 4px 8px;gap:0;overflow:visible;
+    box-shadow:inset 5px 0 0 rgba(60,40,30,.16),inset 6px 0 0 rgba(255,250,240,.45),-2px 3px 5px -2px rgba(70,48,34,.38)}
+  .mfh-resume .mm-cover::after{right:-2px;top:3px;bottom:3px;width:2px}
+  .mfh-resume .mm-icon{width:22px;height:22px}
   .mfh-resume .mm-tag,.mfh-resume .mm-plate{display:none}
   .mfh-resume-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
   .mfh-resume-text small{font-size:11.5px;color:#7A6C64}
