@@ -673,11 +673,11 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
       {/* Light matched to the photo's objects: a broad, soft studio light from above (a big white softbox in
           the environment + sky/ground fill), with only a weak directional light from the upper left for
           direction and self-shadowing inside the book. Low contrast between the cover and the page edges. */}
-      <Environment resolution={256} frames={1} background={false}>
+      {!OFF.has("env") && <Environment resolution={256} frames={1} background={false}>
         <Lightformer form="rect" intensity={2.4} color="#fffaf3" position={[-4, 30, 2]} rotation-x={Math.PI / 2} scale={[46, 40, 1]} />
         <Lightformer form="rect" intensity={1.1} color="#fff6ee" position={[-16, 14, 10]} scale={[24, 16, 1]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={0.7} color="#ffffff" position={[14, 10, 14]} scale={[22, 12, 1]} target={[0, 0, 0]} />
-      </Environment>
+      </Environment>}
       <hemisphereLight args={["#fffaf4", "#eadcd2", 1.05]} />
       {/* phones: the light comes from the upper right, as in the desk photo (bg_desk.webp), so the shadow falls
           to the lower left; a 1024 shadow map */}
@@ -694,12 +694,16 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
         <shadowMaterial transparent opacity={(phone ? 0.5 : 0.38) * shadowK} color={SHADOW_COLOR} />
       </mesh>
       {/* narrow dark contact line where the book touches the desk */}
-      <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={(phone ? 0.7 : 0.55) * shadowK} resolution={1024} color={SHADOW_COLOR} frames={Infinity} />
+      {!OFF.has("contact") && <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={(phone ? 0.7 : 0.55) * shadowK} resolution={1024} color={SHADOW_COLOR} frames={Infinity} />}
     </>
   );
 }
 
-export default function Book3D({ onFail }: { onFail: () => void }) {
+// Phone GPU test switches: /?gl=env,contact,shadow (or gl=all) turns those effects off, to find which one a
+// phone's GPU cannot take (a Pixel 10 Pro loses the context on load; /?book=why shows the record).
+const OFF = new Set(((typeof location !== "undefined" && new URLSearchParams(location.search).get("gl")) || "").split(",").flatMap(f => (f === "all" ? ["env", "contact", "shadow"] : f ? [f] : [])));
+
+export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
   const b = useBook(), open = b.view === "home" || b.view === "wizard", phone = !!useMobile();
   // want: the spread the address asks for; shown: the one whose DOM is in the book (they differ during a turn)
   // phones: 도안집, 도안 and 따라 뜨기 keep the book open, as its right page
@@ -732,20 +736,29 @@ export default function Book3D({ onFail }: { onFail: () => void }) {
         // content is DOM above the canvas). The wizard's draft is saved on every change, so nothing is lost.
         onPointerMissed={() => { if (!page && (b.view === "home" || b.view === "wizard")) b.close(); }}
         frameloop="demand"
-        shadows={{ type: THREE.PCFShadowMap }}
+        shadows={OFF.has("shadow") ? false : { type: THREE.PCFShadowMap }}
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}
         // phones: no logarithmic depth (it writes depth per pixel, heavy for a phone's tile GPU) and the default
         // power preference. A Pixel 10 Pro (KakaoTalk, 2026-11) lost the context twice on load with them, after
         // which Chrome blocks WebGL for the site. Read once, when the context is made (useMobile is still null then).
         gl={{ alpha: true, antialias: true, ...(phoneGL ? { powerPreference: "default" } : { powerPreference: "high-performance", logarithmicDepthBuffer: true }) }}
         onCreated={({ gl, invalidate }) => {
+          const t0 = performance.now(), info = () => {
+            const c = gl.getContext(), d = c.getExtension("WEBGL_debug_renderer_info");
+            return `${d ? c.getParameter(d.UNMASKED_RENDERER_WEBGL) : "?"} · maxTex ${gl.capabilities.maxTextureSize} · dpr ${gl.getPixelRatio()} · off [${[...OFF].join(",")}]`;
+          };
+          const gpu = info();
           gl.toneMapping = THREE.NeutralToneMapping; gl.toneMappingExposure = 1.12; // outputColorSpace stays sRGB (default); exposure set so the lit cloth reads close to its hex (--book-lav)
           // A lost context is often given back: Android WebViews (KakaoTalk on a Pixel, 2026-11) take it while
           // the page loads and return it. three.js re-uploads everything on restore, so wait for that and
           // redraw; only a context still gone after 3s drops to the CSS book. Do not "simplify" back to an
           // immediate onFail: that left those phones on the flat CSS book for good.
           let lost: ReturnType<typeof setTimeout> | undefined;
-          gl.domElement.addEventListener("webglcontextlost", e => { e.preventDefault(); clearTimeout(lost); lost = setTimeout(onFail, 3000); });
+          gl.domElement.addEventListener("webglcontextlost", e => {
+            e.preventDefault(); clearTimeout(lost);
+            const why = `webglcontextlost ${((performance.now() - t0) / 1000).toFixed(1)}s after start, ${gl.info.render.frame} frames\n${gpu}`;
+            lost = setTimeout(() => onFail(why), 3000);
+          });
           gl.domElement.addEventListener("webglcontextrestored", () => { clearTimeout(lost); invalidate(); });
           requestAnimationFrame(() => setReady(true));
         }}

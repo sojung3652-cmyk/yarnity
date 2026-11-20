@@ -39,7 +39,7 @@ export function Book() {
   return (
     <Fallback onError={() => b.setMode("css")}>
       {why && <Why />}
-      <Book3D onFail={() => { noteFail("webglcontextlost"); b.setMode("css"); }} />
+      <Book3D onFail={why => { noteFail(why ?? "webglcontextlost"); b.setMode("css"); }} />
     </Fallback>
   );
 }
