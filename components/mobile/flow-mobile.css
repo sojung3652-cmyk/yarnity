@@ -178,6 +178,29 @@
   .mfw-sheet .mfw-next{margin-top:20px}
   .mfw-other{display:block;width:100%;min-height:44px;margin-top:6px;border:0;background:none;font-size:13.5px;color:#6B5D55;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 }
+/* ---- every cloth label on the phone is a real patch, as on the home (Kim): the patch image itself (edge,
+   running stitches and cloth: border-image fill, the middle repeated), no painted weave, no drawn stitches.
+   Small labels (32-40px tall) take a thinner edge so their words keep room. Ribbons and cards stay. ---- */
+@media (max-width:767.98px){
+  body .mf-label .mf-label-in,body .mtb-new>span,body .mm-new>span,body .mst-yellow>span,body .ms-label>span,body .mm-label>span{
+    box-sizing:border-box;background:none;box-shadow:none;border-style:solid;border-width:var(--pw,12px);
+    border-image-source:var(--patch,url(/mobile/diary/patch_cream.webp));border-image-slice:62 fill;border-image-repeat:round;
+    filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14))}
+  body .mf-label .mf-label-in::before,body .mf-label .mf-label-in::after,body .mtb-new>span::before,body .mtb-new>span::after,body .mm-new>span::before,body .mm-new>span::after,
+  body .mst-yellow>span::before,body .mst-yellow>span::after,body .ms-label>span::before,body .ms-label>span::after,body .mm-label>span::before,body .mm-label>span::after{display:none}
+  /* colours: yellow / cream / pink patches */
+  body .mf-label.is-yellow,body .mtb-new,body .mm-new,body .mst-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
+  body .mf-label.is-pink,body .mm-label.is-rose{--patch:url(/mobile/diary/patch_pink.webp)}
+  /* edge widths: the small ones thinner; the padding gives back what the edge takes */
+  body .mtb-new>span,body .mm-new>span{--pw:9px;padding:0 10px}
+  body .mm-new.is-big>span{--pw:10px;padding:0 14px}
+  body .mst-yellow>span,body .mm-label>span{--pw:10px;padding:0 10px}
+  body .ms-label>span{--pw:12px;padding:0 12px}
+  body .mf-label .mf-label-in{--pw:13px;padding:8px 12px}
+  body .mfw-next .mf-label-in{padding:6px 12px}
+  body .mf-label:active .mf-label-in,body .mtb-new:active>span,body .mm-new:active>span,body .mst-yellow:active>span,body .ms-label:active>span,body .mm-label:active>span{filter:drop-shadow(-1px 1.5px 1px rgba(90,62,44,.14)) brightness(.98)}
+}
+
 @keyframes mfw-in{from{opacity:0;transform:translateX(28px)}}
 @keyframes mfw-in-back{from{opacity:0;transform:translateX(-28px)}}
 @media (max-width:767.98px) and (prefers-reduced-motion:reduce){
