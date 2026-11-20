@@ -8,7 +8,8 @@ import { MobilePatternScreen } from "@/components/mobile/MobilePatternScreen";
 // The buttons (고치기 / 인쇄 / 뜨기 시작) sit above the sheet; printing shows the sheet alone (pattern.css).
 import { useRouter } from "next/navigation";
 import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { CoverPicker } from "@/components/diary/CoverPicker";
 import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { CopyLot } from "@/components/YarnInfo";
@@ -22,15 +23,21 @@ import "./pattern.css";
 // phones: 완성 도안 as its own screen (components/mobile/MobilePatternScreen.tsx)
 export default function PatternPage() {
   const m = useMobile();
+  // nothing until the screen is known: the wide screen's PatternScreen must not take the phone's "just made"
+  // signal (sessionStorage m.justMade: the links and the book covers) in the render before
+  if (m === null) return <main id="view-pattern" />;
   if (m) return <MobilePatternScreen />;
   return <PatternScreen />;
 }
 
 export function PatternScreen() {
-  const { ready, active: p } = useApp();
+  const { ready, active: p, updateProject } = useApp();
   const book = useBook();
   const router = useRouter();
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
+  // just made (NewBook save): the book covers, once, while the work has none
+  const [picking, setPicking] = useState(false);
+  useEffect(() => { try { if (sessionStorage.getItem("m.justMade")) { sessionStorage.removeItem("m.justMade"); setPicking(true); } } catch {} }, []);
   if (!ready || !p) return <main id="view-pattern" />;
 
   const pp = withChains(plan(p)), it = ITEM[itemIdOf(p)];
@@ -60,6 +67,7 @@ export function PatternScreen() {
 
   return (
     <main id="view-pattern" className="ps-main">
+      {picking && !p.cover && <CoverPicker first p={p} onPick={id => { updateProject(p.id, { cover: id }); setPicking(false); }} onClose={() => setPicking(false)} />}
       <div className="ps-actions">
         <div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div>
         <div className="ps-btns">

@@ -13,6 +13,7 @@ import { useBook } from "@/components/Book/BookProvider";
 import { BookCover, GoldDefs, ProgressBar, tagOf, whereOf } from "@/components/BookCover";
 import { CopyLot } from "@/components/YarnInfo";
 import { ClothPatch, LaceButton } from "@/components/diary/Diary";
+import { CoverPicker } from "@/components/diary/CoverPicker";
 import { PhotoLog } from "@/components/PhotoLog";
 import { dropOrphans, photoSummary } from "@/lib/photos";
 import { ITEM, itemIdOf } from "@/lib/items";
@@ -35,7 +36,8 @@ function useColumns() {
   const ref = useRef<HTMLDivElement>(null), [cols, setCols] = useState(5);
   useLayoutEffect(() => {
     const el = ref.current; if (!el) return;
-    const fit = () => { const w = el.clientWidth; setCols(w >= 1080 ? 5 : w >= 820 ? 4 : 3); };
+    // smaller books (Kim): seven to a shelf on a wide page, six, five, four as it narrows
+  const fit = () => { const w = el.clientWidth; setCols(w >= 1080 ? 7 : w >= 900 ? 6 : w >= 720 ? 5 : 4); };
     fit(); const ro = new ResizeObserver(fit); ro.observe(el); return () => ro.disconnect();
   });
   return [ref, cols] as const;
@@ -63,8 +65,9 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
   }, [onClose]);
   const yarn = [p.yarn, p.colorName ? p.colorName + (p.colorNo ? ` ${p.colorNo}` : "") : "", yarnWeightText(p) !== "—" ? yarnWeightText(p) : ""].filter(Boolean).join(" · ");
   const hook = hookLabel(hookMmOf(p));
-  const menu: [string, string][] = [["edit", "도안 고치기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단으로 옮기기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["copy", "복제"]];
+  const menu: [string, string][] = [["edit", "도안 고치기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단으로 옮기기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["cover", "표지 바꾸기"], ["copy", "복제"]];
   const commit = () => { const n = name.trim().slice(0, 30); if (n && n !== p.name) act("rename-save", n); setRenaming(false); };
+  const [picking, setPicking] = useState(false);
   return (
     <div className="bk-dim" onClick={onClose}>
       <div ref={box} className="bk-pop" role="dialog" aria-modal="true" aria-labelledby="bkName" onClick={e => e.stopPropagation()}>
@@ -99,10 +102,11 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
             <button type="button" autoFocus onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete-now")}>지우기</button></p>
         ) : (
           <nav className="bk-menu" aria-label="더 보기">
-            {menu.map(([k, t]) => <button key={k} type="button" onClick={() => (k === "rename" ? (setName(p.name), setRenaming(true)) : act(k))}>{t}</button>)}
+            {menu.map(([k, t]) => <button key={k} type="button" onClick={() => (k === "rename" ? (setName(p.name), setRenaming(true)) : k === "cover" ? setPicking(true) : act(k))}>{t}</button>)}
             <button type="button" className="danger" onClick={() => setAsking(true)}>지우기</button>
           </nav>
         )}
+        {picking && <CoverPicker p={p} onPick={id => { act("cover", id); setPicking(false); }} onClose={() => setPicking(false)} />}
       </div>
     </div>
   );
@@ -150,6 +154,7 @@ function List() {
       setActive(id); router.push("/track");
     }
     else if (a === "view") setActive(p.id);
+    else if (a === "cover" && v) updateProject(p.id, { cover: v });
     else if (a === "photos") setPhotoFor(p.id);
     else if (a === "edit") { setOpen(null); book.editHere(p.id); } // the book rises over this list; closing it comes back here
     else if (a === "pause") updateProject(p.id, { status: "paused", pausedAt: Date.now() });

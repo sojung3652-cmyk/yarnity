@@ -102,7 +102,7 @@
 
   /* the shelves: two books, then a shelf under them */
   .mm-shelves{margin-top:8px}
-  .mm-books{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;list-style:none;margin:0;padding:0}
+  .mm-books{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;list-style:none;margin:0;padding:0}
   .mm-book{display:flex;flex-direction:column;gap:5px;width:100%;padding:0;border:0;background:none;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .mm-book .mm-cover{width:100%;margin-bottom:6px}
   .mm-name{display:block;font-family:"Noto Serif KR",serif;font-weight:600;font-size:14px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

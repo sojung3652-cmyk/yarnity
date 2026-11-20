@@ -249,6 +249,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     } else {
       addProject({ id: "p" + Date.now().toString(36), ...JSON.parse(JSON.stringify(d)), measuredH: null, current: 0, created: Date.now(), updatedAt: Date.now(), status: "knitting" });
       store.set(STEP_KEY, 1);
+      // 완성 도안 (web and phone) then offers the book covers once (components/diary/CoverPicker.tsx)
+      try { sessionStorage.setItem("m.justMade", "1"); } catch {}
     }
     router.push("/pattern");
   };

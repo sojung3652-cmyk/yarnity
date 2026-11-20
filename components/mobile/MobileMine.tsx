@@ -12,6 +12,7 @@ import { useApp, type Removed } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { BookCover, GoldDefs, ProgressBar, tagOf, whereOf } from "@/components/BookCover";
 import { LaceButton } from "@/components/diary/Diary";
+import { CoverPicker } from "@/components/diary/CoverPicker";
 import { PhotoLog } from "@/components/PhotoLog";
 import { CopyLot } from "@/components/YarnInfo";
 import { ITEM, itemIdOf } from "@/lib/items";
@@ -50,7 +51,8 @@ export function MobileMine() {
     const list = projects.filter(p => (filter === "all" || statusOf(p) === filter) && words.every(w => haystack(p).includes(w)) && !(filter === "all" && !q && hook && p.id === hook.id));
     return [...list].sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "ko") : sort === "created" ? b.created - a.created : recent(b) - recent(a));
   }, [projects, q, filter, sort, hook]);
-  const shelves = useMemo(() => { const out: Project[][] = []; for (let i = 0; i < shown.length; i += 2) out.push(shown.slice(i, i + 2)); return out; }, [shown]);
+  // smaller books (Kim): three to a shelf
+  const shelves = useMemo(() => { const out: Project[][] = []; for (let i = 0; i < shown.length; i += 3) out.push(shown.slice(i, i + 3)); return out; }, [shown]);
 
   const act = (p: Project) => (a: string, v?: string) => {
     if (a === "view") { setActive(p.id); router.push("/pattern"); }
@@ -66,6 +68,7 @@ export function MobileMine() {
     else if (a === "unpause") updateProject(p.id, { status: "knitting", pausedAt: null });
     else if (a === "done") updateProject(p.id, { status: "done", pausedAt: null });
     else if (a === "rename" && v) updateProject(p.id, { name: v });
+    else if (a === "cover" && v) updateProject(p.id, { cover: v });
     else if (a === "copy") { const now = Date.now(); addProject({ ...p, id: "p" + now.toString(36), name: `${p.name} (복제)`.slice(0, 30), current: 0, measuredH: null, measuredW: null, status: "knitting", pausedAt: null, created: now, updatedAt: now }); }
     else if (a === "delete") {
       setOpen(null); if (timer.current) clearTimeout(timer.current);
@@ -108,7 +111,8 @@ export function MobileMine() {
                 </div>
                 <div className="mm-card-btns">
                   <button type="button" className="mm-label is-cream" onClick={() => act(hook)("view")}><span>도안 보기</span></button>
-                  <button type="button" className="mm-ribbon" onClick={() => act(hook)("resume")}><span>이어서 뜨기 →</span></button>
+                  {/* the same cloth label as 도안 보기, in lavender (Kim) */}
+                <button type="button" className="mm-label is-lavender" onClick={() => act(hook)("resume")}><span>이어서 뜨기 →</span></button>
                 </div>
               </div>
             </section>
@@ -183,7 +187,9 @@ function Sheet({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: 
   const yarn = [p.yarn, p.colorName ? p.colorName + (p.colorNo ? ` ${p.colorNo}` : "") : "", yarnWeightText(p) !== "—" ? yarnWeightText(p) : ""].filter(Boolean).join(" · ");
   const hookText = hookLabel(hookMmOf(p));
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [onClose]);
-  const menu: [string, string][] = [["edit", "도안 고치기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단하기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["copy", "복제"]];
+  const menu: [string, string][] = [["edit", "도안 고치기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단하기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["cover", "표지 바꾸기"], ["copy", "복제"]];
+  const [picking, setPicking] = useState(false);
+  if (picking) return <CoverPicker p={p} onPick={id => { act("cover", id); setPicking(false); }} onClose={() => setPicking(false)} />;
   return (
     <div className="mm-dim" onClick={onClose}>
       <div className="mm-sheet" role="dialog" aria-modal="true" aria-label={p.name} onClick={e => e.stopPropagation()} style={drag ? { transform: `translateY(${drag}px)`, transition: "none" } : undefined}
@@ -223,7 +229,7 @@ function Sheet({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: 
             <p className="mm-ask">이 작품을 지울까요? <button type="button" onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete")}>지우기</button></p>
           ) : (
             <nav className="mm-menu" aria-label="더 보기">
-              {menu.map(([k, t]) => <button key={k} type="button" onClick={() => (k === "rename" ? setRenaming(true) : act(k))}>{t}</button>)}
+              {menu.map(([k, t]) => <button key={k} type="button" onClick={() => (k === "rename" ? setRenaming(true) : k === "cover" ? setPicking(true) : act(k))}>{t}</button>)}
               <button type="button" className="danger" onClick={() => setAsking(true)}>삭제</button>
             </nav>
           )}

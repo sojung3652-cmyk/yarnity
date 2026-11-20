@@ -58,6 +58,8 @@ export interface Project extends Draft {
   updatedAt?: number;
   /** stitch width from the 5-row measurement (rows / tube items) */
   measuredW?: number | null;
+  /** the Girl's Diary book cover chosen after the pattern is made (lib/covers.ts id); none: the linen cover */
+  cover?: string;
   current: number;
   created: number;
 }

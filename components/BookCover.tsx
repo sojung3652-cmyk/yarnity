@@ -9,6 +9,8 @@ import { ITEM, itemIdOf } from "@/lib/items";
 import { PART_KO, plan } from "@/lib/pattern";
 import { STATUS_KO, statusOf } from "@/lib/status";
 import type { Project } from "@/lib/types";
+import { coverOf, coverSrc } from "@/lib/covers";
+import "@/components/diary/diary.css";
 
 /** where a work is, in words: "바닥 3 / 42단 · 다음 4단", "42단 · 아직 시작 전", "완성 · 42단" */
 export function whereOf(p: Project) {
@@ -36,6 +38,25 @@ export const GoldDefs = () => (
 
 export function BookCover({ p, w }: { p: Project; w?: number }) {
   const it = ITEM[itemIdOf(p)], going = statusOf(p) === "knitting" && (p.current || 0) > 0;
+  // a Girl's Diary cover picked for this work (lib/covers.ts): the picture, the work's name on its plate
+  const dc = coverOf(p.cover);
+  if (dc) {
+    const [l, t, pw, ph] = dc.plate;
+    // the whole name fits its plate: SVG text in a 100 x 30 box that scales with the cover (no browser
+    // minimum font size, which clipped the name on small shelf books); it shrinks with the name's length
+    // (Hangul ~1em, Latin ~.58em). The name is printed under the book too.
+    const ems = [...p.name].reduce((n, c) => n + (/[ㄱ-힝]/.test(c) ? 1 : c === " " ? 0.35 : 0.58), 0) || 1;
+    const fs = Math.min(15, 86 / ems);
+    return (
+      <span className={"mm-cover is-diary" + (dc.dark ? " is-dark" : "")} style={{ width: w }} aria-hidden="true">
+        <img className="dc-img" src={coverSrc(dc.id)} alt="" />
+        <span className={"mm-tag" + (going ? " is-going" : "")}>{tagOf(p)}</span>
+        <span className="dc-plate" style={{ left: `${l}%`, top: `${t}%`, width: `${pw}%`, height: `${ph}%` }}>
+          <svg viewBox="0 0 100 30" preserveAspectRatio="xMidYMid meet"><text x="50" y="15" dominantBaseline="central" textAnchor="middle" fontSize={fs}>{p.name}</text></svg>
+        </span>
+      </span>
+    );
+  }
   const style = { "--tint": p.color ? hexA(p.color, 0.6) : "rgba(251,247,238,.55)", width: w } as CSSProperties;
   return (
     <span className="mm-cover" style={style} aria-hidden="true">

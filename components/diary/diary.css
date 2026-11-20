@@ -27,6 +27,50 @@
 .dlace:focus-visible{outline:2px solid #3A2E29;outline-offset:2px;border-radius:6px}
 .dlace:disabled,.dlace[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}
 
+/* ---- a Girl's Diary book cover (components/BookCover.tsx, lib/covers.ts): the picture is the book (its own
+   spine, lace, shadow); the work's name on its blank plate; the state tag as on the linen books ---- */
+html body .mm-cover.is-diary{display:block;aspect-ratio:auto;height:auto;padding:0;gap:0;border-radius:0;background:none;box-shadow:none;container-type:inline-size;
+  filter:drop-shadow(-3px 4px 5px rgba(70,48,34,.22))}
+html body .mm-cover.is-diary::after{display:none}
+.dc-img{display:block;width:100%;height:auto}
+.dc-plate{position:absolute;display:block;overflow:hidden}
+.dc-plate svg{display:block;width:100%;height:100%}
+.dc-plate text{font-family:"Noto Serif KR",serif;font-weight:600;fill:#4A3D36}
+html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
+
+/* ---- the cover picker (CoverPicker.tsx): a sheet on phones, a dialog on wide screens ---- */
+.cpk-dim{position:fixed;inset:0;z-index:120;display:flex;align-items:flex-end;justify-content:center;background:rgba(60,42,34,.32);animation:cpk-dim .2s ease}
+.cpk{position:relative;display:flex;flex-direction:column;width:100%;max-height:88dvh;box-sizing:border-box;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 14px);
+  border-radius:18px 18px 0 0;background:#FBF6EF;box-shadow:0 -6px 24px rgba(60,42,34,.18);font-family:"Noto Sans KR",system-ui,sans-serif;color:#3B302B;animation:cpk-up .28s cubic-bezier(.22,.61,.36,1)}
+.cpk-grip{display:block;width:40px;height:4px;margin:0 auto 12px;border-radius:2px;background:#DCCFC6}
+.cpk-head{padding:0 22px}
+.cpk-head h2{margin:0;font:700 17px/1.4 "Noto Serif KR",serif;color:#2F2622}
+.cpk-head p{margin:4px 0 0;font-size:12.5px;line-height:1.5;color:#6B5D55}
+.cpk-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:6px 22px 8px}
+.cpk-set h3{margin:16px 0 10px;font:600 13px/1.3 "Noto Serif KR",serif;color:#5E5048}
+.cpk-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 12px}
+.cpk-item{display:block;padding:6px;border:0;border-radius:8px;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cpk-item .mm-cover{width:100%}
+.cpk-item .mm-tag{display:none}
+.cpk-item.is-on{background:rgba(159,140,201,.18);box-shadow:inset 0 0 0 2px #9F8CC9}
+.cpk-item:focus-visible{outline:2px solid #3A2E29;outline-offset:2px}
+.cpk-foot{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:12px 22px 0;border-top:1px solid #EDE2DA}
+.cpk-later{min-height:44px;padding:0 6px;border:0;background:none;font-size:13.5px;color:#6B5D55;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.cpk-foot .dpatch{min-width:160px}
+.dpatch:disabled{opacity:.5;cursor:default;transform:none}
+@media (min-width:768px){
+  .cpk-dim{align-items:center}
+  .cpk{width:min(860px,calc(100vw - 48px));max-height:min(86vh,820px);padding-bottom:18px;border-radius:14px}
+  .cpk-grip{display:none}
+  .cpk-head{padding:12px 28px 0}
+  .cpk-scroll{padding:6px 28px 8px}
+  .cpk-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .cpk-foot{padding:14px 28px 0}
+}
+@keyframes cpk-dim{from{opacity:0}}
+@keyframes cpk-up{from{transform:translateY(40px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.cpk,.cpk-dim{animation:none}}
+
 /* ---- the cloth patch ---- */
 .dpatch{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;min-height:44px;padding:4px 10px;
   border-style:solid;border-width:17px;border-image-source:var(--patch);border-image-slice:62 fill;border-image-repeat:stretch round;background:none;
