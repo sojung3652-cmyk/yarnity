@@ -673,7 +673,8 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
       {/* Light matched to the photo's objects: a broad, soft studio light from above (a big white softbox in
           the environment + sky/ground fill), with only a weak directional light from the upper left for
           direction and self-shadowing inside the book. Low contrast between the cover and the page edges. */}
-      {!OFF.has("env") && <Environment resolution={256} frames={1} background={false}>
+      {/* phones: smaller GPU targets (environment 128, contact shadow 512), to ease the load spike at start */}
+      {!OFF.has("env") && <Environment resolution={phone ? 128 : 256} frames={1} background={false}>
         <Lightformer form="rect" intensity={2.4} color="#fffaf3" position={[-4, 30, 2]} rotation-x={Math.PI / 2} scale={[46, 40, 1]} />
         <Lightformer form="rect" intensity={1.1} color="#fff6ee" position={[-16, 14, 10]} scale={[24, 16, 1]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={0.7} color="#ffffff" position={[14, 10, 14]} scale={[22, 12, 1]} target={[0, 0, 0]} />
@@ -694,7 +695,7 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
         <shadowMaterial transparent opacity={(phone ? 0.5 : 0.38) * shadowK} color={SHADOW_COLOR} />
       </mesh>
       {/* narrow dark contact line where the book touches the desk */}
-      {!OFF.has("contact") && <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={(phone ? 0.7 : 0.55) * shadowK} resolution={1024} color={SHADOW_COLOR} frames={Infinity} />}
+      {!OFF.has("contact") && <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={(phone ? 0.7 : 0.55) * shadowK} resolution={phone ? 512 : 1024} color={SHADOW_COLOR} frames={Infinity} />}
     </>
   );
 }
@@ -713,6 +714,7 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
   const [shown, setShown] = useState<Spread>(want);
   const [ready, setReady] = useState(false);
   const [phoneGL] = useState(() => matchMedia("(max-width: 767.98px)").matches);
+  const [gen, setGen] = useState(0);
   const reduce = useReducedMotion();
   const cssHost = useRef<HTMLDivElement>(null), flatHost = useRef<HTMLDivElement>(null);
   const [layer] = useState<CssLayer>(() => {
@@ -759,11 +761,16 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
             const why = `webglcontextlost ${((performance.now() - t0) / 1000).toFixed(1)}s after start, ${gl.info.render.frame} frames\n${gpu}`;
             lost = setTimeout(() => onFail(why), 3000);
           });
-          gl.domElement.addEventListener("webglcontextrestored", () => { clearTimeout(lost); invalidate(); });
+          // after a restore the scene is built again (key={gen}): the environment map and the contact shadow
+          // are drawn once into GPU targets, and a Pixel drew the book's sides black with the restored ones
+          gl.domElement.addEventListener("webglcontextrestored", () => {
+            clearTimeout(lost); setGen(g => g + 1); invalidate();
+            try { localStorage.setItem("book.fail", `${new Date().toISOString()}\nlost and restored ${((performance.now() - t0) / 1000).toFixed(1)}s after start; scene rebuilt\n${gpu}`); } catch {}
+          });
           requestAnimationFrame(() => setReady(true));
         }}
       >
-        <Scene want={want} shown={shown} setShown={setShown} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} />
+        <Scene key={gen} want={want} shown={shown} setShown={setShown} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} />
       </Canvas>
       {/* film grain over the book and the photo (not over any text: the page DOM and the hero copy sit above) */}
       <div className="book-grain" aria-hidden="true" />
