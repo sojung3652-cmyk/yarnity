@@ -209,6 +209,8 @@
   body .ms-label>span{--pw:12px;padding:0 12px}
   body .mf-label .mf-label-in{--pw:13px;padding:8px 12px}
   body .mfw-next .mf-label-in{padding:6px 12px}
+  /* shorter, centred (Kim) */
+  body .mfw-next{width:66%;min-width:220px;max-width:320px;margin-left:auto;margin-right:auto}
   body .mf-label:active .mf-label-in,body .mtb-new:active>span,body .mm-new:active>span,body .mst-yellow:active>span,body .ms-label:active>span,body .mm-label:active>span{filter:drop-shadow(-1px 1.5px 1px rgba(90,62,44,.14)) brightness(.98)}
 }
 

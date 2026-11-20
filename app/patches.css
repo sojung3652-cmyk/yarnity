@@ -41,10 +41,12 @@ html body .nav .nav-mine-title{grid-column:2;margin:0;line-height:0}
    debossed like the home's gold logo, a slow shine across it */
 .nav-mine-foil{position:relative;display:block;width:calc(var(--mph,90px) * 900 / 366);height:var(--mph,90px);
   -webkit-mask:url(/pic/my-patterns.png) center / contain no-repeat;mask:url(/pic/my-patterns.png) center / contain no-repeat;
-  background:linear-gradient(170deg,#8A6A2E 0%,#B8954C 30%,#D9BE7E 50%,#B08C45 72%,#8E6C2C 100%)}
+  background:linear-gradient(170deg,#A8843E 0%,#CBA85E 30%,#E6CD8E 50%,#C49E52 72%,#A58140 100%)}
 .nav-mine-foil i{display:none}
-/* stamped in (Kim: 음각, no shine): shadow on the upper edge, a light lip on the lower one */
-html body .nav .nav-mine-title a{filter:drop-shadow(0 1.5px 0 rgba(255,251,242,.95)) drop-shadow(0 -1px 0 rgba(70,46,14,.5)) drop-shadow(0 -1px 1.5px rgba(70,46,14,.22))}
+/* stamped in (Kim: 음각), but no soft shadow or shine (it looked dull): only crisp hairline edges, dark above,
+   light below; room above and below */
+html body .nav .nav-mine-title{padding:22px 0}
+html body .nav .nav-mine-title a{filter:drop-shadow(0 -.7px 0 rgba(80,54,18,.42)) drop-shadow(0 1px 0 rgba(255,252,246,.95))}
 @media (max-width:899px){html body .nav .nav-mine-title{grid-column:1}.nav-mine-foil{--mph:58px}}
 .nav-more{position:relative}
 .nav-more-btn{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:none;color:#3A2E29;cursor:pointer}
