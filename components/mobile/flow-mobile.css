@@ -39,20 +39,16 @@
   .mfh-lace-pic{position:absolute;left:12%;top:16.4%;width:76%;height:68.4%;border-radius:50%;object-fit:cover;object-position:60% 38%;transform:scale(1.12)}
   .mfh-lace-frame{position:absolute;inset:0;width:100%;height:100%}
 
-  /* cloth patches: the image gives only the frayed edge and its running stitches (border-image, never
-     stretched over the middle: no fill); the middle is the patch's colour with the linen weave tiled on it,
-     so a patch of any size keeps a clean edge and an even weave */
+  /* cloth patches: the whole patch is its image (border-image with fill) - the frayed edge and running
+     stitches on the border, the middle the image's own cloth repeated (round), not stretched. No background
+     of their own (Kim: a separate box showed behind the words) */
   .mf-patch{position:relative;display:flex;align-items:center;gap:12px;box-sizing:border-box;width:100%;min-height:44px;margin:0;padding:4px 8px;
-    border-style:solid;border-width:17px;border-image-source:var(--patch);border-image-slice:62;border-image-repeat:stretch;
-    background-color:var(--cloth);background-image:url(/mobile/linen_ivory.png);background-size:90px 90px;background-blend-mode:multiply;background-clip:padding-box;
+    border-style:solid;border-width:17px;border-image-source:var(--patch);border-image-slice:62 fill;border-image-repeat:round;background:none;
     filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));text-align:left;color:#3B302B;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
   .mf-patch:active{transform:scale(.98)}
-  /* the weave at about half strength on the cloth's colour: the colour sampled just inside each patch
-     image's edge (381 x 510, slice 62), so the middle runs on from the stitched border */
-  .mf-patch.is-yellow{--patch:url(/mobile/diary/patch_yellow.webp);--cloth:#F6EABE}
-  .mf-patch.is-cream{--patch:url(/mobile/diary/patch_cream.webp);--cloth:#F4EFE4}
-  .mf-patch.is-pink{--patch:url(/mobile/diary/patch_pink.webp);--cloth:#F3DBD8}
-  .mf-patch::before{content:"";position:absolute;inset:0;background:var(--cloth);opacity:.5;pointer-events:none}
+  .mf-patch.is-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
+  .mf-patch.is-cream{--patch:url(/mobile/diary/patch_cream.webp)}
+  .mf-patch.is-pink{--patch:url(/mobile/diary/patch_pink.webp)}
   .mf-patch>*{position:relative}
 
   .mfh-make{margin-top:12px}
