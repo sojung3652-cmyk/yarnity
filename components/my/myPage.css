@@ -280,3 +280,66 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my .mine-right .mine-find:focus-within,.my .mine-right .mine-find:has(.mine-search:not(:placeholder-shown)){width:160px}
 .my .mine-right .mine-find svg{width:12px;height:12px}
 .my .mine-right .mine-search{font-size:12.5px}
+
+/* ---- list + memo slip (Kim: the glossary's layout, for 위시 보관함 and 갤러리) ----
+   the list on the glossary's cream card with its fine grain, slim ivory lace subheads, rows with a small picture;
+   the chosen one comes up on the right as the glossary's ruled notepaper (0.4s from below) */
+.my-split{display:grid;grid-template-columns:380px minmax(0,1fr);gap:32px;align-items:start}
+.my-split-list{min-width:0;padding:18px 12px 8px 18px;border-radius:6px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E") 0 0 / 160px 160px,#FCF9F3;
+  box-shadow:0 0 0 1px rgba(142,131,121,.16),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
+.my-split-scroll{max-height:calc(100vh - 250px);overflow-y:auto;overscroll-behavior:contain;padding:0 8px 12px 0;scrollbar-width:thin;scrollbar-color:rgba(142,131,121,.35) transparent}
+.my-lace-sub{display:flex;justify-content:center;margin:18px 0 8px}
+.my-lace-sub:first-child{margin-top:4px}
+.my-lace-sub span{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:156px;aspect-ratio:900 / 264;padding:0 9%;
+  background:url(/glossary/lace_ivory.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1));font:700 12.5px/1 "Noto Serif KR",serif;color:#4A3D38}
+.my-rows{list-style:none;margin:0;padding:0}
+.my-row{display:grid;grid-template-columns:52px minmax(0,1fr) 14px;align-items:center;gap:14px;width:100%;min-height:68px;padding:10px 8px;border:0;border-bottom:1px solid rgba(142,131,121,.16);
+  background:none;font:inherit;text-align:left;color:inherit;cursor:pointer;border-radius:0}
+.my-rows li:last-child .my-row{border-bottom-color:transparent}
+.my-row.is-on{background:rgba(224,170,174,.28);border-radius:12px;border-bottom-color:transparent}
+.my-row:hover b{color:#8A4A55}
+.my-row-pic{display:grid;place-items:center;width:52px;height:52px;border-radius:6px;overflow:hidden;background:#F1EBE0;color:#8C807A;box-shadow:inset 0 0 0 1px rgba(142,131,121,.2)}
+.my-row-pic img{width:100%;height:100%;object-fit:cover;display:block}
+.my-row-pic.is-memo{font:700 18px "Noto Serif KR",serif;color:#8C807A}
+.my-row-pic.tone-cream{background:#FBF1D9}.my-row-pic.tone-rose{background:#F6E8E7}
+.my-row-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+.my-row-text b{font:600 13.5px/1.35 "Noto Serif KR",serif;color:#3A322D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.my-row-text span{font-size:11.5px;line-height:1.5;color:#6B5D55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.my-row svg.my-chev{width:14px;height:14px;color:#B8A9A1}
+.my-row.is-on svg.my-chev{color:#8A4A55}
+.my-memo{position:sticky;top:76px;max-height:calc(100vh - 110px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;padding:34px 38px 36px;border-radius:6px;
+  background:repeating-linear-gradient(to bottom,transparent 0 33px,rgba(176,141,87,.12) 33px 34px) local,#FBF7EF;
+  box-shadow:0 0 0 1px rgba(142,131,121,.14),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1);
+  animation:my-memo-up .4s cubic-bezier(.22,1,.36,1) both;scrollbar-width:thin;scrollbar-color:rgba(142,131,121,.35) transparent}
+@keyframes my-memo-up{from{opacity:0;transform:translateY(28px)}}
+.my-memo-kick{display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#8C807A}
+.my-memo h2{margin:8px 0 0;font:700 21px/1.35 "Noto Serif KR",serif;color:#3A322D}
+.my-memo-sub{margin:8px 0 0;font-size:13.5px;line-height:1.6;color:#5E554E}
+.my-memo-pic{display:block;width:100%;max-height:420px;object-fit:contain;margin:22px 0 0;border-radius:6px;background:#F1EBE0}
+.my-memo-text{margin:22px 0 0;font:15px/34px "Noto Serif KR",serif;color:#3F3532;white-space:pre-wrap}
+.my-memo-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.my-memo-empty{display:grid;place-items:center;min-height:280px;margin-top:22px;border-radius:8px;
+  background:repeating-linear-gradient(135deg,rgba(142,131,121,.08) 0 7px,rgba(255,254,250,.5) 7px 14px);box-shadow:inset 0 0 0 1px rgba(142,131,121,.3)}
+.my-memo-empty span{display:flex;flex-direction:column;align-items:center;gap:10px;font:600 14px "Noto Serif KR",serif;color:#6A605F}
+.my-memo-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:12.5px;color:#6A605F}
+.my-memo-nav button{width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,254,250,.9);box-shadow:inset 0 0 0 1px rgba(142,131,121,.35);font-size:18px;color:#3F3532;cursor:pointer}
+.my-memo-nav button:disabled{opacity:.35;cursor:default}
+.my-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;list-style:none;padding:0}
+.my-thumbs button{width:56px;height:56px;padding:0;border:0;border-radius:6px;overflow:hidden;cursor:pointer;opacity:.7;box-shadow:inset 0 0 0 1px rgba(142,131,121,.25)}
+.my-thumbs button[aria-current="true"]{opacity:1;box-shadow:0 0 0 2px #CE999B}
+.my-thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+@media (max-width:1180px){.my-split{grid-template-columns:320px minmax(0,1fr);gap:24px}}
+@media (max-width:999.98px){.my-split{grid-template-columns:minmax(0,1fr)}.my-memo{position:static;max-height:none}.my-split-scroll{max-height:none}}
+@media (prefers-reduced-motion:reduce){.my-memo{animation:none}}
+.my-row-pic .mm-cover,.my-row-pic>span{transform:scale(.9)}
+.my-row-pic .mm-tag,.my-row-pic .mm-plate{display:none}
+/* 나의 프로필 in the glossary's pair too (Kim): the profile on the list's grained cream card, 내 데이터 on the ruled
+   memo slip */
+.my-prof-main{border-radius:6px;padding:24px 28px 14px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E") 0 0 / 160px 160px,#FCF9F3;
+  box-shadow:0 0 0 1px rgba(142,131,121,.16),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
+.my-data{border-radius:6px;padding:26px 28px 24px;
+  background:repeating-linear-gradient(to bottom,transparent 0 33px,rgba(176,141,87,.12) 33px 34px) local,#FBF7EF;
+  box-shadow:0 0 0 1px rgba(142,131,121,.14),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
+.my-data p{line-height:34px;margin-top:6px}

@@ -60,7 +60,7 @@ export function MyProfile() {
     <>
       <MyHead title="나의 프로필" line="지금은 이 브라우저에만 저장돼요" />
       <div className="my-prof">
-        <section className="my-card my-prof-main" aria-label="프로필">
+        <section className="my-prof-main" aria-label="프로필">
           <div className="my-prof-top">
             <Avatar size={76} />
             <div className="my-prof-who">
@@ -83,7 +83,7 @@ export function MyProfile() {
           </dl>
         </section>
         <aside className="my-prof-side">
-          <section className="my-card my-data" aria-labelledby="myData">
+          <section className="my-data" aria-labelledby="myData">
             <h2 id="myData" className="my-h2">내 데이터</h2>
             <p>작품, 사진, 위시는 이 브라우저에만 있어요. 다른 기기로 옮기려면 파일로 내보내세요.</p>
             <div className="my-data-btns">

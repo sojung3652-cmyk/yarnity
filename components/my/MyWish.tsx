@@ -1,7 +1,8 @@
 "use client";
 // My Page · 위시 보관함 (/my/wish, Kim): shop links, pictures of things to knit or yarn to buy, notes - cards of
-// their own heights in 4 columns (3, 2 as it narrows). A link reads its page's title, picture and price
-// (app/api/link-preview) and whatever it cannot read is typed in. On hover a card shows ··· (고치기, 지우기).
+// the glossary's layout (Kim): the list on its cream card, under slim ivory laces (링크 / 뜨고 싶은 편물 / 갖고 싶은
+// 실 / 메모), the chosen one on the ruled memo slip at the right (고치기, 지우기). A link reads its page's title,
+// picture and price (app/api/link-preview) and whatever it cannot read is typed in.
 // Kept in this browser (lib/wish.ts; pictures in IndexedDB).
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { addPhoto, removePhoto } from "@/lib/photos";
@@ -115,48 +116,63 @@ function WishForm({ kind, wish, onClose }: { kind: "link" | "photo" | "memo"; wi
   );
 }
 
-function WishCard({ w, onEdit }: { w: Wish; onEdit: () => void }) {
-  const all = useWishes(), pic = usePhotoUrl(w.photo), [menu, setMenu] = useState(false), [ask, setAsk] = useState(false);
-  const remove = () => { if (w.photo) removePhoto(w.photo).catch(() => {}); saveWishes(all.filter(x => x.id !== w.id)); };
+const SECTIONS: { kind: WishKind; label: string }[] = [{ kind: "link", label: "링크" }, { kind: "knit", label: "뜨고 싶은 편물" }, { kind: "yarn", label: "갖고 싶은 실" }, { kind: "memo", label: "메모" }];
+const Chev = () => <svg className="my-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+const memoTitle = (w: Wish) => (w.text ?? "").split("\n")[0].slice(0, 40);
+
+/** one row of the list: a small picture (or the kind's mark), the title, one line under it */
+function WishRow({ w, on, onPick }: { w: Wish; on: boolean; onPick: () => void }) {
+  const pic = usePhotoUrl(w.photo);
+  const src = w.kind === "link" ? w.image : pic ?? undefined;
+  const sub = w.kind === "link" ? [w.shop, w.price].filter(Boolean).join(" · ") || "링크" : w.kind === "memo" ? new Date(w.at).toLocaleDateString("ko-KR") : KIND_KO[w.kind];
   return (
-    <li className={"my-wish is-" + w.kind + (w.kind === "memo" ? " tone-" + (w.tone ?? "cream") : " my-card")} onMouseLeave={() => { setMenu(false); }}>
-      {w.kind === "link" && <>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        {w.image && <img className="my-wish-pic" src={w.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />}
-        <p className="my-wish-kind">{WishIcon.link}<span>링크{w.shop ? ` · ${w.shop}` : ""}</span></p>
-        <b>{w.title}</b>
-        {w.price && <p className="my-wish-price">{w.price}</p>}
-        <a className="my-wish-go" href={w.url} target="_blank" rel="noopener noreferrer">바로가기 →</a>
-      </>}
-      {(w.kind === "knit" || w.kind === "yarn") && <>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        {pic && <img className="my-wish-pic" src={pic} alt="" />}
-        <p className="my-wish-kind">{WishIcon.photo}<span>{KIND_KO[w.kind]}</span></p>
-        <b>{w.title}</b>
-      </>}
-      {w.kind === "memo" && <p className="my-wish-memo">{w.text}</p>}
-      <button type="button" className="my-wish-more" aria-label="카드 메뉴" aria-expanded={menu} onClick={() => setMenu(v => !v)}>···</button>
-      {menu && (
-        <div className="my-pop is-card" role="menu">
-          <button type="button" role="menuitem" onClick={() => { setMenu(false); onEdit(); }}>고치기</button>
-          <button type="button" role="menuitem" className="danger" onClick={() => { setMenu(false); setAsk(true); }}>지우기</button>
-        </div>
-      )}
-      {ask && (
-        <div className="my-ask" role="alertdialog" aria-label="카드 지우기">
-          <p>이 카드를 지울까요?</p>
-          <div><button type="button" className="my-btn is-sub" autoFocus onClick={() => setAsk(false)}>취소</button><button type="button" className="my-btn" onClick={remove}>지우기</button></div>
-        </div>
-      )}
+    <li>
+      <button type="button" className={"my-row" + (on ? " is-on" : "")} aria-current={on ? "true" : undefined} onClick={onPick}>
+        <span className={"my-row-pic" + (w.kind === "memo" ? " is-memo tone-" + (w.tone ?? "cream") : "")}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {src ? <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+            : w.kind === "memo" ? "“" : w.kind === "link" ? WishIcon.link : WishIcon.photo}
+        </span>
+        <span className="my-row-text"><b>{w.kind === "memo" ? memoTitle(w) : w.title}</b><span>{sub}</span></span>
+        <Chev />
+      </button>
     </li>
+  );
+}
+
+/** the chosen wish on the memo slip: the picture large, what it is, the link, the note; 고치기 / 지우기 */
+function WishMemo({ w, onEdit }: { w: Wish; onEdit: () => void }) {
+  const all = useWishes(), pic = usePhotoUrl(w.photo), [ask, setAsk] = useState(false);
+  const remove = () => { if (w.photo) removePhoto(w.photo).catch(() => {}); saveWishes(all.filter(x => x.id !== w.id)); };
+  const src = w.kind === "link" ? w.image : pic ?? undefined;
+  return (
+    <article className="my-memo" aria-label="고른 위시">
+      <p className="my-memo-kick">{w.kind === "link" ? WishIcon.link : w.kind === "memo" ? WishIcon.memo : WishIcon.photo}<span>{w.kind === "link" ? `링크${w.shop ? ` · ${w.shop}` : ""}` : KIND_KO[w.kind]}</span></p>
+      {w.kind !== "memo" && <h2>{w.title}</h2>}
+      {w.price && <p className="my-memo-sub">{w.price}</p>}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {src && <img className="my-memo-pic" src={src} alt="" referrerPolicy="no-referrer" onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />}
+      {w.kind === "memo" && <p className="my-memo-text">{w.text}</p>}
+      <div className="my-memo-btns">
+        {w.kind === "link" && <a className="my-btn" href={w.url} target="_blank" rel="noopener noreferrer">바로가기 →</a>}
+        <button type="button" className="my-btn is-sub" onClick={onEdit}>고치기</button>
+        {ask
+          ? <><button type="button" className="my-btn" autoFocus onClick={remove}>정말 지우기</button><button type="button" className="my-btn is-sub" onClick={() => setAsk(false)}>취소</button></>
+          : <button type="button" className="my-btn is-sub" onClick={() => setAsk(true)}>지우기</button>}
+      </div>
+    </article>
   );
 }
 
 export function MyWish() {
   const wishes = useWishes(), [filter, setFilter] = useState<Filter>("all");
   const [form, setForm] = useState<{ kind: "link" | "photo" | "memo"; wish?: Wish } | null>(null);
+  const [sel, setSel] = useState<string | null>(null);
   const counts = useMemo(() => { const c: Record<Filter, number> = { all: wishes.length, link: 0, knit: 0, yarn: 0, memo: 0 }; wishes.forEach(w => c[w.kind]++); return c; }, [wishes]);
-  const shown = filter === "all" ? wishes : wishes.filter(w => w.kind === filter);
+  const sections = useMemo(() => SECTIONS.filter(s => filter === "all" || s.kind === filter)
+    .map(s => ({ ...s, items: wishes.filter(w => w.kind === s.kind) })).filter(s => s.items.length), [wishes, filter]);
+  // nothing chosen (or it was deleted): the first in the list comes up, as in the glossary
+  const shown = sections.flatMap(s => s.items), cur = shown.find(w => w.id === sel) ?? shown[0] ?? null;
   const buttons = (
     <>
       <button type="button" className="my-btn is-sub" onClick={() => setForm({ kind: "link" })}>{WishIcon.link}링크</button>
@@ -171,8 +187,21 @@ export function MyWish() {
         <div className="my-pills" role="tablist" aria-label="종류로 거르기">
           {FILTERS.map(f => <button key={f.id} type="button" role="tab" aria-selected={filter === f.id} className={"my-pill" + (filter === f.id ? " is-on" : "")} onClick={() => setFilter(f.id)}>{f.label} <span>{counts[f.id]}</span></button>)}
         </div>
-        {shown.length ? <ul className="my-masonry">{shown.map(w => <WishCard key={w.id} w={w} onEdit={() => setForm({ kind: w.kind === "link" ? "link" : w.kind === "memo" ? "memo" : "photo", wish: w })} />)}</ul>
-          : <p className="my-quiet">이 종류의 카드가 아직 없어요.</p>}
+        {shown.length ? (
+          <div className="my-split">
+            <div className="my-split-list">
+              <div className="my-split-scroll">
+                {sections.map(s => (
+                  <section key={s.kind} aria-label={s.label}>
+                    <h3 className="my-lace-sub"><span>{s.label}</span></h3>
+                    <ul className="my-rows">{s.items.map(w => <WishRow key={w.id} w={w} on={cur?.id === w.id} onPick={() => setSel(w.id)} />)}</ul>
+                  </section>
+                ))}
+              </div>
+            </div>
+            {cur && <WishMemo key={cur.id} w={cur} onEdit={() => setForm({ kind: cur.kind === "link" ? "link" : cur.kind === "memo" ? "memo" : "photo", wish: cur })} />}
+          </div>
+        ) : <p className="my-quiet">이 종류의 카드가 아직 없어요.</p>}
       </> : (
         <div className="my-card my-empty is-wish"><p>마음에 드는 실이나 편물을 모아 보세요</p><div className="my-head-end">{buttons}</div></div>
       )}
