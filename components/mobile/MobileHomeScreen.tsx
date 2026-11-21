@@ -63,7 +63,7 @@ export function MobileHomeScreen() {
       <nav className="mfh-foot" aria-label="더 보기">
         <button type="button" className="mf-patch is-cream mfh-ai" onClick={() => setChat(c => ({ ...c, open: true }))}>
           <img className="mfh-star" src="/mobile/diary/star.webp" alt="" />
-          <span className="mfh-two"><b>AI와 상의</b></span>
+          <span className="mfh-two"><b>Yarni와 상의</b></span>
         </button>
         <button type="button" className="mf-patch is-green" onClick={() => router.push("/glossary")}>
           <span className="mfh-two"><b>뜨개 용어집</b><small>{TERMS.length}개 용어</small></span>

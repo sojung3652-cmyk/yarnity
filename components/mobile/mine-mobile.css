@@ -50,8 +50,8 @@
   .mm-tag{position:absolute;left:14px;top:8px;padding:2px 7px;border-radius:99px;background:#FBF6EC;font-family:"Noto Sans KR",system-ui,sans-serif;font-size:10.5px;line-height:1.4;color:#5A4A3E;
     box-shadow:0 0 0 1px rgba(168,130,58,.25)}
   .mm-tag.is-going{background:#FCE8EC;color:#7A404C;box-shadow:none}
-  .mm-bar{display:block;height:3px;border-radius:2px;background:rgba(226,141,159,.22);overflow:hidden}
-  .mm-bar i{display:block;height:100%;border-radius:2px;background:#E28D9F}
+  .mm-bar{display:block;height:3px;border-radius:2px;background:rgba(176,141,87,.18);overflow:hidden}
+  .mm-bar i{display:block;height:100%;border-radius:2px;background:#CE999B}
 
   /* the work on the hook */
   .mm-hook{margin-top:22px}

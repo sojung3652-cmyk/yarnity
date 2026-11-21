@@ -35,8 +35,8 @@ import { hookMmOf, yarnWeightText } from "@/lib/yarn";
 import "@/components/ai/ai.css";
 
 const ERR: Record<string, string> = {
-  not_configured: "AI 상담은 곧 열려요. 그동안 책의 칸만으로도 끝까지 만들 수 있어요.",
-  not_granted: "AI 상담을 쓸 수 없는 상태예요. 책의 칸만으로도 끝까지 만들 수 있어요.",
+  not_configured: "Yarni 상담은 곧 열려요. 그동안 책의 칸만으로도 끝까지 만들 수 있어요.",
+  not_granted: "Yarni 상담을 쓸 수 없는 상태예요. 책의 칸만으로도 끝까지 만들 수 있어요.",
   rate_limited: "잠시 뒤에 다시 보내 주세요.",
   image_rejected: "이 사진은 읽을 수 없어요. 다른 사진으로 해 볼까요?",
   invalid_json: "답을 정리하지 못했어요. 한 번만 다시 보내 주세요.",
@@ -413,7 +413,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
       <div className="aic-side-top">
         {sideBar
           ? !folded && <span className="aic-side-logo" aria-label="Yarnity"><FoilLogo className="aic-side-foil" /></span>
-          : <b className="aic-side-name">AI와 상의</b>}
+          : <b className="aic-side-name">Yarni와 상의</b>}
         {sideBar
           ? <button type="button" className="aic-icon" aria-label={folded ? "목록 펴기" : "목록 접기"} title={folded ? "목록 펴기" : "목록 접기"} aria-expanded={!folded} onClick={() => fold(folded)}>{folded ? Ic.unfold : Ic.fold}</button>
           : <button type="button" className="aic-icon" aria-label="목록 닫기" onClick={() => setDrawer(false)}>{Ic.x}</button>}
@@ -579,7 +579,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
       <div className="aic-starters">
         {starters.map(t => <button key={t} type="button" disabled={!!busy || chat.off || !chat.checked} onClick={() => (t.startsWith("사진") ? (setInput(t + " "), inputRef.current?.focus()) : send(t))}>{t}</button>)}
       </div>
-      <p className="aic-note">코 수와 단 수는 AI가 아니라 앱의 공식이 계산해요.</p>
+      <p className="aic-note">코 수와 단 수는 Yarni가 아니라 앱의 공식이 계산해요.</p>
     </div>
   );
   const offNote = chat.off && <p className="aic-notice">{ERR.not_configured}</p>;
@@ -629,7 +629,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
           {far && <button type="button" className="aic-down" aria-label="맨 아래로" onClick={toBottom}>{Ic.down}</button>}
           {!online && <p className="aic-offline" role="status">인터넷 연결을 확인해 주세요</p>}
           <div className="aic-col">{composer}</div>
-          {sideBar && <p className="aic-note aic-foot-note">코 수와 단 수는 AI가 아니라 앱의 공식이 계산해요.</p>}
+          {sideBar && <p className="aic-note aic-foot-note">코 수와 단 수는 Yarni가 아니라 앱의 공식이 계산해요.</p>}
         </div>
       )}
       {!conv && !online && <p className="aic-offline is-float" role="status">인터넷 연결을 확인해 주세요</p>}
@@ -677,7 +677,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
     return (
       <div className={"aic-root is-phone" + (page ? " is-page" : "") + (sheet ? " is-sheet" : "") + (sinking ? " is-sinking" : "")}>
         {!page && <div className="aic-dim aic-back" onClick={close} />}
-        <div className="aic-panel" role="dialog" aria-modal="true" aria-label="AI와 상의"
+        <div className="aic-panel" role="dialog" aria-modal="true" aria-label="Yarni와 상의"
           style={drag ? { transform: `translateY(${Math.max(0, drag)}px)`, transition: "none" } : undefined}
           onTouchStart={page ? undefined : e => { const top = e.currentTarget.getBoundingClientRect().top; y0.current = e.touches[0].clientY - top < 60 ? e.touches[0].clientY : null; }}
           onTouchMove={page ? undefined : e => { if (y0.current != null) setDrag(e.touches[0].clientY - y0.current); }}
@@ -700,7 +700,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   if (win) {
     return (
       <div className={"aic-root is-wide is-win" + (sinking ? " is-sinking" : "")}>
-        <div className="aic-panel" role="dialog" aria-label="AI와 상의">
+        <div className="aic-panel" role="dialog" aria-label="Yarni와 상의">
           {chatPane}
           {drawer && (
             <div className="aic-drawer-dim" onClick={() => setDrawer(false)}>
@@ -714,7 +714,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   }
   return (
     <div className="aic-root is-wide is-page">
-      <div className="aic-panel" aria-label="AI와 상의">
+      <div className="aic-panel" aria-label="Yarni와 상의">
         {listPane}
         <div className="aic-right">{chatPane}</div>
       </div>

@@ -51,7 +51,7 @@ export function AiTab({ variant }: { variant: "menu" | "page" | "phone" }) {
   const placeTip = () => { const r = ref.current?.getBoundingClientRect(); if (r) setTipLeft(!inside && r.right + 6 + 90 > innerWidth); };
 
   return (
-    <button ref={ref} type="button" aria-label="AI와 상의하기" aria-expanded={open}
+    <button ref={ref} type="button" aria-label="Yarni와 상의하기" aria-expanded={open}
       className={`ai-ftab ai-ftab-${variant}` + (inside ? " is-inside" : "") + (open ? " is-on" : "") + (tipLeft ? " tip-left" : "")}
       style={!phone ? { top: `${top}%` } : undefined}
       onPointerEnter={placeTip} onFocus={placeTip}
@@ -71,7 +71,7 @@ export function AiTab({ variant }: { variant: "menu" | "page" | "phone" }) {
       </svg>
       {/* the gold-thread star (Girl's Diary), as on the phone's AI와 상의 */}
       <img className="ai-ftab-star" src="/mobile/diary/star.webp" alt="" aria-hidden="true" />
-      <span className="ai-ftab-tip" aria-hidden="true">AI와 상의</span>
+      <span className="ai-ftab-tip" aria-hidden="true">Yarni와 상의</span>
     </button>
   );
 }

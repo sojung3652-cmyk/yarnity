@@ -75,7 +75,7 @@
   .mfh-resume-text b{font:700 14px/1.35 "Noto Serif KR",serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mfh-where{font-size:12px;color:#5E5048}
   .mfh-resume .mm-bar{margin-top:4px}
-  .mfh-resume .mm-bar i{background:#E28D9F}
+  .mfh-resume .mm-bar i{background:#CE999B}
   .mfh-chev{flex:none;width:20px;text-align:center;font-size:22px;color:#8C7B72}
   .mfh-foot{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:8px}
   .mfh-foot .mf-patch{min-height:62px}
@@ -93,8 +93,8 @@
   .mfw-where{margin:0;text-align:center;font-size:13.5px;color:#7A6C64}
   .mfw-where b{color:#3F3532;font-weight:700}
   .mfw-prog{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:6px 0 0;padding:0;list-style:none}
-  .mfw-prog li{height:3px;border-radius:2px;background:#F9E8EB}
-  .mfw-prog li.on{background:#E28D9F}
+  .mfw-prog li{height:3px;border-radius:2px;background:rgba(176,141,87,.18)}
+  .mfw-prog li.on{background:#CE999B} /* the web's rose (Kim) */
   .mfw-form{flex:1;min-height:0;display:flex;flex-direction:column;margin:0 -26px}
   .mfw-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:0 26px 24px;-webkit-overflow-scrolling:touch}
   .mfw-screen{animation:mfw-in .3s cubic-bezier(.22,.61,.36,1) both}

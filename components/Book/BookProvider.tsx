@@ -105,7 +105,9 @@ export function BookProvider({ children }: { children: ReactNode }) {
     // never the old desk. Phones keep their own menu on /.
     if (path === "/") setHomeOpen(phone && (seenPath === "/new" || !!bookPageOf(seenPath) || seenPath === "/mine" || seenPath === "/pattern" || seenPath === "/track") && !closing);
     if (closing) setClosing(false);
-    setInstant(!bookPage(seenPath) && !overlay);
+    // a book raised over a page (새 도안 / New Pattern, 고치기: origin) opens with its motion; only an address typed or a
+    // reload of /new shows it open at once
+    setInstant(!bookPage(seenPath) && !overlay && !(path === "/new" && origin));
     // wide screens: "← 메뉴" in a wizard raised over the opening turns back to the floating menu spread
     const toMenu = menuNext.current && path !== "/new"; menuNext.current = false;
     if (overlay !== toMenu) setOverlay(toMenu); // going anywhere (the wizard, 내 작품) ends the overlay

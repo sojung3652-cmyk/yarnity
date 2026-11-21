@@ -82,7 +82,7 @@ export function MyPage() {
             <div className="my-side-head">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <span className="my-ai-badge" aria-hidden="true"><img src="/brand/ai_badge.webp" alt="" /></span>
-              <h2 className="my-h my-h-sm" id="myAi">AI와 나눈 대화</h2>
+              <h2 className="my-h my-h-sm" id="myAi">Yarni와 나눈 대화</h2>
               <Link className="my-all" href="/ai">전체 →</Link>
             </div>
             {recent.length ? (

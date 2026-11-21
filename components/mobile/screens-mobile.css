@@ -127,8 +127,8 @@
   .mst-progress{display:flex;align-items:center;gap:12px;margin-top:14px;font-size:12.5px}
   .mst-part{flex:none;color:#5E5048}
   .mst-part b{font:600 12.5px var(--font-cormorant),"Cormorant Garamond",serif;color:#C3687B}
-  .mst-bar{flex:1;height:4px;border-radius:2px;background:rgba(226,141,159,.22);overflow:hidden}
-  .mst-bar i{display:block;height:100%;background:#E28D9F;transition:width .3s ease}
+  .mst-bar{flex:1;height:4px;border-radius:2px;background:rgba(176,141,87,.18);overflow:hidden}
+  .mst-bar i{display:block;height:100%;background:#CE999B;transition:width .3s ease}
   .mst-pos{flex:none;color:#6B5D55}
   .mst-pos b{color:#4B3F3A;font-size:13.5px}
   .mst-card{margin-top:24px;padding:20px 22px 24px;border-radius:10px;background:#FFFDF8;box-shadow:-6px 8px 16px -10px rgba(70,48,34,.45),0 0 0 1px rgba(168,130,58,.08)}

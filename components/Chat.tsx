@@ -7,8 +7,8 @@ import { YARN_KO, type Weight } from "@/lib/pattern";
 import type { Draft } from "@/lib/types";
 
 const ERR: Record<string, string> = {
-  not_configured: "AI 대화를 지금 쓸 수 없어요. 왼쪽 칸만으로도 만들 수 있어요.",
-  not_granted: "AI 사용이 허용되지 않았어요. 왼쪽 칸만으로도 만들 수 있어요.",
+  not_configured: "Yarni 대화를 지금 쓸 수 없어요. 왼쪽 칸만으로도 만들 수 있어요.",
+  not_granted: "Yarni 사용이 허용되지 않았어요. 왼쪽 칸만으로도 만들 수 있어요.",
   rate_limited: "잠시 뒤에 다시 보내 주세요.",
   image_rejected: "이 사진은 읽을 수 없어요. 다른 사진으로 해 볼까요?",
   invalid_json: "답을 정리하지 못했어요. 한 번만 다시 보내 주세요.",
@@ -83,8 +83,8 @@ export function Chat({ draft, applySet }: { draft: Draft; applySet: (s: unknown)
   }
 
   return (
-    <section className="card chat" aria-label="AI와 모양 정하기">
-      <div className="chat-head"><h2>AI와 모양 정하기</h2><span className="small muted" id="chatStatus">{chat.off ? "왼쪽 칸으로 만들 수 있어요" : ""}</span></div>
+    <section className="card chat" aria-label="Yarni와 모양 정하기">
+      <div className="chat-head"><h2>Yarni와 모양 정하기</h2><span className="small muted" id="chatStatus">{chat.off ? "왼쪽 칸으로 만들 수 있어요" : ""}</span></div>
       <div className="msgs" id="msgs" aria-live="polite" ref={msgsRef}>
         {chat.msgs.map((m: ChatMsg) => (
           <div key={m.id} className={"msg " + m.kind}>

@@ -42,10 +42,10 @@ export function AiBadge() {
 
   if (hidden) return null;
   return (
-    <button ref={ref} type="button" className="ai-badge" aria-label="AI에게 물어보기" aria-expanded={false}
+    <button ref={ref} type="button" className="ai-badge" aria-label="Yarni에게 물어보기" aria-expanded={false}
       style={phone && lift != null ? { bottom: lift } : undefined}
       onClick={() => setChat(c => ({ ...c, open: true }))}>
-      <span className="ai-badge__label" aria-hidden="true">AI에게 물어보기</span>
+      <span className="ai-badge__label" aria-hidden="true">Yarni에게 물어보기</span>
     </button>
   );
 }
