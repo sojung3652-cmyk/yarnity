@@ -54,7 +54,7 @@
   /* the close (x) on every page of the book: as on the first page, top right, a 13px mark in a 44px area */
   body .mbook-x{position:absolute;right:4px;top:4px;z-index:6;display:grid;place-items:center;width:46px;height:46px;padding:16.5px;box-sizing:border-box;border:0;border-radius:50%;background:none;cursor:pointer;filter:drop-shadow(0 1px 1px rgba(70,50,30,.25))}
   body .mbook-x .gold-x{display:block;width:100%;height:100%}
-  body .mbook-x:focus-visible{outline:2px solid #3A2E29;outline-offset:-4px}
+  body .mbook-x:focus-visible{outline:2px solid #4A3D38;outline-offset:-4px}
   body .mbz-steps{flex-wrap:nowrap;gap:0 7px;padding-right:30px;font-size:11px;white-space:nowrap}
   body .mbz-steps li{gap:3px}
   body .mbz-dot{width:14px;height:14px;font-size:9px}
@@ -66,7 +66,7 @@
   .m-desk-btns.is-away{opacity:0;pointer-events:none}
   .m-desk-btn{flex:1;min-width:0;min-height:44px;padding:0;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .m-desk-face{position:relative;display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;box-sizing:border-box;padding:0 18px;border-radius:2px;
-    font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#3B302B;white-space:nowrap;
+    font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#4B3F3A;white-space:nowrap;
     background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lb);
     box-shadow:0 1px 2px rgba(110,90,50,.28),-3px 5px 8px -4px rgba(70,48,34,.4)}
   .m-desk-face::before,.m-desk-face::after{content:"";position:absolute;top:7px;bottom:7px;border-left:1.5px dashed var(--ls);pointer-events:none}
@@ -76,5 +76,5 @@
   .m-desk-btn.is-rose{--lb:#F3E0DF;--ls:#D9AFAA}
   .m-desk-btn:active .m-desk-face{transform:translateY(1px)}
   .m-desk-btn:focus-visible{outline:none}
-  .m-desk-btn:focus-visible .m-desk-face{outline:2px solid #3B302B;outline-offset:3px}
+  .m-desk-btn:focus-visible .m-desk-face{outline:2px solid #4B3F3A;outline-offset:3px}
 }

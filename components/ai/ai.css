@@ -1,8 +1,8 @@
 /* "AI와 상의" (components/newbook/AiPanel.tsx): a chat app's structure in Yarnity's own look (Kim) - the blush
-   page #F7EDEB, ivory #FFFDF8, words #2F2622 / #6B5D55, baby pink #E2A9B3 for what is chosen (Kim: no lavender left), mocha #4A3830 for
+   page #F7EDEB, ivory #FFFDF8, words #3F3532 / #6B5D55, baby pink #E2A9B3 for what is chosen (Kim: no lavender left), mocha #4A3830 for
    the send button, the gold-thread star, cloth patches; Noto Serif KR / Noto Sans KR. Light from the upper
    right: shadows fall to the lower left. Type never under 11px; touch areas 44 x 44 on phones; the box 16px. */
-.aic-root{--ink:#2F2622;--ink2:#6B5D55;--ink3:#8C7E74;--ivory:#FFFDF8;--blush:#F7EDEB;--lav:#E2A9B3;--mocha:#4A3830;--line:rgba(138,114,88,.3);
+.aic-root{--ink:#3F3532;--ink2:#6B5D55;--ink3:#8C7E74;--ivory:#FFFDF8;--blush:#F7EDEB;--lav:#E2A9B3;--mocha:#4A3830;--line:rgba(138,114,88,.3);
   position:fixed;inset:0;z-index:140;font-family:"Noto Sans KR",system-ui,sans-serif;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
 .aic-root button{font:inherit;color:inherit}
 .aic-root .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

@@ -1,7 +1,7 @@
 /* 따라 뜨기 on the pattern sheet: the same cream paper and thin warm ink as the pattern page (pattern.css,
    whose woven .ps-label this page also uses). Left: the chart on graph paper. Right: the row as an index
    card (a red-brown margin line and faint rules, like a recipe card), a wide ribbon to tap, the rows. */
-.tk-main{--tk-ink:#3A2E29;--tk-soft:#7A6A63;--tk-rule:#D9CBBE;--tk-hair:#E8DDD2;--tk-paper:#FBF3EA;--tk-lav:#F0C1CA;--tk-lav-ink:#D77286;padding-bottom:56px}
+.tk-main{--tk-ink:#4A3D38;--tk-soft:#7A6A63;--tk-rule:#D9CBBE;--tk-hair:#E8DDD2;--tk-paper:#FBF3EA;--tk-lav:#F0C1CA;--tk-lav-ink:#D77286;padding-bottom:56px}
 .tk-sheet-page{position:relative;max-width:1120px;margin:16px auto 0;box-sizing:border-box;padding:34px 40px 36px;color:var(--tk-ink);font-family:"Noto Serif KR",serif;background:var(--tk-paper);border-radius:2px;
   box-shadow:0 1px 1px rgba(70,50,40,.08),0 10px 30px -12px rgba(70,50,40,.25),0 30px 60px -40px rgba(70,50,40,.3)}
 .tk-sheet-page::before{content:"";position:absolute;inset:14px;border:1px solid var(--tk-hair);pointer-events:none}

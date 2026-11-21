@@ -1,7 +1,7 @@
 /* Yarnity on phones (767px and narrower): the spring notebook. Nothing here applies at 768px and wider;
    every rule sits inside the one media query below, except the tokens and the keyframes. */
 :root{
-  --m-ink:#3B302B; --m-soft:#7A6C64; --m-line:#E6DCCF;
+  --m-ink:#4B3F3A; --m-soft:#7A6C64; --m-line:#E6DCCF;
   --m-lav:#EEBEC7; --m-deep:#864D59; --m-deep2:#C3687B; --m-gold:#A8823A;
   --m-bar:80px; --m-bottom:calc(var(--m-bar) + env(safe-area-inset-bottom, 0px));
   --m-paper:#FBF7F0 url(/mobile/paper.png) 0 0/320px;
@@ -117,7 +117,7 @@
   .m1-close{position:absolute;right:14px;top:20px;z-index:4;display:grid;place-items:center;width:44px;height:44px;padding:12px;border:0;border-radius:50%;background:none;cursor:pointer;filter:drop-shadow(0 1px 1px rgba(70,50,30,.25))}
   .m1-close .gold-x{display:block;width:100%;height:100%}
   .m1-close:focus-visible{outline:2px solid var(--m-deep);outline-offset:-4px}
-  .m1-brand{text-align:center;padding:18px 0 0;color:#3A2E29}
+  .m1-brand{text-align:center;padding:18px 0 0;color:#4A3D38}
   .m1-logo{margin:0;line-height:0}
   .m1-foil{display:inline-block;width:150px;height:auto;overflow:visible}
   .m1-cap{margin:12px 0 0;padding-left:.34em;font:500 10px/1 var(--m-latin);letter-spacing:.34em;text-transform:uppercase;color:#8C7B72}
@@ -144,7 +144,7 @@
 
 /* ---- (C) 도안 만들기 in the notebook ---- */
 @media (max-width:767.98px){
-  .mw-form{--paper:#FBF7F0;--ink2:#3B302B;--accent:#864D59;--rule:#E6DCCF;display:flex;flex-direction:column;min-height:100%;color:var(--m-ink)}
+  .mw-form{--paper:#FBF7F0;--ink2:#4B3F3A;--accent:#864D59;--rule:#E6DCCF;display:flex;flex-direction:column;min-height:100%;color:var(--m-ink)}
   .mw .mn-scroll{display:flex;flex-direction:column}
   .mw-progress{margin:0 0 18px}
   .mw-progress ol{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;list-style:none;margin:0;padding:0}
@@ -310,7 +310,7 @@
   .lb-sheet button{display:block;width:100%;min-height:48px;padding:0 12px;border:0;border-top:1px solid var(--m-line);background:none;font:15px var(--m-sans);color:var(--m-ink);text-align:left;cursor:pointer}
   .lb-sheet .danger{color:#A44D41}
   .lb-ask p{margin:4px 12px 10px;font-size:14px}
-  .lb-undo{position:fixed;left:16px;right:16px;bottom:calc(var(--m-bottom) + 12px);z-index:70;display:flex;align-items:center;justify-content:space-between;padding:6px 8px 6px 16px;border-radius:6px;background:#3B302B;color:#FBF7F0;font-size:14px}
+  .lb-undo{position:fixed;left:16px;right:16px;bottom:calc(var(--m-bottom) + 12px);z-index:70;display:flex;align-items:center;justify-content:space-between;padding:6px 8px 6px 16px;border-radius:6px;background:#4B3F3A;color:#FBF7F0;font-size:14px}
   .lb-undo button{min-height:44px;padding:0 10px;border:0;background:none;color:#FBDBE1;font:500 14px var(--m-sans);cursor:pointer}
 }
 
@@ -377,7 +377,7 @@
   /* the bottom bar's 새 도안: the web nav's yellow label */
   .m-new{background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),#F6EDCB;
     box-shadow:0 1px 2px rgba(70,50,40,.18),0 4px 10px rgba(70,50,40,.1)}
-  .m-new-in{border-color:#D2BC78;color:#3A2E29}
+  .m-new-in{border-color:#D2BC78;color:#4A3D38}
 
   /* 도안 만들기: chips as in the book (hairline pills, the picked one dark brown), the cream cloth label for
      다음, the dark ribbon with gold lettering for the last step */
@@ -393,13 +393,13 @@
   .mw-final[aria-disabled="true"]{opacity:.55}
 
   /* 따라 뜨기: the book's undo (cream, a hairline) and its lavender ribbon with cream stitches */
-  .mt-undo{flex:none;display:flex;align-items:center;justify-content:center;width:66px;height:96px;padding:0;border:1px solid #E6DCCF;border-radius:3px;background:#FFFDF8;color:#3A2E29;font:inherit;cursor:pointer}
+  .mt-undo{flex:none;display:flex;align-items:center;justify-content:center;width:66px;height:96px;padding:0;border:1px solid #E6DCCF;border-radius:3px;background:#FFFDF8;color:#4A3D38;font:inherit;cursor:pointer}
   .mt-undo:disabled{opacity:.45;cursor:default}
   .mt-undo-in{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#6F5E57}
   .mt-undo svg{width:20px;height:20px}
   .mt-done{flex:1;min-width:0;height:96px;padding:0;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .mt-done:disabled{opacity:.5;cursor:default}
-  .mt-done-face{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:100%;padding:12px 30px;color:#3A2E29;
+  .mt-done-face{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:100%;padding:12px 30px;color:#4A3D38;
     background:repeating-linear-gradient(0deg,rgba(108,62,71,.06) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(108,62,71,.05) 0 1px,transparent 1px 3px),#F9D8DF;
     clip-path:polygon(0 0,100% 0,calc(100% - 14px) 50%,100% 100%,0 100%,14px 50%)}
   .mt-done-face::before{content:"";position:absolute;inset:7px 22px;border-top:1.5px dashed rgba(251,243,234,.95);border-bottom:1.5px dashed rgba(251,243,234,.95);pointer-events:none}
@@ -408,7 +408,7 @@
   .mt-done-face small{font-size:12.5px;color:#6B5D55}
 
   /* 나의 도안집: the web list's ink underline, a cream 이어서 뜨기 card */
-  .lb-tabs button[aria-selected="true"]::after{height:1.5px;background:#3A2E29}
+  .lb-tabs button[aria-selected="true"]::after{height:1.5px;background:#4A3D38}
   .lb-going{background:rgba(246,239,226,.8);box-shadow:inset 0 0 0 1px #EDE3D5}
   .lb-going-text small{color:#8C7B72}
 }
@@ -484,7 +484,7 @@
   .m-splash.is-fading{opacity:0;pointer-events:none}
   .m-splash-logo{padding:0;border:0;background:none;line-height:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .m-splash-foil{display:block;width:min(64vw,260px);height:auto;overflow:visible}
-  .m-splash-logo:focus-visible{outline:2px solid #3A2E29;outline-offset:8px;border-radius:4px}
+  .m-splash-logo:focus-visible{outline:2px solid #4A3D38;outline-offset:8px;border-radius:4px}
   .m-splash-cap{margin:16px 0 0;padding-left:.34em;font:500 11px/1 var(--m-latin);letter-spacing:.34em;text-transform:uppercase;color:#7A6A62}
   .m-splash-rule{display:block;width:32px;margin:18px 0 0;border-top:1px solid rgba(111,94,87,.45)}
   .m-splash-tag{margin:16px 0 0;padding-left:.3em;font:500 11px/1 var(--m-latin);letter-spacing:.3em;text-transform:uppercase;color:#8C7B72}
@@ -504,9 +504,9 @@
 @media (max-width:767.98px){
   /* laid out at screen pixels: the page box is 720 page-px wide, --k page-px per screen px */
   .mbw{position:absolute;left:0;top:0;width:calc(var(--mbw-w,720px) / var(--k,1));height:calc(var(--page-h,1000px) / var(--k,1));zoom:var(--k,1);
-    --paper:#FBF3EA;--ink2:#3A2E29;--accent:#6E5350;--rule:#CDBFB4;color:#3A2E29;font-family:"Newsreader","Noto Serif KR",Georgia,serif;font-size:14px;line-height:1.6;text-align:left}
+    --paper:#FBF3EA;--ink2:#4A3D38;--accent:#6E5350;--rule:#CDBFB4;color:#4A3D38;font-family:"Newsreader","Noto Serif KR",Georgia,serif;font-size:14px;line-height:1.6;text-align:left}
   .mbw-scroll{height:100%;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 26px 22px 26px;-webkit-overflow-scrolling:touch}
-  .mbw .nb-page{display:block;min-width:0;padding:0;border-radius:0;background:none;box-shadow:none;color:#3A2E29}
+  .mbw .nb-page{display:block;min-width:0;padding:0;border-radius:0;background:none;box-shadow:none;color:#4A3D38}
   .mbw .nb-foot,.mbw .nb-progress,.mbw .tp-progress{display:none}
   .mbw .nb-turn{animation:none!important}
   .mbw .nb-page h1{margin:0 0 10px;font-size:21px;font-weight:500;line-height:1.35}
@@ -515,7 +515,7 @@
   .mbw .tp{min-height:0}
   .mbw .tp-cover{padding:8px 0 4px}
   .mbw-step{margin:0 0 16px;font-size:11.5px;letter-spacing:.02em;color:#8C7B72}
-  .mbw-step b{color:#3A2E29;font-weight:500}
+  .mbw-step b{color:#4A3D38;font-weight:500}
   .mbw-split{height:1px;margin:24px 0;background:#E6DCCF}
   .mbw .nb-input{font-size:16px}
   .mbw .nb-drawing svg{max-width:100%;height:auto}

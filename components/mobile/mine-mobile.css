@@ -6,7 +6,7 @@
   body:has(#view-mine.mm) .m-nav{display:none}
   body:has(#view-mine.mm) .wrap{padding-bottom:0}
   .mm{box-sizing:border-box;margin:0 -20px;padding:calc(env(safe-area-inset-top,0px) + 10px) 20px calc(env(safe-area-inset-bottom,0px) + 40px);min-height:100svh;
-    font-family:"Noto Serif KR",serif;color:#3B302B;word-break:keep-all}
+    font-family:"Noto Serif KR",serif;color:#4B3F3A;word-break:keep-all}
   .mm button{font:inherit;color:inherit}
   .mm .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   .mm-small{margin:0;font-size:11.5px;line-height:1.5;color:#6B5D55}
@@ -14,7 +14,7 @@
 
   /* the top bar: ‹ · the gold wordmark · + 새 도안 */
   .mm-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:44px}
-  .mm-back{justify-self:start;display:grid;place-items:center;width:44px;height:44px;margin-left:-12px;padding:0;border:0;background:none;color:#3B302B;cursor:pointer}
+  .mm-back{justify-self:start;display:grid;place-items:center;width:44px;height:44px;margin-left:-12px;padding:0;border:0;background:none;color:#4B3F3A;cursor:pointer}
   .mm-back svg{width:22px;height:22px}
   .mm-brand{display:block;width:96px;line-height:0}
   .mm-foil{display:block;width:96px;height:auto;overflow:visible}
@@ -46,7 +46,7 @@
   .mm-icon{display:block;width:44px;height:44px;line-height:0}
   .mm-icon svg{width:100%;height:100%;stroke-width:1.5;filter:drop-shadow(-.5px .8px 0 rgba(255,250,235,.55))}
   .mm-plate{max-width:100%;box-sizing:border-box;padding:3px 8px;border:1px solid rgba(168,130,58,.65);border-radius:1px;background:#FBF6EC;
-    font-family:"Noto Serif KR",serif;font-weight:600;font-size:11.5px;line-height:1.3;color:#3B302B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:-1px 1px 2px rgba(70,48,34,.15)}
+    font-family:"Noto Serif KR",serif;font-weight:600;font-size:11.5px;line-height:1.3;color:#4B3F3A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:-1px 1px 2px rgba(70,48,34,.15)}
   .mm-tag{position:absolute;left:14px;top:8px;padding:2px 7px;border-radius:99px;background:#FBF6EC;font-family:"Noto Sans KR",system-ui,sans-serif;font-size:10.5px;line-height:1.4;color:#5A4A3E;
     box-shadow:0 0 0 1px rgba(168,130,58,.25)}
   .mm-tag.is-going{background:#FCE8EC;color:#7A404C;box-shadow:none}
@@ -86,7 +86,7 @@
   .mm-label.is-cream{--lb:#FBF6EC;--ls:#EEBEC7}
   .mm-label.is-rose{--lb:#F3E0DF;--ls:#D9AFAA}
   .mm-ribbon{display:flex;min-height:44px;padding:0;border:0;background:none;cursor:pointer;filter:drop-shadow(-3px 4px 4px rgba(70,48,34,.28));-webkit-tap-highlight-color:transparent}
-  .mm-ribbon>span{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-height:40px;margin:2px 0;padding:0 18px;font-size:13px;font-weight:600;color:#3B302B;white-space:nowrap;
+  .mm-ribbon>span{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-height:40px;margin:2px 0;padding:0 18px;font-size:13px;font-weight:600;color:#4B3F3A;white-space:nowrap;
     background:repeating-linear-gradient(0deg,rgba(108,62,71,.06) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(108,62,71,.05) 0 1px,transparent 1px 3px),#F9D8DF;
     clip-path:polygon(0 0,100% 0,calc(100% - 10px) 50%,100% 100%,0 100%,10px 50%)}
   .mm-ribbon>span::before{content:"";position:absolute;inset:5px 16px;border-top:1.5px dashed rgba(251,243,234,.95);border-bottom:1.5px dashed rgba(251,243,234,.95)}
@@ -98,12 +98,12 @@
   .mm-tabs{display:flex;align-items:center;gap:16px;border-bottom:1px solid #E6D6D0}
   .mm-tabs button[role="tab"]{position:relative;min-height:44px;min-width:44px;padding:0;border:0;background:none;font-size:13px;color:#6B5D55;cursor:pointer;white-space:nowrap}
   .mm-tabs button[role="tab"] span{font-size:11.5px}
-  .mm-tabs button[aria-selected="true"]{color:#3B302B;font-weight:600}
-  .mm-tabs button[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1.5px;background:#3B302B}
+  .mm-tabs button[aria-selected="true"]{color:#4B3F3A;font-weight:600}
+  .mm-tabs button[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1.5px;background:#4B3F3A}
   .mm-find-btn{margin-left:auto;display:inline-flex;align-items:center;gap:4px;min-height:44px;min-width:44px;padding:0;border:0;background:none;font-size:12.5px;color:#6B5D55;cursor:pointer}
   .mm-find-btn svg{width:16px;height:16px}
   .mm-find{display:block;margin-top:12px}
-  .mm-find input{width:100%;box-sizing:border-box;height:40px;padding:0 16px;border:1px solid #E6D6D0;border-radius:20px;background:#FFFAF7;font:16px "Noto Sans KR",system-ui,sans-serif;color:#3B302B}
+  .mm-find input{width:100%;box-sizing:border-box;height:40px;padding:0 16px;border:1px solid #E6D6D0;border-radius:20px;background:#FFFAF7;font:16px "Noto Sans KR",system-ui,sans-serif;color:#4B3F3A}
   .mm-sortrow{display:flex;justify-content:flex-end;margin-top:4px}
   .mm-sortrow select{min-height:44px;padding:0 2px;border:0;background:none;font:12.5px "Noto Serif KR",serif;color:#6B5D55}
 
@@ -153,7 +153,7 @@
   .mm-more-btn svg{width:22px;height:22px}
   .mm-more-btn[aria-expanded="true"]{background:rgba(110,83,80,.08)}
   .mm-more-menu{position:absolute;right:0;top:calc(100% + 4px);display:flex;flex-direction:column;min-width:170px;padding:6px;border-radius:12px;background:#FFFDF8;box-shadow:-4px 8px 22px rgba(60,42,34,.22)}
-  .mm-more-menu button{min-height:44px;padding:0 14px;border:0;border-radius:8px;background:none;font-size:14px;color:#3A2E29;text-align:left;cursor:pointer}
+  .mm-more-menu button{min-height:44px;padding:0 14px;border:0;border-radius:8px;background:none;font-size:14px;color:#4A3D38;text-align:left;cursor:pointer}
   .mm-more-menu button:active{background:#F6EEE6}
   .mm-more-menu .danger{color:#A44D41}
   .mm-menu{display:flex;flex-wrap:wrap;gap:0 14px;margin-top:12px}
@@ -163,7 +163,7 @@
   .mm-menu .danger,.mm-ask .danger{color:#A44D41}
   .mm-ask{display:flex;align-items:center;gap:12px;margin:12px 0 0;font-size:12.5px}
   .mm-ask button{min-height:44px;border:0;background:none;font-size:12.5px;cursor:pointer}
-  .mm-undo{position:fixed;left:20px;right:20px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:90;display:flex;align-items:center;justify-content:space-between;padding:6px 8px 6px 16px;border-radius:6px;background:#3B302B;color:#FBF6EF;font-size:13px}
+  .mm-undo{position:fixed;left:20px;right:20px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:90;display:flex;align-items:center;justify-content:space-between;padding:6px 8px 6px 16px;border-radius:6px;background:#4B3F3A;color:#FBF6EF;font-size:13px}
   .mm-undo button{min-height:44px;padding:0 10px;border:0;background:none;color:#FBDBE1;font:500 13px "Noto Serif KR",serif;cursor:pointer}
 }
 @keyframes mm-up{from{transform:translateY(100%)}}

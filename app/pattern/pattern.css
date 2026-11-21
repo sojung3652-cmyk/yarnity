@@ -1,7 +1,7 @@
 /* 도안 as a printed pattern sheet: one sheet of cream paper on the desk, drafted in thin warm-brown ink.
    Type: Noto Serif KR for the text, Cormorant for the small English lines and the numbers that are
    ornaments (section numbers, the gauge). Printing (@media print) leaves the sheet alone on white. */
-.ps-main{--ps-ink:#3A2E29;--ps-soft:#7A6A63;--ps-rule:#D9CBBE;--ps-hair:#E8DDD2;--ps-paper:#FBF3EA;--ps-lav:#F0C1CA;padding-bottom:64px}
+.ps-main{--ps-ink:#4A3D38;--ps-soft:#7A6A63;--ps-rule:#D9CBBE;--ps-hair:#E8DDD2;--ps-paper:#FBF3EA;--ps-lav:#F0C1CA;padding-bottom:64px}
 .ps-actions{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;max-width:860px;margin:28px auto 16px}
 .ps-btns{display:flex;gap:8px;flex-wrap:wrap}
 
@@ -99,7 +99,7 @@
 .ps-btns{align-items:center;gap:14px}
 .ps-label{--tilt:-1deg;display:inline-flex;padding:3px 2px;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer}
 .ps-label:nth-child(2){--tilt:.8deg}
-.ps-label>span{position:relative;display:inline-flex;align-items:center;height:38px;padding:0 22px;border-radius:2px;font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#3A2E29;white-space:nowrap;
+.ps-label>span{position:relative;display:inline-flex;align-items:center;height:38px;padding:0 22px;border-radius:2px;font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#4A3D38;white-space:nowrap;
   background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
   box-shadow:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.08);transform:rotate(var(--tilt));transition:transform .18s ease}
 .ps-label>span::before,.ps-label>span::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed #EEBEC7}
@@ -108,13 +108,13 @@
 .ps-label-go>span::before,.ps-label-go>span::after{border-color:#FBF3EA}
 .ps-label:hover>span{transform:rotate(0) translateY(-1px)}
 .ps-label:focus-visible{outline:none}
-.ps-label:focus-visible>span{outline:2px solid #3A2E29;outline-offset:3px}
+.ps-label:focus-visible>span{outline:2px solid #4A3D38;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){.ps-label>span{transition:none}}
 
 /* 완성 도안 보기 on wide screens (Kim): rose pink, ivory and gold, readability first - this page only (printing
    keeps the sheet on white). A veil over the starry linen; the sheet is the paper, its shadow to the lower left. */
 @media screen and (min-width:768px){
-  .ps-main{--ink:#332C2C;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;--gold:#B08D57;--gold-l:#DCC69E;--card:#FFFEFB;
+  .ps-main{--ink:#443B3B;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;--gold:#B08D57;--gold-l:#DCC69E;--card:#FFFEFB;
     --ps-ink:var(--ink);--ps-soft:var(--ink2);--ps-rule:var(--gold-l);--ps-hair:rgba(176,141,87,.18);--ps-paper:#FCFAF5;--ps-lav:var(--note-b);
     position:relative;isolation:isolate}
   .ps-main::before{content:"";position:fixed;inset:0;z-index:-1;background:rgba(247,242,232,.55);pointer-events:none}

@@ -4,7 +4,7 @@
    (decorative capitals 10px). The head and the buttons stay; only the rows / the row scroll. */
 @media (max-width:767.98px){
   body .mbp-pattern,body .mbp-track{--mz:1;display:flex;flex-direction:column;box-sizing:border-box;padding:22px 24px 20px 36px;
-    font-family:"Noto Serif KR",serif;font-size:13px;line-height:1.6;color:#3A2E29;word-break:keep-all;overflow-wrap:anywhere}
+    font-family:"Noto Serif KR",serif;font-size:13px;line-height:1.6;color:#4A3D38;word-break:keep-all;overflow-wrap:anywhere}
   body .mbp-pattern .mbp-close,body .mbp-track .mbp-close{right:6px;top:6px}
   body .mbp .mbp-close{width:46px;height:46px;padding:14px}
 
@@ -33,7 +33,7 @@
   body .mpp-how{font-size:13px;line-height:1.55}
   body .mpp-how small{display:block;margin-top:2px;font-size:11.5px;line-height:1.6;color:#6B5D55}
   body .mpp-n{font-size:11.5px;color:#6B5D55;white-space:nowrap}
-  body .mpp-n b{font-size:15px;font-weight:600;color:#3A2E29}
+  body .mpp-n b{font-size:15px;font-weight:600;color:#4A3D38}
   body .mpp-foot{flex:none}
   body .mpp-foot .mbz-btn{display:inline-flex;text-decoration:none}
 

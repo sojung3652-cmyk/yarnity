@@ -6,14 +6,14 @@
   background:var(--lace) center / 100% 100% no-repeat;font:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
   transition:transform .15s ease}
 .dlace-mocha{--lace:url(/mobile/diary/lace_btn_mocha.webp);color:#FBF3E2}
-.dlace-lavender{--lace:url(/mobile/diary/lace_btn_pink.webp);color:#2F2622}
+.dlace-lavender{--lace:url(/mobile/diary/lace_btn_pink.webp);color:#3F3532}
 .dlace-satin{position:absolute;left:9%;right:9%;top:24%;bottom:23%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   font-family:"Noto Serif KR",serif;font-weight:700;font-size:15.5px;line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden}
 .dlace-lavender .dlace-satin small{font-family:"Noto Sans KR",system-ui,sans-serif;font-size:11px;font-weight:500;color:#4A3D36}
 .dlace-mocha .dlace-satin{font-weight:600;font-size:15px}
 .dlace-mocha .dlace-satin small{font-size:10px;font-weight:500;letter-spacing:.22em;color:#E8D3A0}
 /* the name tag (900 x 418): the ivory lace tag, its satin 15% in at the sides, 31% top, 30% bottom */
-.dlace-white{--lace:url(/mobile/diary/lace_tag_name.webp);aspect-ratio:900 / 418;color:#3B302B}
+.dlace-white{--lace:url(/mobile/diary/lace_tag_name.webp);aspect-ratio:900 / 418;color:#4B3F3A}
 .dlace-white .dlace-satin{left:15%;right:15%;top:31%;bottom:30%;font-weight:600}
 .dlace.is-fill{flex:1 1 0;width:auto;min-width:0}
 /* the phone's foot bars and sheets: the lace as wide as its column (a column flex must not grow its height) */
@@ -24,7 +24,7 @@
 .ms-foot-row .dstitch{flex:none;width:46px}
 @media (hover:hover){.dlace:not(.is-tag):hover{transform:translateY(-2px)}}
 .dlace:not(.is-tag):active{transform:scale(.98)}
-.dlace:focus-visible{outline:2px solid #3A2E29;outline-offset:2px;border-radius:6px}
+.dlace:focus-visible{outline:2px solid #4A3D38;outline-offset:2px;border-radius:6px}
 .dlace:disabled,.dlace[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}
 
 /* ---- a Girl's Diary book cover (components/BookCover.tsx, lib/covers.ts): the picture is the book (its own
@@ -41,10 +41,10 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 /* ---- the cover picker (CoverPicker.tsx): a sheet on phones, a dialog on wide screens ---- */
 .cpk-dim{position:fixed;inset:0;z-index:120;display:flex;align-items:flex-end;justify-content:center;background:rgba(60,42,34,.32);animation:cpk-dim .2s ease}
 .cpk{position:relative;display:flex;flex-direction:column;width:100%;max-height:88dvh;box-sizing:border-box;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 14px);
-  border-radius:18px 18px 0 0;background:#FBF6EF;box-shadow:0 -6px 24px rgba(60,42,34,.18);font-family:"Noto Sans KR",system-ui,sans-serif;color:#3B302B;animation:cpk-up .28s cubic-bezier(.22,.61,.36,1)}
+  border-radius:18px 18px 0 0;background:#FBF6EF;box-shadow:0 -6px 24px rgba(60,42,34,.18);font-family:"Noto Sans KR",system-ui,sans-serif;color:#4B3F3A;animation:cpk-up .28s cubic-bezier(.22,.61,.36,1)}
 .cpk-grip{display:block;width:40px;height:4px;margin:0 auto 12px;border-radius:2px;background:#DCCFC6}
 .cpk-head{padding:0 22px}
-.cpk-head h2{margin:0;font:700 17px/1.4 "Noto Serif KR",serif;color:#2F2622}
+.cpk-head h2{margin:0;font:700 17px/1.4 "Noto Serif KR",serif;color:#3F3532}
 .cpk-head p{margin:4px 0 0;font-size:12.5px;line-height:1.5;color:#6B5D55}
 .cpk-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:6px 22px 8px}
 .cpk-set h3{margin:16px 0 10px;font:600 13px/1.3 "Noto Serif KR",serif;color:#5E5048}
@@ -53,7 +53,7 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 .cpk-item .mm-cover{width:100%}
 .cpk-item .mm-tag{display:none}
 .cpk-item.is-on{background:rgba(226,141,159,.18);box-shadow:inset 0 0 0 2px #E28D9F}
-.cpk-item:focus-visible{outline:2px solid #3A2E29;outline-offset:2px}
+.cpk-item:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
 .cpk-foot{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:12px 22px 0;border-top:1px solid #EDE2DA}
 .cpk-later{min-height:44px;padding:0 6px;border:0;background:none;font-size:13.5px;color:#6B5D55;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .cpk-foot .dpatch{min-width:160px}
@@ -74,7 +74,7 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 /* ---- the cloth patch ---- */
 .dpatch{display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;min-height:44px;padding:4px 10px;
   border-style:solid;border-width:17px;border-image-source:var(--patch);border-image-slice:62 fill;border-image-repeat:stretch;background:none;
-  filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));font:inherit;font-family:"Noto Serif KR",serif;font-size:13.5px;font-weight:500;color:#3A2E29;
+  filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));font:inherit;font-family:"Noto Serif KR",serif;font-size:13.5px;font-weight:500;color:#4A3D38;
   text-decoration:none;white-space:nowrap;cursor:pointer;transition:transform .12s ease}
 .dpatch.is-small{border-width:12px;min-height:0;padding:0 8px;font-size:13px}
 .dpatch-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
@@ -83,7 +83,7 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 .dpatch-lavender{--patch:url(/mobile/diary/patch_pink.webp)}
 .dpatch:hover{transform:translateY(-1px)}
 .dpatch:active{transform:scale(.98)}
-.dpatch:focus-visible{outline:2px solid #3A2E29;outline-offset:2px}
+.dpatch:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
 
 /* ---- the round cloth button ---- */
 .dstitch{display:inline-flex;flex-direction:column;align-items:center;gap:5px;min-width:46px;padding:0;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -95,7 +95,7 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 .dstitch:hover .dstitch-disc{transform:translateY(-1px)}
 .dstitch:active .dstitch-disc{transform:scale(.97)}
 .dstitch:disabled{opacity:.45;cursor:default}
-.dstitch:focus-visible{outline:none}.dstitch:focus-visible .dstitch-disc{outline:2px solid #3A2E29;outline-offset:2px}
+.dstitch:focus-visible{outline:none}.dstitch:focus-visible .dstitch-disc{outline:2px solid #4A3D38;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.dlace,.dpatch,.dstitch-disc{transition:none}}
 /* the round buttons (고치기, 인쇄 ...) as round cloth patches (Kim): the ivory patch cloth cut in a circle, a ring of
    running stitches inside the edge, a soft shadow to the lower left */

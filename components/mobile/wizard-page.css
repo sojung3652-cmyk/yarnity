@@ -5,19 +5,19 @@
    body to win over newbook.css; not tied to the stage, so the copy painted for a page turn looks the same. */
 @media (max-width:767.98px){
   body .mbz{--mz:1;display:flex;flex-direction:column;box-sizing:border-box;padding:22px 24px 20px 36px;
-    font-family:"Noto Serif KR",serif;font-size:13px;line-height:1.6;color:#3A2E29;word-break:keep-all;overflow-wrap:anywhere}
+    font-family:"Noto Serif KR",serif;font-size:13px;line-height:1.6;color:#4A3D38;word-break:keep-all;overflow-wrap:anywhere}
 
   /* the step bar (fixed at the top): ①이름 ②품목 ③실과 크기 ④확인 */
   body .mbz-steps{display:flex;flex-wrap:wrap;gap:4px 12px;flex:none;list-style:none;margin:0;padding:0;font-size:11.5px;line-height:1.3;color:#7A6C64}
   body .mbz-steps li{display:inline-flex;align-items:center;gap:5px}
-  body .mbz-steps li.on{color:#3A2E29;font-weight:600}
+  body .mbz-steps li.on{color:#4A3D38;font-weight:600}
   body .mbz-dot{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;border:1px solid #CDBFB4;font-size:9.5px;line-height:1;font-family:"Noto Sans KR",sans-serif}
-  body .mbz-steps li.on .mbz-dot{border-color:#3A2E29;background:#3A2E29;color:#FBF3EA}
+  body .mbz-steps li.on .mbz-dot{border-color:#4A3D38;background:#4A3D38;color:#FBF3EA}
   body .mbz-steps li.done .mbz-dot{border-color:#A8823A;color:#A8823A}
 
   /* the sheet: scrolls on its own between the bar and the buttons */
   body .mbz-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;margin:0 -8px 0 0;padding:30px 8px 16px 0;-webkit-overflow-scrolling:touch}
-  body .mbz .nb-page{display:block;min-width:0;padding:0;border-radius:0;background:none;box-shadow:none;color:#3A2E29}
+  body .mbz .nb-page{display:block;min-width:0;padding:0;border-radius:0;background:none;box-shadow:none;color:#4A3D38}
   body .mbz .nb-foot,body .mbz .nb-progress,body .mbz .tp-progress,body .mbz .nb-ribbon,body .mbz .nb-marker{display:none}
   body .mbz .nb-turn{animation:none!important}
 
@@ -29,9 +29,9 @@
   /* sections 24 apart, a title with a hairline */
   body .mbz .nb-sec{margin:24px 0 0}
   body .mbz .nb-stack>.nb-sec:first-child,body .mbz .nb-page>.nb-turn>.nb-sec:first-child{margin-top:24px}
-  body .mbz .nb-sec-title{margin:0 0 14px;padding-bottom:6px;font-family:"Noto Serif KR",serif;font-weight:700;font-size:14px;color:#2E2420;border-bottom:1px solid #E2D6CB}
+  body .mbz .nb-sec-title{margin:0 0 14px;padding-bottom:6px;font-family:"Noto Serif KR",serif;font-weight:700;font-size:14px;color:#3E3430;border-bottom:1px solid #E2D6CB}
   /* field labels: a 2px lavender line at the left, 10 above the input */
-  body .mbz .nb-lbl,body .mbz .nb-field>label{display:block;margin:0 0 10px;padding-left:8px;border-left:2px solid #EEABB9;font-family:"Noto Serif KR",serif;font-weight:600;font-size:12.5px;line-height:1.4;color:#3A2E29}
+  body .mbz .nb-lbl,body .mbz .nb-field>label{display:block;margin:0 0 10px;padding-left:8px;border-left:2px solid #EEABB9;font-family:"Noto Serif KR",serif;font-weight:600;font-size:12.5px;line-height:1.4;color:#4A3D38}
   body .mbz .nb-field{margin:0 0 18px}
   body .mbz .nb-input,body .mbz .nb-input-sm,body .mbz select,body .mbz textarea{font-size:16px} /* iOS does not zoom into 16px fields */
   body .mbz .nb-input{height:44px}
@@ -41,7 +41,7 @@
   body .mbz .nb-err,body .mbz .nb-warn{font-size:11.5px;line-height:1.6}
   /* rows, chips, tiles: 13px; rows and touch targets at least 44 */
   body .mbz .nb-fold-row{min-height:44px}
-  body .mbz .nb-fold-label{font-size:13px;font-weight:600;color:#3A2E29}
+  body .mbz .nb-fold-label{font-size:13px;font-weight:600;color:#4A3D38}
   body .mbz .nb-fold-value{font-size:13px;color:#6B5D55}
   body .mbz .nb-chips{gap:8px}
   body .mbz .nb-chip{min-height:44px;padding:0 14px;font-size:13px}
@@ -80,7 +80,7 @@
   body .mbz-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;padding-top:16px}
   body .mbz-btn{min-height:44px;padding:3px 2px;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   body .mbz-face{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 22px;box-sizing:border-box;border-radius:2px;
-    font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#3A2E29;white-space:nowrap;
+    font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#4A3D38;white-space:nowrap;
     background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
     box-shadow:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.08)}
   body .mbz-face::before,body .mbz-face::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed #EEBEC7}

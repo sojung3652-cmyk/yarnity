@@ -65,7 +65,7 @@ html body .tp-label .tp-label-bottom,html body .mfw .tp-label .tp-label-bottom{f
    web nav, phone bar and the glossary head alike; room above and below it */
 html body .title-tag{display:inline-grid;place-items:center;height:44px;aspect-ratio:900 / 264;margin-block:6px;padding:0;box-sizing:border-box;white-space:nowrap;
   border:0;background:url(/mobile/diary/lace_btn_ivory.webp) center / 100% 100% no-repeat;
-  filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));font:600 14px/1 "Noto Serif KR",serif;letter-spacing:.04em;color:#332C2C}
+  filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));font:600 14px/1 "Noto Serif KR",serif;letter-spacing:.04em;color:#443B3B}
 /* web: a touch bigger than the phone (Kim) */
 @media (min-width:768px){html body .title-tag{height:58px;font-size:15px}}
 html body .gl-title{line-height:1}
