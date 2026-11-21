@@ -72,6 +72,8 @@ export function MyLayout({ children }: { children: ReactNode }) {
   const sub = prof.craft; // what the user mostly knits (Kim: no 경력)
   return (
     <main className="my" id="view-my">
+      {/* Pretendard on My Page only, to try it (Kim); the variable font, split so only the glyphs in use load */}
+      <link rel="stylesheet" precedence="default" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
       <GoldDefs />
       <div className="my-bg" aria-hidden="true" />
       <div className="my-grid">

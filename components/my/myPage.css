@@ -394,3 +394,5 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my-head{flex-direction:row;align-items:center;justify-content:space-between;text-align:left;gap:16px 24px;margin:36px 0 40px}
 .my-head>div:first-child{align-items:flex-start}
 .my-head-end{margin-top:0;justify-content:flex-end}
+/* trying Pretendard on My Page (Kim): every word on the page and in its dialogs; the system sans while it loads */
+.my,.my *{font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,"Noto Sans KR",sans-serif!important}
