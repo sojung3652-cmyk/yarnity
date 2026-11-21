@@ -101,7 +101,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
         </Link>
         {/* 뜨개 용어집 in pastel green (Kim) */}
         <Link className="pg-link pg-link-sage" href="/glossary">
-          <span className="pg-link-text"><span className="pg-link-title">뜨개 용어집</span><span className="pg-link-desc">모르는 말이 나오면 여기서</span></span>
+          <span className="pg-link-text"><span className="pg-link-title">뜨개 사전</span><span className="pg-link-desc">모르는 말이 나오면 여기서</span></span>
           <span className="pg-link-end">{TERMS.length}개</span>
         </Link>
       </nav>

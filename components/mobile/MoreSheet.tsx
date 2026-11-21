@@ -33,7 +33,7 @@ export function MoreSheet({ title, items, onClose, skip = [] }: { title: string;
     { key: "new", icon: "plus", label: "새 도안 만들기", onClick: () => { onClose(); newDraft(); } },
     { key: "mine", icon: "shelf", label: "나의 도안집", onClick: () => router.push("/mine") },
     // the glossary floats over the screen (Kim: in ··· rather than its own button in the bar)
-    { key: "gloss", icon: "gloss", label: "뜨개 용어집", onClick: () => { onClose(); openGloss(); } },
+    { key: "gloss", icon: "gloss", label: "뜨개 사전", onClick: () => { onClose(); openGloss(); } },
   ];
   const row = (it: MoreItem) => asking === it.key ? (
     <div key={it.key} className="ms-ask" role="alert">

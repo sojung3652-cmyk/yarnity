@@ -84,7 +84,7 @@ function Head({ total }: { total: number }) {
   return (
     <header className="gl-head">
       {/* the name on an ivory cloth label (Kim; it was the Glossary wordmark picture) */}
-      <h1 className="gl-title"><span className="title-tag">뜨개 용어집</span></h1>
+      <h1 className="gl-title"><span className="title-tag">뜨개 사전</span></h1>
       <p className="gl-count">가나다순 · {total}개</p>
     </header>
   );
@@ -172,7 +172,7 @@ export function GlossaryScreen({ id }: { id?: string }) {
     const term = id ? termById(id) : null;
     if (id) return (
       <main className="gl gl-phone gl-phone-term">
-        <MobileTopBar back={back} center={<h1 className="gl-bar-title">뜨개 용어집</h1>} />
+        <MobileTopBar back={back} center={<h1 className="gl-bar-title">뜨개 사전</h1>} />
         {term ? <TermDetail term={term} onGo={t => router.push(`/glossary/${t.id}`)} /> : <p className="gl-none">이 용어를 찾지 못했어요</p>}
       </main>
     );
@@ -180,7 +180,7 @@ export function GlossaryScreen({ id }: { id?: string }) {
       <main className="gl gl-phone">
         {/* the Glossary wordmark in the middle of the bar, as 나의 도안집 has My Patterns (Kim); the count under it */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <MobileTopBar back={back} center={<h1 className="gl-bar-logo"><span className="title-tag">뜨개 용어집</span></h1>} />
+        <MobileTopBar back={back} center={<h1 className="gl-bar-logo"><span className="title-tag">뜨개 사전</span></h1>} />
         <p className="gl-count gl-phone-count">가나다순 · {TERMS.length}개</p>
         <Search s={s} />
         <Tabs s={s} />
@@ -201,8 +201,8 @@ export function GlossaryScreen({ id }: { id?: string }) {
   };
   return (
     <main className="gl gl-wide">
-      {/* the heading as on My Page (Kim): 용어집 on the slim ivory lace in the middle, nothing under it */}
-      <header className="gl-whead"><h1 className="gl-whead-title">용어집</h1></header>
+      {/* the heading as on My Page (Kim): 뜨개 사전 (it was 용어집) on the slim ivory lace in the middle, nothing under it */}
+      <header className="gl-whead"><h1 className="gl-whead-title">뜨개 사전</h1></header>
       <div className="gl-cols">
         <aside className="gl-col-tabs"><Tabs s={s} column /></aside>
         <div className="gl-col-list">

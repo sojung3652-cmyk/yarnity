@@ -11,7 +11,7 @@ import { GlossList, TermDetail } from "./Glossary";
 import { closeGloss, openGloss, useGlossOpen } from "./glossFloat";
 
 /** the small 용어집 button of a bar (left of ···) */
-export const GlossButton = () => <button type="button" className="gl-open-btn" aria-haspopup="dialog" onClick={openGloss}>용어집</button>;
+export const GlossButton = () => <button type="button" className="gl-open-btn" aria-haspopup="dialog" onClick={openGloss}>뜨개 사전</button>;
 import "./glossary.css";
 
 const X = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>;
@@ -41,7 +41,7 @@ export function GlossaryFloat() {
         {term
           ? <button type="button" className="glf-icon" aria-label="목록으로" onClick={() => setTerm(null)}><Back /></button>
           : <span className="glf-icon" aria-hidden="true" />}
-        <b className="glf-title">뜨개 용어집</b>
+        <b className="glf-title">뜨개 사전</b>
         <button type="button" className="glf-icon" aria-label="닫기" onClick={close}><X /></button>
       </header>
       <div className="glf-body" ref={body}>
@@ -53,7 +53,7 @@ export function GlossaryFloat() {
     return (
       <div className={"gl glf is-phone" + (leaving ? " is-leaving" : "")}>
         <div className="glf-dim" onClick={close} />
-        <div className="glf-panel" role="dialog" aria-modal="true" aria-label="뜨개 용어집"
+        <div className="glf-panel" role="dialog" aria-modal="true" aria-label="뜨개 사전"
           style={drag ? { transform: `translateY(${drag}px)`, transition: "none" } : undefined}
           onTouchStart={e => { const top = e.currentTarget.getBoundingClientRect().top; y0.current = e.touches[0].clientY - top < 56 ? e.touches[0].clientY : null; }}
           onTouchMove={e => { if (y0.current != null) setDrag(Math.max(0, e.touches[0].clientY - y0.current)); }}
@@ -66,7 +66,7 @@ export function GlossaryFloat() {
   }
   return (
     <div className={"gl glf is-win" + (beside ? " is-beside" : "") + (leaving ? " is-leaving" : "")}>
-      <div className="glf-panel" role="dialog" aria-label="뜨개 용어집">{inner}</div>
+      <div className="glf-panel" role="dialog" aria-label="뜨개 사전">{inner}</div>
     </div>
   );
 }

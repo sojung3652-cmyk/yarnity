@@ -66,7 +66,7 @@ export function MobileHomeScreen() {
           <span className="mfh-two"><b>Yarni와 상의</b></span>
         </button>
         <button type="button" className="mf-patch is-green" onClick={() => router.push("/glossary")}>
-          <span className="mfh-two"><b>뜨개 용어집</b><small>{TERMS.length}개 용어</small></span>
+          <span className="mfh-two"><b>뜨개 사전</b><small>{TERMS.length}개 용어</small></span>
         </button>
       </nav>
       </div>
