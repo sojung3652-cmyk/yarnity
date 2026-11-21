@@ -53,6 +53,8 @@ interface BookCtx {
   leaveTo: (path: string) => void;
   /** phones: to / with the book closed on the desk (the top bar's logo; Kim) */
   toDesk: () => void;
+  /** wide screens: the book rises from the bottom straight onto 도안 만들기 step 1 (the home's 새 도안 만들기) */
+  newPattern: () => void;
   /** wide screens: put the book away without asking (a pattern just finished): it sinks to where it rose */
   sinkAway: () => void;
   /** wide screens: 도안 만들기 rose over the opening (/), which stays under the book, faded back */
@@ -237,8 +239,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
 
   // the book floats over the opening: its menu on /, or the wizard raised from there (origin: the path only)
   const fromOpening = (path === "/" && overlay) || (path === "/new" && origin?.split("?")[0] === "/");
-  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, sinkAway: doClose, fromOpening }),
-    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, doClose, fromOpening]);
+  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, sinkAway: doClose, fromOpening, newPattern: raise }),
+    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, doClose, fromOpening, raise]);
   return (
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>

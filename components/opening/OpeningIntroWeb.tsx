@@ -15,7 +15,8 @@ import "./opening.css";
 let playedThisLoad = false;
 
 /** `receding`: 도안 만들기 has risen over it - it draws back (slightly up, faded, 0.6s) under the book */
-export function OpeningIntroWeb({ onStart, receding = false }: { onStart: () => void; receding?: boolean }) {
+/** `leaving`: Start was pressed - it fades away (0.6s) onto the home under it */
+export function OpeningIntroWeb({ onStart, receding = false, leaving = false }: { onStart: () => void; receding?: boolean; leaving?: boolean }) {
   const stage = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), start = useRef<HTMLButtonElement>(null);
   const skipTo = useRef<() => void>(() => {});
   const [ready, setReady] = useState(false), [shown, setShown] = useState(false);
@@ -68,7 +69,7 @@ export function OpeningIntroWeb({ onStart, receding = false }: { onStart: () => 
   }, []);
 
   return (
-    <div ref={stage} className={"opw-stage" + (receding ? " is-receding" : "")} inert={receding}>
+    <div ref={stage} className={"opw-stage" + (receding ? " is-receding" : "") + (leaving ? " is-leaving" : "")} inert={receding || leaving}>
       <canvas ref={cv} className="opw-cv" aria-label="Yarnity 오프닝: 별 자수 린넨 위 파랑새 메달리온 아래로 금실 Yarnity 로고와 'Start making my own pattern book' 문구가 수놓아지고 반짝입니다. 문구가 시작 버튼입니다." />
       <button ref={start} type="button" className="opw-start" hidden={!shown} onClick={onStart}>Start making my own pattern book</button>
       {ready && !shown && <button type="button" className="op-skip opw-skip" onClick={() => skipTo.current()}>건너뛰기</button>}

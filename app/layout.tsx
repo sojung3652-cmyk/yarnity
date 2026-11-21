@@ -24,8 +24,10 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, maxi
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={cormorant.variable}>
+    <html lang="ko" className={cormorant.variable} suppressHydrationWarning>
       <head>
+        {/* the web opening was seen this session: hide it before the first paint (components/home/Hero.tsx) */}
+        <script dangerouslySetInnerHTML={{ __html: `try{if(sessionStorage.getItem("yarnity-opening-seen")==="1")document.documentElement.classList.add("op-seen")}catch(e){}` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
