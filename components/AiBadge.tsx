@@ -1,7 +1,7 @@
 "use client";
 // The one AI button (Kim): a round linen badge with a gold-thread star, fixed at the lower right, web and phones.
 // It opens the AI as before (web: the 400px window; phones: the AI sheet) and hides while the AI is open.
-// Not shown on the opening, inside the book (the web 3D book, 도안 만들기 on both) or on /ai; there the book's own
+// Not shown on the phone home (its AI와 상의 tile stays), the opening, inside the book (the web 3D book, 도안 만들기 on both) or on /ai; there the book's own
 // AI tab is the way in. Phones: it floats 12px above a screen's fixed foot (뜨기 시작, 한 단 끝 ...) when there is
 // one, else 24px above the bottom (+ the safe area).
 import { usePathname } from "next/navigation";
@@ -19,7 +19,9 @@ export function AiBadge() {
   const ref = useRef<HTMLButtonElement>(null), [lift, setLift] = useState<number | null>(null);
   const phone = !!m;
   const hidden = m === null || !!chat.open || path === "/new" || path === "/ai" || path.startsWith("/ai/")
-    || (!phone && (path === "/" || b.view === "home" || b.view === "wizard"));
+    || (!phone && (path === "/" || b.view === "home" || b.view === "wizard"))
+    // the phone home keeps its own AI와 상의 tile (Kim): no badge there
+    || (phone && path === "/");
 
   // phones: above the screen's fixed foot, measured (it changes with the screen and its state)
   useEffect(() => {

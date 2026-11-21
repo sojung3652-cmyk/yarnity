@@ -14,7 +14,7 @@ import { useBook } from "@/components/Book/BookProvider";
 import "./mine-mobile.css";
 
 export function MobileHomeScreen() {
-  const { ready, projects, setActive } = useApp(), router = useRouter(), book = useBook();
+  const { ready, projects, setActive, setChat } = useApp(), router = useRouter(), book = useBook();
   // 도안 만들기 opens step 1 (Kim); a pattern half made keeps what it has (the draft is not cleared)
   const start = () => book.startWizard(1);
   // the work on the hook: the most recently knitted one that is going (as 나의 도안집)
@@ -61,7 +61,10 @@ export function MobileHomeScreen() {
       )}
 
       <nav className="mfh-foot" aria-label="더 보기">
-        {/* AI와 상의 left the home: the round AI badge is the one AI button (Kim) */}
+        <button type="button" className="mf-patch is-cream mfh-ai" onClick={() => setChat(c => ({ ...c, open: true }))}>
+          <img className="mfh-star" src="/mobile/diary/star.webp" alt="" />
+          <span className="mfh-two"><b>AI와 상의</b></span>
+        </button>
         <button type="button" className="mf-patch is-green" onClick={() => router.push("/glossary")}>
           <span className="mfh-two"><b>뜨개 용어집</b><small>{TERMS.length}개 용어</small></span>
         </button>

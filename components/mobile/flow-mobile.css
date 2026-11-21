@@ -229,7 +229,3 @@
 }
 /* the embroidered wordmark (2.82 : 1): its width only, or it would stretch */
 @media (max-width:767.98px){ body .mfh-foil{width:150px;height:auto} }
-/* the home's last row: 뜨개 용어집 alone now (AI와 상의 is the round AI badge), across the row */
-@media (max-width:767.98px){ body .mfh-foot>:only-child{grid-column:1 / -1} }
-/* room on its right for the AI badge (56px + 16px from the edge), so the two never overlap */
-@media (max-width:767.98px){ html body:has(.ai-badge) .mfh-foot>.mf-patch:only-child{width:calc(100% - 64px)} }
