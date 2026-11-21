@@ -58,7 +58,7 @@ export function MyProfile() {
   const sum = pending ? backupSummary(pending) : null;
   return (
     <>
-      <MyHead title="나의 프로필" line="지금은 이 브라우저에만 저장돼요" />
+      <MyHead title="나의 프로필" />
       <div className="my-prof">
         <section className="my-prof-main" aria-label="프로필">
           <div className="my-prof-top">

@@ -324,3 +324,12 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
     padding:0 9%;border:0;border-image:none;background:var(--gl) center / 100% 100% no-repeat;font:700 12.5px/1 "Noto Serif KR",serif;color:var(--ink);
     filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1))}
 }
+/* wide screens: the heading as on My Page (Kim) - 용어집 on the slim ivory lace, centred, the count under it, well
+   clear of the NavBar and of the columns */
+@media (min-width:768px){
+  .gl-whead{display:flex;flex-direction:column;align-items:center;margin:36px 0 48px;text-align:center}
+  .gl-whead-title{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:200px;aspect-ratio:900 / 264;margin:0;padding:0 9%;
+    background:url(/glossary/lace_ivory.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1));
+    font:700 15px/1 "Noto Serif KR",serif;color:#3A322D;letter-spacing:-.01em;white-space:nowrap}
+  .gl-whead-line{margin:16px 0 0;font-size:13px;color:#6A605F}
+}

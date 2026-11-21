@@ -345,12 +345,41 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my-data p{line-height:34px;margin-top:6px}
 /* every heading on My Page in the middle with room around it (Kim: too cramped) - the lace title, its line under it,
    the screen's buttons under that; the list's lace subheads with more air above and below */
-.my-head{flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:0;margin:8px 0 48px}
+.my-head{flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;gap:0;margin:36px 0 48px} /* well clear of the NavBar (Kim) */
 .my-head>div:first-child{display:flex;flex-direction:column;align-items:center}
 .my-title{margin:0}
 .my-line{margin:16px 0 0}
 .my-head-end{justify-content:center;margin-top:22px}
 .my-lace-sub{margin:30px 0 16px}
 .my-lace-sub:first-child{margin-top:10px}
-.my-recent{justify-content:center}
-.my-latest{margin-left:auto;margin-right:auto}
+/* the latest-work card (Kim): at the left again, on the glossary list's grained cream paper (no side stitches) */
+.my-hook{border-radius:6px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E") 0 0 / 160px 160px,#FCF9F3;
+  box-shadow:0 0 0 1px rgba(142,131,121,.16),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
+.my-hook::before,.my-hook::after{content:none}
+/* 갤러리's dashed slot: record a work by hand (Kim) */
+.my-row-new{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:60px;margin:10px 0 4px;border:1.5px dashed rgba(142,131,121,.5);border-radius:10px;
+  background:rgba(255,254,250,.35);font:600 13px "Noto Serif KR",serif;color:#6A605F;cursor:pointer;transition:background .15s}
+.my-row-new span{font:300 20px/1 "Noto Sans KR",sans-serif;color:#8C807A}
+.my-row-new:hover{background:rgba(255,254,250,.8);color:#3A322D}
+.my-row-mark{font-size:20px;color:#B9A27A}
+.my-drop-many{display:flex!important;flex-wrap:wrap;gap:6px;padding:8px}
+.my-drop-many img{width:72px!important;height:72px;object-fit:cover;border-radius:6px}
+/* 위시 보관함 on shelves like 나의 도안집 (Kim): each wish a "book" - its picture as the cover, a note as its paper */
+.my-wish-shelf{margin-top:4px}
+.my .my-wbook{gap:6px}
+.my-wcover{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:3 / 4;border-radius:3px 6px 6px 3px;overflow:hidden;background:#F1EBE0;
+  box-shadow:0 1px 2px rgba(110,90,50,.2),-6px 8px 14px -8px rgba(70,48,34,.45)}
+.my-wcover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.my-wcover-mark{color:#8C807A}
+.my-wcover-mark svg{width:26px;height:26px}
+.my-wcover.is-memo{place-items:start;padding:14px 12px;box-sizing:border-box;
+  background:repeating-linear-gradient(to bottom,transparent 0 21px,rgba(176,141,87,.14) 21px 22px)}
+.my-wcover.tone-cream{background-color:#FBF1D9}.my-wcover.tone-rose{background-color:#F6E8E7}
+.my-wcover-memo{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden;font:12px/22px "Noto Serif KR",serif;color:#3F3532;white-space:pre-wrap;text-align:left}
+.my-wbook:hover .my-wcover{transform:translateY(-2px);transition:transform .2s}
+.my-wnew-wrap{position:relative}
+.my-wnew-wrap .my-pop{top:auto;bottom:calc(100% - 40px);right:auto;left:50%;transform:translateX(-50%);min-width:120px}
+/* a wish opened over the page: the memo slip, not sticky, with ✕ */
+.my-memo.my-memo-pop{position:relative;top:auto;width:min(560px,100%);max-height:calc(100vh - 80px)}
+.my-pop-x{position:absolute;right:12px;top:12px;width:32px;height:32px;border:0;border-radius:50%;background:rgba(255,254,250,.9);
+  box-shadow:inset 0 0 0 1px rgba(142,131,121,.3);font-size:14px;color:#3F3532;cursor:pointer}

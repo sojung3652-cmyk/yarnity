@@ -201,7 +201,8 @@ export function GlossaryScreen({ id }: { id?: string }) {
   };
   return (
     <main className="gl gl-wide">
-      <Head total={TERMS.length} />
+      {/* the heading as on My Page (Kim): 용어집 on the slim ivory lace in the middle, nothing under it */}
+      <header className="gl-whead"><h1 className="gl-whead-title">용어집</h1></header>
       <div className="gl-cols">
         <aside className="gl-col-tabs"><Tabs s={s} column /></aside>
         <div className="gl-col-list">
