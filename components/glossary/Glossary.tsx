@@ -4,7 +4,7 @@
 // the panel (the address follows it, so a link or a reload lands on the same term).
 // Cloth labels are the glossary's own patches (public/glossary/patch_{colour}.webp, stretched, no seams), in the
 // category's colour; 전체 and the symbol squares are ivory (never white). The section titles of a term's page
-// (뜨는 방법 / 자주 하는 실수 / 관련 용어) are slim laces in its category's colour.
+// (뜨는 방법 / 자주 하는 실수 / 관련 용어) are slim ivory laces (Kim).
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { MobileTopBar } from "@/components/mobile/MobileTopBar";
@@ -62,7 +62,7 @@ function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null;
     <>
       {s.sections.map(({ c, terms }) => (
         <section key={c.id} className="gl-section" aria-labelledby={`gls-${c.id}`}>
-          <h2 id={`gls-${c.id}`} className="gl-sec-title"><span className="gl-patch" style={{ ...patch(c.color), ...lace(c.color) }}>{c.name}</span></h2>
+          <h2 id={`gls-${c.id}`} className="gl-sec-title"><span className="gl-patch" style={{ ...patch(c.color), ...lace("ivory") }}>{c.name}</span></h2>
           <ul className="gl-rows">
             {terms.map(t => (
               <li key={t.id}>
@@ -98,13 +98,12 @@ export function GlossList({ total, onPick }: { total: number; onPick: (t: GlossT
 
 // ---------------------------------------------------------------- a term
 
-/** the slim lace with a section's name, in the term's category colour */
-const LaceTitle = ({ color, children }: { color: GlossColor; children: ReactNode }) => (
-  <h3 className="gl-lace" style={lace(color)}><span>{children}</span></h3>
+/** the slim lace with a section's name - ivory on every lace of the glossary (Kim) */
+const LaceTitle = ({ children }: { children: ReactNode }) => (
+  <h3 className="gl-lace" style={lace("ivory")}><span>{children}</span></h3>
 );
 
 export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTerm) => void }) {
-  const color = colorOf(term);
   const related = term.related.map(termById).filter((t): t is GlossTerm => !!t);
   return (
     <article className="gl-detail" aria-labelledby={`glt-${term.id}`}>
@@ -126,7 +125,7 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
       {term.note && <p className="gl-note">{term.note}</p>}
       {term.steps.length > 0 && (
         <section className="gl-block">
-          <LaceTitle color={color}>뜨는 방법</LaceTitle>
+          <LaceTitle>뜨는 방법</LaceTitle>
           <ol className="gl-steps">
             {term.steps.map((st, i) => (
               <li key={i}>
@@ -141,13 +140,13 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
       )}
       {term.mistake && (
         <section className="gl-block">
-          <LaceTitle color={color}>자주 하는 실수</LaceTitle>
+          <LaceTitle>자주 하는 실수</LaceTitle>
           <p className="gl-patch gl-mistake" style={patch("ivory")}>{term.mistake}</p>
         </section>
       )}
       {related.length > 0 && (
         <section className="gl-block">
-          <LaceTitle color={color}>관련 용어</LaceTitle>
+          <LaceTitle>관련 용어</LaceTitle>
           <div className="gl-related">
             {related.map(r => <button key={r.id} type="button" className="gl-patch gl-chip" style={patch(colorOf(r))} onClick={() => onGo(r)}>{r.name}</button>)}
           </div>
