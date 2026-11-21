@@ -1,6 +1,6 @@
 /* My Page (web, Kim): the starry linen under an ivory veil; left 1fr, right 300px, 40px apart, 140px from the sides,
    starting 32px under the NavBar. Cards: ivory, 10px corners, a warm grey hairline. One column below 1000px. */
-body:has(.my) footer{display:none}
+body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have their own <footer> */
 .my{position:relative;width:100vw;margin-left:calc(50% - 50vw);min-height:calc(100svh - 56px);box-sizing:border-box;padding:32px 140px 80px;color:#443B3B}
 .my-bg{position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(247,242,232,.62),rgba(247,242,232,.62)),url(/opening-web/bg.jpg) center/cover}
 .my-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start}

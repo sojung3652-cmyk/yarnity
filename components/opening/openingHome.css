@@ -4,7 +4,7 @@
   position:fixed;inset:0;z-index:120;overflow:hidden;background:var(--ivory);color:var(--ink);font-family:var(--sans)}
 .oh *,.oh *::before,.oh *::after{box-sizing:border-box}
 body:has(.oh){overflow:hidden}
-body:has(.oh) footer{display:none}
+body:has(.oh) .wrap > footer{display:none}
 .oh-bgf{position:absolute;inset:0;background:url(/opening-web/bg.jpg) center/cover}
 .oh-sv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .oh-veil{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1s ease;background:linear-gradient(90deg,rgba(247,242,232,.1),rgba(247,242,232,.35) 46%,rgba(247,242,232,.7) 62%,rgba(247,242,232,.75))}
