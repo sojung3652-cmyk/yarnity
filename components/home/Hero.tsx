@@ -33,9 +33,11 @@ export function Hero() {
   if (m) return <MobileSplash />;
   return (
     <>
-    {/* the web start (Kim): the embroidered opening over the desk while the book is closed on /; its sentence
-        opens the book, as the old Start link did. The desk and its still-life photo stay under it. */}
-    {b.view === "closed" && <OpeningIntroWeb onStart={b.open} />}
+    {/* the web's first screen and home (Kim): the embroidered opening. Its Start raises the book from the bottom
+        onto 도안 만들기 step 1; the opening stays under it, drawn back (slightly up, faded), and comes forward again
+        when the book sinks. The old desk (still-life photo, menu spread) is no longer shown on wide screens; its
+        files stay. */}
+    {(b.view === "closed" || b.fromOpening) && <OpeningIntroWeb onStart={b.openHere} receding={b.fromOpening} />}
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>
       {/* two stage layers with the same geometry: the photo below the 3D canvas, the copy above it */}

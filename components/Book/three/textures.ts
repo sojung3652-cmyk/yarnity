@@ -75,3 +75,45 @@ export function canvasTexture(cv: HTMLCanvasElement, srgb: boolean, gl: THREE.We
   if (repeat) t.repeat.set(repeat[0], repeat[1]);
   return t;
 }
+
+let weaveCache: HTMLCanvasElement | null = null;
+/** Web only (Kim): book cloth as a colour texture - a plain weave at one texel per thread (warp over weft),
+ *  low contrast (about +-2%), slubbed threads, faint noise and the soft mottling on top. Also used as the
+ *  cloth's bumpMap (tiny bumpScale), so the light picks out the same weave. 256px, made once. */
+export function clothWeave() {
+  if (weaveCache) return weaveCache;
+  const n = 256, cv = document.createElement("canvas"); cv.width = cv.height = n;
+  const ctx = cv.getContext("2d")!, img = ctx.createImageData(n, n), R = rnd(77);
+  const row = Array.from({ length: n }, () => (R() - 0.5) * 5), col = Array.from({ length: n }, () => (R() - 0.5) * 5);
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const over = (x + y) & 1, v = 246 + (over ? 4 + col[x] : -4 + row[y]) + (R() - 0.5) * 4;
+    const p = (y * n + x) * 4; img.data[p] = img.data[p + 1] = img.data[p + 2] = Math.max(0, Math.min(255, v)); img.data[p + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  ctx.globalCompositeOperation = "multiply"; ctx.drawImage(mottleMap(), 0, 0, n, n); ctx.globalCompositeOperation = "source-over";
+  return (weaveCache = cv);
+}
+
+/** Web only: the spine band's own map (u across the band, v head..tail), one tone darker than the boards,
+ *  the weave on it, two fine headband lines at the head and the tail, and a shallow dark groove at each
+ *  hinge. `len`: the band's length across (cm) incl. the turn-ins `turn`; `band`: the band itself. */
+export function spineMap(len: number, band: number, turn: number, depth: number) {
+  const w = 256, h = 1024, cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const ctx = cv.getContext("2d")!, pat = ctx.createPattern(clothWeave(), "repeat")!;
+  ctx.fillStyle = pat; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(60,44,34,.09)"; ctx.fillRect(0, 0, w, h); // one tone darker than the boards
+  const pu = w / len, pv = h / depth;
+  // headbands: two fine pressed lines near each end (a dark line, a light one under it)
+  for (const at of [0.85, 1.12]) for (const end of [0, 1]) {
+    const y = end ? h - at * pv : at * pv;
+    ctx.fillStyle = "rgba(58,40,30,.26)"; ctx.fillRect(0, y - 1.5, w, 2.2);
+    ctx.fillStyle = "rgba(255,250,240,.22)"; ctx.fillRect(0, y + (end ? -3.2 : 1), w, 1.4);
+  }
+  // hinge grooves: where the band meets each board, a shallow dark line about 1-2px on screen
+  for (const u of [turn, turn + band]) {
+    const x = u * pu, g = ctx.createLinearGradient(x - 6, 0, x + 6, 0);
+    g.addColorStop(0, "rgba(50,34,26,0)"); g.addColorStop(0.5, "rgba(50,34,26,.34)"); g.addColorStop(1, "rgba(50,34,26,0)");
+    ctx.fillStyle = g; ctx.fillRect(x - 6, 0, 12, h);
+  }
+  return cv;
+}

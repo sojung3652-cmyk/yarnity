@@ -53,6 +53,10 @@ interface BookCtx {
   leaveTo: (path: string) => void;
   /** phones: to / with the book closed on the desk (the top bar's logo; Kim) */
   toDesk: () => void;
+  /** wide screens: put the book away without asking (a pattern just finished): it sinks to where it rose */
+  sinkAway: () => void;
+  /** wide screens: 도안 만들기 rose over the opening (/), which stays under the book, faded back */
+  fromOpening: boolean;
 }
 
 const Ctx = createContext<BookCtx | null>(null);
@@ -93,7 +97,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     const phone = isPhone();
     const bookPage = (p: string | null) => p === "/" || p === "/new" || (phone && !!bookPageOf(p));
     setSeenPath(path);
-    if (path === "/") setHomeOpen((seenPath === "/new" || (phone && (!!bookPageOf(seenPath) || seenPath === "/mine" || seenPath === "/pattern" || seenPath === "/track"))) && !closing);
+    // wide screens (Kim): there is no menu spread any more - / is the opening, the book only rises to the wizard
+    if (path === "/") setHomeOpen(phone && (seenPath === "/new" || !!bookPageOf(seenPath) || seenPath === "/mine" || seenPath === "/pattern" || seenPath === "/track") && !closing);
     if (closing) setClosing(false);
     setInstant(!bookPage(seenPath) && !overlay);
     if (overlay) setOverlay(false); // going anywhere (the wizard, 내 작품) ends the overlay
@@ -127,7 +132,15 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const view: BookView = path === "/" ? (homeOpen ? "home" : "closed") : path === "/new" ? "wizard" : overlay ? "home" : "hidden";
   const step: WizStep = urlStep ?? 1;
 
-  const open = useCallback(() => { setInstant(false); setHomeOpen(true); }, []);
+  // Wide screens (Kim): the book is called from two places only - the opening's Start and the nav's 새 도안 -
+  // and both raise it from the bottom straight onto 도안 만들기 step 1 over the screen you were on (that screen is
+  // remembered: closing or finishing sinks the book and brings you back). Phones keep their own ways below.
+  const raise = useCallback(() => {
+    setInstant(false);
+    if (path === "/new") { const sp = new URLSearchParams(location.search); sp.delete("edit"); sp.set("step", "1"); router.push(`/new?${sp}`, { scroll: false }); return; }
+    setOrigin(path + location.search); router.push("/new?step=1", { scroll: false });
+  }, [path, router]);
+  const open = useCallback(() => { if (!isPhone()) { raise(); return; } setInstant(false); setHomeOpen(true); }, [raise]);
   // close: the same everywhere in the book. In the wizard it goes home with the book closed
   const floating = overlay || (path === "/new" && !!origin);
   const [sinking, setSinking] = useState(false);
@@ -151,9 +164,10 @@ export function BookProvider({ children }: { children: ReactNode }) {
     setInstant(false); setOrigin(path + location.search); router.push(`/new?edit=${encodeURIComponent(id)}`, { scroll: false });
   }, [path, router]);
   const openHere = useCallback(() => {
+    if (!isPhone()) { raise(); return; }
     if (path === "/" || path === "/new") { setInstant(false); setHomeOpen(true); if (path === "/new") router.push("/", { scroll: false }); return; }
     setInstant(false); setOrigin(path + location.search); setOverlay(true);
-  }, [path, router]);
+  }, [path, router, raise]);
   const doHome = useCallback(() => { setInstant(false); router.push("/", { scroll: false }); }, [router]);
 
   // Leaving a new pattern half made (a name typed, or past step 1) asks first: keep it for
@@ -181,7 +195,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     const sp = new URLSearchParams(location.search); sp.set("step", String(s));
     router.push(`/new?${sp}`, { scroll: false });
   }, [router]);
-  const toHome = useCallback(() => { if (asks()) setLeaving("home"); else doHome(); }, [asks, doHome]);
+  // wide screens: no menu to go back to - "← 메뉴" puts the book away (it sinks to the screen it rose over)
+  const toHome = useCallback(() => { if (!isPhone()) { close(); return; } if (asks()) setLeaving("home"); else doHome(); }, [asks, doHome, close]);
   const toDesk = useCallback(() => { setClosing(true); router.push("/", { scroll: false }); }, [router]);
   const leaveTo = useCallback((to: string) => { if (asks()) setLeaving({ path: to }); else { setInstant(false); router.push(to, { scroll: false }); } }, [asks, router]);
 
@@ -195,8 +210,9 @@ export function BookProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [view, close, leaving]);
 
-  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk }),
-    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk]);
+  const fromOpening = path === "/new" && origin?.split("?")[0] === "/"; // the path only (a query such as ?debug stays)
+  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, sinkAway: doClose, fromOpening }),
+    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, doClose, fromOpening]);
   return (
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>

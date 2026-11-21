@@ -179,8 +179,8 @@ function List() {
   if (!projects.length && !undo) return (
     <section className="bk-empty">
       <div className="bk-shelf" aria-hidden="true" />
-      <p>아직 도안이 없어요</p>
-      <button type="button" className="bk-new" onClick={book.openHere}><span>새 도안 만들기</span></button>
+      {/* the book is called from the opening's Start and the nav's 새 도안 only (Kim) */}
+      <p>아직 도안이 없어요 · 위의 &lsquo;새 도안&rsquo;으로 시작해요</p>
     </section>
   );
   return (

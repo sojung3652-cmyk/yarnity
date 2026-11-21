@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
-import { engineDims, ENGINE, fieldsFor, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, type FieldKey, type Item, type ItemId } from "@/lib/items";
+import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, type FieldKey, type Item, type ItemId } from "@/lib/items";
 import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
 import type { Draft } from "@/lib/types";
@@ -252,6 +252,9 @@ export function useNewBook(inBook?: WizStep): NewBookView {
       // 완성 도안 (web and phone) then offers the book covers once (components/diary/CoverPicker.tsx)
       try { sessionStorage.setItem("m.justMade", "1"); } catch {}
     }
+    // wide screens, in the 3D book (Kim): done, the book sinks and you are back where it rose (the new pattern
+    // waits in 나의 도안집); the next 새 도안 starts clean. Phones and the one-page /new go to 완성 도안 as before.
+    if (inBook && !phone) { if (!editId) setDraft(freshDraft()); book.sinkAway(); return; }
     router.push("/pattern");
   };
   const next = () => {

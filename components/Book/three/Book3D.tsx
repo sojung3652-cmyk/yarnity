@@ -70,7 +70,8 @@ function SpineCloth({ anim, m }: { anim: Anim; m: BookMaterials }) {
     updateRibbon(geo, spineCloth(anim.cover));
   });
   useEffect(() => () => geo.dispose(), [geo]);
-  return <mesh geometry={geo} material={[m.cloth, m.cloth, m.cloth]} castShadow receiveShadow />;
+  // web: the band as tall as the overhanging boards
+  return <mesh geometry={geo} material={[m.cloth, m.spine, m.cloth]} scale-z={(D + 2 * m.over[1]) / D} castShadow receiveShadow />;
 }
 
 /** Rounded rectangle outline (cover plan, x across, y up the book = -z) with ~2.5mm corners. */
@@ -82,16 +83,18 @@ function roundedRect(w: number, d: number, r: number) {
   s.lineTo(-w / 2, -d / 2 + r); s.quadraticCurveTo(-w / 2, -d / 2, -w / 2 + r, -d / 2);
   return s;
 }
-/** A 3mm cloth-covered board lying flat (y from 0 to BOARD), corners rounded in plan, edges eased. */
-function useBoardGeometry() {
+/** A 3mm cloth-covered board lying flat (y from 0 to BOARD), corners rounded in plan, edges eased.
+ *  `over` (web): it reaches that much further past the fore edge and the head/tail; the spine edge stays. */
+function useBoardGeometry(over: [number, number] = [0, 0]) {
+  const [ox, oz] = over;
   return useMemo(() => {
     const bevel = 0.04;
-    const g = new THREE.ExtrudeGeometry(roundedRect(W - 2 * bevel, D - 2 * bevel, CORNER_R - bevel), {
+    const g = new THREE.ExtrudeGeometry(roundedRect(W + ox - 2 * bevel, D + 2 * oz - 2 * bevel, CORNER_R - bevel), {
       depth: BOARD - 2 * bevel, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2, curveSegments: 6,
     });
-    g.rotateX(-Math.PI / 2); g.translate(0, bevel, 0); // extrusion runs up y; shape +y -> book top (-z)
+    g.rotateX(-Math.PI / 2); g.translate(ox / 2, bevel, 0); // extrusion runs up y; shape +y -> book top (-z)
     return g;
-  }, []);
+  }, [ox, oz]);
 }
 /** Flat rounded-rect plane facing up (+y) with 0..1 uv (u across, v = 1 at the head), for printed surfaces. */
 function usePrintedPlane(w: number, d: number, r: number) {
@@ -107,7 +110,8 @@ function usePrintedPlane(w: number, d: number, r: number) {
 /** Front cover: board + printed cloth front + paper label + endpaper inside. Modelled closed; turned by coverPose. */
 function FrontCover({ anim, m }: { anim: Anim; m: BookMaterials }) {
   const outer = useRef<THREE.Group>(null);
-  const board = useBoardGeometry(), face = usePrintedPlane(W, D, CORNER_R), endpaper = usePrintedPlane(W - 0.2, D - 0.2, CORNER_R);
+  const [ox, oz] = m.over;
+  const board = useBoardGeometry(m.over), face = usePrintedPlane(W + ox, D + 2 * oz, CORNER_R), endpaper = usePrintedPlane(W + ox - 0.2, D + 2 * oz - 0.2, CORNER_R);
   useFrame(() => {
     const g = outer.current; if (!g) return;
     const pose = coverPose(anim.cover);
@@ -119,9 +123,9 @@ function FrontCover({ anim, m }: { anim: Anim; m: BookMaterials }) {
     <group ref={outer} position={[Q0[0], Q0[1], 0]}>
       <group position={[-Q0[0], -Q0[1], 0]}>
         <mesh geometry={board} material={m.cloth} position-y={T - BOARD} castShadow receiveShadow />
-        <mesh geometry={face} material={m.cover} position-y={T + 0.003} receiveShadow />
+        <mesh geometry={face} material={m.cover} position={[ox / 2, T + 0.003, 0]} receiveShadow />
         {/* endpaper on the inside of the board (faces down while closed, up when open) */}
-        <mesh geometry={endpaper} material={m.inside} position-y={T - BOARD - 0.001} rotation-x={Math.PI} receiveShadow />
+        <mesh geometry={endpaper} material={m.inside} position={[ox / 2, T - BOARD - 0.001, 0]} rotation-x={Math.PI} receiveShadow />
         <mesh material={m.label} position={[lx, T + 0.003 + 0.022, lz]} rotation-x={-Math.PI / 2} castShadow receiveShadow>
           <boxGeometry args={[LABEL_CM[0], LABEL_CM[1], 0.02]} />
         </mesh>
@@ -132,7 +136,7 @@ function FrontCover({ anim, m }: { anim: Anim; m: BookMaterials }) {
 
 /** Back board, cloth covered. */
 function BackBoard({ m }: { m: BookMaterials }) {
-  const board = useBoardGeometry();
+  const board = useBoardGeometry(m.over);
   return <mesh geometry={board} material={m.cloth} castShadow receiveShadow />;
 }
 
@@ -612,9 +616,11 @@ function useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, le
   }, [want, shown, setShown, instant, reduce, anim, layer, m, leaf, gl, invalidate, round, phone]);
 }
 
-function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want: Spread; shown: Spread; setShown: (s: Spread) => void; instant: boolean; onOpen: () => void; reduce: boolean; layer: CssLayer }) {
+/** `web`: the desktop layout (decided once). `rise` (web): the book is rising from the bottom ("up", 0.9s) or
+ *  sinking away ("down", 0.7s), the CSS of .hero-desk.is-overlay / .is-sinking .book3d; the floor shadow follows. */
+function Scene({ want, shown, setShown, instant, onOpen, reduce, layer, web, rise }: { want: Spread; shown: Spread; setShown: (s: Spread) => void; instant: boolean; onOpen: () => void; reduce: boolean; layer: CssLayer; web: boolean; rise: "up" | "down" | null }) {
   const anim = useMemo<Anim>(() => { const a: Anim = { t: 0, target: 0, cover: 0, sheets: [], cam: 0, w: 0, wTarget: 0, wcam: 0, turn: null, leafP: 0 }; derive(a); return a; }, []);
-  const m = useBookMaterials();
+  const m = useBookMaterials(web);
   const invalidate = useThree(s => s.invalidate), gl = useThree(s => s.gl), camera = useThree(s => s.camera), sceneRef = useThree(s => s.scene);
   const [shadowK] = useState(() => { const v = parseFloat(cssVar("--book-shadow", "1")); return Number.isFinite(v) ? v : 1; });
   // the leaf's two faces: a right page (front) and a left page (back), as the spread's own pages
@@ -666,6 +672,32 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
   const vw = useThree(s => s.size.width), vh = useThree(s => s.size.height), phone = vw <= PHONE_MAX;
   const sz = phone ? +phoneStretch(vw, vh).toFixed(3) : 1;
   useEffect(() => { anim.sz = sz; invalidate(); }, [anim, sz, invalidate]);
+  // web: the floor shadow follows the rise - far below (lift 1) it is faint and spread, settled (0) dark and crisp
+  const floor = useRef<THREE.ShadowMaterial>(null), contact = useRef<THREE.Group>(null);
+  const lift = useRef({ v: 0, from: 0, to: 0, t: 1, dur: 0.9 });
+  useEffect(() => {
+    if (!web || !rise || reduce) { lift.current = { v: 0, from: 0, to: 0, t: 1, dur: 0.9 }; invalidate(); return; }
+    lift.current = rise === "up" ? { v: 1, from: 1, to: 0, t: 0, dur: 0.9 } : { v: lift.current.v, from: lift.current.v, to: 1, t: 0, dur: 0.7 };
+    invalidate();
+  }, [web, rise, reduce, invalidate]);
+  const FLOOR_OP = (phone ? 0.5 : web ? 0.52 : 0.38) * shadowK, CONTACT_OP = (phone ? 0.7 : web ? 0.82 : 0.55) * shadowK;
+  useFrame((_, dt) => {
+    const L = lift.current;
+    if (L.t < 1) {
+      L.t = Math.min(1, L.t + Math.min(dt, 0.1) / L.dur);
+      // the rise eases out like --float-ease; the sink accelerates away
+      const e = L.to < L.from ? 1 - Math.pow(1 - L.t, 3) : L.t * L.t * L.t;
+      L.v = L.from + (L.to - L.from) * e; invalidate();
+    }
+    const v = L.v;
+    if (floor.current) floor.current.opacity = FLOOR_OP * (1 - 0.7 * v);
+    const c = contact.current;
+    if (c) {
+      c.scale.set(1 + 0.35 * v, 1, 1 + 0.35 * v);
+      const mat = (c.children[0] as THREE.Mesh | undefined)?.material as THREE.MeshBasicMaterial | undefined;
+      if (mat) mat.opacity = CONTACT_OP * (1 - 0.85 * v);
+    }
+  });
   return (
     <>
       <CameraRig anim={anim} layer={layer} wizard={want.view === "wizard"} />
@@ -676,13 +708,15 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
       {/* phones: smaller GPU targets (environment 128, contact shadow 512), to ease the load spike at start */}
       {!OFF.has("env") && <Environment resolution={phone ? 128 : 256} frames={1} background={false}>
         <Lightformer form="rect" intensity={2.4} color="#fffaf3" position={[-4, 30, 2]} rotation-x={Math.PI / 2} scale={[46, 40, 1]} />
-        <Lightformer form="rect" intensity={1.1} color="#fff6ee" position={[-16, 14, 10]} scale={[24, 16, 1]} target={[0, 0, 0]} />
-        <Lightformer form="rect" intensity={0.7} color="#ffffff" position={[14, 10, 14]} scale={[22, 12, 1]} target={[0, 0, 0]} />
+        {/* web: the side softboxes swapped, so the cover's upper right reads a touch brighter, its lower left darker */}
+        <Lightformer form="rect" intensity={web ? 1.0 : 1.1} color="#fff6ee" position={web ? [16, 14, -10] : [-16, 14, 10]} scale={[24, 16, 1]} target={[0, 0, 0]} />
+        <Lightformer form="rect" intensity={web ? 0.45 : 0.7} color="#ffffff" position={web ? [-14, 10, 14] : [14, 10, 14]} scale={[22, 12, 1]} target={[0, 0, 0]} />
       </Environment>}
-      <hemisphereLight args={["#fffaf4", "#eadcd2", 1.05]} />
+      {/* web (Kim): a weak hemisphere fill and a warm, fairly weak key from the upper right */}
+      <hemisphereLight args={web ? ["#fff7ee", "#e4d4c6", 0.78] : ["#fffaf4", "#eadcd2", 1.05]} />
       {/* phones: the light comes from the upper right, as in the desk photo (bg_desk.webp), so the shadow falls
           to the lower left; a 1024 shadow map */}
-      <directionalLight position={phone ? [22, 52, -22] : [-22, 52, -22]} intensity={0.7} color="#fff4e6" castShadow shadow-mapSize={phone ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
+      <directionalLight position={phone ? [22, 52, -22] : web ? [26, 44, -20] : [-22, 52, -22]} intensity={web ? 0.62 : 0.7} color={web ? "#ffe9d0" : "#fff4e6"} castShadow shadow-mapSize={phone ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.03} shadow-radius={32} shadow-blurSamples={32}>
         <orthographicCamera attach="shadow-camera" args={[-26, 26, 26, -26, 1, 100]} />
       </directionalLight>
       <BookModel anim={anim} onOpen={onOpen} layer={layer} m={m} leaf={leaf} sz={sz} />
@@ -692,10 +726,10 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer }: { want
       {/* broad soft layer: the key light's shadow map, falling to the lower right (follows the book as it opens) */}
       <mesh rotation-x={-Math.PI / 2} position-y={0} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <shadowMaterial transparent opacity={(phone ? 0.5 : 0.38) * shadowK} color={SHADOW_COLOR} />
+        <shadowMaterial ref={floor} transparent opacity={FLOOR_OP} color={SHADOW_COLOR} />
       </mesh>
       {/* narrow dark contact line where the book touches the desk */}
-      {!OFF.has("contact") && <ContactShadows position={[0, 0.002, 0]} scale={60} blur={1.6} far={2.2} opacity={(phone ? 0.7 : 0.55) * shadowK} resolution={phone ? 512 : 1024} color={SHADOW_COLOR} frames={Infinity} />}
+      {!OFF.has("contact") && <ContactShadows ref={contact} position={[0, 0.002, 0]} scale={60} blur={web ? 1.3 : 1.6} far={web ? 2.6 : 2.2} opacity={CONTACT_OP} resolution={phone ? 512 : 1024} color={SHADOW_COLOR} frames={Infinity} />}
     </>
   );
 }
@@ -770,7 +804,7 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
           requestAnimationFrame(() => setReady(true));
         }}
       >
-        <Scene key={gen} want={want} shown={shown} setShown={setShown} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} />
+        <Scene key={gen} want={want} shown={shown} setShown={setShown} instant={b.instant} onOpen={b.open} reduce={reduce} layer={layer} web={!phoneGL} rise={b.sinking ? "down" : b.floating ? "up" : null} />
       </Canvas>
       {/* film grain over the book and the photo (not over any text: the page DOM and the hero copy sit above) */}
       <div className="book-grain" aria-hidden="true" />

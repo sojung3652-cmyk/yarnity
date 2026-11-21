@@ -26,3 +26,8 @@
 .opw-start:active{background:radial-gradient(60% 90% at 50% 50%,rgba(255,236,190,.55),rgba(255,236,190,0) 72%)}
 .opw-skip{background:rgba(255,250,244,.6)}
 .opw-skip:hover{background:rgba(255,250,244,.95)}
+/* 도안 만들기 risen over the opening (Kim): the opening draws back - slightly up and faded, 0.6s - under the book
+   (below the book's stage, z 60), and comes forward the same way when the book sinks */
+.opw-stage{transition:transform .6s cubic-bezier(.22,.61,.36,1),opacity .6s ease,filter .6s ease}
+.opw-stage.is-receding{z-index:50;transform:translateY(-3%);opacity:.38;filter:blur(1.5px)}
+@media (prefers-reduced-motion:reduce){.opw-stage{transition:none}}
