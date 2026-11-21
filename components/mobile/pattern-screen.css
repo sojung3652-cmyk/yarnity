@@ -1,0 +1,68 @@
+/* 완성 도안 보기 (phones) only - rose pink, ivory and gold, readability first (Kim). Everything is scoped to
+   this screen (.ms-screen.msp); shared pieces (the glossary word, the lace and stitch buttons, the foot) are
+   overridden here only. Shadows fall to the lower left (light from the upper right). */
+@media (max-width:767.98px){
+  .ms-screen.msp{
+    --ink:#332C2C;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;
+    --gold:#B08D57;--gold-l:#DCC69E;--paper:#FCFAF5;--card:#FFFEFB;
+    position:relative;isolation:isolate;color:var(--ink)}
+  /* a veil over the starry linen, so the stars stay quiet even around the title */
+  .ms-screen.msp::before{content:"";position:fixed;inset:0;z-index:-1;background:rgba(247,242,232,.55);pointer-events:none}
+
+  /* title area: the only place the stars show */
+  .ms-screen.msp .msp-kicker{font:600 10.5px/1.4 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.28em;color:var(--gold)}
+  .ms-screen.msp .msp-kicker span{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:11px;letter-spacing:.12em;color:var(--gold)}
+  .ms-screen.msp .msp-head h1{color:var(--ink)}
+  .ms-screen.msp .msp-sub{color:var(--ink2)}
+
+  /* the paper panel: from the tabs down, 12px from the screen edges, to the bottom of the page */
+  .ms-screen.msp .msp-paper{margin:20px -14px 0;padding:14px 14px 24px;min-height:60svh;border-radius:14px 14px 0 0;background:var(--paper);
+    box-shadow:-5px 8px 22px -12px rgba(70,56,40,.28),0 0 0 1px rgba(176,141,87,.2)}
+  /* down to the bottom of the screen: the panel takes over the screen's bottom padding (room for the foot) */
+  .ms-screen.msp .msp-paper{margin-bottom:calc(-1 * (env(safe-area-inset-bottom,0px) + 214px));padding-bottom:calc(env(safe-area-inset-bottom,0px) + 238px)}
+  .ms-screen.msp .msp-tabs{margin-top:0;background:var(--rose-l)}
+  .ms-screen.msp .msp-tabs button{color:var(--ink2)}
+  .ms-screen.msp .msp-tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:-1px 1px 3px -1px rgba(70,56,40,.16)}
+
+  /* 실 · 바늘 · 실 양 · 한 코 */
+  .ms-screen.msp .msp-facts{background:var(--card);box-shadow:inset 0 0 0 1px var(--gold-l)}
+  .ms-screen.msp .msp-facts div+div{border-left-color:rgba(176,141,87,.25)}
+  .ms-screen.msp .msp-facts dt{color:var(--ink2)}
+  .ms-screen.msp .msp-facts dd{color:var(--ink)}
+
+  /* 01 바닥 */
+  .ms-screen.msp .msp-part h2{border-bottom-color:var(--gold-l)}
+  .ms-screen.msp .msp-no{color:var(--gold)}
+  .ms-screen.msp .msp-part h2 b{color:var(--ink)}
+  .ms-screen.msp .msp-part h2 small{color:var(--ink2)}
+
+  /* the rows */
+  .ms-screen.msp .msp-part li{border-bottom-color:rgba(176,141,87,.18)}
+  .ms-screen.msp .msp-pill{background:var(--rose-l);color:var(--rose-d);font-family:"Noto Serif KR",serif;font-weight:700}
+  .ms-screen.msp .msp-how{color:var(--ink)}
+  .ms-screen.msp .msp-how small{color:var(--ink2)}
+  .ms-screen.msp .msp-n{color:var(--ink)}
+  .ms-screen.msp .msp-n i{color:var(--ink2)}
+  /* terms (매직링, 짧은뜨기, 늘림 ...): the ink stays, only a rose dotted underline */
+  .ms-screen.msp .gl-word{background:none;color:var(--ink);text-decoration:underline dotted var(--rose);text-decoration-thickness:1.6px;text-underline-offset:4px}
+  .ms-screen.msp .gl-word:hover,.ms-screen.msp .gl-word[aria-expanded="true"]{background:var(--rose-l)}
+
+  /* notes */
+  .ms-screen.msp .msp-note,.ms-screen.msp .msp-tip{background:var(--note);box-shadow:inset 0 0 0 1px var(--note-b);color:var(--ink)}
+
+  /* 준비물과 모양 */
+  .ms-screen.msp .msp-shape{background:var(--card);box-shadow:inset 0 0 0 1px var(--gold-l)}
+  .ms-screen.msp .msp-cap,.ms-screen.msp .msp-small,.ms-screen.msp .msp-list dt,.ms-screen.msp .msp-list dd small{color:var(--ink2)}
+  .ms-screen.msp .msp-list div{border-top-color:rgba(176,141,87,.18)}
+
+  /* the foot: the paper fades in from above, so the list never shows through under the buttons */
+  .ms-screen.msp .ms-foot{background:linear-gradient(to bottom,rgba(252,250,245,0),var(--paper) 30px)}
+  .ms-screen.msp .dstitch-disc{background:var(--card);color:var(--rose-d)}
+  .ms-screen.msp .dstitch-disc::before{border:1.5px dashed var(--gold)}
+  .ms-screen.msp .dstitch-label{color:var(--ink2)}
+  .ms-screen.msp .dlace-satin{color:var(--ink);font-family:"Noto Serif KR",serif;font-weight:700}
+  .ms-screen.msp .ms-go-sub{color:var(--ink2)}
+  .ms-screen.msp .msp-made{color:var(--ink2)}
+}
+/* 뜨기 시작: the rose lace (Kim's lace_btn_rose.webp), same size and text box as the other lace buttons */
+@media (max-width:767.98px){ .ms-screen.msp .dlace-lavender{--lace:url(/mobile/diary/lace_btn_rose.webp)} }

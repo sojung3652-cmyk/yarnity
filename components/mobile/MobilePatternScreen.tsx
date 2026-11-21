@@ -1,4 +1,5 @@
 "use client";
+import "./pattern-screen.css";
 import { GlossText } from "@/components/glossary/GlossText";
 // 완성 도안 on phones (/pattern): its own screen, outside the book. The same pattern as the web sheet
 // (app/pattern/page.tsx: plan + withChains, the same grouping of identical rows, yarnUse, the drawing, the
@@ -75,6 +76,8 @@ export function MobilePatternScreen() {
         ) : <h1>{p.name}</h1>}
         <p className="msp-sub">{it.name} · {size}</p>
       </header>
+      {/* the paper panel (Kim): from the tabs down the pattern reads on plain paper, the stars only above it */}
+      <div className="msp-paper">
       <div className="msp-tabs" role="tablist" aria-label="도안 보기">
         <button type="button" role="tab" aria-selected={tab === "supplies"} onClick={() => setTab("supplies")}>준비물과 모양</button>
         <button type="button" role="tab" aria-selected={tab === "rows"} onClick={() => setTab("rows")}>도안</button>
@@ -130,6 +133,7 @@ export function MobilePatternScreen() {
           <p className="msp-tip"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 떠요." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세워요."} 짧은뜨기의 기둥사슬은 코 수에 세지 않아요.</p>
         </section>
       )}
+      </div>
 
       <div className="ms-foot">
         {justMade && <p className="msp-made"><button type="button" onClick={newDraft}>+ 새 도안</button> · <button type="button" onClick={() => router.push("/mine")}>나의 도안집</button></p>}
