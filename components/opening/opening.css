@@ -1,0 +1,15 @@
+/* The phone's opening (OpeningIntro.tsx), reference.html's layout: the embroidered picture contained in the
+   screen, a blurred copy of the fabric filling the rest; the sentence a clear button; 건너뛰기 at the top right.
+   Before the images are in, only the fabric colour shows. */
+.op-stage{--fabric:#F3E7DC;--ink:#8A6F52;--gold:#C9A050;position:fixed;inset:0;z-index:130;overflow:hidden;background:var(--fabric);color:var(--ink);
+  font-family:"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;transition:opacity .9s ease-out}
+.op-stage.is-leaving{opacity:0;pointer-events:none}
+.op-bg{position:absolute;inset:-8%;background-size:cover;background-position:center 85%;filter:blur(28px) saturate(.9);opacity:0}
+.op-bg.is-on{opacity:1}
+.op-cv{position:absolute;display:block}
+.op-start{position:absolute;border:0;background:transparent;border-radius:14px;cursor:pointer;padding:0;color:transparent;font-size:16px;-webkit-tap-highlight-color:transparent}
+.op-start:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.op-skip{position:absolute;right:max(18px,env(safe-area-inset-right,0px));top:calc(16px + env(safe-area-inset-top,0px));border:0;background:rgba(255,250,244,.55);
+  font:500 13px "Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;color:var(--ink);letter-spacing:.04em;cursor:pointer;padding:8px 12px;border-radius:999px}
+.op-skip:hover{background:rgba(255,250,244,.9)}
+.op-skip:focus-visible{outline:2px solid var(--gold)}
