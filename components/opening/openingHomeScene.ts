@@ -48,7 +48,7 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
   function layout() {
     const portrait = VH / VW > 1.12; LW = portrait ? 1080 : 1920; LH = portrait ? 1920 : 1080; SC = Math.min(VW / LW, VH / LH); OX = (VW - LW * SC) / 2; OY = (VH - LH * SC) / 2; PX = SC * DPR;
     const mr = img.med.naturalWidth / img.med.naturalHeight, lr = img.logo.naturalHeight / img.logo.naturalWidth, tr = img.text.naturalHeight / img.text.naturalWidth;
-    L = (portrait ? { mh: 940, mx: 540, my: 610, lw: 1010, lcx: 548, lcy: 1318, tw: 940, tcx: 540, tcy: 1610, bh: 1100 } : { mh: 575, mx: 960, my: 332, lw: 640, lcx: 978, lcy: 744, tw: 600, tcx: 960, tcy: 932, bh: 760 }) as Lay;
+    L = (portrait ? { mh: 940, mx: 540, my: 610, lw: 1010, lcx: 548, lcy: 1318, tw: 640, tcx: 540, tcy: 1590, bh: 1100 } : { mh: 575, mx: 960, my: 332, lw: 640, lcx: 978, lcy: 744, tw: 400, tcx: 960, tcy: 920, bh: 760 }) as Lay;
     L.mw = L.mh * mr; L.lh = L.lw * lr; L.th = L.tw * tr; L.lx = L.lcx - L.lw / 2; L.ly = L.lcy - L.lh / 2; L.tx = L.tcx - L.tw / 2; L.ty = L.tcy - L.th / 2;
     tc.width = g2.width = Math.ceil(L.tw * PX); tc.height = g2.height = Math.ceil(L.th * PX);
     const k = LWp / 1200; lastP = -1;
