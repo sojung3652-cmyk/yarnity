@@ -1,7 +1,7 @@
 /* The phone's opening (OpeningIntro.tsx), reference.html's layout: the embroidered picture contained in the
    screen, a blurred copy of the fabric filling the rest; the sentence a clear button; 건너뛰기 at the top right.
    Before the images are in, only the fabric colour shows. */
-.op-stage{--fabric:#F3E7DC;--ink:#8A6F52;--gold:#C09D59;position:fixed;inset:0;z-index:130;overflow:hidden;background:var(--fabric);color:var(--ink);
+.op-stage{--fabric:#F3E7DC;--ink:#8A6F52;--gold:#C9A050;position:fixed;inset:0;z-index:130;overflow:hidden;background:var(--fabric);color:var(--ink);
   font-family:"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;transition:opacity .9s ease-out}
 .op-stage.is-leaving{opacity:0;pointer-events:none}
 .op-bg{position:absolute;inset:-8%;background-size:cover;background-position:center 85%;filter:blur(28px) saturate(.9);opacity:0}
@@ -17,13 +17,13 @@
 /* The web's opening (OpeningIntroWeb.tsx), reference.html's layout: the canvas fills the window (the linen is
    drawn cover, the rest contained on 1920 x 1080 / 1080 x 1920); only the sentence is a button, softly lit on
    hover; 건너뛰기 at the top right. Before the images are in, only the fabric colour shows. */
-.opw-stage{--fabric:#F1E7DA;--ink:#8A6F52;--gold:#C09D59;position:fixed;inset:0;z-index:120;overflow:hidden;background:var(--fabric);color:var(--ink);
+.opw-stage{--fabric:#F1E7DA;--ink:#8A6F52;--gold:#C9A050;position:fixed;inset:0;z-index:120;overflow:hidden;background:var(--fabric);color:var(--ink);
   font-family:"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif}
 .opw-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .opw-start{position:absolute;border:0;background:transparent;border-radius:14px;cursor:pointer;padding:0;color:transparent;font-size:16px}
 .opw-start:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
-.opw-start:hover{background:radial-gradient(60% 90% at 50% 50%,rgba(252,243,217,.38),rgba(252,243,217,0) 72%)}
-.opw-start:active{background:radial-gradient(60% 90% at 50% 50%,rgba(250,234,195,.55),rgba(250,234,195,0) 72%)}
+.opw-start:hover{background:radial-gradient(60% 90% at 50% 50%,rgba(255,244,214,.38),rgba(255,244,214,0) 72%)}
+.opw-start:active{background:radial-gradient(60% 90% at 50% 50%,rgba(255,236,190,.55),rgba(255,236,190,0) 72%)}
 .opw-skip{background:rgba(255,250,244,.6)}
 .opw-skip:hover{background:rgba(255,250,244,.95)}
 /* 도안 만들기 risen over the opening (Kim): the opening draws back - slightly up and faded, 0.6s - under the book

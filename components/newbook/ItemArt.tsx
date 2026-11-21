@@ -4,11 +4,11 @@
 import type { ItemId } from "@/lib/items";
 
 const PASTEL: Record<ItemId, string> = {
-  coaster: "#F4CFD3", scrubber: "#EFE0AC", trivet: "#F7CDB0", placemat: "#CBD8BF", rug: "#F9D8DF",
+  coaster: "#F4CFD3", scrubber: "#F5E3A6", trivet: "#F7CDB0", placemat: "#CBD8BF", rug: "#F9D8DF",
   basket: "#EBD7B8", planter: "#F7CDB0", pencil: "#CFE2F0", cupholder: "#F9D8DF",
   minibag: "#F9D8DF", bucket: "#F4CFD3", pouch: "#CFE2F0",
   scarf: "#F7CDB0", neckwarmer: "#CBD8BF", headband: "#F4CFD3",
-  dishcloth: "#CFE2F0", bookmark: "#EFE0AC", blanket: "#F9D8DF", beanie: "#F4CFD3",
+  dishcloth: "#CFE2F0", bookmark: "#F5E3A6", blanket: "#F9D8DF", beanie: "#F4CFD3",
 };
 const LEAF = "#B5C9A4";
 
@@ -28,7 +28,7 @@ function shape(id: ItemId, c: string, ink: string, light: string) {
     case "rug": return <>{shadow(32, 53, 27)}<ellipse cx="32" cy="32" rx="27" ry="18" fill={c} stroke={ink} /><ellipse cx="32" cy="32" rx="19" ry="12.5" fill={light} stroke="none" /><ellipse cx="32" cy="32" rx="11" ry="7" fill={c} stroke="none" />{st("M32 14.5a23 15.5 0 1 0 .01 0")}{st("M32 25a8 5 0 1 0 .01 0", 1)}</>;
     case "basket": return <>{shadow(32, 55, 20)}<path d="M11 24h42l-4 25a5 5 0 0 1-5 4H20a5 5 0 0 1-5-4z" fill={c} stroke={ink} /><rect x="9" y="20" width="46" height="7" rx="3.5" fill={light} stroke={ink} /><ellipse cx="16" cy="23.5" rx="2.4" ry="1.4" fill={ink} opacity=".35" stroke="none" /><ellipse cx="48" cy="23.5" rx="2.4" ry="1.4" fill={ink} opacity=".35" stroke="none" />{st("M15 34h34")}{st("M16 42h32", 1)}</>;
     case "planter": return <>{shadow(32, 55, 16)}<path d="M32 27c-1-8-7-13-14-13 1 8 7 12 14 13z" fill={LEAF} stroke={ink} /><path d="M32 27c0-9 6-15 14-16-1 9-6 15-14 16z" fill={LEAF} stroke={ink} /><path d="M32 27v-9" {...line} /><path d="M15 27h34l-4 24a4 4 0 0 1-4 3H23a4 4 0 0 1-4-3z" fill={c} stroke={ink} /><path d="M14 27h36" {...line} />{st("M17 36h30")}{st("M18 44h28", 1)}</>;
-    case "pencil": return <>{shadow(32, 55, 15)}<path d="M24 26V12l2.5-4 2.5 4v14" fill="#EFE0AC" stroke={ink} /><path d="M31 26V9l2.5-4 2.5 4v17" fill="#F4CFD3" stroke={ink} /><path d="M38 26V14l2.5-4 2.5 4v12" fill={LEAF} stroke={ink} /><rect x="18" y="24" width="28" height="29" rx="5" fill={c} stroke={ink} />{st("M18 33h28")}{st("M18 41h28", 1)}</>;
+    case "pencil": return <>{shadow(32, 55, 15)}<path d="M24 26V12l2.5-4 2.5 4v14" fill="#F5E3A6" stroke={ink} /><path d="M31 26V9l2.5-4 2.5 4v17" fill="#F4CFD3" stroke={ink} /><path d="M38 26V14l2.5-4 2.5 4v12" fill={LEAF} stroke={ink} /><rect x="18" y="24" width="28" height="29" rx="5" fill={c} stroke={ink} />{st("M18 33h28")}{st("M18 41h28", 1)}</>;
     case "cupholder": return <>{shadow(30, 55, 15)}<path d="M18 12h24l-3 41H21z" fill="#FFFDF8" stroke={ink} /><path d="M42 24h3a6 6 0 0 1 0 12h-4" {...line} /><path d="M19.3 26h21.4l-1.4 17H20.7z" fill={c} stroke={ink} />{st("M20 32h20")}{st("M20.5 37.5h19", 1)}<path d="M23 8c0-2 2-2 2-4M29 8c0-2 2-2 2-4" {...line} opacity=".45" /></>;
     case "minibag": return <>{shadow(32, 56, 20)}<path d="M23 26c0-9 4-14 9-14s9 5 9 14" fill="none" stroke={ink} strokeWidth="3.2" strokeLinecap="round" /><path d="M23 26c0-9 4-14 9-14s9 5 9 14" fill="none" stroke={c} strokeWidth="1.6" strokeLinecap="round" /><path d="M12 25h40l-3 24a6 6 0 0 1-6 5H21a6 6 0 0 1-6-5z" fill={c} stroke={ink} /><path d="M12 25h40" stroke={ink} />{st("M14 33h36")}{st("M15 41h34", 1)}</>;
     case "bucket": return <>{shadow(32, 56, 18)}<path d="M18 22C16 8 48 8 46 22" {...line} /><path d="M15 20h34l-3 30a5 5 0 0 1-5 4H23a5 5 0 0 1-5-4z" fill={c} stroke={ink} /><ellipse cx="32" cy="20" rx="17" ry="3.5" fill={light} stroke={ink} />{st("M15.5 26h33")}<circle cx="27" cy="27" r="1.6" fill={ink} opacity=".5" stroke="none" /><circle cx="37" cy="27" r="1.6" fill={ink} opacity=".5" stroke="none" />{st("M17 38h30", 1)}{st("M18 46h28", 2)}</>;

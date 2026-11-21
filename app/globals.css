@@ -221,7 +221,7 @@ body:has(.hero-desk.is-overlay){overflow:hidden}
 /* the nav's two buttons as small woven labels in the menu book's colours (Book.css .pg-link): 새 도안 =
    도안 만들기's pastel yellow, 나의 도안집 = its pink; the same weave and stitch colours */
 .nav-links{gap:10px}
-.nav-label{--tilt:-1deg;--lb:#F3EBCE;--ls:#CBB97F;display:inline-flex;padding:3px 2px;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer}
+.nav-label{--tilt:-1deg;--lb:#F6EDCB;--ls:#D2BC78;display:inline-flex;padding:3px 2px;border:0;background:none;font:inherit;text-decoration:none;cursor:pointer}
 .nav-label+.nav-label{--tilt:.8deg;--lb:#F5E2E0;--ls:#D9AFAA}
 .nav-label>span{position:relative;display:inline-flex;align-items:center;height:34px;padding:0 20px;border-radius:2px;font-family:"Noto Serif KR",serif;font-size:13px;font-weight:500;color:#4A3D38;white-space:nowrap;
   background:repeating-linear-gradient(0deg,rgba(120,90,80,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,90,80,.045) 0 1px,transparent 1px 3px),var(--lb);
@@ -390,7 +390,7 @@ body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
   /* the home stage lets the linen through (not when it dims another page under the risen book) */
   .hero-desk:not(.is-overlay){background:transparent}
   /* the 3D book in ivory (Kim; it was baby pink): its cloth, the ribbon tab and the menu book's cover follow */
-  :root{--book-lav:#EEE5D3;--book-lav-shade:#D9CCB6}
+  :root{--book-lav:#EEE5D3;--book-lav-shade:#DCCDB3}
 }
 
 /* 나의 도안집 and the glossary on wide screens (Kim, a try): their wordmark in the nav's middle instead of Yarnity,
@@ -409,7 +409,7 @@ body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
 .nav-more-btn:hover,.nav-more-btn[aria-expanded="true"]{background:rgba(255,254,251,.7)}
 .nav-more-btn:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
 .nav-more-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:40;min-width:170px;padding:6px;border-radius:10px;background:#FFFEFB;
-  box-shadow:-5px 8px 22px -10px rgba(70,56,40,.32),0 0 0 1px rgba(169,140,94,.22);animation:float-in-soft .22s var(--float-ease) both}
+  box-shadow:-5px 8px 22px -10px rgba(70,56,40,.32),0 0 0 1px rgba(176,141,87,.22);animation:float-in-soft .22s var(--float-ease) both}
 .nav-more-menu button{display:block;width:100%;min-height:40px;padding:0 14px;border:0;border-radius:6px;background:none;text-align:left;font:500 13.5px/1 "Noto Serif KR",serif;color:#443B3B;cursor:pointer}
 .nav-more-menu button:hover,.nav-more-menu button:focus-visible{background:#F6E8E7;outline:none}
 /* the footer wordmark waits a moment on a fresh load: a page drawn in the browser (the glossary) is still empty at

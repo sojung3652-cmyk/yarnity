@@ -19,7 +19,7 @@ export function RibbonGold({ w, h, ball, ballY, lineInset, lineEnd, full, notch 
     <svg className="rib-gold" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id={g} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#927238" /><stop offset=".45" stopColor="#C4A15B" /><stop offset=".7" stopColor="#EDDCA6" /><stop offset="1" stopColor="#AF8947" />
+          <stop offset="0" stopColor="#9A7430" /><stop offset=".45" stopColor="#CDA452" /><stop offset=".7" stopColor="#F3DFA0" /><stop offset="1" stopColor="#B88C3E" />
         </linearGradient>
         <filter id={wt}><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0" /></filter>
         <clipPath id={c}><circle cx={cx} cy={ballY} r={ball / 2} /></clipPath>
@@ -37,7 +37,7 @@ export function RibbonGold({ w, h, ball, ballY, lineInset, lineEnd, full, notch 
           {/* raised: positive height map lit from the upper left -> light upper-left edges, dark lower-right edges */}
           <feGaussianBlur in="SourceAlpha" stdDeviation=".45" result="bump" />
           <feDiffuseLighting in="bump" surfaceScale="2.2" diffuseConstant="1.05" lightingColor="#fff" result="diff"><feDistantLight azimuth="225" elevation="58" /></feDiffuseLighting>
-          <feSpecularLighting in="bump" surfaceScale="2.2" specularConstant=".9" specularExponent="16" lightingColor="#FCF2D5" result="spec"><feDistantLight azimuth="225" elevation="42" /></feSpecularLighting>
+          <feSpecularLighting in="bump" surfaceScale="2.2" specularConstant=".9" specularExponent="16" lightingColor="#FFF4D2" result="spec"><feDistantLight azimuth="225" elevation="42" /></feSpecularLighting>
           <feComposite in="gold" in2="diff" operator="arithmetic" k1="1.32" k2="0" k3="0" k4="0" result="shaded" />
           <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn" />
           <feComposite in="shaded" in2="specIn" operator="arithmetic" k1="0" k2="1" k3=".85" k4="0" result="lit" />
@@ -64,10 +64,10 @@ export function GoldLeafDefs({ ids }: { ids: ReturnType<typeof leafIds> }) {
     <>
       <linearGradient id={ids.g} x1="0" y1="0" x2="1" y2="1">
         {/* antique gold, matching the foil wordmark (FoilLogo) rather than brass */}
-        <stop offset="0" stopColor="#846C40" /><stop offset=".3" stopColor="#B9A06D" /><stop offset=".52" stopColor="#E1D1A9" />
-        <stop offset=".72" stopColor="#A98E56" /><stop offset="1" stopColor="#886E3F" />
+        <stop offset="0" stopColor="#8A6E3A" /><stop offset=".3" stopColor="#C0A266" /><stop offset=".52" stopColor="#E6D3A4" />
+        <stop offset=".72" stopColor="#B0904F" /><stop offset="1" stopColor="#8F7038" />
       </linearGradient>
-      <pattern id={ids.weave} width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height=".45" fill="#543D16" opacity=".14" /><rect width=".45" height="2" fill="#FBF1CC" opacity=".12" /></pattern>
+      <pattern id={ids.weave} width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height=".45" fill="#5A3E10" opacity=".14" /><rect width=".45" height="2" fill="#FFF3C8" opacity=".12" /></pattern>
       {/* the leaf: grain, raised edges */}
       <filter id={ids.fr} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
         {/* fine grain (stronger) and a faint, larger mottling, like beaten leaf */}
@@ -83,7 +83,7 @@ export function GoldLeafDefs({ ids }: { ids: ReturnType<typeof leafIds> }) {
         <feColorMatrix in="g2" type="saturate" values=".8" result="gold" />
         <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="bump" />
         <feDiffuseLighting in="bump" surfaceScale="3" diffuseConstant="1" lightingColor="#fff" result="diff"><feDistantLight azimuth="225" elevation="60" /></feDiffuseLighting>
-        <feSpecularLighting in="bump" surfaceScale="3" specularConstant=".7" specularExponent="14" lightingColor="#FCF2D5" result="spec"><feDistantLight azimuth="225" elevation="45" /></feSpecularLighting>
+        <feSpecularLighting in="bump" surfaceScale="3" specularConstant=".7" specularExponent="14" lightingColor="#FFF4D2" result="spec"><feDistantLight azimuth="225" elevation="45" /></feSpecularLighting>
         <feComposite in="gold" in2="diff" operator="arithmetic" k1="1.18" k2="0" k3="0" k4="0" result="shaded" />
         <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn" />
         <feComposite in="shaded" in2="specIn" operator="arithmetic" k1="0" k2="1" k3=".6" k4="0" result="lit" />
@@ -103,7 +103,7 @@ function RibbonGoldLeaf({ w, h, ball, ballY, notch }: { w: number; h: number; ba
     <svg className="rib-gold rib-gold-full" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <GoldLeafDefs ids={L} />
-        <linearGradient id={gb} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#786138" /><stop offset="1" stopColor="#A28958" /></linearGradient>
+        <linearGradient id={gb} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#7E6332" /><stop offset="1" stopColor="#A88B52" /></linearGradient>
         <filter id={wt}><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0" /></filter>
         <clipPath id={c}><circle cx={cx} cy={ballY} r={ball / 2} /></clipPath>
         <mask id={m} maskUnits="userSpaceOnUse" x="0" y="0" width={w} height={h}>
@@ -114,13 +114,13 @@ function RibbonGoldLeaf({ w, h, ball, ballY, notch }: { w: number; h: number; ba
           <feOffset in="SourceAlpha" dx=".9" dy=".9" result="sh" />
           <feComposite in="SourceAlpha" in2="sh" operator="out" result="rimTL" />
           <feGaussianBlur in="rimTL" stdDeviation=".5" result="rimTLb" />
-          <feFlood floodColor="#463114" floodOpacity=".75" />
+          <feFlood floodColor="#4A3210" floodOpacity=".75" />
           <feComposite in2="rimTLb" operator="in" />
           <feComposite in2="SourceAlpha" operator="in" result="inner" />
           <feOffset in="SourceAlpha" dx=".7" dy=".7" result="lipS" />
           <feComposite in="lipS" in2="SourceAlpha" operator="out" result="lip" />
           <feGaussianBlur in="lip" stdDeviation=".4" result="lipB" />
-          <feFlood floodColor="#FAEEC5" floodOpacity=".9" />
+          <feFlood floodColor="#FFF0C0" floodOpacity=".9" />
           <feComposite in2="lipB" operator="in" result="lipLight" />
           <feMerge><feMergeNode in="lipLight" /><feMergeNode in="SourceGraphic" /><feMergeNode in="inner" /></feMerge>
         </filter>

@@ -4,20 +4,20 @@
   background:
     radial-gradient(circle at 62% 32%,rgba(255,255,255,.28),rgba(255,255,255,0) 60%,rgba(122,90,52,.08) 100%),
     url(/brand/ai_linen.jpg) center/140px;
-  box-shadow:-1.5px 3.5px 6px rgba(80,58,40,.24),inset 0 0 0 .7px rgba(169,140,94,.25);
+  box-shadow:-1.5px 3.5px 6px rgba(80,58,40,.24),inset 0 0 0 .7px rgba(176,141,87,.25);
   transition:transform .2s ease,box-shadow .2s ease}
 /* the thin gold line inside the edge */
-.ai-badge::before{content:"";position:absolute;inset:6.5%;border-radius:50%;border:1px solid rgba(190,158,105,.9);pointer-events:none}
+.ai-badge::before{content:"";position:absolute;inset:6.5%;border-radius:50%;border:1px solid rgba(198,160,97,.9);pointer-events:none}
 .ai-badge__star{position:absolute;left:50%;top:50%;width:33%;transform:translate(-50%,-52%);
-  filter:drop-shadow(-.4px .7px .5px rgba(85,63,29,.45))}
+  filter:drop-shadow(-.4px .7px .5px rgba(90,64,24,.45))}
 .ai-badge:hover{transform:translateY(-2px) scale(1.04)}
-.ai-badge:active{transform:scale(.95);box-shadow:-1px 2.5px 4px rgba(80,58,40,.18),inset 0 0 0 .7px rgba(169,140,94,.25)}
-.ai-badge:focus-visible{outline:2px solid #A98C5E;outline-offset:4px}
+.ai-badge:active{transform:scale(.95);box-shadow:-1px 2.5px 4px rgba(80,58,40,.18),inset 0 0 0 .7px rgba(176,141,87,.25)}
+.ai-badge:focus-visible{outline:2px solid #B08D57;outline-offset:4px}
 /* web: its name on the same linen, on hover */
 .ai-badge__label{position:absolute;right:calc(100% + 12px);top:50%;transform:translate(6px,-50%);opacity:0;pointer-events:none;
   height:40px;padding:0 18px;display:flex;align-items:center;border-radius:20px;white-space:nowrap;
   background:url(/brand/ai_linen.jpg) center/150px;color:#443B3B;font:600 14px 'Noto Sans KR',sans-serif;
-  box-shadow:-2px 4px 8px -2px rgba(80,58,40,.22),inset 0 0 0 1px rgba(169,140,94,.28);
+  box-shadow:-2px 4px 8px -2px rgba(80,58,40,.22),inset 0 0 0 1px rgba(176,141,87,.28);
   transition:opacity .2s ease,transform .2s ease}
 @media (hover:hover){.ai-badge:hover .ai-badge__label{opacity:1;transform:translate(0,-50%)}}
 /* phones: 56px, 16px from the right, 24px above the bottom unless a fixed foot sets it (AiBadge.tsx) */
