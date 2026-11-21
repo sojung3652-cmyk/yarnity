@@ -51,7 +51,7 @@
   .mine .mm-plate{max-width:100%;box-sizing:border-box;padding:3px 10px;border:1px solid rgba(168,130,58,.65);border-radius:1px;background:#FBF6EC;
     font-family:"Noto Serif KR",serif;font-weight:600;font-size:12.5px;line-height:1.3;color:#4B3F3A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:-1px 1px 2px rgba(70,48,34,.15)}
   .mine .mm-tag{position:absolute;left:16px;top:10px;padding:2px 8px;border-radius:99px;background:#FBF6EC;font-size:11.5px;line-height:1.4;color:#5A4A3E;box-shadow:0 0 0 1px rgba(168,130,58,.25)}
-  .mine .mm-tag.is-going{background:#FCE8EC;color:#7A404C;box-shadow:none}
+  .mine .mm-tag.is-going{background:#F5EEDF;color:#7A5F3A;box-shadow:0 0 0 1px rgba(176,141,87,.38)} /* 뜨는 중: ivory and gold, with the cloth (Kim) */
   .mine .mm-bar{display:block;height:3px;border-radius:2px;background:rgba(176,141,87,.18);overflow:hidden}
   .mine .mm-bar i{display:block;height:100%;border-radius:2px;background:#CE999B}
 

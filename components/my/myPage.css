@@ -20,7 +20,7 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my-knit-foot{margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#6A605F}
 .my-knit-foot em{font-style:normal;font-weight:700;font-size:13px;color:#9F646A;white-space:nowrap}
 .my-chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;font-size:11.5px;font-weight:600}
-.my-chip.is-knitting{background:#F6E8E7;color:#9F646A}
+.my-chip.is-knitting{background:#F5EEDF;color:#7A5F3A;box-shadow:0 0 0 1px rgba(176,141,87,.38)}
 .my-none{margin:0;padding:18px 20px;font:14px/1.5 "Noto Serif KR",serif;color:#6A605F}
 .my-link{padding:0;border:0;background:none;font:inherit;font-weight:700;color:#9F646A;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 /* 나의 도안집: the shelves as they were (its own count line is the tabs' now) */
@@ -43,7 +43,7 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my-chats span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:14px/1.4 "Noto Serif KR",serif}
 .my-chats small{flex-shrink:0;font-size:12px;color:#6A605F}
 .my-quiet{margin:12px 0 0;font-size:13px;color:#6A605F}
-.my-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:12px 0 0;text-align:center}
+.my-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:12px 0 0;text-align:center}
 .my-stats div+div{border-left:1px solid rgba(142,131,121,.2)}
 .my-stats dt{font-size:12px;color:#6A605F}
 .my-stats dd{margin:4px 0 0;font:700 22px/1.2 "Noto Serif KR",serif;color:#443B3B}
@@ -61,3 +61,5 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my-knit{padding:4px 6px}
 .my-none{padding:6px 8px}
 .my-side{padding:6px 6px 4px}
+/* the card says 뜨는 중 in its chip: the cover's own tag (unstyled outside the shelf) is not repeated */
+.my-knit .mm-tag{display:none}
