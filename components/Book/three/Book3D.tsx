@@ -107,6 +107,9 @@ function usePrintedPlane(w: number, d: number, r: number) {
   }, [w, d, r]);
 }
 
+/** web, wizard pose: the open front cover slides this far in under the left pages (cm) */
+const COVER_IN = 2.7;
+
 /** Front cover: board + printed cloth front + paper label + endpaper inside. Modelled closed; turned by coverPose. */
 function FrontCover({ anim, m }: { anim: Anim; m: BookMaterials }) {
   const outer = useRef<THREE.Group>(null);
@@ -115,7 +118,10 @@ function FrontCover({ anim, m }: { anim: Anim; m: BookMaterials }) {
   useFrame(() => {
     const g = outer.current; if (!g) return;
     const pose = coverPose(anim.cover);
-    g.position.set(pose.F[0], pose.F[1], 0); g.rotation.z = pose.A;
+    // web, 도안 만들기 (Kim: the open cover read as a thick band left of the pages): the flattened spine pushed the
+    // open cover ~3cm past the left pages; in the wizard pose it slides in under them, leaving about 0.5cm showing
+    const shift = m.over[0] ? COVER_IN * anim.wcam : 0;
+    g.position.set(pose.F[0] + shift, pose.F[1], 0); g.rotation.z = pose.A;
   });
   // label: 15% from the left, 8% from the bottom of the cover (its soft shadow is baked into the cover art)
   const lx = -W / 2 + 0.15 * W + LABEL_CM[0] / 2, lz = D / 2 - 0.08 * D - LABEL_CM[1] / 2;
@@ -392,7 +398,8 @@ function closedAnchor(vw: number, vh: number, tgt: THREE.Vector3, spot: { x: num
   return { d, shiftX: p.cx - spot.x, shiftY: p.cy - spot.y };
 }
 
-function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizard: boolean }) {
+/** `coverIn` (web): how far the open front cover slides in under the left pages in the wizard pose (FrontCover) */
+function CameraRig({ anim, layer, wizard, coverIn = 0 }: { anim: Anim; layer: CssLayer; wizard: boolean; coverIn?: number }) {
   const { camera, size, scene } = useThree();
   useEffect(() => { layer.renderer.setSize(size.width, size.height); }, [layer, size]);
   const cTgt = useMemo(() => new THREE.Vector3(0, FAB + T / 2, 0), []);
@@ -418,7 +425,7 @@ function CameraRig({ anim, layer, wizard }: { anim: Anim; layer: CssLayer; wizar
     // fitted to the whole open book, cover to cover: the front cover lies left of the spine cloth
     // (spine at -W/2, the flat spine cloth ~T wide, then the board), the back board ends at W/2
     const room = Math.max(200, size.height - navH - 16);
-    const coverL = -W / 2 - T - W - 0.3, coverR = W / 2 + 0.3;
+    const coverL = -W / 2 - T - W - 0.3 + coverIn, coverR = W / 2 + 0.3;
     const wDist = fit((coverR - coverL) / 2 / Math.min(0.96, 1700 / size.width), D / 2 / (room / size.height), aspect);
     v.wTgt.set((coverL + coverR) / 2, FAB + T * 0.6, 0);
     v.dir.copy(CLOSED_DIR).lerp(OPEN_DIR, e).lerp(STRAIGHT_DOWN, we).normalize();
@@ -701,7 +708,7 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer, web, ris
   });
   return (
     <>
-      <CameraRig anim={anim} layer={layer} wizard={want.view === "wizard"} />
+      <CameraRig anim={anim} layer={layer} wizard={want.view === "wizard"} coverIn={m.over[0] ? COVER_IN : 0} />
       {/* soft studio light without an HDR download: soft boxes baked into a small environment map */}
       {/* Light matched to the photo's objects: a broad, soft studio light from above (a big white softbox in
           the environment + sky/ground fill), with only a weak directional light from the upper left for
