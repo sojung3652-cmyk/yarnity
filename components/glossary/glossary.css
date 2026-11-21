@@ -318,3 +318,9 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
     box-shadow:0 0 0 1px rgba(142,131,121,.16),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
   .gl-wide .gl-list-scroll{max-height:calc(100vh - 236px)}
 }
+/* phones too (Kim): the list's category titles as thin ivory laces, as on the web (the top of the page unchanged) */
+@media (max-width:767.98px){
+  .gl-phone .gl-sec-title .gl-patch{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:156px;min-width:0;min-height:0;aspect-ratio:900 / 264;
+    padding:0 9%;border:0;border-image:none;background:var(--gl) center / 100% 100% no-repeat;font:700 12.5px/1 "Noto Serif KR",serif;color:var(--ink);
+    filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1))}
+}
