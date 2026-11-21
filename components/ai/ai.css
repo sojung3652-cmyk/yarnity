@@ -288,3 +288,5 @@
 .aic-ptag svg{flex:none;width:14px;height:14px}
 .aic-ptag span{overflow:hidden;text-overflow:ellipsis}
 .aic-foot-note{max-width:680px;margin:8px auto 0;text-align:center}
+/* the embroidered wordmark (2.82 : 1): by width, as the old foil's 38px height took */
+.aic-side-foil{height:auto;width:77px}
