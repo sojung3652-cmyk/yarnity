@@ -35,14 +35,17 @@ export function usePhotoUrl(id?: string) {
   return url;
 }
 
-/** the round linen avatar with a gold hairline inside: the picture, or the nickname's first letter */
+/** the avatar (Kim): no picture - the ivory patch with the gold embroidered bird; a picture - set in the stitched
+ *  ivory frame with the little stars at its corners (the photo shows through the frame's window) */
 export function Avatar({ size }: { size: number }) {
   const prof = useProfile(), url = usePhotoUrl(prof.avatar);
-  const letter = (prof.nickname.trim()[0] ?? "Y").toUpperCase();
   return (
-    <span className={"my-avatar" + (url ? " has-photo" : "")} style={{ width: size, height: size, fontSize: Math.round(size * 34 / 96) }} aria-hidden="true">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      {url ? <img src={url} alt="" /> : <span>{letter}</span>}
+    <span className={"my-avatar" + (url ? " has-photo" : "")} style={{ width: size, height: size }} aria-hidden="true">
+      {/* eslint-disable @next/next/no-img-element */}
+      {url
+        ? <><img className="my-avatar-pic" src={url} alt="" /><img className="my-avatar-frame" src="/brand/avatar_frame.webp" alt="" /></>
+        : <img className="my-avatar-bird" src="/brand/avatar_bird.webp" alt="" />}
+      {/* eslint-enable @next/next/no-img-element */}
     </span>
   );
 }

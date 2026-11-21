@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { BookCover, whereOf } from "@/components/BookCover";
+import { ClothPatch } from "@/components/diary/Diary";
 import { plan } from "@/lib/pattern";
 import { statusOf } from "@/lib/status";
 import type { Project } from "@/lib/types";
@@ -42,7 +43,7 @@ export function WorkCard({ p, recent }: { p: Project; recent?: boolean }) {
   const view = () => { setActive(p.id); router.push("/pattern"); };
   return (
     <article className={"my-card my-work" + (recent ? " is-recent" : "")}>
-      <span className="my-work-cover"><BookCover p={p} w={recent ? 52 : 84} /></span>
+      <span className="my-work-cover"><BookCover p={p} w={recent ? 44 : 84} /></span>
       <div className="my-work-text">
         <span className="my-work-kick">{recent && <span className="my-recent">가장 최근에 뜬 작품</span>}<span className={"my-chip " + chip.cls}>{chip.text}</span></span>
         <h3>{p.name}</h3>
@@ -51,7 +52,8 @@ export function WorkCard({ p, recent }: { p: Project; recent?: boolean }) {
         <p className="my-work-when">{st === "paused" && p.pausedAt ? stoppedAt(p.pausedAt) : stoppedAt(p.updatedAt ?? p.created)}</p>
       </div>
       <div className="my-work-end" ref={box}>
-        <button type="button" className="my-btn" onClick={resume}>{w.cur > 0 ? "이어서 뜨기 →" : "뜨기 시작 →"}</button>
+        {/* the ivory cloth label button (Kim), as the app's */}
+        <ClothPatch color="cream" small className="my-go" onClick={resume}>{w.cur > 0 ? "이어서 뜨기" : "뜨기 시작"}</ClothPatch>
         <p className="my-work-links">
           <button type="button" onClick={view}>도안 보기</button>
           <span aria-hidden="true">·</span>
