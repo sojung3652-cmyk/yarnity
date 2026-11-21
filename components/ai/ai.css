@@ -151,7 +151,7 @@
 .aic-chips button:disabled,.aic-starters button:disabled{opacity:.5;cursor:default}
 .aic-root.is-phone .aic-chips button,.aic-root.is-phone .aic-starters button{min-height:40px}
 /* the proposal: a cream patch (unchanged) */
-.aic-prop{margin-top:12px;padding:6px 8px;border-style:solid;border-width:14px;border-image:url(/mobile/diary/patch_cream.webp) 62 fill / 14px stretch round;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14))}
+.aic-prop{margin-top:12px;padding:6px 8px;border-style:solid;border-width:14px;border-image:url(/mobile/diary/patch_cream.webp) 62 fill / 14px stretch;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14))}
 .aic-prop-kick{margin:0;font-size:11.5px;letter-spacing:.04em;color:#8A7258}
 .aic-prop ul{margin:6px 0 0;padding:0;list-style:none;font-size:14px;line-height:1.6}
 .aic-prop li span{color:var(--ink2)}

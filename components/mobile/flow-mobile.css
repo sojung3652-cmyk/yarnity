@@ -47,7 +47,7 @@
      stitches on the border, the middle the image's own cloth repeated (round), not stretched. No background
      of their own (Kim: a separate box showed behind the words) */
   .mf-patch{position:relative;display:flex;align-items:center;gap:12px;box-sizing:border-box;width:100%;min-height:44px;margin:0;padding:4px 8px;
-    border-style:solid;border-width:17px;border-image-source:var(--patch);border-image-slice:62 fill;border-image-repeat:stretch round;background:none;
+    border-style:solid;border-width:17px;border-image-source:var(--patch);border-image-slice:62 fill;border-image-repeat:stretch;background:none;
     filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));text-align:left;color:#3B302B;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
   .mf-patch:active{transform:scale(.98)}
   .mf-patch.is-yellow{--patch:url(/mobile/diary/patch_yellow.webp)}
@@ -194,7 +194,7 @@
 @media (max-width:767.98px){
   body .mf-label .mf-label-in,body .mtb-new>span,body .mm-new>span,body .mst-yellow>span,body .ms-label>span,body .mm-label>span{
     box-sizing:border-box;background:none;box-shadow:none;border-style:solid;border-width:var(--pw,12px);
-    border-image-source:var(--patch,url(/mobile/diary/patch_cream.webp));border-image-slice:62 fill;border-image-repeat:stretch round;
+    border-image-source:var(--patch,url(/mobile/diary/patch_cream.webp));border-image-slice:62 fill;border-image-repeat:stretch;
     filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14))}
   body .mf-label .mf-label-in::before,body .mf-label .mf-label-in::after,body .mtb-new>span::before,body .mtb-new>span::after,body .mm-new>span::before,body .mm-new>span::after,
   body .mst-yellow>span::before,body .mst-yellow>span::after,body .ms-label>span::before,body .ms-label>span::after,body .mm-label>span::before,body .mm-label>span::after{display:none}
