@@ -1,8 +1,10 @@
-/* My Page (web only, Kim): under the NavBar, 120px from the sides, 28px down; the starry linen under an ivory veil.
+/* My Page (web only, Kim): under the NavBar, 28px down; from the walls exactly as the glossary (the site's .wrap,
+   1200px with 20px, plus the page's 32px: the content 1096px wide and centred, 52px from a side when narrower); the starry linen under an ivory veil.
    Left 230px (profile + a plain menu, sticky, no box) | 56px | right 1fr. Cards: the stitched ivory cloth label.
    Every shadow falls to the lower left. Nothing under 11px. Below 1000px the left becomes a row of tabs on top. */
 body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have their own <footer> */
-.my{position:relative;width:100vw;margin-left:calc(50% - 50vw);min-height:calc(100svh - 56px);box-sizing:border-box;padding:28px 120px 80px;color:#443B3B}
+/* inside the site's .wrap like the glossary (the linen is fixed behind, so the page needs no full-width box) */
+.my{position:relative;min-height:calc(100svh - 56px);box-sizing:border-box;padding:28px 32px 80px;color:#443B3B}
 .my-bg{position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(247,242,232,.62),rgba(247,242,232,.62)),url(/opening-web/bg.jpg) center/cover}
 .my-grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:56px;align-items:start}
 .my a:focus-visible,.my button:focus-visible,.my input:focus-visible,.my textarea:focus-visible{outline:2px solid #8E8379;outline-offset:3px;border-radius:6px}
@@ -225,9 +227,9 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 
 /* ---- narrower ---- */
 @media (max-width:1400px){.my-masonry{column-count:3}}
-@media (max-width:1180px){.my{padding-inline:64px}.my-rec,.my-prof{grid-template-columns:minmax(0,1fr)}.my-gal{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1180px){.my-rec,.my-prof{grid-template-columns:minmax(0,1fr)}.my-gal{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:999.98px){
-  .my{padding:20px 32px 80px}
+  .my{padding-top:20px}
   .my-grid{grid-template-columns:minmax(0,1fr);gap:24px}
   .my-left{position:static;flex-direction:row;align-items:center;gap:20px;overflow-x:auto}
   .my-me{flex-direction:row;gap:10px;flex:none}
@@ -243,3 +245,16 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
   .my-work-end{grid-column:1 / -1;flex-direction:row;align-items:center;justify-content:space-between}
 }
 @media (prefers-reduced-motion:reduce){.my-btn,.my-wish-more,.my-newslot{transition:none}}
+/* 나의 도안집: the latest work on the hook above the shelves - marked 가장 최근에 뜬 작품, and compact (Kim: the
+   box was bigger than it needed): a small cover, one name line, the bar and the time side by side */
+.my-latest{margin-bottom:24px}
+.my-work-kick{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.my-recent{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:#9F646A;letter-spacing:.01em}
+.my-recent::before{content:"";width:6px;height:6px;border-radius:50%;background:#CE999B}
+.my-work.is-recent{gap:16px;padding:2px 8px 2px 6px}
+.my-work.is-recent .my-work-cover{width:52px;filter:drop-shadow(-3px 4px 4px rgba(70,46,28,.18))}
+.my-work.is-recent h3{margin-top:5px;font-size:16px}
+.my-work.is-recent .my-work-where{margin-top:2px;font-size:12.5px}
+.my-work.is-recent .my-bar{max-width:280px;margin-top:7px}
+.my-work.is-recent .my-work-when{margin-top:5px;font-size:11.5px}
+.my-work.is-recent .my-work-end{gap:5px}

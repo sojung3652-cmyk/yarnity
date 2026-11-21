@@ -1,7 +1,10 @@
 "use client";
-// My Page · 나의 도안집 (web; components/my/MyPatterns.tsx).
-import { MyPatterns } from "@/components/my/MyPatterns";
+// An old address: 나의 도안집 is /my itself now (Kim).
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Page() {
-  return <MyPatterns />;
+  const router = useRouter();
+  useEffect(() => { router.replace("/my"); }, [router]);
+  return null;
 }

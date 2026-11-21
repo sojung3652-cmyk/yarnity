@@ -1,7 +1,7 @@
 "use client";
 // My Page (web only, Kim): the profile and a plain menu on the left - sticky under the NavBar, no box - and one of
-// five screens on the right: 진행 중 (/my), 나의 도안집 (/my/patterns), 나의 기록 (/my/records), 위시 보관함
-// (/my/wish), 나의 프로필 (/my/profile). Below 1000px the left goes on top as a row of tabs. Phones keep their own
+// four screens on the right: 나의 도안집 (/my, the latest work on the hook on top), 나의 기록 (/my/records), 위시
+// 보관함 (/my/wish), 나의 프로필 (/my/profile). Below 1000px the left goes on top as a row of tabs. Phones keep their own
 // 나의 도안집 (/mine): every /my address sends them there.
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -15,9 +15,9 @@ import { statusOf } from "@/lib/status";
 import { useWishes } from "@/lib/wish";
 import "./myPage.css";
 
+// no 진행 중 screen (Kim): 나의 도안집 is the first one, with the latest work on the hook on top of it
 export const MY_MENU = [
-  { href: "/my", label: "진행 중" },
-  { href: "/my/patterns", label: "나의 도안집" },
+  { href: "/my", label: "나의 도안집" },
   { href: "/my/records", label: "나의 기록" },
   { href: "/my/wish", label: "위시 보관함" },
   { href: "/my/profile", label: "나의 프로필" },
@@ -63,7 +63,7 @@ export function MyLayout({ children }: { children: ReactNode }) {
   useEffect(() => { if (m) router.replace("/mine"); }, [m, router]);
   const counts = useMemo(() => {
     const st = projects.map(statusOf);
-    return [st.filter(s => s === "knitting").length, projects.length, st.filter(s => s === "done").length, wishes.length, null] as (number | null)[];
+    return [projects.length, st.filter(s => s === "done").length, wishes.length, null] as (number | null)[];
   }, [projects, wishes]);
   if (m !== false) return <main id="view-my" />;
   const sub = [prof.craft, prof.career].filter(Boolean).join(" · ");

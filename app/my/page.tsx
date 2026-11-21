@@ -1,7 +1,7 @@
 "use client";
-// My Page · 진행 중 (web; components/my/MyGoing.tsx).
-import { MyGoing } from "@/components/my/MyGoing";
+// My Page · 나의 도안집 (web; components/my/MyPatterns.tsx): the first screen (Kim: no separate 진행 중).
+import { MyPatterns } from "@/components/my/MyPatterns";
 
 export default function Page() {
-  return <MyGoing />;
+  return <MyPatterns />;
 }

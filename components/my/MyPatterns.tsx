@@ -1,14 +1,20 @@
 "use client";
-// My Page · 나의 도안집 (/my/patterns, Kim): the shelves as they were (MineList: tabs with counts, sort, 고르기,
-// a cover opens its details), the search box in the head, a dashed + 새 도안 slot after the last book.
-import { useState } from "react";
+// My Page · 나의 도안집 (/my, Kim): the latest work on the hook as a wide card on top (the others are under the
+// 뜨는 중 tab), then the shelves as they were (MineList: tabs with counts, sort, 고르기, a cover opens its
+// details), the search box in the head, a dashed + 새 도안 slot after the last book.
+import { useMemo, useState } from "react";
 import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { MineList } from "@/components/mine/MineList";
+import { statusOf } from "@/lib/status";
+import { WorkCard } from "./MyWorkCard";
 import { MyHead } from "./MyLayout";
 
 export function MyPatterns() {
   const { projects } = useApp(), book = useBook(), [q, setQ] = useState("");
+  // the most recently knitted work that is going (started or not)
+  const latest = useMemo(() => projects.filter(p => statusOf(p) === "knitting")
+    .sort((a, b) => (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created))[0] ?? null, [projects]);
   return (
     <>
       <MyHead title="나의 도안집" line={`${projects.length}권`}>
@@ -18,6 +24,7 @@ export function MyPatterns() {
           <input type="search" autoComplete="off" placeholder="이름, 실, 색으로 찾기" value={q} onChange={e => setQ(e.target.value)} />
         </label>
       </MyHead>
+      {latest && <section className="my-latest" aria-label="가장 최근에 뜬 작품"><WorkCard p={latest} recent /></section>}
       <div className="mine my-shelf"><MineList query={q} onNew={book.newPattern} /></div>
     </>
   );
