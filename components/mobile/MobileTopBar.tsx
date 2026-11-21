@@ -21,7 +21,7 @@ export function MobileTopBar({ back, logo = 84, right, tip, center }: { back: ()
     <header className="mt-bar-top">
       <button type="button" className="mtb-back" aria-label="뒤로" onClick={back}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
       {center ?? (
-        <button type="button" className="mtb-logo" aria-label="처음으로" style={{ width: logo }} onClick={book.toDesk}>
+        <button type="button" className="mtb-logo" aria-label="처음으로" style={{ width: Math.round(logo * 1.12) }} onClick={book.toDesk}>
           <SparkleLogo className="mtb-foil" />
           {showTip && <span className="mtb-tip" role="status">로고를 누르면 처음으로 가요</span>}
         </button>

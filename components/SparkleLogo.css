@@ -21,3 +21,5 @@
   80%{transform:translate(-50%,-50%) scale(1) rotate(20deg);opacity:1}
   90%{transform:translate(-50%,-50%) scale(.4) rotate(40deg);opacity:.6}}
 @media (prefers-reduced-motion:reduce){.ylogo::after,.ylogo i{animation:none;opacity:0}}
+/* a hair of shadow under the gold thread, so it sits on the linen rather than on top of it (Kim) */
+.ylogo img{filter:drop-shadow(0 .5px .5px rgba(84,58,38,.22)) drop-shadow(0 1px 2px rgba(84,58,38,.10))}
