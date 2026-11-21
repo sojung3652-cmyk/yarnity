@@ -304,7 +304,9 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
   /* ...with its lower right corner folded over (Kim): the corner cut away, the folded flap drawn in its place; both are
      the panel's own background, so they stay put while the term scrolls */
   .gl-wide .gl-col-panel.is-memo{border-radius:6px 6px 0 6px;
-    background:linear-gradient(135deg,#E6DED2 0,#F3EEE6 46%,rgba(60,42,34,.12) 50%,transparent 51%) right bottom / 26px 26px no-repeat,
-      linear-gradient(315deg,transparent 18.5px,#FFFFFE 18.5px);
+    /* warm notepaper (Kim: not so white) with faint ruled lines that scroll with the text */
+    background:linear-gradient(135deg,#E3DACB 0,#F1EBE0 46%,rgba(60,42,34,.12) 50%,transparent 51%) right bottom / 26px 26px no-repeat scroll,
+      repeating-linear-gradient(to bottom,transparent 0 33px,rgba(176,141,87,.12) 33px 34px) local,
+      linear-gradient(315deg,transparent 18.5px,#FBF7EF 18.5px) scroll;
     box-shadow:0 0 0 1px rgba(142,131,121,.14),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
 }
