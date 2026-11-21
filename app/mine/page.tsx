@@ -48,12 +48,15 @@ function useColumns() {
 function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; act: (a: string, v?: string) => void; photos?: number }) {
   const it = ITEM[itemIdOf(p)], st = statusOf(p), w = whereOf(p), box = useRef<HTMLDivElement>(null);
   const [asking, setAsking] = useState(false), [renaming, setRenaming] = useState(false), [name, setName] = useState(p.name);
+  // the small actions live behind ··· at the top (Kim), a list that opens and closes
+  const [more, setMore] = useState(false), moreOpen = useRef(false);
+  moreOpen.current = more;
   useEffect(() => {
     const back = document.activeElement as HTMLElement | null, body = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     box.current?.querySelector<HTMLElement>(".bk-x")?.focus();
     const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); onClose(); return; }
+      if (e.key === "Escape") { e.preventDefault(); if (moreOpen.current) setMore(false); else onClose(); return; }
       if (e.key !== "Tab" || !box.current) return;
       const f = [...box.current.querySelectorAll<HTMLElement>("button, a[href], input, [tabindex]:not([tabindex='-1'])")].filter(x => !x.hasAttribute("disabled"));
       if (!f.length) return;
@@ -70,7 +73,18 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
   const [picking, setPicking] = useState(false);
   return (
     <div className="bk-dim" onClick={onClose}>
-      <div ref={box} className="bk-pop" role="dialog" aria-modal="true" aria-labelledby="bkName" onClick={e => e.stopPropagation()}>
+      <div ref={box} className="bk-pop" role="dialog" aria-modal="true" aria-labelledby="bkName" onClick={e => { e.stopPropagation(); setMore(false); }}>
+        <div className="bk-more">
+          <button type="button" className="bk-more-btn" aria-label="더 보기" aria-haspopup="menu" aria-expanded={more} onClick={e => { e.stopPropagation(); setMore(v => !v); }}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>
+          </button>
+          {more && (
+            <div className="bk-more-menu" role="menu" onClick={e => e.stopPropagation()}>
+              {menu.map(([k, t]) => <button key={k} type="button" role="menuitem" onClick={() => { setMore(false); if (k === "rename") { setName(p.name); setRenaming(true); } else if (k === "cover") setPicking(true); else act(k); }}>{t}</button>)}
+              <button type="button" role="menuitem" className="danger" onClick={() => { setMore(false); setAsking(true); }}>지우기</button>
+            </div>
+          )}
+        </div>
         <button type="button" className="bk-x" aria-label="닫기" onClick={onClose}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg></button>
         <div className="bk-pop-top">
           <BookCover p={p} w={170} />
@@ -97,14 +111,9 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
             ? <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("again")}>다시 뜨기</LaceButton>
             : <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}
         </div>
-        {asking ? (
+        {asking && (
           <p className="bk-ask" role="alert">이 작품을 지울까요? <span>6초 안에는 되돌릴 수 있어요.</span>
             <button type="button" autoFocus onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete-now")}>지우기</button></p>
-        ) : (
-          <nav className="bk-menu" aria-label="더 보기">
-            {menu.map(([k, t]) => <button key={k} type="button" onClick={() => (k === "rename" ? (setName(p.name), setRenaming(true)) : k === "cover" ? setPicking(true) : act(k))}>{t}</button>)}
-            <button type="button" className="danger" onClick={() => setAsking(true)}>지우기</button>
-          </nav>
         )}
         {picking && <CoverPicker p={p} onPick={id => { act("cover", id); setPicking(false); }} onClose={() => setPicking(false)} />}
       </div>

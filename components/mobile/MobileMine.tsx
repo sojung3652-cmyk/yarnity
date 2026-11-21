@@ -192,17 +192,31 @@ function Sheet({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: 
   const y0 = useRef<number | null>(null), [drag, setDrag] = useState(0);
   const yarn = [p.yarn, p.colorName ? p.colorName + (p.colorNo ? ` ${p.colorNo}` : "") : "", yarnWeightText(p) !== "—" ? yarnWeightText(p) : ""].filter(Boolean).join(" · ");
   const hookText = hookLabel(hookMmOf(p));
-  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [onClose]);
+  // the small actions live behind ··· at the top (Kim), a list that opens and closes
+  const [more, setMore] = useState(false), moreOpen = useRef(false);
+  moreOpen.current = more;
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") { if (moreOpen.current) setMore(false); else onClose(); } }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [onClose]);
   const menu: [string, string][] = [["edit", "도안 고치기"], st === "paused" ? ["unpause", "다시 시작하기"] : ["pause", "중단하기"], ...(st !== "done" ? [["done", "완성으로 표시"] as [string, string]] : []), ["rename", "이름 바꾸기"], ["cover", "표지 바꾸기"], ["copy", "복제"]];
   const [picking, setPicking] = useState(false);
   if (picking) return <CoverPicker p={p} onPick={id => { act("cover", id); setPicking(false); }} onClose={() => setPicking(false)} />;
   return (
     <div className="mm-dim" onClick={onClose}>
-      <div className="mm-sheet" role="dialog" aria-modal="true" aria-label={p.name} onClick={e => e.stopPropagation()} style={drag ? { transform: `translateY(${drag}px)`, transition: "none" } : undefined}
+      <div className="mm-sheet" role="dialog" aria-modal="true" aria-label={p.name} onClick={e => { e.stopPropagation(); setMore(false); }} style={drag ? { transform: `translateY(${drag}px)`, transition: "none" } : undefined}
         onTouchStart={e => { y0.current = (e.target as Element).closest(".mm-sheet-scroll")?.scrollTop ? null : e.touches[0].clientY; }}
         onTouchMove={e => { if (y0.current != null) setDrag(Math.max(0, e.touches[0].clientY - y0.current)); }}
         onTouchEnd={() => { if (drag > 90) onClose(); setDrag(0); y0.current = null; }}>
         <span className="mm-grip" aria-hidden="true" />
+        <div className="mm-more">
+          <button type="button" className="mm-more-btn" aria-label="더 보기" aria-haspopup="menu" aria-expanded={more} onClick={e => { e.stopPropagation(); setMore(v => !v); }}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>
+          </button>
+          {more && (
+            <div className="mm-more-menu" role="menu" onClick={e => e.stopPropagation()}>
+              {menu.map(([k, t]) => <button key={k} type="button" role="menuitem" onClick={() => { setMore(false); if (k === "rename") setRenaming(true); else if (k === "cover") setPicking(true); else act(k); }}>{t}</button>)}
+              <button type="button" role="menuitem" className="danger" onClick={() => { setMore(false); setAsking(true); }}>삭제</button>
+            </div>
+          )}
+        </div>
         <div className="mm-sheet-scroll">
           <div className="mm-sheet-head">
             <Cover p={p} w={96} />
@@ -231,13 +245,8 @@ function Sheet({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: 
           {w.done
             ? <button type="button" className="mm-label is-cream mm-again" onClick={() => act("again")}><span>다시 뜨기</span></button>
             : <LaceButton variant="lavender" width="fill" className="mm-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}
-          {asking ? (
+          {asking && (
             <p className="mm-ask">이 작품을 지울까요? <button type="button" onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete")}>지우기</button></p>
-          ) : (
-            <nav className="mm-menu" aria-label="더 보기">
-              {menu.map(([k, t]) => <button key={k} type="button" onClick={() => (k === "rename" ? setRenaming(true) : k === "cover" ? setPicking(true) : act(k))}>{t}</button>)}
-              <button type="button" className="danger" onClick={() => setAsking(true)}>삭제</button>
-            </nav>
           )}
         </div>
       </div>

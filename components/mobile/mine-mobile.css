@@ -147,6 +147,15 @@
   .mm-sheet-btns{display:flex;gap:10px;margin-top:16px}
   .mm-sheet-btns>*{flex:1}
   .mm-again{width:100%;margin-top:10px}
+  /* ··· at the sheet's top right: the small actions as a list that opens and closes (Kim) */
+  .mm-more{position:absolute;right:10px;top:8px;z-index:3}
+  .mm-more-btn{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:none;color:#6B5D55;cursor:pointer}
+  .mm-more-btn svg{width:22px;height:22px}
+  .mm-more-btn[aria-expanded="true"]{background:rgba(110,83,80,.08)}
+  .mm-more-menu{position:absolute;right:0;top:calc(100% + 4px);display:flex;flex-direction:column;min-width:170px;padding:6px;border-radius:12px;background:#FFFDF8;box-shadow:-4px 8px 22px rgba(60,42,34,.22)}
+  .mm-more-menu button{min-height:44px;padding:0 14px;border:0;border-radius:8px;background:none;font-size:14px;color:#3A2E29;text-align:left;cursor:pointer}
+  .mm-more-menu button:active{background:#F6EEE6}
+  .mm-more-menu .danger{color:#A44D41}
   .mm-menu{display:flex;flex-wrap:wrap;gap:0 14px;margin-top:12px}
   .mm-info dd button{min-height:44px;margin:-10px 0;vertical-align:middle}
   .mm-sheet-head .mm-plate{display:none}

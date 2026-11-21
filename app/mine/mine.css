@@ -123,6 +123,16 @@
   .bk-ribbon>span::before{content:"";position:absolute;inset:6px 20px;border-top:1.5px dashed rgba(251,243,234,.95);border-bottom:1.5px dashed rgba(251,243,234,.95)}
   .bk-ribbon:hover>span{filter:brightness(1.03)}
   .bk-ribbon:focus-visible{outline:none}.bk-ribbon:focus-visible>span{outline:2px solid #3A2E29;outline-offset:-4px}
+  /* ··· at the top, left of ✕: the small actions as a list that opens and closes (Kim) */
+  .bk-more{position:absolute;right:52px;top:12px;z-index:3}
+  .bk-more-btn{display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:none;color:#6B5D55;cursor:pointer}
+  .bk-more-btn svg{width:20px;height:20px}
+  .bk-more-btn:hover,.bk-more-btn[aria-expanded="true"]{background:rgba(110,83,80,.08)}
+  .bk-more-btn:focus-visible{outline:2px solid #3A2E29;outline-offset:2px}
+  .bk-more-menu{position:absolute;right:0;top:calc(100% + 6px);display:flex;flex-direction:column;min-width:168px;padding:6px;border-radius:10px;background:#FFFDF8;box-shadow:-4px 8px 22px rgba(60,42,34,.2)}
+  .bk-more-menu button{min-height:40px;padding:0 12px;border:0;border-radius:6px;background:none;font:inherit;font-size:13.5px;color:#3A2E29;text-align:left;cursor:pointer}
+  .bk-more-menu button:hover,.bk-more-menu button:focus-visible{background:#F6EEE6;outline:none}
+  .bk-more-menu .danger{color:#A44D41}
   .bk-menu{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:20px;padding-top:14px;border-top:1px solid #EDE2DA}
   .bk-menu button,.bk-ask button{padding:4px 0;border:0;background:none;font:inherit;font-size:12.5px;color:#6B5D55;text-decoration:underline;text-decoration-color:rgba(107,93,85,.4);text-underline-offset:3px;cursor:pointer}
   .bk-menu button:hover,.bk-ask button:hover{color:#3A2E29;text-decoration-color:currentColor}
