@@ -1,7 +1,15 @@
 /* Phones: moving between screens (app/template.tsx) and the blocks of a screen arriving (Kim's pick: rise and
    fade). The screen left fades out in 0.18s; the new one rises 12px and fades in over 0.32s, easing to a slow
-   stop; then its blocks rise one after another, 40ms apart. Wide screens: no page motion (as before). */
+   stop; then its blocks rise one after another, 40ms apart. Wide screens: a plain fade out / in (below). */
 ::view-transition-old(.page-leave),::view-transition-new(.page-rise){animation:none}
+/* wide screens too (Kim: 나의 도안집 <-> 용어집 must not just blink): the page left fades out, the new one fades
+   in; its blocks then float in by themselves (globals.css float-in) */
+@media (min-width:768px){
+  ::view-transition-old(.page-leave){animation:pg-out .2s ease-in both}
+  ::view-transition-new(.page-rise){animation:pg-fade .3s ease-out .08s both}
+  ::view-transition{pointer-events:none}
+}
+@keyframes pg-fade{from{opacity:0}}
 @media (max-width:767.98px){
   ::view-transition-old(.page-leave){animation:pg-out .18s ease-in both}
   ::view-transition-new(.page-rise){animation:pg-in .32s cubic-bezier(.22,.61,.36,1) .06s both}

@@ -15,12 +15,17 @@ export function Nav() {
   if (m || path === "/" || path === "/ai" || (path === "/new" && wizardInBook(book))) return null;
   // 나의 도안집 (Kim): its My Patterns title where the wordmark is (a tap reloads the page), and 홈 · 새 도안
   // in place of the label that would point to the page you are on
-  const mine = path === "/mine";
+  const mine = path === "/mine", gloss = path === "/glossary" || path.startsWith("/glossary/");
+  const mark = mine ? { src: "/pic/my-patterns.png", alt: "My Patterns", w: 900, h: 366 } : gloss ? { src: "/pic/glossary.png", alt: "Glossary", w: 1200, h: 396 } : null;
   return (
-    <nav className={"nav" + (mine ? " is-mine" : "")} aria-label="주 메뉴">
+    <nav className={"nav" + (mine ? " is-mine" : "") + (mark ? " has-page-mark" : "")} aria-label="주 메뉴">
       {/* the wordmark in the middle, in gold foil like the home hero (나의 도안집 writes its own title under it,
           as the glossary does: Kim) */}
-      <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈"><SparkleLogo className="nav-foil" /></Link>
+      {/* 나의 도안집 and the glossary (Kim, a try): the page's own wordmark takes the middle in place of Yarnity
+          (the page's title under it is then hidden on wide screens, globals.css .nav-page-mark) */}
+      <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈">
+        {mark ? <img className="nav-page-mark" src={mark.src} alt={mark.alt} width={mark.w} height={mark.h} draggable={false} /> : <SparkleLogo className="nav-foil" />}
+      </Link>
       <div className="nav-links">
         {/* 도안 보기 / 따라 뜨기 (Kim): the glossary floats over the page, which stays where it was */}
         {(path === "/pattern" || path === "/track") && <GlossButton />}

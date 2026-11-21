@@ -387,3 +387,11 @@ body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
   /* the 3D book in ivory (Kim; it was baby pink): its cloth, the ribbon tab and the menu book's cover follow */
   :root{--book-lav:#EEE5D3;--book-lav-shade:#DCCDB3}
 }
+
+/* 나의 도안집 and the glossary on wide screens (Kim, a try): their wordmark in the nav's middle instead of Yarnity,
+   and the same wordmark under it hidden (kept for screen readers as the page's heading) */
+.brand-logo img.nav-page-mark{width:auto;height:44px;display:block}
+@media (max-width:899px){.brand-logo img.nav-page-mark{height:34px}}
+@media (min-width:768px){
+  body:has(.nav.has-page-mark) .gl-wide .gl-title,body:has(.nav.has-page-mark) .mine-title{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
