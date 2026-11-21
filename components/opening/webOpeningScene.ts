@@ -79,6 +79,13 @@ export function makeScene(cv: HTMLCanvasElement, img: WebOpeningImages) {
       gx.globalCompositeOperation = "destination-in"; gx.drawImage(lc, 0, 0); ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = al * (1 - out); ctx.drawImage(gl, L.lx, L.ly, L.lw, L.lh); ctx.restore();
     };
     band((t - 2.5) / .9, .42); if (t > END) band(((t - END) % 3.8) / 1.2, .34);
+    /* the sentence (the button), as the new reference without its light sweep (Kim): it breathes softly once done */
+    if (t > END) {
+      const br = .5 + .5 * Math.sin((t - END) * Math.PI * 2 / 2.6 - Math.PI / 2), cx = L.tx + L.tw * .5, cy = L.ty + L.th * .36, rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, L.tw * .56);
+      rg.addColorStop(0, `rgba(255,246,222,${.30 + .22 * br})`); rg.addColorStop(1, "rgba(255,246,222,0)");
+      ctx.save(); ctx.globalCompositeOperation = "soft-light"; ctx.fillStyle = rg; ctx.fillRect(cx - L.tw * .6, cy - L.th * .5, L.tw * 1.2, L.th); ctx.restore();
+      ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = .10 + .12 * br; ctx.drawImage(tc, L.tx, L.ty, L.tw, L.th); ctx.restore();
+    }
     /* the flower of the rule (Kim, the new reference): a faint glow behind it, and now and then a small glint */
     const fo = cl((t - 4.2) / .5);
     if (fo > 0) {
@@ -87,6 +94,9 @@ export function makeScene(cv: HTMLCanvasElement, img: WebOpeningImages) {
       ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(x, y, r * 1.6, 0, 7); ctx.fill(); ctx.restore();
       flare(ctx, x, y - r * .05, r * .3, .35 * Math.pow(v, 8) * fo);
     }
+    /* gold glints on the sentence */
+    const tpo = cl((t - 3.9) / .8);
+    if (tpo > 0) (DATA.tpts as number[][]).forEach(([fx, fy], i) => { const v = Math.sin((t * (.45 + (i % 4) * .08) + i * .29) * Math.PI * 2), a = Math.pow(Math.max(0, v), 10); flare(ctx, L.tx + fx * L.tw, L.ty + fy * L.th, (4 + (i % 3) * 2) * L.tw / 600, a * .8 * tpo); });
     if (tip) flare(ctx, L.lx + tip[0] * L.lw / LWp, L.ly + tip[1] * L.lh / LHp, 12 * L.lw / 560, .8);
     const on = cl((t - 1.2) / 1.2); if (on > 0) for (const s of tw) { if (p >= 1 || s.fx < p * .95 - .04) { const v = Math.sin((t * s.sp + s.ph) * Math.PI * 2), a = Math.pow(Math.max(0, v), 10); flare(ctx, s.x, s.y, s.s * (.6 + .4 * a), a * .8 * on * (1 - out)); } }
     ctx.globalAlpha = 1;
