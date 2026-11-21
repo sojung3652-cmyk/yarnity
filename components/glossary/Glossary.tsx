@@ -189,8 +189,10 @@ export function GlossaryScreen({ id }: { id?: string }) {
     );
   }
 
-  // wide screens: tabs | list | the term
-  const term = sel ? termById(sel) : null;
+  // wide screens: tabs | list | the term. Nothing chosen yet (/glossary): the list's first term comes up on its
+  // memo slip by itself, so the page never opens empty (Kim); the address stays /glossary until one is picked
+  const first = s.sections[0]?.terms[0] ?? null;
+  const term = sel ? termById(sel) : first;
   const pick = (t: GlossTerm) => {
     setSel(t.id);
     // the address follows the panel without leaving the page
@@ -204,7 +206,7 @@ export function GlossaryScreen({ id }: { id?: string }) {
         <aside className="gl-col-tabs"><Tabs s={s} column /></aside>
         <div className="gl-col-list">
           <Search s={s} />
-          <div className="gl-list-scroll"><Rows s={s} selected={sel} onPick={pick} /></div>
+          <div className="gl-list-scroll"><Rows s={s} selected={term?.id ?? null} onPick={pick} /></div>
         </div>
         {/* wide screens (Kim): the term comes up from below like a memo slip; nothing chosen, no panel at all */}
         <div key={term ? term.id : "none"} className={"gl-col-panel" + (term ? " is-memo" : " is-empty")} ref={panel}>
