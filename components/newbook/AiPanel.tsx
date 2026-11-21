@@ -574,8 +574,11 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   const starters = step > 0 && !stepOff ? STEP_CHIPS[step] ?? STARTERS : STARTERS;
   const fresh = (
     <div className={"aic-fresh" + (sheet ? " is-sheet" : "")}>
-      {/* the gold star breathes (Kim): a touch brighter and back every 2.4s */}
-      <span className="aic-glint" aria-hidden="true"><Star size={40} /></span>
+      {/* the gold star breathes (Kim): a touch brighter and back every 2.4s; three tiny glints around it wink in turn */}
+      <span className="aic-glint" aria-hidden="true">
+        <Star size={40} />
+        {[0, 1, 2].map(i => <svg key={i} className={"aic-wink w" + i} viewBox="0 0 10 10"><path d="M5 0 5.9 4.1 10 5 5.9 5.9 5 10 4.1 5.9 0 5 4.1 4.1Z" /></svg>)}
+      </span>
       <h2>오늘은 무엇을 떠 볼까요?</h2>
       {composer}
       <div className="aic-starters">

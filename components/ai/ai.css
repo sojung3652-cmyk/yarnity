@@ -334,3 +334,10 @@
 .aic-glint .aic-star{animation:aic-breathe 2.4s ease-in-out infinite}
 @keyframes aic-breathe{0%,100%{filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3)) brightness(1)}50%{filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3)) brightness(1.15)}}
 @media (prefers-reduced-motion:reduce){.aic-glint .aic-star{animation:none}}
+/* ...and three tiny gold crosses around it wink in turn (Kim): each on for 0.6s, one after another */
+.aic-wink{position:absolute;fill:#D9BC78;opacity:0;pointer-events:none;filter:drop-shadow(0 0 1.5px rgba(255,236,180,.9));animation:aic-wink 1.8s ease-in-out infinite}
+.aic-wink.w0{width:9px;height:9px;left:-8px;top:-2px;animation-delay:0s}
+.aic-wink.w1{width:7px;height:7px;right:-9px;top:6px;animation-delay:.6s}
+.aic-wink.w2{width:8px;height:8px;right:-2px;bottom:-7px;animation-delay:1.2s}
+@keyframes aic-wink{0%,40%,100%{opacity:0;transform:scale(.4)}17%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.aic-wink{animation:none;opacity:0}}
