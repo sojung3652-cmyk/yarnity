@@ -79,6 +79,14 @@ export function makeScene(cv: HTMLCanvasElement, img: WebOpeningImages) {
       gx.globalCompositeOperation = "destination-in"; gx.drawImage(lc, 0, 0); ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = al * (1 - out); ctx.drawImage(gl, L.lx, L.ly, L.lw, L.lh); ctx.restore();
     };
     band((t - 2.5) / .9, .42); if (t > END) band(((t - END) % 3.8) / 1.2, .34);
+    /* the flower of the rule (Kim, the new reference): a faint glow behind it, and now and then a small glint */
+    const fo = cl((t - 4.2) / .5);
+    if (fo > 0) {
+      const [fx, fy] = DATA.flower as number[], v = .5 + .5 * Math.sin(t * Math.PI * 2 / 2.2), x = L.tx + fx * L.tw, y = L.ty + fy * L.th, r = L.tw * .03;
+      const fg = ctx.createRadialGradient(x, y, 0, x, y, r * 1.6); fg.addColorStop(0, `rgba(255,246,220,${(.03 + .03 * v) * fo})`); fg.addColorStop(1, "rgba(255,246,220,0)");
+      ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(x, y, r * 1.6, 0, 7); ctx.fill(); ctx.restore();
+      flare(ctx, x, y - r * .05, r * .3, .35 * Math.pow(v, 8) * fo);
+    }
     if (tip) flare(ctx, L.lx + tip[0] * L.lw / LWp, L.ly + tip[1] * L.lh / LHp, 12 * L.lw / 560, .8);
     const on = cl((t - 1.2) / 1.2); if (on > 0) for (const s of tw) { if (p >= 1 || s.fx < p * .95 - .04) { const v = Math.sin((t * s.sp + s.ph) * Math.PI * 2), a = Math.pow(Math.max(0, v), 10); flare(ctx, s.x, s.y, s.s * (.6 + .4 * a), a * .8 * on * (1 - out)); } }
     ctx.globalAlpha = 1;
