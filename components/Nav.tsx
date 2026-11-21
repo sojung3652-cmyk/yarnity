@@ -20,8 +20,9 @@ export function Nav() {
       {mine
         // the title reloads the page (Kim)
         ? <h1 className="brand nav-mine-title" lang="en"><a href="/mine" aria-label="My Patterns · 나의 도안집 (새로고침)" onClick={e => { e.preventDefault(); location.reload(); }}>
-            {/* in gold foil (Kim): the wordmark's shape as a mask over the foil gradient, with a slow shine */}
-            <span className="nav-mine-foil" aria-hidden="true"><i /></span>
+            {/* the plain wordmark (Kim: the gold foil looked cheap), at the larger size */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="nav-mine-logo" src="/pic/my-patterns.png" alt="" aria-hidden="true" />
           </a></h1>
         /* the wordmark in the middle, in gold foil like the home hero */
         : <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈"><FoilLogo className="nav-foil" /></Link>}

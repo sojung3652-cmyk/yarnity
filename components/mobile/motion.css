@@ -1,0 +1,31 @@
+/* Phones: moving between screens (app/template.tsx) and the blocks of a screen arriving (Kim's pick: rise and
+   fade). The screen left fades out in 0.18s; the new one rises 12px and fades in over 0.32s, easing to a slow
+   stop; then its blocks rise one after another, 40ms apart. Wide screens: no page motion (as before). */
+::view-transition-old(.page-leave),::view-transition-new(.page-rise){animation:none}
+@media (max-width:767.98px){
+  ::view-transition-old(.page-leave){animation:pg-out .18s ease-in both}
+  ::view-transition-new(.page-rise){animation:pg-in .32s cubic-bezier(.22,.61,.36,1) .06s both}
+  /* taps during the 0.38s go to the page */
+  ::view-transition{pointer-events:none}
+
+  /* the blocks of a screen, top to bottom */
+  .mfh-brand,.mfh-lace,.mfh-actions>*,.mfh-foot>*,
+  .mm-hook,.mm-tools,.mm-empty,.mm-row,.mm-note,
+  .msp-head,.msp-tabs,.msp-facts,.msp-part{
+    animation:pg-rise .42s cubic-bezier(.22,.61,.36,1) both;animation-delay:calc(80ms + var(--rise,0) * 40ms)}
+  .mfh-lace,.mm-hook,.msp-tabs{--rise:1}
+  .mfh-actions>:nth-child(1),.mm-tools,.msp-facts{--rise:2}
+  .mfh-actions>:nth-child(2),.mm-row:nth-child(1),.mm-empty,.msp-part:nth-of-type(1){--rise:3}
+  .mfh-actions>:nth-child(3),.mm-row:nth-child(2),.msp-part:nth-of-type(2){--rise:4}
+  .mfh-foot>:nth-child(1),.mm-row:nth-child(3),.msp-part:nth-of-type(3){--rise:5}
+  .mfh-foot>:nth-child(2),.mm-row:nth-child(4),.msp-part:nth-of-type(n+4){--rise:6}
+  .mfh-foot>:nth-child(3),.mm-row:nth-child(5),.mm-note{--rise:7}
+  .mm-row:nth-child(n+6){--rise:8}
+}
+@keyframes pg-out{to{opacity:0}}
+@keyframes pg-in{from{opacity:0;transform:translateY(12px)}}
+@keyframes pg-rise{from{opacity:0;transform:translateY(12px)}}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-old(*),::view-transition-new(*),::view-transition-group(*){animation-duration:0s!important;animation-delay:0s!important}
+  .mfh-brand,.mfh-lace,.mfh-actions>*,.mfh-foot>*,.mm-hook,.mm-tools,.mm-empty,.mm-row,.mm-note,.msp-head,.msp-tabs,.msp-facts,.msp-part{animation:none!important}
+}

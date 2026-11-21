@@ -169,3 +169,7 @@
 @keyframes mm-up{from{transform:translateY(100%)}}
 @keyframes mm-dim{from{background-color:rgba(60,42,34,0)}}
 @media (prefers-reduced-motion:reduce){.mm-sheet,.mm-dim{animation:none}}
+
+/* Kim: no shelf boards (only their room between the rows stays), and the storage note in the middle */
+body .mm-shelf{height:0;background:none;box-shadow:none}
+body .mm-note{text-align:center}

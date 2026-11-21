@@ -146,3 +146,7 @@
 /* a narrow window: the popup's cover above its text */
 @media (min-width:768px) and (max-width:700px){.bk-pop-top{flex-direction:column}}
 @media (max-height:760px) and (min-width:768px){.bk-pop{padding:24px 28px 22px}.bk-pop-top>.mm-cover{width:140px!important}}
+
+/* Kim: no shelf boards (only their room between the rows stays), and the storage note in the middle */
+html body .bk-shelf{height:0;background:none;box-shadow:none}
+html body .mine-note{text-align:center}

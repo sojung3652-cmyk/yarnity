@@ -50,9 +50,10 @@ export function MobileMine() {
   const hook = useMemo(() => [...projects].filter(p => statusOf(p) === "knitting" && (p.current || 0) > 0).sort((a, b) => recent(b) - recent(a))[0] ?? null, [projects]);
   const shown = useMemo(() => {
     const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    const list = projects.filter(p => (filter === "all" || statusOf(p) === filter) && words.every(w => haystack(p).includes(w)) && !(filter === "all" && !q && hook && p.id === hook.id));
+    const list = projects.filter(p => (filter === "all" || statusOf(p) === filter) && words.every(w => haystack(p).includes(w)));
+    // 전체 shows every work, the one on the hook too (Kim: it was missing from the list)
     return [...list].sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "ko") : sort === "created" ? b.created - a.created : recent(b) - recent(a));
-  }, [projects, q, filter, sort, hook]);
+  }, [projects, q, filter, sort]);
   // smaller books (Kim): three to a shelf
   const shelves = useMemo(() => { const out: Project[][] = []; for (let i = 0; i < shown.length; i += 3) out.push(shown.slice(i, i + 3)); return out; }, [shown]);
 
