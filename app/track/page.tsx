@@ -252,7 +252,7 @@ export function TrackScreen() {
         {wakeOn && <p className="mst-wake">● 화면 켜짐 유지 중</p>}
         <div className="ms-foot">
           <div className="ms-foot-row">
-            <StitchButton icon={DiaryIcon.undo} label="되돌리기" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
+            <StitchButton icon={DiaryIcon.undo} patch="/brand/btn_undo.webp" label="되돌리기" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
             <div className="ms-go">
               {/* the slim lavender lace: 한 단 끝 alone on its satin (two lines crowded it, Kim); the next row under it */}
               <LaceButton variant="lavender" width="fill" disabled={done} onClick={() => step(1)}>한 단 끝</LaceButton>
@@ -338,7 +338,7 @@ export function TrackScreen() {
 
             {/* Girl's Diary (components/diary): a round cloth undo, and the lavender lace tag to tap */}
             <div className="tk-acts">
-              <StitchButton icon={DiaryIcon.undo} label="되돌리기" id="undoBtn" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
+              <StitchButton icon={DiaryIcon.undo} patch="/brand/btn_undo.webp" label="되돌리기" id="undoBtn" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
               <LaceButton variant="lavender" width={360} className="tk-done" id="doneBtn" disabled={done} onClick={() => step(1)}>
                 <span className="tk-done-main">한 단 끝</span>
                 <small id="doneNext">{done ? "" : (nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단")}</small>
