@@ -1,7 +1,7 @@
 "use client";
 import { MobileHomeScreen } from "@/components/mobile/MobileHomeScreen";
 import { useMobile } from "@/components/mobile/useMobile";
-import { HomeWeb } from "@/components/home/HomeWeb";
+import { OpeningHome } from "@/components/opening/OpeningHome";
 
 // The hero (backdrop, logo, the 3D book) is in the root layout so the book survives / <-> /new;
 // this page keeps the first screen free for it and adds what sits below. (The "뜨고 있는 작품 ·
@@ -10,7 +10,7 @@ export default function Home() {
   // phones: the app's own home, no book (the splash is in the root layout: Hero -> MobileSplash)
   const m = useMobile();
   if (m) return <MobileHomeScreen />;
-  // wide screens: the web home (Kim's web-home pack); the opening plays over it on the first visit of a session
-  if (m === false) return <HomeWeb />;
+  // wide screens: the opening and the home on one screen (components/opening/OpeningHome.tsx)
+  if (m === false) return <OpeningHome />;
   return null;
 }

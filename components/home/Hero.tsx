@@ -5,20 +5,12 @@
 // the text button and the book open it. /new (wide screens): the same book, open on the wizard, with the
 // photo and logo faded behind it. Other pages: the stage is hidden but stays mounted (no new canvas).
 import Image from "next/image";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Book } from "@/components/Book/Book";
 import { FoilLogo } from "@/components/FoilLogo";
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
 import { useMobile } from "@/components/mobile/useMobile";
 import { MobileSplash } from "@/components/mobile/MobileSplash";
-import { OpeningIntroWeb } from "@/components/opening/OpeningIntroWeb";
-
-// the web opening plays once a session, and only when the site is opened at / (Kim): its Start leads to the home
-// under it; 홈, the logo and a reload in the same session go straight to the home. Decided on the first mount.
-const OPENING_KEY = "yarnity-opening-seen";
-let openingLive: boolean | null = null;
-/** the opening is still over the home (the home waits to stitch its logo until it goes: "yarnity:opening-done") */
-export const openingUp = () => openingLive === true;
 
 export function Hero() {
   const b = useBook();
@@ -37,24 +29,12 @@ export function Hero() {
   }, [b.view, b.overlay]);
   // phones: no book at all - the app's own screens (app/page.tsx, app/new/page.tsx); only the splash lives
   // here. three.js never loads on a phone (Book3D is a dynamic import that phones never render).
-  const [opening, setOpening] = useState<"on" | "leaving" | "off">("on");
-  useLayoutEffect(() => {
-    if (openingLive === null) {
-      let seen = false; try { seen = sessionStorage.getItem(OPENING_KEY) === "1"; sessionStorage.setItem(OPENING_KEY, "1"); } catch {}
-      openingLive = location.pathname === "/" && !seen;
-    }
-    if (!openingLive) setOpening("off");
-  }, []);
-  const startHome = () => { openingLive = false; setOpening("leaving"); dispatchEvent(new Event("yarnity:opening-done")); setTimeout(() => setOpening("off"), 650); };
   const m = useMobile();
   if (m) return <MobileSplash />;
   return (
     <>
-    {/* the web's first screen and home (Kim): the embroidered opening. Its Start raises the book from the bottom
-        onto 도안 만들기 step 1; the opening stays under it, drawn back (slightly up, faded), and comes forward again
-        when the book sinks. The old desk (still-life photo, menu spread) is no longer shown on wide screens; its
-        files stay. */}
-    {opening !== "off" && b.view === "closed" && <OpeningIntroWeb onStart={startHome} leaving={opening === "leaving"} />}
+    {/* wide screens: the opening and the home are the / page itself (components/opening/OpeningHome.tsx); this stage
+        only carries the book that rises over a screen */}
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>
       {/* two stage layers with the same geometry: the photo below the 3D canvas, the copy above it */}
