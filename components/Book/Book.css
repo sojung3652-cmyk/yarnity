@@ -139,3 +139,9 @@
 .pg-ribbon:hover,.pg-ribbon:focus-visible{transform:scale(1.1)}
 @media (max-width:899px){.pg-ribbon{width:calc(30px * var(--k,1))}}
 
+/* wide screens: the menu page's labels scroll inside the page when 도안 만들기 opens its two choices and the list
+   runs past the page's foot (Kim); a little room around them so their shadows are not cut */
+@media (min-width:768px){
+  .pg-actions{bottom:5%;overflow-y:auto;overscroll-behavior:contain;margin-left:-10px;width:calc(72% + 20px);box-sizing:border-box;padding:6px 10px 14px;scrollbar-width:thin;scrollbar-color:rgba(176,141,87,.35) transparent}
+  .pg-actions>*{flex:none}
+}

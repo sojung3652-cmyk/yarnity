@@ -6,6 +6,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FoilLogo } from "../FoilLogo";
+import { SparkleLogo } from "../SparkleLogo";
 import { GoldX } from "../GoldX";
 import { useApp } from "@/components/AppProvider";
 import { freshDraft } from "@/lib/items";
@@ -30,7 +31,8 @@ function Brand({ phone }: { phone?: boolean }) {
     <>
       <H className="pg-logo">
         <span className="sr">Yarnity</span>
-        <FoilLogo />
+        {/* wide screens: the glinting wordmark, as the top bars (Kim); the phone page keeps the still one */}
+        {phone ? <FoilLogo /> : <SparkleLogo className="pg-foil" />}
       </H>
       <p className="pg-cap">Intelligent Crochet</p>
       <span className="pg-rule" aria-hidden="true" />
