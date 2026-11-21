@@ -62,7 +62,7 @@ function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null;
     <>
       {s.sections.map(({ c, terms }) => (
         <section key={c.id} className="gl-section" aria-labelledby={`gls-${c.id}`}>
-          <h2 id={`gls-${c.id}`} className="gl-sec-title"><span className="gl-patch" style={patch(c.color)}>{c.name}</span></h2>
+          <h2 id={`gls-${c.id}`} className="gl-sec-title"><span className="gl-patch" style={{ ...patch(c.color), ...lace(c.color) }}>{c.name}</span></h2>
           <ul className="gl-rows">
             {terms.map(t => (
               <li key={t.id}>
