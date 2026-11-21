@@ -1,6 +1,7 @@
 "use client";
 // My Page · 나의 프로필 (/my/profile, Kim): no login yet, so it lives in this browser. Left: the avatar, the nickname
-// (how Yarni calls the user), 뜨개 경력, 주로 하는 것, 자주 쓰는 바늘, 길이 단위 - 고치기 turns them into fields,
+// (Yarni still calls the user by it), 뜨개 경력, 주로 하는 것, 주로 쓰는 단위 (Kim: no 자주 쓰는 바늘, no note
+// about the AI) - 고치기 turns them into fields,
 // 저장 keeps them. Right: 내 데이터 (everything as one .json file, and reading it back after a check), and a
 // dotted note that login is coming.
 import { useRef, useState } from "react";
@@ -48,13 +49,12 @@ export function MyProfile() {
   };
 
   const rows: { k: string; v: string; note?: string; field: (p: Profile, set: (p: Profile) => void) => React.ReactNode }[] = [
-    { k: "닉네임", v: prof.nickname, note: "AI가 이렇게 불러요", field: (p, set) => <input maxLength={20} value={p.nickname} onChange={e => set({ ...p, nickname: e.target.value })} aria-label="닉네임" /> },
+    { k: "닉네임", v: prof.nickname, field: (p, set) => <input maxLength={20} value={p.nickname} onChange={e => set({ ...p, nickname: e.target.value })} aria-label="닉네임" /> },
     { k: "뜨개 경력", v: prof.career, field: (p, set) => <input maxLength={20} placeholder="예: 입문 6개월" value={p.career} onChange={e => set({ ...p, career: e.target.value })} aria-label="뜨개 경력" /> },
     { k: "주로 하는 것", v: prof.craft, field: (p, set) => (
       <span className="my-seg" role="radiogroup" aria-label="주로 하는 것">{CRAFTS.map(c => <button key={c} type="button" role="radio" aria-checked={p.craft === c} className={p.craft === c ? "is-on" : ""} onClick={() => set({ ...p, craft: c })}>{c}</button>)}</span>) },
-    { k: "자주 쓰는 바늘", v: prof.hook, field: (p, set) => <input maxLength={24} placeholder="예: 5호 · 3.0mm" value={p.hook} onChange={e => set({ ...p, hook: e.target.value })} aria-label="자주 쓰는 바늘" /> },
-    { k: "길이 단위", v: prof.unit, field: (p, set) => (
-      <span className="my-seg" role="radiogroup" aria-label="길이 단위">{(["cm", "inch"] as const).map(u => <button key={u} type="button" role="radio" aria-checked={p.unit === u} className={p.unit === u ? "is-on" : ""} onClick={() => set({ ...p, unit: u })}>{u}</button>)}</span>) },
+    { k: "주로 쓰는 단위", v: prof.unit, field: (p, set) => (
+      <span className="my-seg" role="radiogroup" aria-label="주로 쓰는 단위">{(["cm", "inch"] as const).map(u => <button key={u} type="button" role="radio" aria-checked={p.unit === u} className={p.unit === u ? "is-on" : ""} onClick={() => set({ ...p, unit: u })}>{u}</button>)}</span>) },
   ];
   const sum = pending ? backupSummary(pending) : null;
   return (
