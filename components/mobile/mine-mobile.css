@@ -173,3 +173,5 @@
 /* Kim: no shelf boards (only their room between the rows stays), and the storage note in the middle */
 body .mm-shelf{height:0;background:none;box-shadow:none}
 body .mm-note{text-align:center}
+/* the bar's My Patterns off the top edge (Kim), as the glossary's */
+@media (max-width:767.98px){ body .mm .mt-bar-top{height:auto;min-height:44px;padding:14px 0 8px} }
