@@ -3,7 +3,7 @@
 // photo at once, the gold logo stitched in writing order, the sentence left to right, the divider opening from
 // the middle, the light band and twinkles going on after, a very slow zoom. The 941 x 1672 picture is
 // contained in the screen, the rest filled with the same photo blurred (28px). Done at about 4.8s, it waits on
-// that scene: the sentence is the start button (0.9s fade, then the home); 건너뛰기 jumps to the finished scene.
+// that scene: the sentence is the start button (0.9s fade, then the home); no 건너뛰기 (Kim).
 // Reduced motion: the finished scene, still. The four images load before anything plays (until then only
 // #F3E7DC shows); the drawing stops while the page is hidden and resumes where it was.
 import { useEffect, useRef, useState } from "react";
@@ -73,7 +73,6 @@ export function OpeningIntro({ onDone }: { onDone: () => void }) {
       <div ref={bg} className={"op-bg" + (ready ? " is-on" : "")} />
       <canvas ref={cv} className="op-cv" aria-label="Yarnity 오프닝: 파랑새 메달리온 아래에 금실 Yarnity 로고와 'Start making my own pattern book' 문구가 한 땀씩 수놓아지고 반짝입니다." />
       <button ref={start} type="button" className="op-start" hidden={!shown} onClick={go}>Start making my own pattern book</button>
-      {ready && !shown && <button type="button" className="op-skip" onClick={() => skipTo.current()}>건너뛰기</button>}
     </div>
   );
 }

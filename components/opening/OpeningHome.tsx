@@ -3,7 +3,7 @@
 // openingHomeScene.ts); once done, its sentence is the Start button. Start makes it the home: the scene stays where it
 // is (lowered a little to sit under the NavBar), the NavBar slides down and the AI badge fades in; the glints go on.
 // At home the sentence raises the book onto 도안 만들기 step 1. A load or reload at / always plays the opening; coming
-// to / inside the site shows the home at once. Reduced motion: the home at once. 건너뛰기 top right during the opening.
+// to / inside the site shows the home at once. Reduced motion: the home at once. No 건너뛰기 (Kim).
 import { useEffect, useRef, useState } from "react";
 import { useBook } from "@/components/Book/BookProvider";
 import { makeOpeningHomeScene, OH_END, OH_SRC, type OHImages } from "./openingHomeScene";
@@ -84,7 +84,6 @@ export function OpeningHome() {
         {/* the opening: Start turns it into the home; at home the same words raise the book onto step 1 (Kim) */}
         <button ref={startBtn} type="button" className="oh-start" hidden={!shown && !home} onClick={() => (home ? book.newPattern() : ctl.current.home(false))}>Start making my own pattern book</button>
       </div>
-      {loaded && !home && <button type="button" className="oh-skip" onClick={() => ctl.current.skip()} hidden={shown}>건너뛰기</button>}
     </div>
   );
 }
