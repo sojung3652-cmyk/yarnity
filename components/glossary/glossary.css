@@ -282,8 +282,9 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
   /* the chosen one (Kim): no box - bolder, darker letters; the rest a shade lighter so it stands apart */
   .gl-wide .gl-tab[aria-selected="true"],.gl-wide .gl-tab[aria-selected="true"]:hover{background:none;filter:none;color:#141010;font-weight:800}
   .gl-wide .gl-tab[aria-selected="true"] small{font-weight:700;color:#141010}
-  /* the chosen row (Kim): between dusty rose and baby pink, see-through so the linen shows */
-  .gl-wide .gl-row.is-on{background:rgba(224,170,174,.28)}
+  /* every pale-pink fill - the chosen row, the note box, the step numbers (Kim): between dusty rose and baby pink,
+     see-through so the linen shows */
+  .gl-wide{--pale:rgba(224,170,174,.28)}
   .gl-wide .gl-col-panel,.gl-wide .gl-list-scroll,.gl-wide .gl-col-list{scrollbar-width:thin;scrollbar-color:rgba(142,131,121,.35) transparent}
   .gl-wide ::-webkit-scrollbar{width:6px;height:6px}
   .gl-wide ::-webkit-scrollbar-thumb{border-radius:3px;background:rgba(142,131,121,.35)}
