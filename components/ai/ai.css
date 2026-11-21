@@ -341,3 +341,10 @@
 .aic-wink.w2{width:8px;height:8px;right:-2px;bottom:-7px;animation-delay:1.2s}
 @keyframes aic-wink{0%,40%,100%{opacity:0;transform:scale(.4)}17%{opacity:1;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.aic-wink{animation:none;opacity:0}}
+/* ...and a soft streak of light across the star every 3.5s (0.9s), masked to its shape - dimmer than first tried (Kim) */
+.aic-glint::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,transparent 0 38%,rgba(255,250,228,.45) 50%,transparent 62%) no-repeat;background-size:250% 100%;background-position:150% 0;
+  -webkit-mask:url(/mobile/diary/star.webp) center / contain no-repeat;mask:url(/mobile/diary/star.webp) center / contain no-repeat;
+  mix-blend-mode:screen;animation:aic-sweep 3.5s ease-in-out infinite}
+@keyframes aic-sweep{0%{background-position:150% 0}26%,100%{background-position:-50% 0}}
+@media (prefers-reduced-motion:reduce){.aic-glint::after{animation:none;opacity:0}}
