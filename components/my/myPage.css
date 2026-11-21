@@ -377,8 +377,9 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my-wcover.tone-cream{background-color:#FBF1D9}.my-wcover.tone-rose{background-color:#F6E8E7}
 .my-wcover-memo{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden;font:12px/22px "Noto Serif KR",serif;color:#3F3532;white-space:pre-wrap;text-align:left}
 .my-wbook:hover .my-wcover{transform:translateY(-2px);transition:transform .2s}
-.my-wnew-wrap{position:relative}
-.my-wnew-wrap .my-pop{top:auto;bottom:calc(100% - 40px);right:auto;left:50%;transform:translateX(-50%);min-width:120px}
+/* + 위시 담기's little menu: right beside the slot (Kim), its middle at the slot's middle */
+.my .bk-books li.my-wnew-wrap{position:relative}
+.my .bk-books li.my-wnew-wrap>.my-pop{position:absolute;left:calc(100% + 10px);top:50%;right:auto;bottom:auto;transform:translateY(-50%);min-width:120px;z-index:40}
 /* a wish opened over the page: the memo slip, not sticky, with ✕ */
 .my-memo.my-memo-pop{position:relative;top:auto;width:min(560px,100%);max-height:calc(100vh - 80px)}
 .my-pop-x{position:absolute;right:12px;top:12px;width:32px;height:32px;border:0;border-radius:50%;background:rgba(255,254,250,.9);
