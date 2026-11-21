@@ -31,7 +31,7 @@ export function HookCard({ p }: { p: Project }) {
   return (
     <section className="my-latest" aria-labelledby="myLatest">
       <p className="my-recent" id="myLatest">가장 최근에 뜬 작품</p>
-      <article className="my-card my-hook">
+      <article className="my-hook">
         <div className="my-hook-more" ref={box}>
           <button type="button" aria-label={`${p.name} 메뉴`} aria-expanded={menu} onClick={() => setMenu(v => !v)}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.6" fill="currentColor" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /><circle cx="18.5" cy="12" r="1.6" fill="currentColor" /></svg>

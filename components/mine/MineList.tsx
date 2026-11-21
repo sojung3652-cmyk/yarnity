@@ -197,11 +197,6 @@ export function MineList({ query, onNew }: { query?: string; onNew?: () => void 
       </header>
       <div className="mine-tools">
         {/* a small search box with a magnifier (Kim: the long underlined field was too big) */}
-        {query === undefined && <label className="mine-find" htmlFor="mineSearch">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10.4 10.4 14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-          <span className="sr">작품 찾기</span>
-          <input id="mineSearch" className="mine-search" type="search" autoComplete="off" placeholder="찾기" value={q} onChange={e => setQ(e.target.value)} />
-        </label>}
         <div className="mine-row">
           <div className="mine-tabs" role="tablist" aria-label="상태로 거르기">
             {(["all", "knitting", "paused", "done"] as Filter[]).map(f => (
@@ -217,6 +212,12 @@ export function MineList({ query, onNew }: { query?: string; onNew?: () => void 
                   <button type="button" className="mine-link muted" onClick={() => { setPicking(false); setPicked([]); setAskMany(false); }}>그만 고르기</button>
                 </>
               : <button type="button" className="mine-link" onClick={() => setPicking(true)}>고르기</button>}
+            {/* the small search box right after 고르기 (Kim): just 찾기 */}
+            <label className="mine-find" htmlFor="mineSearch">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10.4 10.4 14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+              <span className="sr">작품 찾기</span>
+              <input id="mineSearch" className="mine-search" type="search" autoComplete="off" placeholder="찾기" value={q} onChange={e => setQ(e.target.value)} />
+            </label>
           </div>
         </div>
         {askMany && (
