@@ -53,7 +53,7 @@ html body .ai-ftab.is-inside .ai-ftab-star{left:calc(50% - 3 * var(--u))}
    HANDMADE, the name (20px) and "with love · yarnity" on its satin (15% in at the sides, 31% top, 30% bottom:
    padding % is of the width, so 31% / 30% of the 418/900 height). 420px wide, narrower if the page is. */
 html body .tp-label,html body .mfw .tp-label{width:360px;max-width:100%;aspect-ratio:900 / 264;min-height:0;height:auto;overflow:hidden;box-sizing:border-box;padding:6.4% 10% 6%;gap:0;justify-content:center;
-  border:0;border-image:none;background:url(/mobile/diary/lace_btn_pink.webp) center / 100% 100% no-repeat;filter:none;box-shadow:none}
+  border:0;border-image:none;background:url(/mobile/diary/lace_btn_ivory.webp) center / 100% 100% no-repeat;filter:none;box-shadow:none} /* ivory lace, web and phones (Kim) */
 html body .tp-label>*{flex:none}
 /* one line on the satin (TitlePage sizes rows for its own 26px; at 20px a name of 30 letters still fits) */
 /* tight lines: the three fit the satin also on a 360px phone (a 56px-high satin) */
@@ -71,3 +71,9 @@ html body .title-tag{display:inline-grid;place-items:center;height:44px;aspect-r
 html body .gl-title{line-height:1}
 /* the web book's first page: 나의 도안집 in ivory (Kim) */
 @media (min-width:768px){html body .pg-link.pg-link-rose{--patch:url(/mobile/diary/patch_cream.webp)}}
+/* web (Kim): the wizard's name tag on the ivory lace; on the book's first page 뜨개 용어집 in pink and
+   이어서 만들기 in green */
+@media (min-width:768px){
+  html body .pg-link.pg-link-sage{--patch:url(/glossary/patch_babypink.webp)}
+  html body .pg-link.pg-link-lilac{--patch:url(/glossary/patch_leaf.webp)}
+}

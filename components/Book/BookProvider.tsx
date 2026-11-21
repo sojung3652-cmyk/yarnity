@@ -87,7 +87,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const [closing, setClosing] = useState(false);
   // the book opened over another page ("새 도안"), and the page to come back to from the wizard
   const [overlay, setOverlay] = useState(false);
-  const menuNext = useRef(false);
+  const menuNext = useRef(false), menuTo = useRef("/");
   const [sinking, setSinking] = useState(false);
   const [origin, setOrigin] = useState<string | null>(null);
 
@@ -105,7 +105,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (closing) setClosing(false);
     setInstant(!bookPage(seenPath) && !overlay);
     // wide screens: "← 메뉴" in a wizard raised over the opening turns back to the floating menu spread
-    const toMenu = menuNext.current && path === "/"; menuNext.current = false;
+    const toMenu = menuNext.current && path !== "/new"; menuNext.current = false;
     if (overlay !== toMenu) setOverlay(toMenu); // going anywhere (the wizard, 내 작품) ends the overlay
     if (origin && path !== "/new" && !toMenu) setOrigin(null); // back on a page (the origin or any other): forgotten
     if (sinking) setSinking(false); // the sunk book stays down until the screen it goes back to is there
@@ -182,7 +182,13 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (path === "/" || path === "/new") { setInstant(false); setHomeOpen(true); if (path === "/new") router.push("/", { scroll: false }); return; }
     setInstant(false); setOrigin(path + location.search); setOverlay(true);
   }, [path, router, rise]);
-  const doHome = useCallback(() => { setInstant(false); router.push("/", { scroll: false }); }, [router]);
+  // wide screens: "← 메뉴" goes back to where the wizard was raised (the opening or a page) with the book open
+  // on its menu spread over it (Kim); phones go to their home
+  const doHome = useCallback(() => {
+    setInstant(false);
+    if (isPhone()) { router.push("/", { scroll: false }); return; }
+    menuNext.current = true; router.push(menuTo.current, { scroll: false });
+  }, [router]);
 
   // Leaving a new pattern half made (a name typed, or past step 1) asks first: keep it for
   // "이어서 만들기", or throw it away. The draft is saved on every change, so "저장" just leaves; "저장하지
@@ -211,13 +217,11 @@ export function BookProvider({ children }: { children: ReactNode }) {
   }, [router]);
   // wide screens: "← 메뉴" turns back to the menu spread when the wizard was raised from the opening; raised over
   // another page (새 도안), there is no menu there - the book is put away (it sinks to that page)
+  // "← 메뉴": the book turns back to its menu spread, wherever the wizard was raised from (Kim: from 새 도안 too)
   const toHome = useCallback(() => {
-    if (!isPhone()) {
-      if (origin?.split("?")[0] !== "/") { close(); return; }
-      menuNext.current = true;
-    }
+    if (!isPhone()) { menuTo.current = origin ?? "/"; if (!origin) setOrigin("/"); }
     if (asks()) setLeaving("home"); else doHome();
-  }, [asks, doHome, close, origin]);
+  }, [asks, doHome, origin]);
   const toDesk = useCallback(() => { setClosing(true); router.push("/", { scroll: false }); }, [router]);
   const leaveTo = useCallback((to: string) => { if (asks()) setLeaving({ path: to }); else { setInstant(false); router.push(to, { scroll: false }); } }, [asks, router]);
 
