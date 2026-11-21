@@ -333,6 +333,14 @@ body:has(#view-new .book-stage-space) footer{display:none}
 .ps-part:nth-child(1){animation-delay:calc(var(--float-step) * 4)}.ps-part:nth-child(2){animation-delay:calc(var(--float-step) * 5)}.ps-part:nth-child(3){animation-delay:calc(var(--float-step) * 6)}.ps-part:nth-child(4){animation-delay:calc(var(--float-step) * 7)}.ps-part:nth-child(n+5){animation-delay:calc(var(--float-step) * 8)}
 .mine-tools{animation-delay:var(--float-step)}
 .mc:nth-child(1){animation-delay:calc(var(--float-step) * 2)}.mc:nth-child(2){animation-delay:calc(var(--float-step) * 3)}.mc:nth-child(3){animation-delay:calc(var(--float-step) * 4)}.mc:nth-child(4){animation-delay:calc(var(--float-step) * 5)}.mc:nth-child(5){animation-delay:calc(var(--float-step) * 6)}.mc:nth-child(6){animation-delay:calc(var(--float-step) * 7)}.mc:nth-child(n+7){animation-delay:calc(var(--float-step) * 8)}
+/* the glossary floats in like the other pages (Kim): its head, then the tabs and search, then the sections or
+   the term; wide screens (phones: components/mobile/motion.css) */
+@media (min-width:768px){
+  .gl-head,.gl-detail{animation:float-in-soft var(--float) var(--float-ease) backwards}
+  .gl-tabs,.gl-search,.gl-section{animation:float-in-soft var(--float) var(--float-ease) backwards}
+  .gl-tabs,.gl-search{animation-delay:var(--float-step)}
+  .gl-section:nth-of-type(1){animation-delay:calc(var(--float-step) * 2)}.gl-section:nth-of-type(2){animation-delay:calc(var(--float-step) * 3)}.gl-section:nth-of-type(n+3){animation-delay:calc(var(--float-step) * 4)}
+}
 @media (prefers-reduced-motion:reduce){
   .ps-sheet,.tk-sheet-page,.mine-head,.mine-tools,.mc,.ps-head,.ps-boxes,.ps-part,.tk-chart,.tk-side,.ps-actions,.tk-head,.tk-progress{animation:none}
   .foil-shine{display:none}

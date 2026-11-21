@@ -11,7 +11,8 @@
   /* the blocks of a screen, top to bottom */
   .mfh-brand,.mfh-lace,.mfh-actions>*,.mfh-foot>*,
   .mm-hook,.mm-tools,.mm-empty,.mm-row,.mm-note,
-  .msp-head,.msp-tabs,.msp-facts,.msp-part{
+  .msp-head,.msp-tabs,.msp-facts,.msp-part,
+  .gl-head,.gl-tabs,.gl-search,.gl-section,.gl-detail{
     animation:pg-rise .42s cubic-bezier(.22,.61,.36,1) both;animation-delay:calc(80ms + var(--rise,0) * 40ms)}
   .mm-hook,.msp-tabs{--rise:1}
   /* the home: the lace bird first, then the wordmark under it */
@@ -23,11 +24,14 @@
   .mfh-foot>:nth-child(2),.mm-row:nth-child(4),.msp-part:nth-of-type(n+4){--rise:6}
   .mfh-foot>:nth-child(3),.mm-row:nth-child(5),.mm-note{--rise:7}
   .mm-row:nth-child(n+6){--rise:8}
+  /* the glossary (Kim: every screen floats in): head, tabs and search, then the sections or the term */
+  .gl-tabs,.gl-search{--rise:1}.gl-detail{--rise:1}
+  .gl-section:nth-of-type(1){--rise:2}.gl-section:nth-of-type(2){--rise:3}.gl-section:nth-of-type(n+3){--rise:4}
 }
 @keyframes pg-out{to{opacity:0}}
 @keyframes pg-in{from{opacity:0;transform:translateY(12px)}}
 @keyframes pg-rise{from{opacity:0;transform:translateY(12px)}}
 @media (prefers-reduced-motion:reduce){
   ::view-transition-old(*),::view-transition-new(*),::view-transition-group(*){animation-duration:0s!important;animation-delay:0s!important}
-  .mfh-brand,.mfh-lace,.mfh-actions>*,.mfh-foot>*,.mm-hook,.mm-tools,.mm-empty,.mm-row,.mm-note,.msp-head,.msp-tabs,.msp-facts,.msp-part{animation:none!important}
+  .mfh-brand,.mfh-lace,.mfh-actions>*,.mfh-foot>*,.mm-hook,.mm-tools,.mm-empty,.mm-row,.mm-note,.msp-head,.msp-tabs,.msp-facts,.msp-part,.gl-head,.gl-tabs,.gl-search,.gl-section,.gl-detail{animation:none!important}
 }
