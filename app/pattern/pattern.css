@@ -114,7 +114,7 @@
 /* 완성 도안 보기 on wide screens (Kim): rose pink, ivory and gold, readability first - this page only (printing
    keeps the sheet on white). A veil over the starry linen; the sheet is the paper, its shadow to the lower left. */
 @media screen and (min-width:768px){
-  .ps-main{--ink:#443B3B;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;--gold:#B08D57;--gold-l:#DCC69E;--card:#FFFEFB;
+  .ps-main{--ink:#443B3B;--ink2:#6A605F;--rose:#CE999B;--rose-l:rgba(224,170,174,.28);--rose-d:#9F646A;--note:rgba(224,170,174,.28);--note-b:#EBD6D4;--gold:#B08D57;--gold-l:#DCC69E;--card:#FFFEFB;
     --ps-ink:var(--ink);--ps-soft:var(--ink2);--ps-rule:var(--gold-l);--ps-hair:rgba(176,141,87,.18);--ps-paper:#FCFAF5;--ps-lav:var(--note-b);
     position:relative;isolation:isolate}
   .ps-main::before{content:"";position:fixed;inset:0;z-index:-1;background:rgba(247,242,232,.55);pointer-events:none}

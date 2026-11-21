@@ -3,7 +3,7 @@
    overridden here only. Shadows fall to the lower left (light from the upper right). */
 @media (max-width:767.98px){
   .ms-screen.msp{
-    --ink:#443B3B;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;
+    --ink:#443B3B;--ink2:#6A605F;--rose:#CE999B;--rose-l:rgba(224,170,174,.28);--rose-d:#9F646A;--note:rgba(224,170,174,.28);--note-b:#EBD6D4;
     --gold:#B08D57;--gold-l:#DCC69E;--paper:#FCFAF5;--card:#FFFEFB;
     position:relative;isolation:isolate;color:var(--ink)}
   /* a veil over the starry linen, so the stars stay quiet even around the title */

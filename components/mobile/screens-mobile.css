@@ -98,12 +98,12 @@
   .msp-part ol{list-style:none;margin:0;padding:0}
   .msp-part li{border-bottom:1px solid #EFE4DE}
   .msp-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:17px 0}
-  .msp-pill{display:inline-grid;place-items:center;min-width:36px;height:24px;padding:0 7px;box-sizing:border-box;border-radius:12px;background:#FCE8EC;font-size:11.5px;font-weight:600;color:#7A404C;white-space:nowrap;align-self:start}
+  .msp-pill{display:inline-grid;place-items:center;min-width:36px;height:24px;padding:0 7px;box-sizing:border-box;border-radius:12px;background:rgba(224,170,174,.28);font-size:11.5px;font-weight:600;color:#7A404C;white-space:nowrap;align-self:start}
   .msp-how{font-size:14.5px;line-height:1.6}
   .msp-how small{display:block;margin-top:3px;font-size:12px;line-height:1.55;color:#7A6C64}
   .msp-n{font-weight:700;font-size:14.5px;white-space:nowrap}
   .msp-n i{margin-left:1px;font-style:normal;font-weight:400;font-size:12px;color:#6B5D55}
-  .msp-note{margin:0 0 16px;padding:12px 14px;border-radius:8px;background:#FCE8EC;font-size:13px;line-height:1.6;color:#7A404C}
+  .msp-note{margin:0 0 16px;padding:12px 14px;border-radius:8px;background:rgba(224,170,174,.28);font-size:13px;line-height:1.6;color:#7A404C}
   .msp-shape{display:flex;gap:18px;align-items:center;padding:16px;border-radius:10px;background:rgba(255,253,248,.8);box-shadow:-6px 8px 16px -10px rgba(70,48,34,.4)}
   .msp-drawing{flex:none;width:110px;height:110px;border-radius:4px;background:#FFFDF8 linear-gradient(rgba(238,190,199,.25) 1px,transparent 1px) 0 0/11px 11px,linear-gradient(90deg,rgba(238,190,199,.25) 1px,transparent 1px) 0 0/11px 11px}
   .msp-drawing svg{display:block;width:100%;height:100%}
@@ -118,7 +118,7 @@
   .msp-list dd small{display:block;margin-top:2px;font-size:12px;color:#6B5D55}
   .msp-gauge{margin:0;font-size:14px}
   .msp-gauge b{font-size:18px}
-  .msp-tip{margin:16px 0 0;padding:12px 14px;border-radius:8px;background:#FCE8EC;font-size:13px;line-height:1.65;color:#7A404C}
+  .msp-tip{margin:16px 0 0;padding:12px 14px;border-radius:8px;background:rgba(224,170,174,.28);font-size:13px;line-height:1.65;color:#7A404C}
   .msp-made{margin:0 0 12px;text-align:center;font-size:13px;color:#6B5D55}
   .msp-made button{min-height:44px;padding:0 6px;border:0;background:none;font-size:13px;color:#4B3F3A;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 

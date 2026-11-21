@@ -1,5 +1,5 @@
 /* The web's opening + home on one screen (Kim's web-flow reference.html, as given; scoped to .oh). */
-.oh{--ivory:#F6F0E4;--paper:#FCFAF5;--ink:#332C2C;--ink2:#6A605F;--gold:#B08D57;--gold-l:#DCC69E;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;
+.oh{--ivory:#F6F0E4;--paper:#FCFAF5;--ink:#332C2C;--ink2:#6A605F;--gold:#B08D57;--gold-l:#DCC69E;--rose:#CE999B;--rose-l:rgba(224,170,174,.28);--rose-d:#9F646A;
   --serif:"Noto Serif KR","Apple SD Gothic Neo",serif;--sans:"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;--latin:var(--font-cormorant),"Cormorant Garamond",Georgia,serif;
   position:fixed;inset:0;z-index:120;overflow:hidden;background:var(--ivory);color:var(--ink);font-family:var(--sans)}
 .oh *,.oh *::before,.oh *::after{box-sizing:border-box}

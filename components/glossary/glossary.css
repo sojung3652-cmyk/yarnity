@@ -111,8 +111,8 @@ body:has(.gl){background:#F8EEEE}
 
 /* ---- a word of the pattern that the glossary knows, and its small card ---- */
 /* (outside .gl, so the colours are written out: the variables live on .gl) */
-.gl-word{display:inline;padding:0 2px;margin:0 -2px;border:0;border-radius:3px;background:#FBE9EC;font:inherit;color:inherit;text-decoration:underline dotted #E2A9B3;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:pointer}
-.gl-word:hover,.gl-word[aria-expanded="true"]{background:#F6D9DF}
+.gl-word{display:inline;padding:0 2px;margin:0 -2px;border:0;border-radius:3px;background:rgba(224,170,174,.28);font:inherit;color:inherit;text-decoration:underline dotted #E2A9B3;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:pointer}
+.gl-word:hover,.gl-word[aria-expanded="true"]{background:rgba(224,170,174,.42)}
 .gl-pop{position:absolute;z-index:60;width:min(300px,calc(100vw - 24px));box-sizing:border-box;padding:14px 14px 12px;border-radius:14px;background:#FFFDF8;
   box-shadow:0 0 0 1px rgba(168,130,58,.14),-10px 14px 28px -12px rgba(60,42,34,.35);font-family:"Noto Serif KR",serif;color:#4A3D38;text-align:left;white-space:normal;
   animation:gl-pop .16s ease-out}
