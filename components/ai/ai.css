@@ -3,7 +3,7 @@
    the send button, the gold-thread star, cloth patches; Noto Serif KR / Noto Sans KR. Light from the upper
    right: shadows fall to the lower left. Type never under 11px; touch areas 44 x 44 on phones; the box 16px. */
 .aic-root{--ink:#3F3532;--ink2:#6B5D55;--ink3:#8C7E74;--ivory:#FFFDF8;--blush:#F7EDEB;--lav:#E2A9B3;--mocha:#4A3830;--line:rgba(138,114,88,.3);
-  position:fixed;inset:0;z-index:140;font-family:"Noto Sans KR",system-ui,sans-serif;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
+  position:fixed;inset:0;z-index:140;font-family:"Noto Serif KR",serif;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
 .aic-root button{font:inherit;color:inherit}
 .aic-root .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .aic-dim{position:fixed;inset:0;background:rgba(60,42,34,.3);animation:aic-fade .2s ease}
@@ -48,7 +48,7 @@
 .aic-arch-head span{font-size:12px;color:var(--ink3)}
 .aic-search{display:flex;align-items:center;gap:8px;height:38px;margin:10px 0 0;padding:0 12px;border-radius:10px;background:rgba(255,253,248,.8);box-shadow:inset 0 0 0 1px #E4D6CE}
 .aic-search svg{flex:none;width:16px;height:16px;color:var(--ink3)}
-.aic-search input{flex:1;min-width:0;border:0;background:none;font:14px/1 "Noto Sans KR",sans-serif;color:var(--ink);outline:none}
+.aic-search input{flex:1;min-width:0;border:0;background:none;font:14px/1 "Noto Serif KR",serif;color:var(--ink);outline:none}
 .aic-search:focus-within{box-shadow:inset 0 0 0 1.5px var(--lav)}
 .aic-rows{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:6px -4px 0;padding:0 4px 8px}
 .aic-day{margin:14px 8px 4px;font-size:12px;font-weight:500;color:var(--ink3)}
@@ -64,7 +64,7 @@
 .aic-row-more svg{width:17px;height:17px}
 .aic-row:hover .aic-row-more,.aic-row.is-menu .aic-row-more,.aic-row-more:focus-visible{opacity:1}
 .aic-row-more:hover{background:rgba(110,83,80,.1)}
-.aic-row-rename input,.aic-title-rename input{width:100%;height:34px;box-sizing:border-box;padding:0 10px;border:1.5px solid var(--lav);border-radius:8px;background:var(--ivory);font:14px/1 "Noto Sans KR",sans-serif;color:var(--ink);outline:none}
+.aic-row-rename input,.aic-title-rename input{width:100%;height:34px;box-sizing:border-box;padding:0 10px;border:1.5px solid var(--lav);border-radius:8px;background:var(--ivory);font:14px/1 "Noto Serif KR",serif;color:var(--ink);outline:none}
 .aic-pop{position:absolute;right:4px;top:calc(100% + 2px);z-index:6;display:flex;flex-direction:column;min-width:168px;padding:6px;border-radius:10px;background:var(--ivory);box-shadow:-4px 8px 20px rgba(60,42,34,.2)}
 .aic-pop button{min-height:36px;padding:0 12px;border:0;border-radius:6px;background:none;text-align:left;font-size:13.5px;cursor:pointer}
 .aic-pop button:hover{background:#F6EEE6}
@@ -117,7 +117,7 @@
 .aic-root.is-phone .aic-acts button{height:36px;padding:0 10px}
 /* editing a question */
 .aic-edit{align-self:stretch;margin-left:10%;padding:10px 12px;border-radius:16px;background:var(--ivory);box-shadow:inset 0 0 0 1.5px var(--lav)}
-.aic-edit textarea{width:100%;box-sizing:border-box;border:0;background:none;resize:vertical;font:15px/1.6 "Noto Sans KR",sans-serif;color:var(--ink);outline:none}
+.aic-edit textarea{width:100%;box-sizing:border-box;border:0;background:none;resize:vertical;font:15px/1.6 "Noto Serif KR",serif;color:var(--ink);outline:none}
 .aic-edit div{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
 .aic-edit button{min-height:34px;padding:0 14px;border:0;border-radius:999px;background:#EFE6DC;font-size:13px;cursor:pointer}
 .aic-edit .is-go{background:var(--mocha);color:#fff}
@@ -178,7 +178,7 @@
   box-shadow:-2px 4px 12px -6px rgba(70,48,34,.25);text-align:left;transition:border-color .15s}
 .aic-box:focus-within{border-color:var(--lav)}
 .aic-box textarea{display:block;width:100%;min-height:28px;max-height:196px;box-sizing:border-box;padding:2px 0;border:0;background:none;
-  font:16px/24px "Noto Sans KR",sans-serif;color:var(--ink);resize:none;outline:none;overflow-y:auto}
+  font:16px/24px "Noto Serif KR",serif;color:var(--ink);resize:none;outline:none;overflow-y:auto}
 .aic-box textarea::placeholder{color:#A89A90}
 .aic-thumbs{display:flex;gap:8px;margin-bottom:8px}
 .aic-thumbs span{position:relative;display:block;width:64px;height:64px}
@@ -314,3 +314,14 @@
 .aic-foot-note{max-width:680px;margin:8px auto 0;text-align:center}
 /* the embroidered wordmark (2.82 : 1): by width, as the old foil's 38px height took */
 .aic-side-foil{height:auto;width:77px}
+
+/* the chat in the site's letters (Kim): Noto Serif KR everywhere in it */
+.aic-root,.aic-root input,.aic-root textarea,.aic-root button,.aic-root .md{font-family:"Noto Serif KR",serif}
+/* 보내기 (Kim: not the dark round arrow): a small pink cloth label with the word, as 이어서 뜨기; while an answer
+   comes, 멈추기 on the ivory one */
+.aic-send{display:inline-flex;align-items:center;justify-content:center;width:auto;height:auto;min-height:0;padding:0 8px;border-radius:0;background:none;
+  border-style:solid;border-width:10px;border-image-source:url(/mobile/diary/patch_pink.webp);border-image-slice:62 fill;border-image-repeat:stretch;
+  font:600 13px/1.2 "Noto Serif KR",serif;color:#3F3532;white-space:nowrap;filter:drop-shadow(-1px 1.5px 1px rgba(90,62,44,.16))}
+.aic-send.is-stop{border-image-source:url(/mobile/diary/patch_cream.webp)}
+.aic-send:disabled{opacity:.45}
+.aic-root.is-phone .aic-send,.aic-root.is-win .aic-send{width:auto;height:auto}
