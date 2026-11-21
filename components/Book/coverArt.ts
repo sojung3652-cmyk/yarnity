@@ -23,7 +23,10 @@ export const labelRect = (w: number, h: number) => {
 
 let assets: Promise<{ bird: HTMLImageElement; logo: HTMLImageElement }> | null = null;
 export function loadCoverAssets() {
-  const load = (src: string) => new Promise<HTMLImageElement>((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; });
+  // a picture that fails to load must not leave the cover unpainted (black in 3D, Kim saw a "stone" book): it stands
+  // in as an empty 1px image, so the cloth, the band and the label are still drawn
+  const BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+  const load = (src: string) => new Promise<HTMLImageElement>(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => { const b = new Image(); b.onload = () => ok(b); b.src = BLANK; }; i.src = src; });
   assets ??= Promise.all([load("/pic/bird.png"), load("/pic/logo-mark.svg")]).then(([bird, logo]) => ({ bird, logo }));
   return assets;
 }

@@ -4,7 +4,6 @@
 // Home (design comp legacy/pic/main_backgrond_refer.png): the book sits in the empty spot of the photo;
 // the text button and the book open it. /new (wide screens): the same book, open on the wizard, with the
 // photo and logo faded behind it. Other pages: the stage is hidden but stays mounted (no new canvas).
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Book } from "@/components/Book/Book";
 import { FoilLogo } from "@/components/FoilLogo";
@@ -38,13 +37,7 @@ export function Hero() {
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>
       {/* two stage layers with the same geometry: the photo below the 3D canvas, the copy above it */}
-      <div className="hero-stage hero-stage-bg">
-        <div className="hero-bg" aria-hidden="true">
-          {/* unoptimized: the WebP is already encoded with care (q 0.92); a second re-encode by next/image
-              softened the paper texture of the backdrop */}
-          <Image src="/pic/hero-bg.webp" alt="" width={1870} height={841} priority unoptimized className="hero-bg-img" />
-        </div>
-      </div>
+      {/* the old desk photo (hero-bg.webp) is gone: the web never shows the desk any more */}
       <div className="hero-stage hero-stage-copy">
         <div className="hero-copy-desk" inert={open}>
           {/* one <h1> per page: on / it is the logo; the wizard has its own heading */}
