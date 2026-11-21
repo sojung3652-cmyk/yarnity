@@ -228,3 +228,21 @@
 @keyframes aic-in{from{transform:translateX(40px);opacity:0}}
 @keyframes aic-dot{0%,100%{opacity:.3}50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.aic-dim,.aic-panel,.aic-menu,.aic-drawer,.aic-drawer-dim,.aic-compose,.aic-side,.aic-dots i{animation:none!important;transition:none!important}}
+
+/* ---- deleting right from the list (Kim) ---- */
+/* web: a trash can beside ··· on the row under the pointer */
+.aic-root.is-wide .aic-row-main{padding-right:66px}
+.aic-row-del{position:absolute;right:34px;top:50%;width:28px;height:28px;margin-top:-14px;display:grid;place-items:center;padding:0;border:0;border-radius:6px;background:none;color:var(--ink2);cursor:pointer;opacity:0}
+.aic-row-del svg{width:16px;height:16px}
+.aic-row:hover .aic-row-del,.aic-row.is-menu .aic-row-del,.aic-row-del:focus-visible{opacity:1}
+.aic-row-del:hover{background:rgba(176,64,64,.1);color:#B04040}
+/* phones: a row swiped left shows 보관 / 삭제 under it */
+.aic-root.is-phone .aic-row{overflow:hidden}
+.aic-root.is-phone .aic-row-main{position:relative;z-index:1;background:#F2E5E2;transition:transform .22s cubic-bezier(.22,.61,.36,1)}
+.aic-root.is-phone .aic-row.is-on .aic-row-main{background:var(--ivory)}
+.aic-root.is-phone .aic-row.is-slid .aic-row-main{transform:translateX(-136px)}
+.aic-row-acts{position:absolute;right:0;top:0;bottom:0;display:flex}
+.aic-row-acts button{width:68px;border:0;font-size:13px;font-weight:600;cursor:pointer}
+.aic-row-acts .is-arch{background:#EFEAF7;color:#5D4E86}
+.aic-row-acts .is-del{background:#F3D9D8;color:#9B3A3A}
+@media (prefers-reduced-motion:reduce){.aic-root.is-phone .aic-row-main{transition:none}}

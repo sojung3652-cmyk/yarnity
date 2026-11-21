@@ -126,6 +126,7 @@ const Ic = {
   search: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" {...I} /><path d="m16 16 4 4" {...I} /></svg>,
   box: <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="4" rx="1" {...I} /><path d="M5 9v9.5h14V9M10 13h4" {...I} /></svg>,
   expand: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5h5.5V10M10 19.5H4.5V14M19.5 4.5 13.5 10.5M4.5 19.5l6-6" {...I} /></svg>,
+  trash: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9.5 7V5.2c0-.4.3-.7.7-.7h3.6c.4 0 .7.3.7.7V7M6.5 7l.8 11.6c.1.8.7 1.4 1.5 1.4h6.4c.8 0 1.4-.6 1.5-1.4L17.5 7M10.3 10.5v6M13.7 10.5v6" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>,
   back: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" {...I} /></svg>,
   // a ball of yarn: the work a conversation is about
   yarn: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="7" {...I} /><path d="M5.5 8.5c3 0 7.5 2 9.5 7M7 16.5c1-3.5 4-7.5 8.5-9.5M10 5.2c1.5 2.5 2 7 1 13.6" {...I} strokeWidth={1.2} /><path d="M18 12c1.5.5 2.5 2 2.5 4" {...I} strokeWidth={1.2} /></svg>,
@@ -170,6 +171,8 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   // phones: the sheet is pulled by its top: down past 110px puts it away; a half sheet pulled up goes full
   const [drag, setDrag] = useState(0), [sinking, setSinking] = useState(false), y0 = useRef<number | null>(null);
   const press = useRef<ReturnType<typeof setTimeout> | null>(null), pressed = useRef(false);
+  // phones: a row of the list swiped left shows 보관 / 삭제 under it (Kim: delete right from the list)
+  const [slid, setSlid] = useState<string | null>(null), x0 = useRef<number | null>(null);
 
   const setInput = (t: string) => { setInputState(t); chats.setDraft(key, t); };
   const go = (id: string | null) => { setRowMenu(null); setActs(null); setDrawer(false); setEditing(null); setMsgActs(null); setChat(c => ({ ...c, conv: id ?? "new" })); };
@@ -347,6 +350,20 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
     onContextMenu: phone ? (e: React.MouseEvent) => e.preventDefault() : undefined,
   });
 
+  const swipeHold = (id: string) => {
+    const h = hold(() => setActs(id));
+    return {
+      ...h,
+      onTouchStart: (e: React.TouchEvent) => { x0.current = e.touches[0].clientX; h.onTouchStart(); },
+      onTouchEnd: (e: React.TouchEvent) => {
+        h.onTouchEnd();
+        if (x0.current == null) return;
+        const dx = e.changedTouches[0].clientX - x0.current; x0.current = null;
+        if (dx < -40) { pressed.current = true; setSlid(id); } else if (dx > 30 && slid) { pressed.current = true; setSlid(null); }
+      },
+    };
+  };
+
   // ---- the list ----
   const shown = useMemo(() => {
     const w = q.trim().toLowerCase();
@@ -402,18 +419,25 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
               <div key={g}>
                 <h3 className="aic-day">{g}</h3>
                 {cs.map(c => (
-                  <div key={c.id} className={"aic-row" + (convId === c.id ? " is-on" : "") + (rowMenu === c.id ? " is-menu" : "")}>
+                  <div key={c.id} className={"aic-row" + (convId === c.id ? " is-on" : "") + (rowMenu === c.id ? " is-menu" : "") + (slid === c.id ? " is-slid" : "")}>
                     {renaming === c.id && !inBar ? (
                       <form className="aic-row-rename" onSubmit={e => { e.preventDefault(); rename(c.id); }}>
                         <label className="sr" htmlFor={`rn-${c.id}`}>대화 이름</label>
                         <input id={`rn-${c.id}`} autoFocus maxLength={30} value={name} onChange={e => setName(e.target.value)} onBlur={() => rename(c.id)} />
                       </form>
                     ) : (
-                      <button type="button" className="aic-row-main" onClick={() => { if (pressed.current) { pressed.current = false; return; } go(c.id); }} {...hold(() => setActs(c.id))}>
+                      <button type="button" className="aic-row-main" onClick={() => { if (pressed.current) { pressed.current = false; return; } if (slid) { setSlid(null); return; } go(c.id); }} {...swipeHold(c.id)}>
                         <span className="aic-row-title">{c.title}</span>
                         {c.projectId && <i className="aic-linkdot" title="작품에 연결됨" />}
                       </button>
                     )}
+                    {phone && (
+                      <div className="aic-row-acts" aria-hidden={slid !== c.id}>
+                        <button type="button" className="is-arch" tabIndex={slid === c.id ? 0 : -1} onClick={() => { chats.archive(c.id, !c.archived); setSlid(null); if (!c.archived && convId === c.id) go(null); }}>{c.archived ? "꺼내기" : "보관"}</button>
+                        <button type="button" className="is-del" tabIndex={slid === c.id ? 0 : -1} onClick={() => { setSlid(null); setAskDel(c.id); }}>삭제</button>
+                      </div>
+                    )}
+                    {!phone && !(renaming === c.id && !inBar) && <button type="button" className="aic-row-del" aria-label={`${c.title} 삭제`} title="삭제" onClick={e => { e.stopPropagation(); setRowMenu(null); setAskDel(c.id); }}>{Ic.trash}</button>}
                     {!phone && !(renaming === c.id && !inBar) && <button type="button" className="aic-row-more" aria-label={`${c.title} 메뉴`} aria-expanded={rowMenu === c.id} onClick={e => { e.stopPropagation(); setRowMenu(rowMenu === c.id ? null : c.id); }}>{Ic.dots}</button>}
                     {rowMenu === c.id && (
                       <div className="aic-pop" role="menu" onClick={e => e.stopPropagation()}>
