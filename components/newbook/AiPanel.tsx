@@ -19,6 +19,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useBook } from "@/components/Book/BookProvider";
 import { useApp } from "@/components/AppProvider";
 import { ClothPatch } from "@/components/diary/Diary";
+import { FoilLogo } from "@/components/FoilLogo";
 import { ask } from "@/components/ai/ask";
 import { Markdown } from "@/components/ai/Markdown";
 import { chats, useChats } from "@/components/ai/useChats";
@@ -127,6 +128,8 @@ const Ic = {
   box: <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="4" rx="1" {...I} /><path d="M5 9v9.5h14V9M10 13h4" {...I} /></svg>,
   expand: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5h5.5V10M10 19.5H4.5V14M19.5 4.5 13.5 10.5M4.5 19.5l6-6" {...I} /></svg>,
   trash: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9.5 7V5.2c0-.4.3-.7.7-.7h3.6c.4 0 .7.3.7.7V7M6.5 7l.8 11.6c.1.8.7 1.4 1.5 1.4h6.4c.8 0 1.4-.6 1.5-1.4L17.5 7M10.3 10.5v6M13.7 10.5v6" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>,
+  fold: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5v14M19 12H9M13 8l-4 4 4 4" {...I} /></svg>,
+  unfold: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5v14M5 12h10M11 8l4 4-4 4" {...I} /></svg>,
   back: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" {...I} /></svg>,
   // a ball of yarn: the work a conversation is about
   yarn: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="12" r="7" {...I} /><path d="M5.5 8.5c3 0 7.5 2 9.5 7M7 16.5c1-3.5 4-7.5 8.5-9.5M10 5.2c1.5 2.5 2 7 1 13.6" {...I} strokeWidth={1.2} /><path d="M18 12c1.5.5 2.5 2 2.5 4" {...I} strokeWidth={1.2} /></svg>,
@@ -134,8 +137,10 @@ const Ic = {
 
 /** The one AI sheet on the book's stage (wide screens): shown on the open book (menu, or the wizard's step). */
 export function AiHost() {
-  const b = useBook(), { draft, setDraft } = useApp();
-  if (b.view !== "home" && b.view !== "wizard") return null;
+  const b = useBook(), { draft, setDraft } = useApp(), m = useMobile();
+  // phones have their own sheet (MobileChrome). The small window does not need the book open: coming back
+  // from /ai (the book has closed by then) it is still there, on the same conversation (Kim)
+  if (m !== false) return null;
   return <AiPanel draft={draft} step={b.view === "wizard" ? b.step : 0} onApply={p => setDraft({ ...draft, ...p })} />;
 }
 
@@ -146,6 +151,9 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   const all = useChats(), m = useMobile(), phone = !!m, router = useRouter(), path = usePathname();
   const open = page || !!chat.open, convId = chat.conv && chat.conv !== "new" ? chat.conv : null, sheet = !page && phone && !!chat.sheet;
   const conv = convId ? all.find(c => c.id === convId) ?? null : null;
+  // wide screens, not /ai: a small floating window (Kim) with the phone's chat inside - ☰ the list as a drawer,
+  // ✎ a new one, ⤢ the /ai page, ✕; the page behind is not dimmed and stays clickable
+  const win = !phone && !page;
   const key = conv ? conv.id : "new";
   // the step of 도안 만들기 it was opened in: the book's (web), or the phone's screens' (/new?step=N)
   const [urlStep, setUrlStep] = useState(0), step = stepProp || urlStep;
@@ -178,12 +186,21 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   const go = (id: string | null) => { setRowMenu(null); setActs(null); setDrawer(false); setEditing(null); setMsgActs(null); setChat(c => ({ ...c, conv: id ?? "new" })); };
   const offChat = () => setChat(c => ({ ...c, off: true, checked: true }));
   const close = () => {
-    if (page) { if (history.length > 1) router.back(); else router.push("/"); return; }
-    if (!phone) { setChat(c => ({ ...c, open: false })); return; }
+    // /ai: back to the book, where the small window is open again on the same conversation
+    if (page) { if (!phone) setChat(c => ({ ...c, open: true })); if (history.length > 1) router.back(); else router.push("/"); return; }
+    if (!phone) {
+      // the small window sinks 12px and fades (0.2s), then it is gone
+      setSinking(true);
+      setTimeout(() => { setSinking(false); setChat(c => ({ ...c, open: false })); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200);
+      return;
+    }
     // phones: the sheet goes back down first (0.22s), then it is gone
     setSinking(true);
     setTimeout(() => { setSinking(false); setDrag(0); setChat(c => ({ ...c, open: false })); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 220);
   };
+
+  // /ai (wide): leaving it by the browser's back also comes back to the small window, on this conversation
+  useEffect(() => { if (page && m === false) setChat(c => ({ ...c, open: true })); }, [page, m]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // availability, once per page load
   useEffect(() => {
@@ -389,27 +406,34 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
       ["작품에 연결", () => { setRowMenu(null); setActs(null); setLinking(c.id); }],
       ["보관하기", () => { chats.archive(c.id, true); setRowMenu(null); setActs(null); if (convId === c.id) go(null); }],
       ["삭제", () => { setRowMenu(null); setActs(null); setAskDel(c.id); }, true]];
-  const folded = !phone && !side;
+  // the /ai page's sidebar (wide): it folds to 56px icons; the drawer (phones, the small window) never folds
+  const sideBar = page && !phone, folded = sideBar && !side;
   const listPane = (
-    <aside className={"aic-side" + (folded ? " is-folded" : "")} aria-label="대화 목록">
+    <aside className={"aic-side" + (folded ? " is-folded" : "") + (sideBar ? " is-page" : "")} aria-label="대화 목록">
       <div className="aic-side-top">
-        {page && !phone && !folded && <button type="button" className="aic-icon" aria-label="나가기" onClick={close}>{Ic.back}</button>}
-        {!folded && <b className="aic-side-name">AI와 상의</b>}
-        {!phone && <button type="button" className="aic-icon" aria-label={folded ? "목록 펴기" : "목록 접기"} aria-expanded={!folded} onClick={() => fold(folded)}>{Ic.side}</button>}
-        {phone && <button type="button" className="aic-icon" aria-label="목록 닫기" onClick={() => setDrawer(false)}>{Ic.x}</button>}
+        {sideBar
+          ? !folded && <span className="aic-side-logo" aria-label="Yarnity"><FoilLogo className="aic-side-foil" /></span>
+          : <b className="aic-side-name">AI와 상의</b>}
+        {sideBar
+          ? <button type="button" className="aic-icon" aria-label={folded ? "목록 펴기" : "목록 접기"} title={folded ? "목록 펴기" : "목록 접기"} aria-expanded={!folded} onClick={() => fold(folded)}>{folded ? Ic.unfold : Ic.fold}</button>
+          : <button type="button" className="aic-icon" aria-label="목록 닫기" onClick={() => setDrawer(false)}>{Ic.x}</button>}
       </div>
       {folded ? (
         <div className="aic-side-icons">
-          <button type="button" className="aic-icon" aria-label="새 대화" title="새 대화" onClick={() => go(null)}>{Ic.plus}</button>
+          <button type="button" className="aic-icon" aria-label="새 대화" title="새 대화" onClick={() => go(null)}>{Ic.pen}</button>
           <button type="button" className="aic-icon" aria-label="대화 찾기" title="대화 찾기" onClick={() => { fold(true); setTimeout(() => searchRef.current?.focus(), 50); }}>{Ic.search}</button>
           <span className="aic-grow" />
           <button type="button" className="aic-icon" aria-label={`보관함 ${archN}`} title={`보관함 ${archN}`} onClick={() => { fold(true); setArch(true); }}>{Ic.box}</button>
+          <button type="button" className="aic-icon" aria-label="책으로 돌아가기" title="책으로 돌아가기" onClick={close}>{Ic.back}</button>
         </div>
       ) : (
         <>
           {arch ? (
             <button type="button" className="aic-arch-head" onClick={() => setArch(false)}>{Ic.back}<b>보관함</b><span>{archN}</span></button>
-          ) : <ClothPatch color="yellow" small className="aic-new" onClick={() => go(null)}>+ 새 대화</ClothPatch>}
+          ) : phone
+            ? <ClothPatch color="yellow" small className="aic-new" onClick={() => go(null)}>+ 새 대화</ClothPatch>
+            // wide screens: a quiet row in place of the big yellow patch (Kim)
+            : <button type="button" className="aic-newrow" onClick={() => go(null)}>{Ic.pen}<span>새 대화</span></button>}
           <label className="aic-search"><span className="sr">대화 찾기</span>{Ic.search}
             <input ref={searchRef} type="search" value={q} placeholder="대화 찾기" onChange={e => setQ(e.target.value)} />
           </label>
@@ -450,6 +474,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
             ))}
           </div>
           {!arch && <button type="button" className="aic-archbtn" onClick={() => setArch(true)}>{Ic.box}보관함 {archN}</button>}
+          {sideBar && <button type="button" className="aic-archbtn aic-tobook" onClick={close}>{Ic.back}책으로 돌아가기</button>}
         </>
       )}
     </aside>
@@ -577,14 +602,23 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
               <button type="button" className="aic-icon" aria-label="새 대화" onClick={() => go(null)}>{Ic.pen}</button>
             </span>
           </>
-        ) : (
+        ) : win ? (
           <>
+            <button type="button" className="aic-icon" aria-label="대화 목록" title="대화 목록" aria-expanded={drawer} onClick={() => setDrawer(true)}>{Ic.menu}</button>
             {titleEl}
             <span className="aic-bar-end">
-              {!page && <button type="button" className="aic-full" onClick={() => { setChat(c => ({ ...c, open: false })); router.push("/ai"); }}>{Ic.expand}<span>전체 화면</span></button>}
-              <button type="button" className="aic-icon" aria-label={page ? "나가기" : "닫기"} onClick={close}>{Ic.x}</button>
+              <button type="button" className="aic-icon" aria-label="새 대화" title="새 대화" onClick={() => go(null)}>{Ic.pen}</button>
+              {/* the same conversation, on the whole window */}
+              <button type="button" className="aic-icon" aria-label="전체 화면" title="전체 화면" onClick={() => { setChat(c => ({ ...c, open: false })); router.push("/ai"); }}>{Ic.expand}</button>
+              <button type="button" className="aic-icon" aria-label="닫기" title="닫기" onClick={close}>{Ic.x}</button>
             </span>
           </>
+        ) : (
+          // /ai: the title and the work it is about, over the 680px column
+          <div className="aic-col aic-page-head">
+            {titleEl}
+            {tag && <span className="aic-ptag">{Ic.yarn}<span>{tag}</span></span>}
+          </div>
         )}
       </header>
       <div className="aic-msgs" ref={msgsRef} onScroll={onScroll}>
@@ -595,6 +629,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
           {far && <button type="button" className="aic-down" aria-label="맨 아래로" onClick={toBottom}>{Ic.down}</button>}
           {!online && <p className="aic-offline" role="status">인터넷 연결을 확인해 주세요</p>}
           <div className="aic-col">{composer}</div>
+          {sideBar && <p className="aic-note aic-foot-note">코 수와 단 수는 AI가 아니라 앱의 공식이 계산해요.</p>}
         </div>
       )}
       {!conv && !online && <p className="aic-offline is-float" role="status">인터넷 연결을 확인해 주세요</p>}
@@ -635,6 +670,8 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
 
   // nothing until the screen's size is known (a phone would show the wide panel for a moment)
   if (!open || m === null) return null;
+  // on /ai the page is the chat: the window (and the phone sheet) stay away there
+  if (!page && path === "/ai") return null;
   const overlays: ReactNode = <>{actsSheet}{linkSheet}{confirm}</>;
   if (phone) {
     return (
@@ -660,10 +697,24 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
       </div>
     );
   }
+  if (win) {
+    return (
+      <div className={"aic-root is-wide is-win" + (sinking ? " is-sinking" : "")}>
+        <div className="aic-panel" role="dialog" aria-label="AI와 상의">
+          {chatPane}
+          {drawer && (
+            <div className="aic-drawer-dim" onClick={() => setDrawer(false)}>
+              <div className="aic-drawer" onClick={e => e.stopPropagation()}>{listPane}</div>
+            </div>
+          )}
+        </div>
+        {overlays}
+      </div>
+    );
+  }
   return (
-    <div className={"aic-root is-wide" + (page ? " is-page" : "")}>
-      {!page && <div className="aic-dim aic-back" onClick={close} />}
-      <div className="aic-panel" role={page ? undefined : "dialog"} aria-modal={page ? undefined : true} aria-label="AI와 상의">
+    <div className="aic-root is-wide is-page">
+      <div className="aic-panel" aria-label="AI와 상의">
         {listPane}
         <div className="aic-right">{chatPane}</div>
       </div>

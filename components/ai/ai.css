@@ -246,3 +246,45 @@
 .aic-row-acts .is-arch{background:#EFEAF7;color:#5D4E86}
 .aic-row-acts .is-del{background:#F3D9D8;color:#9B3A3A}
 @media (prefers-reduced-motion:reduce){.aic-root.is-phone .aic-row-main{transition:none}}
+
+/* ---- wide screens: a small floating window at the upper right (Kim), the phone's chat inside ----
+   No dim: the page around it stays visible and clickable (only the window takes the pointer). It rises 12px
+   and fades in (0.2s); closing, it sinks back the same way. */
+.aic-root.is-win{pointer-events:none}
+.aic-root.is-win .aic-panel,.aic-root.is-win .aic-dim{pointer-events:auto}
+.aic-root.is-win .aic-panel{top:22px;right:24px;bottom:auto;left:auto;width:400px;height:min(650px,calc(100vh - 44px));flex-direction:column;
+  border-radius:16px;background:#FBF6EF;box-shadow:0 0 0 1px rgba(168,130,58,.16),-18px 24px 48px -14px rgba(60,42,34,.42);
+  animation:aic-win-in .2s cubic-bezier(.22,.61,.36,1);transition:transform .2s ease-in,opacity .2s ease-in}
+.aic-root.is-win.is-sinking .aic-panel{transform:translateY(12px);opacity:0}
+@keyframes aic-win-in{from{transform:translateY(12px);opacity:0}}
+.aic-root.is-win .aic-bar{min-height:52px;padding:0 8px;gap:2px;border-bottom:1px solid rgba(168,130,58,.12)}
+.aic-root.is-win .aic-bar .aic-icon{width:34px;height:34px;border-radius:8px}
+.aic-root.is-win .aic-bar .aic-icon svg{width:19px;height:19px}
+.aic-root.is-win .aic-title{text-align:center;font-size:14.5px}
+.aic-root.is-win .aic-msgs{padding:14px 16px 16px}
+.aic-root.is-win .aic-foot{padding:0 12px 12px}
+.aic-root.is-win .aic-fresh{padding:16px 0 4vh}
+.aic-root.is-win .aic-fresh h2{font-size:20px}
+/* the list: a drawer from the left inside the window (290px), only the window dimmed */
+.aic-root.is-win .aic-drawer-dim{border-radius:16px;overflow:hidden;background:rgba(60,42,34,.22)}
+.aic-root.is-win .aic-drawer{width:290px;border-radius:16px 0 0 16px;overflow:hidden}
+.aic-root.is-win .aic-drawer .aic-side{padding:10px 10px 12px}
+.aic-root.is-win .aic-drawer .aic-row-main{min-height:36px}
+/* 새 대화: a quiet row (wide screens), not the yellow patch */
+.aic-newrow{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;margin-top:8px;padding:0 10px;border:0;border-radius:8px;background:none;font-size:14px;color:var(--ink);text-align:left;cursor:pointer}
+.aic-newrow svg{width:17px;height:17px;color:var(--ink2)}
+.aic-newrow:hover{background:rgba(255,253,248,.7)}
+@media (prefers-reduced-motion:reduce){.aic-root.is-win .aic-panel{animation:none;transition:none}}
+
+/* ---- /ai on wide screens: the small gold logo and ⇤ at the top of the sidebar; the title and the work over
+   the 680px column; the box at the foot with the formulas note under it ---- */
+.aic-side-logo{flex:1;min-width:0;display:flex;align-items:center;padding-left:6px;line-height:0}
+.aic-side-foil{width:auto;height:38px}
+.aic-tobook{margin-top:0}
+.aic-root.is-page .aic-bar{padding:10px 20px 6px}
+.aic-page-head{display:flex;align-items:center;gap:10px;min-width:0}
+.aic-page-head .aic-title{flex:0 1 auto;padding-left:0;font-size:16px}
+.aic-ptag{display:inline-flex;align-items:center;gap:5px;min-width:0;height:26px;padding:0 10px;border-radius:999px;background:#EFEAF7;color:#5D4E86;font-size:12px;white-space:nowrap}
+.aic-ptag svg{flex:none;width:14px;height:14px}
+.aic-ptag span{overflow:hidden;text-overflow:ellipsis}
+.aic-foot-note{max-width:680px;margin:8px auto 0;text-align:center}
