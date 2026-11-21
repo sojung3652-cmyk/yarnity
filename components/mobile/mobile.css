@@ -596,3 +596,12 @@
   .m-splash-pic img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 40%}
   .m-splash-pic:focus-visible{outline:2px solid #3A2E29;outline-offset:-6px}
 }
+
+/* the app's background (Kim): pale linen with a few gold and silver stars, one picture held still behind every
+   phone screen (a fixed layer: it neither scrolls nor stretches on a long page); its own cream under it */
+@media (max-width:767.98px){
+  /* the body itself see-through (its background would paint over a layer behind it); the cream on the root */
+  html{background:#F4E8DE}
+  html body,html body:has(.gl){background:transparent!important}
+  html body::before{content:"";position:fixed;inset:0;z-index:-1;background:url(/mobile/bg_stars.webp) center / cover no-repeat;pointer-events:none}
+}
