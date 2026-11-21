@@ -16,13 +16,13 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my-me b.is-empty,.my-prof-who b.is-empty{font-size:15px;font-weight:600;color:#8C807A}
 .my-me small{font-size:12.5px;color:#6A605F}
 .my-me:hover b{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
-/* the avatar (Kim): the gold-bird ivory patch, or the photo inside the stitched ivory frame (its window is about
-   10% in from each side; the photo slips a little under the frame's edge) */
+/* the avatar (Kim): the gold-bird ivory patch, or the photo in the ivory lace oval frame (avatar_lace.webp; the
+   photo is an oval slipping a little under the lace) */
 .my-avatar{position:relative;display:block;flex:none} /* no shadow (Kim) */
 .my-avatar img{position:absolute;display:block}
 .my-avatar-bird{inset:0;width:100%;height:100%;object-fit:contain}
-.my-avatar-frame{inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none}
-.my-avatar-pic{left:9%;top:10%;width:82%;height:79%;object-fit:cover;border-radius:7%}
+.my-avatar-frame{inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:brightness(.88) contrast(1.15)} /* the lace a touch deeper than the linen it sits on (no shadow: Kim) */
+.my-avatar-pic{left:12%;top:16%;width:76%;height:69.5%;object-fit:cover;border-radius:50%} /* inside the lace oval (13-87% across, 17-84% down) */
 /* the menu exactly as the glossary's category list (Kim): 13px words, 38px rows, the count small on the right; the chosen
    one bolder and darker with the small gold embroidered triangle (public/glossary/tri_gold.webp) in front */
 .my-menu{display:flex;flex-direction:column;gap:2px;margin-top:26px}
@@ -218,6 +218,7 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
   .my-left{position:static;flex-direction:row;align-items:center;gap:20px;overflow-x:auto}
   .my-me{flex-direction:row;gap:10px;flex:none}
   .my-me .my-avatar{width:48px!important;height:48px!important}
+  .my-me .my-avatar.has-photo{height:64px!important}
   .my-me b{margin:0;font-size:15px}
   .my-me small{display:none}
   .my-menu{flex-direction:row;margin:0;gap:4px}

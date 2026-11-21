@@ -40,10 +40,11 @@ export function usePhotoUrl(id?: string) {
 export function Avatar({ size }: { size: number }) {
   const prof = useProfile(), url = usePhotoUrl(prof.avatar);
   return (
-    <span className={"my-avatar" + (url ? " has-photo" : "")} style={{ width: size, height: size }} aria-hidden="true">
+    // a photo: the ivory lace oval frame (Kim), as wide as the patch and 4:3 tall
+    <span className={"my-avatar" + (url ? " has-photo" : "")} style={{ width: size, height: url ? Math.round(size * 933 / 700) : size }} aria-hidden="true">
       {/* eslint-disable @next/next/no-img-element */}
       {url
-        ? <><img className="my-avatar-pic" src={url} alt="" /><img className="my-avatar-frame" src="/brand/avatar_frame.webp" alt="" /></>
+        ? <><img className="my-avatar-pic" src={url} alt="" /><img className="my-avatar-frame" src="/brand/avatar_lace.webp" alt="" /></>
         : <img className="my-avatar-bird" src="/brand/avatar_bird.webp" alt="" />}
       {/* eslint-enable @next/next/no-img-element */}
     </span>
