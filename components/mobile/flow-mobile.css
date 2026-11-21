@@ -229,3 +229,17 @@
 }
 /* the embroidered wordmark (2.82 : 1): its width only, or it would stretch */
 @media (max-width:767.98px){ body .mfh-foil{width:150px;height:auto} }
+/* the home's tiles as the web's cream paper cards (Kim: the app like the web) - the glossary list card's paper,
+   faint grain, 6px corners and soft shadow instead of the coloured cloth patches; 이어서 뜨기 marked by a
+   see-through dusty-rose band on its left edge. Only the home: other screens keep their patches */
+@media (max-width:767.98px){
+  body .mfh .mf-patch{border:0;border-image:none;border-radius:6px;padding:12px 14px;filter:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E") 0 0 / 160px 160px,#FCF9F3;
+    box-shadow:0 0 0 1px rgba(142,131,121,.16),-8px 12px 22px -16px rgba(60,42,34,.3),-2px 3px 6px -3px rgba(60,42,34,.1)}
+  body .mfh .mfh-foot .mf-patch{min-height:64px}
+  body .mfh .mfh-foot{gap:10px;margin-top:10px}
+  body .mfh .mfh-resume{margin-top:10px;padding-left:18px;
+    background:linear-gradient(90deg,rgba(224,170,174,.55) 0 4px,rgba(224,170,174,.12) 4px) 0 0 / 100% 100% no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E") 0 0 / 160px 160px,#FCF9F3}
+  body .mfh .mfh-two b{color:#3F3532}
+  body .mfh .mfh-two small,body .mfh .mfh-where{color:#7A6C64}
+}
