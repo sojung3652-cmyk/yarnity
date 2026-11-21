@@ -587,3 +587,12 @@
   .m-stage .ai-ftab-menu .ai-ftab-tip{display:none}
 }
 @media (max-width:767.98px){.mbp .lb-cover-label span{font-size:10px;padding:5px 3px}}
+
+/* the splash is one picture now (Kim): the knitted bird and the gold-thread Yarnity, the whole screen, a tap
+   anywhere goes on; the picture's own cream behind it where a screen is wider than it */
+@media (max-width:767.98px){
+  .m-splash.mf-splash{padding:0;background:#F1E6DC}
+  .m-splash-pic{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .m-splash-pic img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 40%}
+  .m-splash-pic:focus-visible{outline:2px solid #3A2E29;outline-offset:-6px}
+}
