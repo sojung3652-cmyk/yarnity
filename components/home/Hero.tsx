@@ -11,6 +11,7 @@ import { FoilLogo } from "@/components/FoilLogo";
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
 import { useMobile } from "@/components/mobile/useMobile";
 import { MobileSplash } from "@/components/mobile/MobileSplash";
+import { OpeningIntroWeb } from "@/components/opening/OpeningIntroWeb";
 
 export function Hero() {
   const b = useBook();
@@ -31,6 +32,10 @@ export function Hero() {
   const m = useMobile();
   if (m) return <MobileSplash />;
   return (
+    <>
+    {/* the web start (Kim): the embroidered opening over the desk while the book is closed on /; its sentence
+        opens the book, as the old Start link did. The desk and its still-life photo stay under it. */}
+    {b.view === "closed" && <OpeningIntroWeb onStart={b.open} />}
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}
       aria-label="소개" aria-hidden={hidden || undefined} inert={hidden}>
       {/* two stage layers with the same geometry: the photo below the 3D canvas, the copy above it */}
@@ -60,5 +65,6 @@ export function Hero() {
       </div>
       <Book />
     </section>
+    </>
   );
 }
