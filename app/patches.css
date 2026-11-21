@@ -77,3 +77,13 @@ html body .gl-title{line-height:1}
   html body .pg-link.pg-link-sage{--patch:url(/glossary/patch_babypink.webp)}
   html body .pg-link.pg-link-lilac{--patch:url(/glossary/patch_leaf.webp)}
 }
+
+/* every search box on Kim's embroidered search bar (public/brand/search_bar.webp: whiter linen, a gold rope edge,
+   the gold magnifier in its left end): nine-sliced, so the rounded ends and the magnifier keep their shape at any
+   width and only the linen between them stretches; the drawn magnifier icons step aside */
+html body .mine-find,html body .gl-search,html body .mm-find,html body .aic-search{box-sizing:border-box;height:42px;min-height:42px;padding:0 4px 0 2px;
+  background:none;border-radius:0;box-shadow:none;border-style:solid;border-width:0 14px 0 42px;
+  border-image:url(/brand/search_bar.webp) 0 60 0 180 fill / 0 14px 0 42px stretch;filter:drop-shadow(-1px 2px 2px rgba(90,62,44,.14))}
+html body .mine-find:focus-within,html body .gl-search:focus-within,html body .mm-find:focus-within,html body .aic-search:focus-within{box-shadow:none;filter:drop-shadow(-1px 2px 2px rgba(90,62,44,.14)) drop-shadow(0 0 2px rgba(176,141,87,.55))}
+html body .mine-find>svg,html body .gl-search>svg,html body .aic-search>svg{display:none}
+html body .mine-find input,html body .gl-search input,html body .mm-find input,html body .aic-search input{background:none;border:0;box-shadow:none;outline:none}
