@@ -7,7 +7,7 @@ import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { MineList } from "@/components/mine/MineList";
 import { statusOf } from "@/lib/status";
-import { WorkCard } from "./MyWorkCard";
+import { HookCard } from "./MyWorkCard";
 import { MyHead } from "./MyLayout";
 
 export function MyPatterns() {
@@ -24,7 +24,7 @@ export function MyPatterns() {
           <input type="search" autoComplete="off" placeholder="이름, 실, 색으로 찾기" value={q} onChange={e => setQ(e.target.value)} />
         </label>
       </MyHead>
-      {latest && <section className="my-latest" aria-label="가장 최근에 뜬 작품"><WorkCard p={latest} recent /></section>}
+      {latest && <HookCard p={latest} />}
       <div className="mine my-shelf"><MineList query={q} onNew={book.newPattern} /></div>
     </>
   );
