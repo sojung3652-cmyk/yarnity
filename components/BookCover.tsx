@@ -32,7 +32,7 @@ function hexA(hex: string, a: number) {
 /** the gold the covers' line drawings are painted with (once per page) */
 export const GoldDefs = () => (
   <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
-    <defs><linearGradient id="mmGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8A6E3A" /><stop offset=".35" stopColor="#C9AB6C" /><stop offset=".55" stopColor="#EADBB2" /><stop offset=".75" stopColor="#B4924F" /><stop offset="1" stopColor="#8F7038" /></linearGradient></defs>
+    <defs><linearGradient id="mmGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#7C6A48" /><stop offset=".35" stopColor="#B9A57C" /><stop offset=".55" stopColor="#EADBB2" /><stop offset=".75" stopColor="#A28C61" /><stop offset="1" stopColor="#806C47" /></linearGradient></defs>
   </svg>
 );
 

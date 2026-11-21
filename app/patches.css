@@ -45,7 +45,7 @@ html body .tp-label{--pw:18px;padding:8px 26px 6px}
 
 /* the AI tab: the gold-thread star sewn on the gold plate, above "AI" (its place and size unchanged) */
 html body .ai-ftab-star{position:absolute;left:calc(50% + 3 * var(--u));top:calc(7 * var(--u));width:calc(13 * var(--u));height:auto;transform:translateX(-50%);
-  filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3));pointer-events:none}
+  filter:drop-shadow(-1px 1px 1px rgba(78,58,32,.3));pointer-events:none}
 html body .ai-ftab .ai-ftab-mark{transform:translateY(calc(6 * var(--u)))}
 html body .ai-ftab.is-inside .ai-ftab-star{left:calc(50% - 3 * var(--u))}
 

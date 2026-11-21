@@ -282,7 +282,7 @@
 .tp-head{display:flex;flex-direction:column;align-items:center;gap:12px;margin:auto 0}
 .tp-logo{width:190px;height:auto;display:block;overflow:visible}
 .tp-cap{margin:0;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-weight:500;font-size:10px;letter-spacing:.34em;padding-left:.34em;text-transform:uppercase;color:#8C7B72}
-.tp-rule{width:36px;height:1px;background:#C9B48A;margin:6px 0 2px}
+.tp-rule{width:36px;height:1px;background:#BEB095;margin:6px 0 2px}
 .tp-sub{margin:0;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-style:italic;font-weight:500;font-size:15px;color:#8C7B72}
 .tp-month{margin:0 0 4px;font-size:10px;letter-spacing:.3em;padding-left:.3em;color:#A08F86}
 /* right page: the name on a big woven label */
@@ -302,7 +302,7 @@
 .tp-label-bottom{font-size:13px;font-style:italic}
 .tp-input{display:block;width:100%;padding:2px 4px;border:0;background:none;outline:none;resize:none;overflow:hidden;text-align:center;font:inherit;font-family:"Noto Serif KR",serif;font-weight:500;line-height:1.3;color:#3E3430;word-break:keep-all;overflow-wrap:anywhere;border-bottom:1px solid transparent;transition:border-color .2s}
 .tp-input::placeholder{color:#B9A99D;opacity:1}
-.tp-input:focus{border-bottom-color:#C9B48A}
+.tp-input:focus{border-bottom-color:#BEB095}
 @media (prefers-reduced-motion:reduce){.tp-label{transition:none}}
 @media (max-width:899px){.tp{min-height:520px}.tp-cover{min-height:0;padding:12px 0 4px}.tp-logo{width:140px}.tp-cover .tp-month{margin-top:12px}.tp-label{padding:18px 40px 14px}}
 /* buttons as small woven labels (ClothLabel.tsx), like the label on the book's cover */
@@ -325,14 +325,14 @@
 /* the last step's button: a wide dark ribbon, gold edge and gold type, notched ends; it takes the rest of
    the foot so it reads as the end of the book */
 .nb-final{flex:1;display:flex;justify-content:flex-end;min-width:0;margin-left:12px;padding:3px 0;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.nb-final-face{position:relative;display:flex;align-items:center;gap:12px;width:100%;max-width:340px;min-height:54px;box-sizing:border-box;padding:8px 30px 8px 28px;color:#E9D4A0;
+.nb-final-face{position:relative;display:flex;align-items:center;gap:12px;width:100%;max-width:340px;min-height:54px;box-sizing:border-box;padding:8px 30px 8px 28px;color:#DCCFAD;
   background:linear-gradient(180deg,#46372F,#33271F);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%,12px 50%);
   box-shadow:0 2px 4px rgba(50,35,25,.25);transition:transform .18s ease,filter .18s ease}
 /* the gold edge: a thin inset line following the ribbon */
-.nb-final-face::before{content:"";position:absolute;inset:4px 6px;border-top:1px solid #C9A961;border-bottom:1px solid #C9A961;pointer-events:none}
-.nb-final-mark{flex:none;width:14px;height:14px;color:#D9BC78}
+.nb-final-face::before{content:"";position:absolute;inset:4px 6px;border-top:1px solid #B7A273;border-bottom:1px solid #B7A273;pointer-events:none}
+.nb-final-mark{flex:none;width:14px;height:14px;color:#C8B589}
 .nb-final-text{display:flex;flex-direction:column;align-items:flex-start;flex:1;min-width:0;font-family:"Noto Serif KR",serif;font-size:15px;font-weight:600;letter-spacing:.02em;line-height:1.3;white-space:nowrap}
-.nb-final-text small{font-size:10px;font-weight:500;letter-spacing:.18em;color:#BFA571}
+.nb-final-text small{font-size:10px;font-weight:500;letter-spacing:.18em;color:#B1A07F}
 .nb-final-arrow{flex:none;font-size:17px;transition:transform .18s ease}
 .nb-final:hover .nb-final-face{transform:translateY(-1px);filter:brightness(1.08)}
 .nb-final:hover .nb-final-arrow{transform:translateX(3px)}

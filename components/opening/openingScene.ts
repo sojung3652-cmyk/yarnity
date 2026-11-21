@@ -38,7 +38,7 @@ const tw = (PTS as number[][]).map(([x, y], i) => ({ x, y: y, ph: (i * 0.618) % 
 
 function flare(c: CanvasRenderingContext2D, x: number, y: number, r: number, a: number) {
   if (a <= .01) return; c.save(); c.globalCompositeOperation = "lighter"; c.globalAlpha = a;
-  const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, "rgba(255,250,225,1)"); g.addColorStop(.25, "rgba(255,236,180,.55)"); g.addColorStop(1, "rgba(255,225,150,0)"); c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+  const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, "rgba(255,250,225,1)"); g.addColorStop(.25, "rgba(242,230,193,.55)"); g.addColorStop(1, "rgba(237,217,168,0)"); c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
   c.strokeStyle = "rgba(255,250,228,.95)"; c.lineCap = "round"; c.lineWidth = Math.max(.6, r * .09); c.beginPath(); c.moveTo(x - r * 1.5, y); c.lineTo(x + r * 1.5, y); c.moveTo(x, y - r * 1.5); c.lineTo(x, y + r * 1.5); c.stroke();
   c.lineWidth = Math.max(.4, r * .05); c.beginPath(); c.moveTo(x - r * .6, y - r * .6); c.lineTo(x + r * .6, y + r * .6); c.moveTo(x + r * .6, y - r * .6); c.lineTo(x - r * .6, y + r * .6); c.stroke(); c.restore();
 }
@@ -66,7 +66,7 @@ export function makeFrame(cv: HTMLCanvasElement, img: OpeningImages) {
     ctx.drawImage(ov, 0, Y0);
     /* shimmer: a soft light band travelling over the gold thread, only where thread is */
     const band = (u: number, al: number) => {
-      if (u <= 0 || u >= 1) return; const gxp = 120 + 700 * u; gx.globalCompositeOperation = "source-over"; gx.clearRect(0, 0, IW, CH); const g = gx.createLinearGradient(gxp - 70, 0, gxp + 70, 50); g.addColorStop(0, "rgba(255,244,205,0)"); g.addColorStop(.5, "rgba(255,246,214,1)"); g.addColorStop(1, "rgba(255,244,205,0)"); gx.fillStyle = g; gx.fillRect(0, 0, IW, 1200 - Y0);
+      if (u <= 0 || u >= 1) return; const gxp = 120 + 700 * u; gx.globalCompositeOperation = "source-over"; gx.clearRect(0, 0, IW, CH); const g = gx.createLinearGradient(gxp - 70, 0, gxp + 70, 50); g.addColorStop(0, "rgba(246,239,214,0)"); g.addColorStop(.5, "rgba(248,242,221,1)"); g.addColorStop(1, "rgba(246,239,214,0)"); gx.fillStyle = g; gx.fillRect(0, 0, IW, 1200 - Y0);
       gx.globalCompositeOperation = "destination-in"; gx.drawImage(img.gold, 0, 0, IW, CH); gx.globalCompositeOperation = "destination-in"; gx.drawImage(br, 0, 0); ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = al; ctx.drawImage(gl, 0, Y0); ctx.restore();
     };
     band((t - 2.95) / .9, .42); if (t > END) { const c = ((t - END) % 3.6) / 1.2; band(c, .34); }
