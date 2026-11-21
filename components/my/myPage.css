@@ -1,0 +1,55 @@
+/* My Page (web, Kim): the starry linen under an ivory veil; left 1fr, right 300px, 40px apart, 140px from the sides,
+   starting 32px under the NavBar. Cards: ivory, 10px corners, a warm grey hairline. One column below 1000px. */
+body:has(.my) footer{display:none}
+.my{position:relative;width:100vw;margin-left:calc(50% - 50vw);min-height:calc(100svh - 56px);box-sizing:border-box;padding:32px 140px 80px;color:#443B3B}
+.my-bg{position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(247,242,232,.62),rgba(247,242,232,.62)),url(/opening-web/bg.jpg) center/cover}
+.my-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start}
+.my-h{margin:0 0 14px;font:700 16px/1.3 "Noto Serif KR",serif;color:#443B3B}
+.my-h-sm{margin:0}
+.my-card{background:rgba(255,254,250,.85);border-radius:10px;box-shadow:0 0 0 1px rgba(142,131,121,.25)}
+/* 지금 뜨는 중 */
+.my-knits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.my-knit{display:flex;gap:16px;align-items:center;width:100%;padding:16px 18px;border:0;font:inherit;text-align:left;color:inherit;cursor:pointer;transition:transform .2s ease}
+.my-knit:hover{transform:translateY(-2px)}
+.my-knit-cover{width:76px;flex-shrink:0;filter:drop-shadow(-4px 6px 6px rgba(70,46,28,.18))}
+.my-knit-text{flex:1;min-width:0;display:block}
+.my-knit b{display:block;margin-top:7px;font:700 17px/1.3 "Noto Serif KR",serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.my-knit small{display:block;margin-top:3px;font-size:13px;color:#6A605F}
+.my-bar{display:block;margin-top:9px;height:4px;border-radius:2px;background:rgba(176,141,87,.18)}
+.my-bar i{display:block;height:100%;border-radius:2px;background:#CE999B}
+.my-knit-foot{margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#6A605F}
+.my-knit-foot em{font-style:normal;font-weight:700;font-size:13px;color:#9F646A;white-space:nowrap}
+.my-chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;font-size:11.5px;font-weight:600}
+.my-chip.is-knitting{background:#F6E8E7;color:#9F646A}
+.my-none{margin:0;padding:18px 20px;font:14px/1.5 "Noto Serif KR",serif;color:#6A605F}
+.my-link{padding:0;border:0;background:none;font:inherit;font-weight:700;color:#9F646A;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* 나의 도안집: the shelves as they were (its own count line is the tabs' now) */
+.my-shelf{margin-top:36px}
+.my .mine{padding-bottom:0}
+.my .mine-head{display:none}
+.my .mine-tools{margin-top:0}
+/* the right column */
+.my-right{display:flex;flex-direction:column;gap:16px}
+.my-side{padding:18px 18px 16px}
+.my-side-head{display:flex;align-items:center;gap:10px}
+.my-ai-badge{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(-1px 2px 2px rgba(80,58,40,.22))}
+.my-ai-badge img{display:block;width:100%;height:100%}
+.my-all{margin-left:auto;font-size:13px;font-weight:600;color:#9F646A;text-decoration:none}
+.my-all:hover{text-decoration:underline;text-underline-offset:3px}
+.my-chats{list-style:none;margin:12px 0 0;padding:0}
+.my-chats li+li{border-top:1px solid rgba(142,131,121,.2)}
+.my-chats a{display:flex;align-items:baseline;gap:10px;padding:10px 2px;text-decoration:none;color:inherit}
+.my-chats a:hover span{text-decoration:underline;text-underline-offset:3px}
+.my-chats span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:14px/1.4 "Noto Serif KR",serif}
+.my-chats small{flex-shrink:0;font-size:12px;color:#6A605F}
+.my-quiet{margin:12px 0 0;font-size:13px;color:#6A605F}
+.my-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:12px 0 0;text-align:center}
+.my-stats div+div{border-left:1px solid rgba(142,131,121,.2)}
+.my-stats dt{font-size:12px;color:#6A605F}
+.my-stats dd{margin:4px 0 0;font:700 22px/1.2 "Noto Serif KR",serif;color:#443B3B}
+.my-stats dd small{margin-left:2px;font-size:12px;font-weight:400;color:#6A605F}
+.my-note{margin:2px 4px 0;font-size:12px;line-height:1.6;color:#6A605F}
+.my a:focus-visible,.my button:focus-visible{outline:2px solid #8E8379;outline-offset:3px;border-radius:6px}
+@media (max-width:999.98px){.my{padding:32px 40px 80px}.my-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1180px) and (min-width:1000px){.my{padding-inline:80px}}
+@media (prefers-reduced-motion:reduce){.my-knit{transition:none}}

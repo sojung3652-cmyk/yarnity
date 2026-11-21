@@ -117,9 +117,11 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
     // the stage turns about the middle of what it shows - the medallion's top to the sentence's foot - so at home the room
     // above the medallion (under the NavBar) and below the sentence are the same (Kim)
     const wide = VW >= 1000 && VW / VH > 1.15, ax = OX + (LW > LH ? 960 : 540) * SC, ay = OY + ((L.my - L.mh / 2) + (L.ty + L.th)) / 2 * SC;
-    let tX: number, tY: number, s: number;
-    const RH = VH - top;
-    if (wide) { s = Math.min(.84, (RH * .84) / (1000 * SC)); tX = VW * .27 - ax; tY = top + RH * .5 - ay; } else { s = Math.min(.62, (RH * .34) / ((LW > LH ? 1000 : 1650) * SC)); tX = VW * .5 - ax; tY = top + RH * .2 - ay; }
+    let tX: number, tY: number, s: number; void wide;
+    // the home (Kim): the scene stays in the middle, only lowered so what it shows - the medallion's top to the
+    // sentence's foot - sits centred in the room under the NavBar (and smaller only if it would not fit)
+    const RH = VH - top, contentH = ((L.ty + L.th) - (L.my - L.mh / 2)) * SC;
+    s = Math.min(1, (RH * .94) / contentH); tX = 0; tY = top + RH * .5 - ay;
     return { start, origin: `${ax}px ${ay}px`, homeT: `translate(${tX}px,${tY}px) scale(${s})`, narrow: !wide };
   }
   return { size, frame };

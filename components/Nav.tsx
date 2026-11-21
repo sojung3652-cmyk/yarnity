@@ -1,15 +1,12 @@
 "use client";
-// The web's NavBar (Kim): 72px, the full width, stuck to the top; ivory with a light blur, a warm grey line and a soft
-// shadow under it. Three columns: the glinting Yarnity logo (128px, to the home), then Home · New Pattern · My Patterns ·
-// Glossary in the middle, and an empty right column so the menu sits exactly in the centre.
-// Shown on the home (once the opening has turned into it: it slides down with the menu panel after Start, or is just
-// there when you come back), 나의 도안집, the glossary, 도안 보기 and 따라 뜨기. Not during the opening, not in the book
-// (the 3D book and 도안 만들기), not on /ai, never on phones (the app has its own bars).
-// Narrower than 1000px: tighter and 16px; narrower than 760px: the menu folds into ☰, an ivory panel.
-import Link from "next/link";
+// The web's NavBar (Kim): 56px, the full width, stuck to the top; ivory with a light blur, a warm grey line and a soft
+// shadow under it. Three columns: Home · New Pattern · Glossary · My Page in the middle (Cormorant 600, 15px) between
+// two empty ones, so the menu sits exactly in the centre (no logo: Kim).
+// Shown on the home (it slides down after Start, or is just there when you come back to it), My Page, the glossary,
+// 도안 보기 and 따라 뜨기. Not during the opening, not in the book (the 3D book and 도안 만들기), not on /ai, never on
+// phones (the app has its own bars). Narrower than 1000px: tighter and 14px; narrower than 760px: ☰, an ivory panel.
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { SparkleLogo } from "@/components/SparkleLogo";
 import { useBook, wizardInBook } from "./Book/BookProvider";
 import { useMobile } from "./mobile/useMobile";
 import { useHomeState } from "@/lib/homeState";
@@ -31,12 +28,12 @@ export function Nav() {
   const inBook = path === "/new" && wizardInBook(book);
   if (m !== false || path === "/ai" || path.startsWith("/ai/") || inBook || book.floating || (atHome && !hs.home)) return null;
 
-  const mine = path === "/mine" || path === "/library", gloss = path === "/glossary" || path.startsWith("/glossary/");
+  const mine = path === "/my" || path === "/mine" || path === "/library", gloss = path === "/glossary" || path.startsWith("/glossary/");
   const items: { label: string; on: boolean; go: () => void }[] = [
     { label: "Home", on: atHome, go: () => router.push("/") },
     { label: "New Pattern", on: false, go: book.newPattern },
-    { label: "My Patterns", on: mine, go: () => router.push("/mine") },
     { label: "Glossary", on: gloss, go: () => router.push("/glossary") },
+    { label: "My Page", on: mine, go: () => router.push("/my") },
   ];
   const links = (cls: string) => items.map(it => (
     <button key={it.label} type="button" className={cls + (it.on ? " is-on" : "")} aria-current={it.on ? "page" : undefined}
@@ -44,7 +41,8 @@ export function Nav() {
   ));
   return (
     <nav className={"ynav" + (atHome ? " is-home" : "") + (atHome && !hs.instant ? " is-arriving" : "")} aria-label="주 메뉴">
-      <Link className="ynav-logo" href="/" aria-label="Yarnity 홈"><SparkleLogo className="ynav-foil" /></Link>
+      {/* no logo (Kim): an empty left column, as the right one, keeps the menu in the centre */}
+      <span className="ynav-left" aria-hidden="true" />
       <div className="ynav-mid" ref={box}>
         <div className="ynav-links" lang="en">{links("ynav-link")}</div>
         <button type="button" className="ynav-burger" aria-label="메뉴" aria-expanded={open} onClick={() => setOpen(o => !o)}>

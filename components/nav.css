@@ -11,7 +11,7 @@
 .ynav-logo{justify-self:start;display:inline-flex;line-height:0}
 .ynav-logo .ynav-foil{width:128px}
 .ynav-mid{position:relative;justify-self:center}
-.ynav-links{display:flex;align-items:center;gap:38px}
+.ynav-links{display:flex;align-items:center;gap:40px}
 .ynav-link{padding:0 0 2px;border:0;border-bottom:1.5px solid transparent;background:none;cursor:pointer;
   font:600 15px/1.2 var(--font-cormorant),"Cormorant Garamond",Georgia,serif;letter-spacing:.04em;color:#3A322D;transition:color .2s ease}
 .ynav-link:hover{color:#8E8379}

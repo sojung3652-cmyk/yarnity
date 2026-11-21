@@ -411,3 +411,5 @@ body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
    first, which left the footer just under the nav for an instant - read as an after-image of the logo (Kim) */
 footer{animation:foot-in .4s ease 1.2s backwards}
 @keyframes foot-in{from{opacity:0}}
+/* the footer logo stays out of the way while the book is up (it showed for an instant as the page under it emptied) */
+body:has(.hero-desk.is-overlay) footer{display:none}
