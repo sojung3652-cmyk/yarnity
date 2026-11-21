@@ -107,7 +107,7 @@ function PhoneMeasure({ p, onApply, onLater }: { p: Project; onApply: (h: number
 }
 
 export function TrackScreen() {
-  const { ready, active: p, updateProject, removeProjects } = useApp();
+  const { ready, active: p, updateProject, removeProjects, setChat } = useApp();
   const router = useRouter();
   const cvRef = useRef<HTMLCanvasElement>(null);
   const [wakeOn, setWakeOn] = useState(false);
@@ -259,6 +259,8 @@ export function TrackScreen() {
               <LaceButton variant="lavender" width="fill" disabled={done} onClick={() => step(1)}>한 단 끝</LaceButton>
               <p className="ms-go-sub">{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</p>
             </div>
+            {/* Yarni right beside 한 단 끝 (Kim): the AI badge patch, the lace shorter by its width */}
+            <StitchButton icon={null} patch="/brand/ai_badge.webp" label="Yarni" aria-label="Yarni와 상의하기" onClick={() => setChat(c => ({ ...c, open: true }))} />
           </div>
         </div>
         {bigChart && (

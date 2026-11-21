@@ -136,6 +136,6 @@
   .ps-main .dstitch-disc{color:var(--rose-d)}
   .ps-main .dstitch-disc::before{border:1.5px dashed var(--gold)}
   .ps-main .dstitch-label{color:var(--ink2)}
-  .ps-main .dlace-lavender{--lace:url(/mobile/diary/lace_btn_rose.webp)}
+  .ps-main .dlace-lavender{--lace:url(/mobile/diary/lace_btn_ivory.webp)} /* ivory (Kim: no pink laces) */
   .ps-main .dlace-satin{color:var(--ink);font-family:"Noto Serif KR",serif;font-weight:700}
 }

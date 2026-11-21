@@ -391,6 +391,8 @@
     background:linear-gradient(180deg,#46372F,#33271F);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%,12px 50%);box-shadow:0 2px 4px rgba(50,35,25,.25);
     font:500 14.5px/1.3 var(--m-serif);letter-spacing:.02em}
   .mw-final[aria-disabled="true"]{opacity:.55}
+  /* 완성 · 최종 도안 보기 in pink, as the lace one (Kim) */
+  .mw-final-face{color:#4A3D38;background:linear-gradient(180deg,#F2CDD3,#E6B2BB)}
 
   /* 따라 뜨기: the book's undo (cream, a hairline) and its lavender ribbon with cream stitches */
   .mt-undo{flex:none;display:flex;align-items:center;justify-content:center;width:66px;height:96px;padding:0;border:1px solid #E6DCCF;border-radius:3px;background:#FFFDF8;color:#4A3D38;font:inherit;cursor:pointer}

@@ -66,4 +66,4 @@
   .ms-screen.msp .msp-made{color:var(--ink2)}
 }
 /* 뜨기 시작: the rose lace (Kim's lace_btn_rose.webp), same size and text box as the other lace buttons */
-@media (max-width:767.98px){ .ms-screen.msp .dlace-lavender{--lace:url(/mobile/diary/lace_btn_rose.webp)} }
+@media (max-width:767.98px){ .ms-screen.msp .dlace-lavender{--lace:url(/mobile/diary/lace_btn_ivory.webp)} } /* ivory (Kim: no pink laces) */
