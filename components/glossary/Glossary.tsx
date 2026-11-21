@@ -207,7 +207,8 @@ export function GlossaryScreen({ id }: { id?: string }) {
           <Search s={s} />
           <div className="gl-list-scroll"><Rows s={s} selected={sel} onPick={pick} /></div>
         </div>
-        <div className="gl-col-panel" ref={panel}>
+        {/* wide screens (Kim): the term comes up from below like a memo slip; nothing chosen, no panel at all */}
+        <div key={term ? term.id : "none"} className={"gl-col-panel" + (term ? " is-memo" : " is-empty")} ref={panel}>
           {term ? <TermDetail term={term} onGo={pick} /> : (
             <div className="gl-panel-empty"><p>왼쪽 목록에서 용어를 고르면<br />여기에 뜨는 방법이 나와요.</p></div>
           )}
