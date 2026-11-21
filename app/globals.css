@@ -367,3 +367,15 @@ body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
 .nav-foil{height:auto;width:154px}
 .foot-foil{height:auto;width:86px}
 @media (max-width:899px){.nav-foil{width:106px}}
+
+/* ==== the web's background (Kim): the starry linen, the whole window, held still (fixed), cover + centre so
+   it never stretches; the book and the logo stay their own layers above it, moving as before. The yarn photo
+   backdrop of the home (.hero-bg) gave way to it. Phones keep theirs (components/mobile/mobile.css). ==== */
+@media (min-width:768px){
+  html body,html body:has(.gl){background:#F3EADF url(/pic/bg-stars-web.webp) center center / cover no-repeat fixed}
+  .hero-bg{display:none}
+  /* the home stage lets the linen through (not when it dims another page under the risen book) */
+  .hero-desk:not(.is-overlay){background:transparent}
+  /* the 3D book in ivory (Kim; it was baby pink): its cloth, the ribbon tab and the menu book's cover follow */
+  :root{--book-lav:#EEE5D3;--book-lav-shade:#DCCDB3}
+}
