@@ -7,6 +7,7 @@ import { drawTrack } from "@/lib/drawMap";
 import { StitchLegend } from "@/components/StitchLegend";
 import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
 import "../pattern/pattern.css";
+import { WorkMore } from "@/components/WorkMore";
 import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
 import { clamp, fmt, PART_KO, plan, withChains, type Row } from "@/lib/pattern";
@@ -292,6 +293,8 @@ export function TrackScreen() {
           <div className="tk-head-r">
             <span className="tk-wake" id="wakeNote">{wakeOn ? "화면 켜짐 유지 중" : ""}</span>
             <Link className="ps-label tk-label" href="/pattern"><span>도안 보기</span></Link>
+            {/* the work's ··· at the right end of the title row (Kim) */}
+            <WorkMore p={p} />
           </div>
         </header>
         <div className="tk-progress">

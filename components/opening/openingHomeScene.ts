@@ -108,14 +108,18 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
   }
 
   /** sizes both canvases to the root (CSS px); returns the Start button's box and the home transform (reference) */
-  function size(vw: number, vh: number, dpr: number) {
+  /** `top`: the NavBar's height over the home (72): the home centres in the room under it (Kim) */
+  function size(vw: number, vh: number, dpr: number, top = 0) {
     VW = Math.max(1, vw); VH = Math.max(1, vh); DPR = Math.min(2, dpr || 1);
     cv.width = sv.width = Math.round(VW * DPR); cv.height = sv.height = Math.round(VH * DPR); layout();
     const start = { left: OX + L.tx * SC, top: OY + (L.ty + L.th * .2) * SC, width: L.tw * SC, height: L.th * .36 * SC };
     // homeTransform: wide screens put the stage's centre at 27% across, at most 0.84; narrow ones on top, smaller
-    const wide = VW >= 1000 && VW / VH > 1.15, ax = OX + (LW > LH ? 960 : 540) * SC, ay = OY + (LW > LH ? 560 : 1000) * SC;
+    // the stage turns about the middle of what it shows - the medallion's top to the sentence's foot - so at home the room
+    // above the medallion (under the NavBar) and below the sentence are the same (Kim)
+    const wide = VW >= 1000 && VW / VH > 1.15, ax = OX + (LW > LH ? 960 : 540) * SC, ay = OY + ((L.my - L.mh / 2) + (L.ty + L.th)) / 2 * SC;
     let tX: number, tY: number, s: number;
-    if (wide) { s = Math.min(.84, (VH * .84) / (1000 * SC)); tX = VW * .27 - ax; tY = VH * .5 - ay; } else { s = Math.min(.62, (VH * .34) / ((LW > LH ? 1000 : 1650) * SC)); tX = VW * .5 - ax; tY = VH * .2 - ay; }
+    const RH = VH - top;
+    if (wide) { s = Math.min(.84, (RH * .84) / (1000 * SC)); tX = VW * .27 - ax; tY = top + RH * .5 - ay; } else { s = Math.min(.62, (RH * .34) / ((LW > LH ? 1000 : 1650) * SC)); tX = VW * .5 - ax; tY = top + RH * .2 - ay; }
     return { start, origin: `${ax}px ${ay}px`, homeT: `translate(${tX}px,${tY}px) scale(${s})`, narrow: !wide };
   }
   return { size, frame };

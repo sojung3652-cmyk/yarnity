@@ -1,0 +1,60 @@
+/* The web NavBar (Kim's spec): 72px, full width, sticky; ivory + blur, a warm grey line and a soft shadow under it */
+.ynav{position:sticky;top:0;z-index:50;box-sizing:border-box;height:56px;width:100vw;margin-left:calc(50% - 50vw);padding:0 48px;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  background:rgba(251,248,241,.92);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border-bottom:1px solid rgba(142,131,121,.32);box-shadow:0 6px 18px -12px rgba(60,52,46,.22)}
+/* the home: over the opening/home screen (fixed, above it) */
+.ynav.is-home{position:fixed;left:0;right:0;margin-left:0;z-index:130}
+/* after Start: slides down with the menu panel (0.8s, 0.3s late) */
+.ynav.is-arriving{animation:ynav-in .8s cubic-bezier(.22,1,.36,1) .3s backwards}
+@keyframes ynav-in{from{transform:translateY(-100%);opacity:0}}
+.ynav-logo{justify-self:start;display:inline-flex;line-height:0}
+.ynav-logo .ynav-foil{width:128px}
+.ynav-mid{position:relative;justify-self:center}
+.ynav-links{display:flex;align-items:center;gap:38px}
+.ynav-link{padding:0 0 2px;border:0;border-bottom:1.5px solid transparent;background:none;cursor:pointer;
+  font:600 15px/1.2 var(--font-cormorant),"Cormorant Garamond",Georgia,serif;letter-spacing:.04em;color:#3A322D;transition:color .2s ease}
+.ynav-link:hover{color:#8E8379}
+.ynav-link.is-on{color:#5E554E;border-bottom-color:#8E8379}
+.ynav-link:focus-visible,.ynav-burger:focus-visible,.ynav-plink:focus-visible{outline:2px solid #8E8379;outline-offset:4px;border-radius:2px}
+.ynav-burger{display:none;width:44px;height:44px;padding:0;border:0;border-radius:8px;background:none;color:#3A322D;cursor:pointer}
+.ynav-burger svg{width:24px;height:24px}
+.ynav-panel{position:absolute;left:50%;top:calc(100% + 14px);transform:translateX(-50%);min-width:220px;padding:8px;border-radius:10px;
+  background:#FBF8F1;box-shadow:-5px 8px 22px -10px rgba(60,52,46,.3),0 0 0 1px rgba(142,131,121,.28);display:flex;flex-direction:column}
+.ynav-plink{min-height:44px;padding:0 16px;border:0;border-radius:6px;background:none;text-align:left;cursor:pointer;
+  font:600 16px/1 var(--font-cormorant),"Cormorant Garamond",Georgia,serif;letter-spacing:.04em;color:#3A322D}
+.ynav-plink:hover{background:rgba(142,131,121,.1);color:#8E8379}
+.ynav-plink.is-on{color:#5E554E;text-decoration:underline;text-decoration-color:#8E8379;text-decoration-thickness:1.5px;text-underline-offset:5px}
+.ynav-right{justify-self:end}
+@media (max-width:999.98px){.ynav-links{gap:22px}.ynav-link{font-size:14px}}
+@media (max-width:759.98px){.ynav{padding:0 20px}.ynav-links{display:none}.ynav-burger{display:grid;place-items:center}}
+@media (prefers-reduced-motion:reduce){.ynav.is-arriving{animation:none}.ynav-link{transition:none}}
+
+/* the NavBar stands in for these (Kim): the glossary's and 나의 도안집's own titles go, their counts stay, and what
+   follows moves up into the room */
+@media (min-width:768px){
+  html body .gl-wide .gl-head .gl-title,html body .mine-head .mine-title{display:none}
+  html body .gl-wide .gl-head{justify-content:flex-end}
+}
+
+/* the work's ··· on 도안 보기 / 따라 뜨기 (web): small, warm grey, at the right end of the title row */
+.ps-title-row{position:relative}
+.ps-title-row .wmore{position:absolute;right:0;top:50%;transform:translateY(-50%)}
+.wmore{position:relative;display:inline-flex}
+.wmore-btn{display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:none;color:#8E8379;cursor:pointer}
+.wmore-btn svg{width:20px;height:20px}
+.wmore-btn:hover,.wmore-btn[aria-expanded="true"]{background:rgba(142,131,121,.12)}
+.wmore-btn:focus-visible{outline:2px solid #8E8379;outline-offset:2px}
+.wmore-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:40;min-width:180px;padding:6px;border-radius:10px;background:#FFFEFB;text-align:left;
+  box-shadow:-5px 8px 22px -10px rgba(70,56,40,.32),0 0 0 1px rgba(176,141,87,.22)}
+.wmore-menu>button{display:block;width:100%;min-height:40px;padding:0 14px;border:0;border-radius:6px;background:none;text-align:left;font:500 13.5px/1 "Noto Serif KR",serif;color:#443B3B;cursor:pointer}
+.wmore-menu>button:hover{background:#F6E8E7}
+.wmore-menu .danger{color:#9F4A50}
+.wmore-rename{display:flex;gap:6px;padding:4px}
+.wmore-rename input{flex:1;min-width:0;height:36px;padding:0 8px;border:1px solid #DCC69E;border-radius:6px;font:14px "Noto Serif KR",serif}
+.wmore-rename button,.wmore-ask button{min-height:36px;padding:0 10px;border:0;border-radius:6px;background:#F6E8E7;font:500 13px "Noto Serif KR",serif;cursor:pointer}
+.wmore-ask{padding:8px}
+.wmore-ask p{margin:0 0 8px;font:13px/1.5 "Noto Serif KR",serif;color:#443B3B}
+.wmore-ask button+button{margin-left:6px}
+/* room under the NavBar on 나의 도안집 (its title is gone) */
+@media (min-width:768px){ html body .mine-head{margin-top:22px} }

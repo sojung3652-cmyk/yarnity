@@ -62,3 +62,7 @@ body:has(.oh) footer{display:none}
 .oh-badge img{position:absolute;left:50%;top:50%;width:36%;transform:translate(-50%,-52%)}
 .oh button:focus-visible{outline:2px solid var(--gold);outline-offset:4px;border-radius:8px}
 .oh-menu{padding:30px 22px 22px}
+
+/* the NavBar (56px) is over the home: the menu centres in the room under it */
+.oh-menu{top:calc(50% + 28px);max-height:calc(100% - 40px - 56px)}
+.oh.narrow .oh-menu{max-height:calc(58% - 28px)}

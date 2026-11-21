@@ -7,7 +7,7 @@
 // A load or reload of the site at / always plays the opening from the start; coming back to / inside the site (홈,
 // the logo, the book sinking) shows the home at once, finished and with no transition. Reduced motion: the home at once.
 // The menu: today, 이어서 뜨기 (the latest work on the hook), 새 도안 만들기 (the book rises onto step 1), 나의 도안집,
-// 뜨개 용어집, AI와 상의하기. Hidden and not clickable during the opening; usable as soon as it shows.
+// 뜨개 용어집 (AI is the round badge, Kim). Hidden and not clickable during the opening; usable as soon as it shows.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/AppProvider";
@@ -18,6 +18,7 @@ import { TERMS } from "@/lib/glossary";
 import { plan, PART_KO } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
 import { makeOpeningHomeScene, OH_END, OH_SRC, type OHImages } from "./openingHomeScene";
+import { setHomeState } from "@/lib/homeState";
 import "./openingHome.css";
 
 // the opening plays once per page load: the first showing of this screen; later ones (inside the site) are the home
@@ -33,7 +34,7 @@ function stoppedAt(ms: number) {
 }
 
 export function OpeningHome() {
-  const { ready, projects, setActive, setChat } = useApp(), book = useBook(), router = useRouter();
+  const { ready, projects, setActive } = useApp(), book = useBook(), router = useRouter();
   const root = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), sv = useRef<HTMLCanvasElement>(null);
   const startBtn = useRef<HTMLButtonElement>(null), menu = useRef<HTMLElement>(null);
   const [home, setHome] = useState(false), [instant, setInstant] = useState(false), [shown, setShown] = useState(false), [loaded, setLoaded] = useState(false), [narrow, setNarrow] = useState(false);
@@ -55,7 +56,7 @@ export function OpeningHome() {
     const load = (k: keyof typeof OH_SRC) => new Promise<void>(res => { const i = new Image(); i.onload = i.onerror = () => res(); i.src = OH_SRC[k]; img[k] = i; });
     const size = () => {
       if (!scene) return;
-      const rc = r.getBoundingClientRect(), z = scene.size(rc.width, rc.height, window.devicePixelRatio || 1);
+      const rc = r.getBoundingClientRect(), z = scene.size(rc.width, rc.height, window.devicePixelRatio || 1, 56); // 56: the NavBar over the home
       b.style.left = z.start.left + "px"; b.style.top = z.start.top + "px"; b.style.width = z.start.width + "px"; b.style.height = z.start.height + "px";
       st.style.transformOrigin = z.origin; r.style.setProperty("--home-t", z.homeT); setNarrow(z.narrow); // a class React keeps
     };
@@ -69,13 +70,13 @@ export function OpeningHome() {
     const vis = () => { if (document.visibilityState === "visible" && !manual && scene) { cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); } };
     document.addEventListener("visibilitychange", vis);
     const goHome = (inst: boolean) => {
-      isHome = true; done = true; setShown(false); setInstant(inst); setHome(true);
+      isHome = true; done = true; setShown(false); setInstant(inst); setHome(true); setHomeState({ home: true, instant: inst });
       if (inst) t0 = Math.min(t0, performance.now() - OH_END * 1000);
       setTimeout(() => menu.current?.querySelector<HTMLElement>("a,button")?.focus({ preventScroll: true }), inst ? 0 : 900);
     };
     ctl.current = {
       skip: () => { t0 = performance.now() - OH_END * 1000; },
-      again: () => { isHome = false; done = false; setHome(false); setInstant(false); setShown(false); t0 = performance.now(); },
+      again: () => { isHome = false; done = false; setHome(false); setInstant(false); setShown(false); setHomeState({ home: false, instant: false }); t0 = performance.now(); },
       home: goHome,
     };
     const ro = new ResizeObserver(() => { size(); if (manual) scene?.frame(manualT); }); ro.observe(r);
@@ -91,7 +92,7 @@ export function OpeningHome() {
       if (straightHome) goHome(true);
       raf = requestAnimationFrame(tick);
     });
-    return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); document.removeEventListener("visibilitychange", vis); };
+    return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); document.removeEventListener("visibilitychange", vis); setHomeState({ home: false, instant: false }); };
   }, []);
 
   // ---- the menu (real data) ----
@@ -142,12 +143,6 @@ export function OpeningHome() {
             <span className="oh-n">02</span>
             <svg viewBox="0 0 40 40" width="34" aria-hidden="true"><g fill="none" stroke="#B08D57" strokeWidth="1.6" strokeLinejoin="round"><path d="M20 11c-4-2.6-9-3-14-2v21c5-1 10-.6 14 2 4-2.6 9-3 14-2V9c-5-1-10-.6-14 2z" /><path d="M20 11v21" /><path d="M10 15h6M10 19.5h6M24 15h6M24 19.5h6" /></g></svg>
             <span><b>뜨개 용어집</b><small>{TERMS.length}개 · 기호와 뜨는 방법</small></span><span className="oh-ar" aria-hidden="true">›</span>
-          </button>
-          <button type="button" className="oh-mi" onClick={() => setChat(c => ({ ...c, open: true }))}>
-            <span className="oh-n">03</span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <span className="oh-badge"><img src="/home/ai_star.webp" alt="" /></span>
-            <span><b>AI와 상의하기</b><small>막히는 단, 실 고르기, 뭐든 물어봐요</small></span><span className="oh-ar" aria-hidden="true">›</span>
           </button>
         </nav>
       </section>

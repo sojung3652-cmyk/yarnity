@@ -19,6 +19,7 @@ import { ITEM, itemIdOf } from "@/lib/items";
 import { fmt, PART_KO, plan, SHAPE_KO, withChains, type Row } from "@/lib/pattern";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { yarnUse } from "@/lib/yarnUse";
+import { WorkMore } from "@/components/WorkMore";
 import "./pattern.css";
 
 // phones: 완성 도안 as its own screen (components/mobile/MobilePatternScreen.tsx)
@@ -83,7 +84,8 @@ export function PatternScreen() {
         {/* header: the maker's line, the name, what it is */}
         <header className="ps-head">
           <p className="ps-kicker" lang="en"><span>Yarnity</span><span>Crochet Pattern</span><span>{made}</span></p>
-          <h1 id="patTitle">{p.name}</h1>
+          {/* the work's ··· at the right end of the title row (Kim) */}
+          <div className="ps-title-row"><h1 id="patTitle">{p.name}</h1><WorkMore p={p} /></div>
           <p className="ps-sub">{it.name} · {size}</p>
         </header>
 

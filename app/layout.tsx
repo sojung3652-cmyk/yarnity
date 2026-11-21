@@ -14,7 +14,7 @@ import { MobileChrome } from "@/components/mobile/MobileChrome";
 
 // Home hero and the open book: the start button (Cormorant Garamond italic) and the "INTELLIGENT CROCHET"
 // captions (Cormorant Garamond upright). Self-hosted by next/font (OFL), exposed as a CSS variable.
-const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: "500", style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
+const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600"], style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
 
 export const metadata: Metadata = { title: "Yarnity" };
 // maximumScale 1: iOS Safari zoomed the whole screen in when a field inside the phone's 3D book page was tapped

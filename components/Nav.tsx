@@ -1,47 +1,24 @@
 "use client";
+// The web's NavBar (Kim): 72px, the full width, stuck to the top; ivory with a light blur, a warm grey line and a soft
+// shadow under it. Three columns: the glinting Yarnity logo (128px, to the home), then Home · New Pattern · My Patterns ·
+// Glossary in the middle, and an empty right column so the menu sits exactly in the centre.
+// Shown on the home (once the opening has turned into it: it slides down with the menu panel after Start, or is just
+// there when you come back), 나의 도안집, the glossary, 도안 보기 and 따라 뜨기. Not during the opening, not in the book
+// (the 3D book and 도안 만들기), not on /ai, never on phones (the app has its own bars).
+// Narrower than 1000px: tighter and 16px; narrower than 760px: the menu folds into ☰, an ivory panel.
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { SparkleLogo } from "@/components/SparkleLogo";
 import { useBook, wizardInBook } from "./Book/BookProvider";
 import { useMobile } from "./mobile/useMobile";
-import { openGloss } from "./glossary/glossFloat";
-import { useEffect, useRef, useState } from "react";
+import { useHomeState } from "@/lib/homeState";
+import "./nav.css";
 
 export function Nav() {
-  const path = usePathname(), book = useBook(), m = useMobile(), router = useRouter();
-  // no nav bar over the book: home (도안 만들기 / 내 작품 live on the open book's page) and 도안 만들기
-  // inside the same 3D book (it takes the whole screen; a click outside the book closes it, as at home)
-  // nor over /ai: the chat takes the whole window there (its list has the way out)
-  if (m || path === "/" || path === "/ai" || (path === "/new" && wizardInBook(book))) return null;
-  // 나의 도안집 (Kim): its My Patterns title where the wordmark is (a tap reloads the page), and 홈 · 새 도안
-  // in place of the label that would point to the page you are on
-  const mine = path === "/mine", gloss = path === "/glossary" || path.startsWith("/glossary/");
-  // their name on an ivory cloth label (Kim: no wordmark pictures)
-  const mark = mine ? { label: "나의 도안집", alt: "나의 도안집" } : gloss ? { label: "뜨개 용어집", alt: "뜨개 용어집" } : null;
-  // 완성 도안 and 따라 뜨기 (Kim): no wordmark and no labels - 홈, 새 도안, 나의 도안집 and 용어집 are in ···
-  if (path === "/pattern" || path === "/track") return <nav className="nav is-sheet" aria-label="주 메뉴"><NavMore onNew={book.openHere} floatGloss /></nav>;
-  return (
-    <nav className={"nav" + (mine ? " is-mine" : "") + (mark ? " has-page-mark" : "")} aria-label="주 메뉴">
-      {/* the wordmark in the middle, in gold foil like the home hero (나의 도안집 writes its own title under it,
-          as the glossary does: Kim) */}
-      {/* 나의 도안집 and the glossary (Kim, a try): the page's own wordmark takes the middle in place of Yarnity
-          (the page's title under it is then hidden on wide screens, globals.css .nav-page-mark) */}
-      {/* the page's wordmark reloads the page (Kim); Yarnity goes home */}
-      {mark ? (
-        <a className="brand brand-logo" href={path} aria-label={`${mark.alt} 새로고침`} onClick={e => { e.preventDefault(); location.reload(); }}>
-          <span className="title-tag">{mark.label}</span>
-        </a>
-      ) : <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈"><SparkleLogo className="nav-foil" /></Link>}
-      {/* every way out is in ··· (Kim: no row of labels) */}
-      <div className="nav-links"><NavMore onNew={book.openHere} /></div>
-    </nav>
-  );
-}
-
-/** the ··· of 완성 도안 / 따라 뜨기 on wide screens: a small paper menu under it */
-function NavMore({ onNew, floatGloss = false }: { onNew: () => void; floatGloss?: boolean }) {
-  const router = useRouter(), path = usePathname(), [open, setOpen] = useState(false), box = useRef<HTMLDivElement>(null);
-  const inGloss = path === "/glossary" || path.startsWith("/glossary/");
+  const path = usePathname(), book = useBook(), m = useMobile(), router = useRouter(), hs = useHomeState();
+  const [open, setOpen] = useState(false), box = useRef<HTMLDivElement>(null);
+  useEffect(() => { setOpen(false); }, [path]);
   useEffect(() => {
     if (!open) return;
     const off = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
@@ -49,21 +26,33 @@ function NavMore({ onNew, floatGloss = false }: { onNew: () => void; floatGloss?
     document.addEventListener("mousedown", off); document.addEventListener("keydown", key);
     return () => { document.removeEventListener("mousedown", off); document.removeEventListener("keydown", key); };
   }, [open]);
-  const go = (f: () => void) => () => { setOpen(false); f(); };
+
+  const atHome = path === "/";
+  const inBook = path === "/new" && wizardInBook(book);
+  if (m !== false || path === "/ai" || path.startsWith("/ai/") || inBook || book.floating || (atHome && !hs.home)) return null;
+
+  const mine = path === "/mine" || path === "/library", gloss = path === "/glossary" || path.startsWith("/glossary/");
+  const items: { label: string; on: boolean; go: () => void }[] = [
+    { label: "Home", on: atHome, go: () => router.push("/") },
+    { label: "New Pattern", on: false, go: book.newPattern },
+    { label: "My Patterns", on: mine, go: () => router.push("/mine") },
+    { label: "Glossary", on: gloss, go: () => router.push("/glossary") },
+  ];
+  const links = (cls: string) => items.map(it => (
+    <button key={it.label} type="button" className={cls + (it.on ? " is-on" : "")} aria-current={it.on ? "page" : undefined}
+      onClick={() => { setOpen(false); it.go(); }}>{it.label}</button>
+  ));
   return (
-    <div className="nav-more" ref={box}>
-      <button type="button" className="nav-more-btn" aria-label="더 보기" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.6" fill="currentColor" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /><circle cx="18.5" cy="12" r="1.6" fill="currentColor" /></svg>
-      </button>
-      {open && (
-        <div className="nav-more-menu" role="menu">
-          <button type="button" role="menuitem" onClick={go(() => router.push("/"))}>홈</button>
-          <button type="button" role="menuitem" onClick={go(onNew)}>새 도안</button>
-          {path !== "/mine" && <button type="button" role="menuitem" onClick={go(() => router.push("/mine"))}>나의 도안집</button>}
-          {/* 도안 보기 / 따라 뜨기: the glossary floats over the page (it stays where it was); elsewhere its page */}
-          {!inGloss && <button type="button" role="menuitem" onClick={go(floatGloss ? openGloss : () => router.push("/glossary"))}>뜨개 용어집</button>}
-        </div>
-      )}
-    </div>
+    <nav className={"ynav" + (atHome ? " is-home" : "") + (atHome && !hs.instant ? " is-arriving" : "")} aria-label="주 메뉴">
+      <Link className="ynav-logo" href="/" aria-label="Yarnity 홈"><SparkleLogo className="ynav-foil" /></Link>
+      <div className="ynav-mid" ref={box}>
+        <div className="ynav-links" lang="en">{links("ynav-link")}</div>
+        <button type="button" className="ynav-burger" aria-label="메뉴" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+        </button>
+        {open && <div className="ynav-panel" lang="en">{links("ynav-plink")}</div>}
+      </div>
+      <span className="ynav-right" aria-hidden="true" />
+    </nav>
   );
 }
