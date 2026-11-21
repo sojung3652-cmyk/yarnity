@@ -101,3 +101,7 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
    running stitches inside the edge, a soft shadow to the lower left */
 .dstitch-disc{background:url(/mobile/diary/patch_cream.webp) center / 170% 170% no-repeat,#F4EEE2;background-blend-mode:normal;
   box-shadow:-1.5px 2.5px 3px -1px rgba(90,62,44,.3),inset 0 0 0 1px rgba(150,120,85,.18)}
+/* a round button drawn by an embroidered patch picture (고치기, 인쇄: Kim): the picture alone, a soft round shadow */
+.dstitch.is-patch .dstitch-disc{background:none;box-shadow:none;filter:drop-shadow(-1.5px 2.5px 2.5px rgba(80,58,40,.26))}
+.dstitch.is-patch .dstitch-disc::before{content:none}
+.dstitch.is-patch .dstitch-disc img{display:block;width:100%;height:100%}

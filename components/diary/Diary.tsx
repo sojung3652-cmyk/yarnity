@@ -43,10 +43,14 @@ export function ClothPatch({ color, small, className = "", children, ...rest }: 
 }
 
 /** a round cloth button with an icon and a word under it */
-export function StitchButton({ icon, label, className = "", ...rest }: Common & { icon: ReactNode; label: string }) {
+/** `patch`: an embroidered round patch picture (public/brand) in place of the drawn disc and icon (Kim) */
+export function StitchButton({ icon, label, patch, className = "", ...rest }: Common & { icon: ReactNode; label: string; patch?: string }) {
   return (
-    <Base className={`dstitch ${className}`} {...rest}>
-      <span className="dstitch-disc" aria-hidden="true">{icon}</span>
+    <Base className={`dstitch${patch ? " is-patch" : ""} ${className}`} {...rest}>
+      {patch
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <span className="dstitch-disc" aria-hidden="true"><img src={patch} alt="" /></span>
+        : <span className="dstitch-disc" aria-hidden="true">{icon}</span>}
       <span className="dstitch-label">{label}</span>
     </Base>
   );

@@ -73,8 +73,8 @@ export function PatternScreen() {
         <div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div>
         <div className="ps-btns">
           {/* Girl's Diary (components/diary): two round cloth buttons and the lavender lace tag */}
-          <StitchButton icon={DiaryIcon.pen} label="고치기" onClick={() => book.editHere(p.id)} />
-          <StitchButton icon={DiaryIcon.print} label="인쇄" onClick={() => window.print()} />
+          <StitchButton icon={DiaryIcon.pen} patch="/brand/btn_edit.webp" label="고치기" onClick={() => book.editHere(p.id)} />
+          <StitchButton icon={DiaryIcon.print} patch="/brand/btn_print.webp" label="인쇄" onClick={() => window.print()} />
           <LaceButton variant="lavender" width={260} id="startBtn" href="/track">{p.current > 0 ? (p.current >= pp.rows.length ? "뜨기 기록 보기 →" : `이어서 뜨기 · ${pp.rows[p.current].label} →`) : "뜨기 시작 →"}</LaceButton>
         </div>
       </div>
