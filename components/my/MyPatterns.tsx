@@ -17,7 +17,7 @@ export function MyPatterns() {
     .sort((a, b) => (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created))[0] ?? null, [projects]);
   return (
     <>
-      <MyHead title="나의 도안집" line={`${projects.length}권`} />
+      <MyHead title="나의 도안집" /> {/* no 권 count: 전체 shows it (Kim) */}
       {latest && <HookCard p={latest} />}
       <div className="mine my-shelf"><MineList onNew={book.newPattern} /></div>
     </>

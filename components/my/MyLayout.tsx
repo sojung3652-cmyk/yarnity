@@ -51,10 +51,10 @@ export function Avatar({ size }: { size: number }) {
 }
 
 /** a screen's head: its title and one line, its main button(s) at the right end */
-export function MyHead({ title, line, children }: { title: string; line: ReactNode; children?: ReactNode }) {
+export function MyHead({ title, line, children }: { title: string; line?: ReactNode; children?: ReactNode }) {
   return (
     <header className="my-head">
-      <div><h1 className="my-title">{title}</h1><p className="my-line">{line}</p></div>
+      <div><h1 className="my-title">{title}</h1>{line && <p className="my-line">{line}</p>}</div>
       {children && <div className="my-head-end">{children}</div>}
     </header>
   );
