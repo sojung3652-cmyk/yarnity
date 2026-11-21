@@ -43,8 +43,6 @@ export function AiBadge() {
     <button ref={ref} type="button" className="ai-badge" aria-label="AI에게 물어보기" aria-expanded={false}
       style={phone && lift != null ? { bottom: lift } : undefined}
       onClick={() => setChat(c => ({ ...c, open: true }))}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="ai-badge__star" src="/brand/ai_star.webp" alt="" />
       <span className="ai-badge__label" aria-hidden="true">AI에게 물어보기</span>
     </button>
   );
