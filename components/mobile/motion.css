@@ -5,8 +5,9 @@
 /* wide screens too (Kim: 나의 도안집 <-> 용어집 must not just blink): the page left fades out, the new one fades
    in; its blocks then float in by themselves (globals.css float-in) */
 @media (min-width:768px){
-  ::view-transition-old(.page-leave){animation:pg-out .2s ease-in both}
-  ::view-transition-new(.page-rise){animation:pg-fade .3s ease-out .08s both}
+  /* no overlap (an overlap read as an after-image of the old page): the old one is gone before the new one shows */
+  ::view-transition-old(.page-leave){animation:pg-out .14s ease-in both}
+  ::view-transition-new(.page-rise){animation:pg-fade .26s ease-out .14s both}
   ::view-transition{pointer-events:none}
 }
 @keyframes pg-fade{from{opacity:0}}
