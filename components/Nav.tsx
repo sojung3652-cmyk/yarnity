@@ -23,18 +23,21 @@ export function Nav() {
           as the glossary does: Kim) */}
       {/* 나의 도안집 and the glossary (Kim, a try): the page's own wordmark takes the middle in place of Yarnity
           (the page's title under it is then hidden on wide screens, globals.css .nav-page-mark) */}
-      <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈">
-        {mark ? <img className="nav-page-mark" src={mark.src} alt={mark.alt} width={mark.w} height={mark.h} draggable={false} /> : <SparkleLogo className="nav-foil" />}
-      </Link>
+      {/* the page's wordmark reloads the page (Kim); Yarnity goes home */}
+      {mark ? (
+        <a className="brand brand-logo" href={path} aria-label={`${mark.alt} 새로고침`} onClick={e => { e.preventDefault(); location.reload(); }}>
+          <img className="nav-page-mark" src={mark.src} alt="" width={mark.w} height={mark.h} draggable={false} />
+        </a>
+      ) : <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈"><SparkleLogo className="nav-foil" /></Link>}
       <div className="nav-links">
         {/* 도안 보기 / 따라 뜨기 (Kim): the glossary floats over the page, which stays where it was */}
         {(path === "/pattern" || path === "/track") && <GlossButton />}
-        {/* 나의 도안집 (Kim): 홈 · 새 도안 · 용어집; elsewhere 새 도안 and 나의 도안집 */}
-        {mine && <button type="button" className="nav-label nav-label-home" onClick={() => router.push("/")}><span>홈</span></button>}
+        {/* 나의 도안집 (Kim): 홈 · 새 도안 · 용어집; the glossary: 홈 · 새 도안 · 나의 도안집; elsewhere 새 도안 and 나의 도안집 */}
+        {(mine || gloss) && <button type="button" className="nav-label nav-label-home" onClick={() => router.push("/")}><span>홈</span></button>}
         {/* 새 도안: the menu book rises over this page; closing it leaves you on the page. Both as woven labels */}
         <button type="button" className="nav-label nav-label-new" aria-haspopup="dialog" onClick={book.openHere}><span>새 도안</span></button>
         {mine && <Link className="nav-label nav-label-gloss" href="/glossary"><span>용어집</span></Link>}
-        {!mine && <Link className="nav-label" href="/mine" aria-current={cur("/mine")}><span>나의 도안집</span></Link>}
+        {!mine && <Link className="nav-label nav-label-mine" href="/mine" aria-current={cur("/mine")}><span>나의 도안집</span></Link>}
       </div>
     </nav>
   );

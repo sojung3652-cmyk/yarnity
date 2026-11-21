@@ -25,6 +25,7 @@ html body .ps-label-go{--patch:url(/mobile/diary/patch_pink.webp)}
 html body .pg-link.pg-link-sage{--patch:url(/glossary/patch_sage.webp)}
 /* the nav's 용어집: the glossary's baby pink patch (Kim) */
 html body .nav .nav-label.nav-label-gloss{--patch:url(/glossary/patch_babypink.webp)}
+html body .nav .nav-label.nav-label-mine{--patch:url(/glossary/patch_leaf.webp)} /* 나의 도안집: pastel green (Kim) */
 /* the book's first page: 이어서 만들기 in sky blue (Kim) */
 html body .pg-link.pg-link-lilac{--patch:url(/mobile/diary/patch_blue.webp)}
 html body .ps-label-go>span{background:none}
