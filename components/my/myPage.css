@@ -19,14 +19,18 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
   box-shadow:-3px 5px 10px -4px rgba(70,50,35,.28)}
 .my-avatar::after{content:"";position:absolute;inset:6px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(176,141,87,.85);pointer-events:none}
 .my-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.my-menu{display:flex;flex-direction:column;margin-top:26px}
-.my-mi{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;height:56px;padding:0 4px 0 18px;
-  font:500 16px/1 "Noto Serif KR",serif;color:#7A6F68;text-decoration:none}
-.my-mi:hover{color:#3A322D}
-.my-mi.is-on{color:#3A322D;font-weight:700}
-.my-mi.is-on::before{content:"";position:absolute;left:2px;top:50%;margin-top:-5.5px;border-style:solid;border-width:5.5px 0 5.5px 9px;border-color:transparent transparent transparent #B0A69E}
-.my-mi em{font:600 16px/1 var(--font-cormorant),"Cormorant Garamond",serif;font-style:normal;color:#A89E96}
-.my-mi.is-on em{color:#9F646A}
+/* the menu exactly as the glossary's category list (Kim): 13px words, 38px rows, the count small on the right; the chosen
+   one bolder and darker with the small gold embroidered triangle (public/glossary/tri_gold.webp) in front */
+.my-menu{display:flex;flex-direction:column;gap:2px;margin-top:26px}
+.my-mi{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:38px;padding:0 12px;border-radius:6px;
+  font:500 13px/1.3 "Noto Serif KR",serif;color:#7D7270;text-decoration:none}
+.my-mi:hover{color:#332C2C;background:rgba(246,232,231,.45)}
+.my-mi.is-on,.my-mi.is-on:hover{background:none;color:#141010;font-weight:800}
+.my-mi>span{position:relative;padding-left:16px}
+.my-mi.is-on>span::before{content:"";position:absolute;left:0;top:50%;width:10px;height:10px;margin-top:-5px;
+  background:url(/glossary/tri_gold.webp) center/contain no-repeat;filter:drop-shadow(-.5px 1px .5px rgba(90,62,44,.25))}
+.my-mi em{font-style:normal;font-size:11px;color:#9A8E88}
+.my-mi.is-on em{font-weight:700;color:#141010}
 
 /* ---- the right: a head, then the screen ---- */
 .my-right{min-width:0}
@@ -232,10 +236,7 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
   .my-me b{margin:0;font-size:15px}
   .my-me small{display:none}
   .my-menu{flex-direction:row;margin:0;gap:4px}
-  .my-mi{height:40px;padding:0 12px;font-size:14px;white-space:nowrap;border-radius:20px}
-  .my-mi.is-on{background:rgba(255,254,250,.7)}
-  .my-mi.is-on::before{display:none}
-  .my-mi em{font-size:14px}
+  .my-mi{white-space:nowrap}
   .my-masonry{column-count:2}
   .my-gal{grid-template-columns:repeat(2,minmax(0,1fr))}
   .my-work{grid-template-columns:auto minmax(0,1fr)}
