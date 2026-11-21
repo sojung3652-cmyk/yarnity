@@ -4,13 +4,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { SparkleLogo } from "@/components/SparkleLogo";
 import { useBook, wizardInBook } from "./Book/BookProvider";
 import { useMobile } from "./mobile/useMobile";
-import { GlossButton } from "./glossary/GlossaryFloat";
 import { openGloss } from "./glossary/glossFloat";
 import { useEffect, useRef, useState } from "react";
 
 export function Nav() {
   const path = usePathname(), book = useBook(), m = useMobile(), router = useRouter();
-  const cur = (href: string) => (path === href ? "page" : undefined);
   // no nav bar over the book: home (도안 만들기 / 내 작품 live on the open book's page) and 도안 만들기
   // inside the same 3D book (it takes the whole screen; a click outside the book closes it, as at home)
   // nor over /ai: the chat takes the whole window there (its list has the way out)
@@ -21,7 +19,7 @@ export function Nav() {
   // their name on an ivory cloth label (Kim: no wordmark pictures)
   const mark = mine ? { label: "나의 도안집", alt: "나의 도안집" } : gloss ? { label: "뜨개 용어집", alt: "뜨개 용어집" } : null;
   // 완성 도안 and 따라 뜨기 (Kim): no wordmark and no labels - 홈, 새 도안, 나의 도안집 and 용어집 are in ···
-  if (path === "/pattern" || path === "/track") return <nav className="nav is-sheet" aria-label="주 메뉴"><NavMore onNew={book.openHere} /></nav>;
+  if (path === "/pattern" || path === "/track") return <nav className="nav is-sheet" aria-label="주 메뉴"><NavMore onNew={book.openHere} floatGloss /></nav>;
   return (
     <nav className={"nav" + (mine ? " is-mine" : "") + (mark ? " has-page-mark" : "")} aria-label="주 메뉴">
       {/* the wordmark in the middle, in gold foil like the home hero (나의 도안집 writes its own title under it,
@@ -34,23 +32,16 @@ export function Nav() {
           <span className="title-tag">{mark.label}</span>
         </a>
       ) : <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈"><SparkleLogo className="nav-foil" /></Link>}
-      <div className="nav-links">
-        {/* 도안 보기 / 따라 뜨기 (Kim): the glossary floats over the page, which stays where it was */}
-        {(path === "/pattern" || path === "/track") && <GlossButton />}
-        {/* 나의 도안집 (Kim): 홈 · 새 도안 · 용어집; the glossary: 홈 · 새 도안 · 나의 도안집; elsewhere 새 도안 and 나의 도안집 */}
-        {(mine || gloss) && <button type="button" className="nav-label nav-label-home" onClick={() => router.push("/")}><span>홈</span></button>}
-        {/* 새 도안: the menu book rises over this page; closing it leaves you on the page. Both as woven labels */}
-        <button type="button" className="nav-label nav-label-new" aria-haspopup="dialog" onClick={book.openHere}><span>새 도안</span></button>
-        {mine && <Link className="nav-label nav-label-gloss" href="/glossary"><span>용어집</span></Link>}
-        {!mine && <Link className="nav-label nav-label-mine" href="/mine" aria-current={cur("/mine")}><span>나의 도안집</span></Link>}
-      </div>
+      {/* every way out is in ··· (Kim: no row of labels) */}
+      <div className="nav-links"><NavMore onNew={book.openHere} /></div>
     </nav>
   );
 }
 
 /** the ··· of 완성 도안 / 따라 뜨기 on wide screens: a small paper menu under it */
-function NavMore({ onNew }: { onNew: () => void }) {
-  const router = useRouter(), [open, setOpen] = useState(false), box = useRef<HTMLDivElement>(null);
+function NavMore({ onNew, floatGloss = false }: { onNew: () => void; floatGloss?: boolean }) {
+  const router = useRouter(), path = usePathname(), [open, setOpen] = useState(false), box = useRef<HTMLDivElement>(null);
+  const inGloss = path === "/glossary" || path.startsWith("/glossary/");
   useEffect(() => {
     if (!open) return;
     const off = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
@@ -68,8 +59,9 @@ function NavMore({ onNew }: { onNew: () => void }) {
         <div className="nav-more-menu" role="menu">
           <button type="button" role="menuitem" onClick={go(() => router.push("/"))}>홈</button>
           <button type="button" role="menuitem" onClick={go(onNew)}>새 도안</button>
-          <button type="button" role="menuitem" onClick={go(() => router.push("/mine"))}>나의 도안집</button>
-          <button type="button" role="menuitem" onClick={go(openGloss)}>뜨개 용어집</button>
+          {path !== "/mine" && <button type="button" role="menuitem" onClick={go(() => router.push("/mine"))}>나의 도안집</button>}
+          {/* 도안 보기 / 따라 뜨기: the glossary floats over the page (it stays where it was); elsewhere its page */}
+          {!inGloss && <button type="button" role="menuitem" onClick={go(floatGloss ? openGloss : () => router.push("/glossary"))}>뜨개 용어집</button>}
         </div>
       )}
     </div>

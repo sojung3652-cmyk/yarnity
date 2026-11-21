@@ -145,3 +145,9 @@
   .pg-actions{bottom:5%;overflow-y:auto;overscroll-behavior:contain;margin-left:-10px;width:calc(72% + 20px);box-sizing:border-box;padding:6px 10px 14px;scrollbar-width:thin;scrollbar-color:rgba(176,141,87,.35) transparent}
   .pg-actions>*{flex:none}
 }
+/* wide screens, the left page (Kim): a bigger glinting wordmark (its own shape, 1500 x 437) and INTELLIGENT CROCHET
+   a little smaller, close under it */
+@media (min-width:768px){
+  .pg-lp .pg-logo,.pg-page:not(.pg-rp) .pg-logo{left:21%;width:58%;top:19%}
+  .pg-lp .pg-cap,.pg-page:not(.pg-rp) .pg-cap{top:calc(19% + 58cqw * 437 / 1500 + 5px * var(--k,1));font-size:max(1.45cqw,calc(8.5px * var(--k,1)))}
+}
