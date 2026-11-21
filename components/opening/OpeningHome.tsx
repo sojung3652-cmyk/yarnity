@@ -3,7 +3,7 @@
 // canvas over the starry linen, openingHomeScene.ts); once done, its sentence is the Start button. Start moves the whole
 // stage left and smaller in about a second while the paper menu comes in from the right and an ivory veil settles -
 // that is the home; nothing navigates. The glints, light bands and the sentence's glow go on there; the sentence is no
-// longer a button. Top right: 건너뛰기 during the opening, 오프닝 다시 보기 at home.
+// longer a button. Top right: 건너뛰기 during the opening (Kim: no 오프닝 다시 보기 at home).
 // A load or reload of the site at / always plays the opening from the start; coming back to / inside the site (홈,
 // the logo, the book sinking) shows the home at once, finished and with no transition. Reduced motion: the home at once.
 // The menu: today, 이어서 뜨기 (the latest work on the hook), 새 도안 만들기 (the book rises onto step 1), 나의 도안집,
@@ -152,7 +152,6 @@ export function OpeningHome() {
         </nav>
       </section>
       {loaded && !home && <button type="button" className="oh-skip" onClick={() => ctl.current.skip()} hidden={shown}>건너뛰기</button>}
-      {home && <button type="button" className="oh-again" onClick={() => ctl.current.again()}>오프닝 다시 보기</button>}
     </div>
   );
 }
