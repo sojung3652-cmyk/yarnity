@@ -3,6 +3,7 @@
 // so far each time more comes; the end is parsed tolerantly (Rule 5: safeParseReply). Stopped (the signal) -
 // what had come is returned with stopped: true.
 import { partialReply, safeParseReply, STREAM_ERR, type ChatReply, type ChatRequest } from "@/lib/chat";
+import { nicknameForAi } from "@/lib/profile";
 
 export type AskResult =
   | { ok: true; reply: ChatReply; raw: string; stopped: false }
@@ -12,7 +13,9 @@ export type AskResult =
 export async function ask(body: ChatRequest, signal: AbortSignal, onText: (text: string) => void): Promise<AskResult> {
   let r: Response;
   try {
-    r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal });
+    // the profile's nickname goes with every question (Yarni calls the user by it)
+    const nickname = nicknameForAi();
+    r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(nickname ? { ...body, nickname } : body), signal });
   } catch {
     if (signal.aborted) return { ok: true, reply: { reply: "", set: {}, chips: [] }, raw: "", stopped: true };
     return { ok: false, error: typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "upstream", partial: "" };

@@ -24,17 +24,18 @@ async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBReq
   });
 }
 
-/** A picture file shrunk to at most 1280px on its longest side, as JPEG. */
-export async function shrink(file: File): Promise<Blob> {
+/** A picture file shrunk to at most `max` px (1280 by default) on its longest side, as JPEG. */
+export async function shrink(file: File, max = MAX): Promise<Blob> {
   const bmp = await createImageBitmap(file);
-  const k = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+  const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
   const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
   c.getContext("2d")!.drawImage(bmp, 0, 0, c.width, c.height); bmp.close();
   return new Promise((res, rej) => c.toBlob(b => (b ? res(b) : rej(new Error("toBlob failed"))), "image/jpeg", 0.82));
 }
 
-export async function addPhoto(projectId: string, file: File): Promise<Photo> {
-  const p: Photo = { id: "ph" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), projectId, at: Date.now(), blob: await shrink(file) };
+/** `max`: My Page (web) keeps its pictures at 1600px on the longest side (Kim) */
+export async function addPhoto(projectId: string, file: File, max = MAX): Promise<Photo> {
+  const p: Photo = { id: "ph" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), projectId, at: Date.now(), blob: await shrink(file, max) };
   await tx("readwrite", s => s.put(p));
   return p;
 }
@@ -58,5 +59,15 @@ export async function removePhoto(id: string) { await tx("readwrite", s => s.del
 /** Photos of works that no longer exist (deleted and past their undo). */
 export async function dropOrphans(keep: string[]) {
   const all = (await tx<Photo[]>("readonly", s => s.getAll())) ?? [], ids = new Set(keep);
-  for (const p of all) if (!ids.has(p.projectId)) await removePhoto(p.id);
+  // "wish:…" and "profile:…" pictures (My Page) belong to no work: never orphans
+  for (const p of all) if (!ids.has(p.projectId) && !p.projectId.includes(":")) await removePhoto(p.id);
+}
+
+/** One picture by its id. */
+export async function photoById(id: string): Promise<Photo | undefined> { return tx<Photo>("readonly", s => s.get(id)); }
+/** Every picture (the backup file). */
+export async function allPhotos(): Promise<Photo[]> { return (await tx<Photo[]>("readonly", s => s.getAll())) ?? []; }
+/** Put pictures back as they were (the backup file); `clear` empties the store first. */
+export async function putPhotos(list: Photo[], clear = false) {
+  await tx("readwrite", s => { if (clear) s.clear(); for (const p of list) s.put(p); });
 }

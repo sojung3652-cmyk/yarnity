@@ -28,7 +28,7 @@ export function Nav() {
   const inBook = path === "/new" && wizardInBook(book);
   if (m !== false || path === "/ai" || path.startsWith("/ai/") || inBook || book.floating || (atHome && !hs.home)) return null;
 
-  const mine = path === "/my" || path === "/mine" || path === "/library", gloss = path === "/glossary" || path.startsWith("/glossary/");
+  const mine = path === "/my" || path.startsWith("/my/") || path === "/mine" || path === "/library", gloss = path === "/glossary" || path.startsWith("/glossary/");
   const items: { label: string; on: boolean; go: () => void }[] = [
     { label: "Home", on: atHome, go: () => router.push("/") },
     { label: "New Pattern", on: false, go: book.newPattern },

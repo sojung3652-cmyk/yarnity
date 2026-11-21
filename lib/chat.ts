@@ -37,6 +37,8 @@ export interface ChatRequest {
   image?: { data: string; mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" };
   /** the first answer of a conversation also names it ("title") */
   wantTitle?: boolean;
+  /** how Yarni calls the user (My Page's 나의 프로필) */
+  nickname?: string;
 }
 
 /** added to RULES for the first answer: the conversation's title comes with it (no second call) */

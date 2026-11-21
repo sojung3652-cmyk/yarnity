@@ -120,10 +120,12 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
 }
 
 /** the shelves of 나의 도안집 (web): on My Page since the NavBar went to Home · New Pattern · Glossary · My Page */
-export function MineList() {
+/** `query`: the search box lives in My Page's header (its own box hides); `onNew`: a dashed + 새 도안 slot ends
+ *  the shelves (Kim) */
+export function MineList({ query, onNew }: { query?: string; onNew?: () => void } = {}) {
   const { ready, projects, setActive, updateProject, addProject, removeProjects, restoreProjects } = useApp();
   const router = useRouter(), book = useBook();
-  const [q, setQ] = useState(""), [filter, setFilter] = useState<Filter>("all"), [sort, setSort] = useState<Sort>("recent");
+  const [ownQ, setQ] = useState(""), q = query ?? ownQ, [filter, setFilter] = useState<Filter>("all"), [sort, setSort] = useState<Sort>("recent");
   const [open, setOpen] = useState<string | null>(null);
   const [picking, setPicking] = useState(false), [picked, setPicked] = useState<string[]>([]), [askMany, setAskMany] = useState(false);
   const [undo, setUndo] = useState<{ r: Removed; n: number } | null>(null);
@@ -148,7 +150,8 @@ export function MineList() {
     const list = projects.filter(p => (filter === "all" || statusOf(p) === filter) && words.every(w => haystack(p).includes(w)));
     return [...list].sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "ko") : sort === "created" ? b.created - a.created : (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created));
   }, [projects, q, filter, sort]);
-  const shelves = useMemo(() => { const out: Project[][] = []; for (let i = 0; i < shown.length; i += cols) out.push(shown.slice(i, i + cols)); return out; }, [shown, cols]);
+  // the dashed + 새 도안 slot (null) after the last book
+  const shelves = useMemo(() => { const all: (Project | null)[] = onNew && !q.trim() ? [...shown, null] : shown, out: (Project | null)[][] = []; for (let i = 0; i < all.length; i += cols) out.push(all.slice(i, i + cols)); return out; }, [shown, cols, onNew, q]);
 
   const removed = (r: Removed) => {
     if (timer.current) clearTimeout(timer.current);
@@ -194,11 +197,11 @@ export function MineList() {
       </header>
       <div className="mine-tools">
         {/* a small search box with a magnifier (Kim: the long underlined field was too big) */}
-        <label className="mine-find" htmlFor="mineSearch">
+        {query === undefined && <label className="mine-find" htmlFor="mineSearch">
           <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10.4 10.4 14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
           <span className="sr">작품 찾기</span>
           <input id="mineSearch" className="mine-search" type="search" autoComplete="off" placeholder="찾기" value={q} onChange={e => setQ(e.target.value)} />
-        </label>
+        </label>}
         <div className="mine-row">
           <div className="mine-tabs" role="tablist" aria-label="상태로 거르기">
             {(["all", "knitting", "paused", "done"] as Filter[]).map(f => (
@@ -225,10 +228,11 @@ export function MineList() {
         )}
       </div>
       <div ref={shelvesRef} className="bk-shelves" style={{ "--cols": cols } as React.CSSProperties}>
-        {shown.length ? shelves.map((row, i) => (
+        {shelves.length ? shelves.map((row, i) => (
           <div key={i} className="bk-row">
             <ul className="bk-books">
               {row.map(p => {
+                if (!p) return <li key="new"><button type="button" className="my-newslot" onClick={onNew}><span aria-hidden="true">+</span>새 도안</button></li>;
                 const w = whereOf(p), on = picked.includes(p.id);
                 return (
                   <li key={p.id}>

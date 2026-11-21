@@ -1,0 +1,96 @@
+"use client";
+// My Page (web only, Kim): the profile and a plain menu on the left - sticky under the NavBar, no box - and one of
+// five screens on the right: 진행 중 (/my), 나의 도안집 (/my/patterns), 나의 기록 (/my/records), 위시 보관함
+// (/my/wish), 나의 프로필 (/my/profile). Below 1000px the left goes on top as a row of tabs. Phones keep their own
+// 나의 도안집 (/mine): every /my address sends them there.
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useApp } from "@/components/AppProvider";
+import { useMobile } from "@/components/mobile/useMobile";
+import { GoldDefs } from "@/components/BookCover";
+import { photoById } from "@/lib/photos";
+import { useProfile } from "@/lib/profile";
+import { statusOf } from "@/lib/status";
+import { useWishes } from "@/lib/wish";
+import "./myPage.css";
+
+export const MY_MENU = [
+  { href: "/my", label: "진행 중" },
+  { href: "/my/patterns", label: "나의 도안집" },
+  { href: "/my/records", label: "나의 기록" },
+  { href: "/my/wish", label: "위시 보관함" },
+  { href: "/my/profile", label: "나의 프로필" },
+] as const;
+
+/** a picture kept in IndexedDB, as an object URL while it is shown */
+export function usePhotoUrl(id?: string) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!id) { setUrl(null); return; }
+    let u: string | null = null, live = true;
+    photoById(id).then(p => { if (live && p) { u = URL.createObjectURL(p.blob); setUrl(u); } }).catch(() => {});
+    return () => { live = false; if (u) URL.revokeObjectURL(u); };
+  }, [id]);
+  return url;
+}
+
+/** the round linen avatar with a gold hairline inside: the picture, or the nickname's first letter */
+export function Avatar({ size }: { size: number }) {
+  const prof = useProfile(), url = usePhotoUrl(prof.avatar);
+  const letter = (prof.nickname.trim()[0] ?? "Y").toUpperCase();
+  return (
+    <span className={"my-avatar" + (url ? " has-photo" : "")} style={{ width: size, height: size, fontSize: Math.round(size * 34 / 96) }} aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {url ? <img src={url} alt="" /> : <span>{letter}</span>}
+    </span>
+  );
+}
+
+/** a screen's head: its title and one line, its main button(s) at the right end */
+export function MyHead({ title, line, children }: { title: string; line: ReactNode; children?: ReactNode }) {
+  return (
+    <header className="my-head">
+      <div><h1 className="my-title">{title}</h1><p className="my-line">{line}</p></div>
+      {children && <div className="my-head-end">{children}</div>}
+    </header>
+  );
+}
+
+export function MyLayout({ children }: { children: ReactNode }) {
+  const m = useMobile(), router = useRouter(), path = usePathname();
+  const { projects } = useApp(), prof = useProfile(), wishes = useWishes();
+  useEffect(() => { if (m) router.replace("/mine"); }, [m, router]);
+  const counts = useMemo(() => {
+    const st = projects.map(statusOf);
+    return [st.filter(s => s === "knitting").length, projects.length, st.filter(s => s === "done").length, wishes.length, null] as (number | null)[];
+  }, [projects, wishes]);
+  if (m !== false) return <main id="view-my" />;
+  const sub = [prof.craft, prof.career].filter(Boolean).join(" · ");
+  return (
+    <main className="my" id="view-my">
+      <GoldDefs />
+      <div className="my-bg" aria-hidden="true" />
+      <div className="my-grid">
+        <aside className="my-left">
+          <Link href="/my/profile" className="my-me" aria-label="나의 프로필로">
+            <Avatar size={96} />
+            <b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주세요"}</b>
+            {sub && <small>{sub}</small>}
+          </Link>
+          <nav className="my-menu" aria-label="My Page">
+            {MY_MENU.map((it, i) => {
+              const on = path === it.href;
+              return (
+                <Link key={it.href} href={it.href} className={"my-mi" + (on ? " is-on" : "")} aria-current={on ? "page" : undefined}>
+                  <span>{it.label}</span>{counts[i] !== null && <em>{counts[i]}</em>}
+                </Link>
+              );
+            })}
+          </nav>
+        </aside>
+        <div className="my-right">{children}</div>
+      </div>
+    </main>
+  );
+}

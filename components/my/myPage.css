@@ -1,65 +1,244 @@
-/* My Page (web, Kim): the starry linen under an ivory veil; left 1fr, right 300px, 40px apart, 140px from the sides,
-   starting 32px under the NavBar. Cards: ivory, 10px corners, a warm grey hairline. One column below 1000px. */
+/* My Page (web only, Kim): under the NavBar, 120px from the sides, 28px down; the starry linen under an ivory veil.
+   Left 230px (profile + a plain menu, sticky, no box) | 56px | right 1fr. Cards: the stitched ivory cloth label.
+   Every shadow falls to the lower left. Nothing under 11px. Below 1000px the left becomes a row of tabs on top. */
 body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have their own <footer> */
-.my{position:relative;width:100vw;margin-left:calc(50% - 50vw);min-height:calc(100svh - 56px);box-sizing:border-box;padding:32px 140px 80px;color:#443B3B}
+.my{position:relative;width:100vw;margin-left:calc(50% - 50vw);min-height:calc(100svh - 56px);box-sizing:border-box;padding:28px 120px 80px;color:#443B3B}
 .my-bg{position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(247,242,232,.62),rgba(247,242,232,.62)),url(/opening-web/bg.jpg) center/cover}
-.my-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start}
-.my-h{margin:0 0 14px;font:700 16px/1.3 "Noto Serif KR",serif;color:#443B3B}
-.my-h-sm{margin:0}
-.my-card{background:rgba(255,254,250,.85);border-radius:10px;box-shadow:0 0 0 1px rgba(142,131,121,.25)}
-/* 지금 뜨는 중 */
-.my-knits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.my-knit{display:flex;gap:16px;align-items:center;width:100%;padding:16px 18px;border:0;font:inherit;text-align:left;color:inherit;cursor:pointer;transition:transform .2s ease}
-.my-knit:hover{transform:translateY(-2px)}
-.my-knit-cover{width:76px;flex-shrink:0;filter:drop-shadow(-4px 6px 6px rgba(70,46,28,.18))}
-.my-knit-text{flex:1;min-width:0;display:block}
-.my-knit b{display:block;margin-top:7px;font:700 17px/1.3 "Noto Serif KR",serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.my-knit small{display:block;margin-top:3px;font-size:13px;color:#6A605F}
-.my-bar{display:block;margin-top:9px;height:4px;border-radius:2px;background:rgba(176,141,87,.18)}
-.my-bar i{display:block;height:100%;border-radius:2px;background:#CE999B}
-.my-knit-foot{margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#6A605F}
-.my-knit-foot em{font-style:normal;font-weight:700;font-size:13px;color:#9F646A;white-space:nowrap}
+.my-grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:56px;align-items:start}
+.my a:focus-visible,.my button:focus-visible,.my input:focus-visible,.my textarea:focus-visible{outline:2px solid #8E8379;outline-offset:3px;border-radius:6px}
+
+/* ---- the left: profile, then the menu ---- */
+.my-left{position:sticky;top:76px;display:flex;flex-direction:column}
+.my-me{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;text-decoration:none;color:inherit}
+.my-me b{margin-top:6px;font:700 19px/1.3 "Noto Serif KR",serif;color:#3A322D}
+.my-me b.is-empty,.my-prof-who b.is-empty{font-size:15px;font-weight:600;color:#8C807A}
+.my-me small{font-size:12.5px;color:#6A605F}
+.my-me:hover b{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.my-avatar{position:relative;display:grid;place-items:center;flex:none;border-radius:50%;overflow:hidden;
+  background:url(/brand/ai_linen.jpg) center/cover;font:700 34px/1 "Noto Serif KR",serif;color:#5E554E;
+  box-shadow:-3px 5px 10px -4px rgba(70,50,35,.28)}
+.my-avatar::after{content:"";position:absolute;inset:6px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(176,141,87,.85);pointer-events:none}
+.my-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.my-menu{display:flex;flex-direction:column;margin-top:26px}
+.my-mi{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;height:56px;padding:0 4px 0 18px;
+  font:500 16px/1 "Noto Serif KR",serif;color:#7A6F68;text-decoration:none}
+.my-mi:hover{color:#3A322D}
+.my-mi.is-on{color:#3A322D;font-weight:700}
+.my-mi.is-on::before{content:"";position:absolute;left:2px;top:50%;margin-top:-5.5px;border-style:solid;border-width:5.5px 0 5.5px 9px;border-color:transparent transparent transparent #B0A69E}
+.my-mi em{font:600 16px/1 var(--font-cormorant),"Cormorant Garamond",serif;font-style:normal;color:#A89E96}
+.my-mi.is-on em{color:#9F646A}
+
+/* ---- the right: a head, then the screen ---- */
+.my-right{min-width:0}
+.my-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px 24px;flex-wrap:wrap;margin-bottom:22px}
+.my-title{margin:0;font:700 22px/1.3 "Noto Serif KR",serif;color:#3A322D;letter-spacing:-.01em}
+.my-line{margin:6px 0 0;font-size:13px;color:#6A605F}
+.my-head-end{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.my-h2{margin:0;font:700 16px/1.3 "Noto Serif KR",serif;color:#3A322D}
+.my-sub{display:flex;align-items:center;gap:14px;margin:40px 0 16px;font:700 15px/1.3 "Noto Serif KR",serif;color:#5E554E}
+.my-sub::after{content:"";flex:1;height:1px;background:rgba(142,131,121,.3)}
+.my-quiet{margin:0;font-size:13px;line-height:1.6;color:#6A605F}
+
+/* buttons: main #5E554E with ivory words, second #FFFEFB with a warm grey line; 36px pills */
+.my-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 16px;border:0;border-radius:18px;
+  background:#5E554E;color:#FBF7EF;font:600 13px/1 "Noto Sans KR",system-ui,sans-serif;white-space:nowrap;cursor:pointer;text-decoration:none;
+  box-shadow:-1.5px 2px 4px -1px rgba(60,42,34,.25);transition:background .15s}
+.my-btn:hover{background:#4A423C}
+.my-btn.is-sub{background:#FFFEFB;color:#4A423C;box-shadow:inset 0 0 0 1px rgba(142,131,121,.45),-1px 1.5px 3px -1px rgba(60,42,34,.12)}
+.my-btn.is-sub:hover{background:#F8F3EA}
+.my-btn:disabled{opacity:.45;cursor:default}
+.my-textbtn{padding:0;border:0;background:none;font:inherit;font-size:12.5px;color:#9F646A;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.my-textbtn.is-quiet{color:#8C807A}
+
+/* chips: 뜨는 중 / 시작 전 · 중단 / 완성 */
 .my-chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;font-size:11.5px;font-weight:600}
-.my-chip.is-knitting{background:#F5EEDF;color:#7A5F3A;box-shadow:0 0 0 1px rgba(176,141,87,.38)}
-.my-none{margin:0;padding:18px 20px;font:14px/1.5 "Noto Serif KR",serif;color:#6A605F}
-.my-link{padding:0;border:0;background:none;font:inherit;font-weight:700;color:#9F646A;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-/* 나의 도안집: the shelves as they were (its own count line is the tabs' now) */
-.my-shelf{margin-top:36px}
-.my .mine{padding-bottom:0}
-.my .mine-head{display:none}
-.my .mine-tools{margin-top:0}
-/* the right column */
-.my-right{display:flex;flex-direction:column;gap:16px}
-.my-side{padding:18px 18px 16px}
-.my-side-head{display:flex;align-items:center;gap:10px}
-.my-ai-badge{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(-1px 2px 2px rgba(80,58,40,.22))}
-.my-ai-badge img{display:block;width:100%;height:100%}
-.my-all{margin-left:auto;font-size:13px;font-weight:600;color:#9F646A;text-decoration:none}
-.my-all:hover{text-decoration:underline;text-underline-offset:3px}
-.my-chats{list-style:none;margin:12px 0 0;padding:0}
-.my-chats li+li{border-top:1px solid rgba(142,131,121,.2)}
-.my-chats a{display:flex;align-items:baseline;gap:10px;padding:10px 2px;text-decoration:none;color:inherit}
-.my-chats a:hover span{text-decoration:underline;text-underline-offset:3px}
-.my-chats span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:14px/1.4 "Noto Serif KR",serif}
-.my-chats small{flex-shrink:0;font-size:12px;color:#6A605F}
-.my-quiet{margin:12px 0 0;font-size:13px;color:#6A605F}
-.my-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:12px 0 0;text-align:center}
-.my-stats div+div{border-left:1px solid rgba(142,131,121,.2)}
-.my-stats dt{font-size:12px;color:#6A605F}
-.my-stats dd{margin:4px 0 0;font:700 22px/1.2 "Noto Serif KR",serif;color:#443B3B}
-.my-stats dd small{margin-left:2px;font-size:12px;font-weight:400;color:#6A605F}
-.my-note{margin:2px 4px 0;font-size:12px;line-height:1.6;color:#6A605F}
-.my a:focus-visible,.my button:focus-visible{outline:2px solid #8E8379;outline-offset:3px;border-radius:6px}
-@media (max-width:999.98px){.my{padding:32px 40px 80px}.my-grid{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:1180px) and (min-width:1000px){.my{padding-inline:80px}}
-@media (prefers-reduced-motion:reduce){.my-knit{transition:none}}
-/* every box on the ivory cloth label (Kim): the cream patch - frayed edge, running stitches - stretched round it,
-   a soft shadow to the lower left; the inner room shrinks by the patch's edge */
-.my-card{--pw:14px;background:none;border-radius:0;box-shadow:none;border-style:solid;border-width:var(--pw);
+.my-chip.is-knit{background:#F6E8E7;color:#9F646A}
+.my-chip.is-rest{background:#F1EEEA;color:#6A605F}
+.my-chip.is-done{background:#EEE9E3;color:#5E554E}
+
+/* cards: the stitched ivory cloth label stretched round the box */
+.my-card{--pw:14px;box-sizing:border-box;border-style:solid;border-width:var(--pw);
   border-image-source:url(/mobile/diary/patch_cream.webp);border-image-slice:62 fill;border-image-repeat:stretch;
   filter:drop-shadow(-1.5px 2.5px 2px rgba(90,62,44,.16))}
-.my-knit{padding:4px 6px}
-.my-none{padding:6px 8px}
-.my-side{padding:6px 6px 4px}
-/* the card says 뜨는 중 in its chip: the cover's own tag (unstyled outside the shelf) is not repeated */
-.my-knit .mm-tag{display:none}
+.my-empty{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0;padding:10px 12px}
+.my-empty p,.my-empty>span{margin:0;font:15px/1.5 "Noto Serif KR",serif;color:#5E554E}
+
+/* small menus (···) */
+.my-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;display:flex;flex-direction:column;min-width:170px;padding:6px;border-radius:10px;background:#FFFEFB;
+  box-shadow:-5px 8px 22px -10px rgba(70,56,40,.32),0 0 0 1px rgba(142,131,121,.22)}
+.my-pop button{padding:9px 10px;border:0;border-radius:6px;background:none;font:500 13px/1.3 "Noto Sans KR",system-ui,sans-serif;color:#3F3532;text-align:left;cursor:pointer}
+.my-pop button:hover{background:#F6EFE6}
+.my-pop button.danger{color:#9B3A3A}
+.my-pop-kick{margin:4px 10px 6px;font-size:11.5px;color:#8C807A}
+
+/* ---- 1 진행 중 ---- */
+.my-works{display:flex;flex-direction:column;gap:14px}
+.my-work{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:20px;padding:8px 12px 8px 10px}
+.my-work-cover{width:84px;filter:drop-shadow(-4px 6px 6px rgba(70,46,28,.18))}
+.my-work-text{min-width:0}
+.my-work .mm-tag{display:none} /* the card's chip says it (Kim: no status tags on covers) */
+.my-work h3{margin:8px 0 0;font:700 19px/1.3 "Noto Serif KR",serif;color:#3A322D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.my-work-where{margin:4px 0 0;font-size:13px;color:#5E554E}
+.my-bar{display:block;max-width:360px;margin-top:10px;height:4px;border-radius:2px;background:rgba(176,141,87,.18)}
+.my-bar i{display:block;height:100%;border-radius:2px;background:#CE999B}
+.my-work-when{margin:8px 0 0;font-size:12px;color:#6A605F}
+.my-work-end{position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.my-work-links{display:flex;align-items:center;gap:6px;margin:0;font-size:12.5px;color:#8C807A}
+.my-work-links button{padding:2px;border:0;background:none;font:inherit;color:#6A605F;cursor:pointer}
+.my-work-links button:hover{color:#3A322D;text-decoration:underline;text-underline-offset:3px}
+
+/* ---- 2 나의 도안집 ---- */
+.my-search{display:flex;align-items:center;gap:8px;width:240px;height:36px;box-sizing:border-box;padding:0 14px;border-radius:18px;background:#FFFEFB;
+  box-shadow:inset 0 0 0 1px rgba(142,131,121,.4);color:#8C807A}
+.my-search svg{width:15px;height:15px;flex:none}
+.my-search input{flex:1;min-width:0;border:0;outline:none;background:none;font:13.5px "Noto Sans KR",system-ui,sans-serif;color:#3F3532}
+.my-shelf.mine{padding-bottom:0}
+.my .mine-head{display:none}
+.my .mine-tools{margin-top:0}
+.my .my-newslot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;aspect-ratio:3 / 4;box-sizing:border-box;border:1.5px dashed rgba(142,131,121,.55);border-radius:6px;
+  background:rgba(255,254,250,.4);font:600 13px "Noto Serif KR",serif;color:#6A605F;cursor:pointer;transition:background .15s}
+.my .my-newslot span{font:300 26px/1 "Noto Sans KR",sans-serif;color:#8C807A}
+.my .my-newslot:hover{background:rgba(255,254,250,.75);color:#3A322D}
+
+/* ---- 3 나의 기록 ---- */
+.my-stats{display:grid;gap:14px;margin:0 0 30px}
+.my-stats>div{padding:6px 8px;text-align:center}
+.my-stats dt{font-size:12.5px;color:#6A605F}
+.my-stats dd{margin:6px 0 0;font:700 24px/1.2 "Noto Serif KR",serif;color:#3A322D}
+.my-stats dd small{margin-left:3px;font-size:12px;font-weight:400;color:#6A605F}
+.my-rec{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+.my-sec-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.my-pick-wrap{position:relative}
+.my-gal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 18px;list-style:none;margin:0;padding:0}
+.my-gal li{display:flex;flex-direction:column;gap:4px;min-width:0}
+.my-gal b{margin-top:6px;font:700 14px/1.35 "Noto Serif KR",serif;color:#3A322D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.my-gal small{font-size:12px;color:#6A605F}
+.my-gal-pic{position:relative;display:block;width:100%;height:150px;padding:0;border:0;border-radius:6px;overflow:hidden;background:#EFE8DD;cursor:zoom-in;
+  box-shadow:-3px 5px 10px -5px rgba(70,50,35,.3),0 0 0 1px rgba(142,131,121,.18)}
+.my-gal-pic img{width:100%;height:100%;object-fit:cover;display:block}
+.my-gal-n{position:absolute;right:8px;bottom:8px;padding:2px 8px;border-radius:10px;background:rgba(60,48,42,.62);color:#FBF7EF;font-size:11px}
+.my-gal-pic.is-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;
+  background:repeating-linear-gradient(135deg,rgba(142,131,121,.1) 0 7px,rgba(255,254,250,.5) 7px 14px);box-shadow:inset 0 0 0 1px rgba(142,131,121,.3)}
+.my-gal-pic.is-empty span{font:600 13px "Noto Serif KR",serif;color:#6A605F}
+.my-gal-pic.is-empty small{font-size:11.5px;color:#8C807A}
+.my-days{padding:8px 10px}
+.my-heat{display:flex;gap:5px;margin-top:14px}
+.my-heat-col{display:flex;flex-direction:column;gap:5px}
+.my-heat i{display:block;width:14px;height:14px;border-radius:3px;background:rgba(142,131,121,.12)}
+.my-heat i.l1{background:#F1D6D8}.my-heat i.l2{background:#E2AEB3}.my-heat i.l3{background:#CE999B}
+.my-heat i.is-future{background:none;box-shadow:inset 0 0 0 1px rgba(142,131,121,.12)}
+.my-heat-note{margin:12px 0 0;font-size:11.5px;color:#6A605F}
+.my-lb{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:40px;background:rgba(40,30,24,.72)}
+.my-lb figure{position:relative;margin:0;max-width:min(1000px,92vw)}
+.my-lb img{display:block;max-width:100%;max-height:78vh;border-radius:6px;box-shadow:-8px 14px 30px -10px rgba(0,0,0,.5)}
+.my-lb figcaption{display:flex;justify-content:space-between;gap:16px;margin-top:12px;font-size:13px;color:#F3ECE0}
+.my-lb-del{padding:0;border:0;background:none;font:inherit;color:#E8C9C9;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.my-lb-nav,.my-lb-x{position:absolute;display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,254,250,.9);color:#3F3532;font-size:22px;cursor:pointer}
+.my-lb-nav{top:calc(50% - 32px)}.my-lb-nav.is-prev{left:-56px}.my-lb-nav.is-next{right:-56px}
+.my-lb-x{top:-16px;right:-16px;width:34px;height:34px;font-size:15px}
+
+/* ---- 4 위시 보관함 ---- */
+.my-btn svg{flex:none}
+.my-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.my-pill{height:32px;padding:0 14px;border:0;border-radius:16px;background:rgba(255,254,250,.7);box-shadow:inset 0 0 0 1px rgba(142,131,121,.32);
+  font:500 13px "Noto Sans KR",system-ui,sans-serif;color:#6A605F;cursor:pointer}
+.my-pill span{margin-left:3px;font-size:11.5px;color:#A89E96}
+.my-pill.is-on{background:#5E554E;color:#FBF7EF;box-shadow:none}
+.my-pill.is-on span{color:#E6DCCF}
+.my-masonry{column-count:4;column-gap:16px;list-style:none;margin:0;padding:0}
+.my-wish{position:relative;display:inline-block;width:100%;box-sizing:border-box;margin:0 0 16px;break-inside:avoid;vertical-align:top}
+.my-wish.my-card{padding:4px 6px 6px}
+.my-wish-pic{display:block;width:100%;height:auto;max-height:280px;object-fit:cover;margin-bottom:10px;border-radius:4px}
+.my-wish-kind{display:flex;align-items:center;gap:5px;margin:0;font-size:11.5px;color:#8C807A}
+.my-wish-kind span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.my-wish b{display:block;margin-top:5px;font:700 14px/1.45 "Noto Serif KR",serif;color:#3A322D}
+.my-wish-price{margin:5px 0 0;font:600 13.5px "Noto Sans KR",system-ui,sans-serif;color:#5E554E}
+.my-wish-go{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:600;color:#9F646A;text-decoration:none}
+.my-wish-go:hover{text-decoration:underline;text-underline-offset:3px}
+.my-wish.is-memo{padding:18px 18px 20px;border-radius:4px;box-shadow:-3px 5px 10px -5px rgba(70,50,35,.25),0 0 0 1px rgba(142,131,121,.15)}
+.my-wish.tone-cream{background:#FBF1D9}.my-wish.tone-rose{background:#F6E8E7}
+.my-wish-memo{margin:0;font:14px/1.7 "Noto Serif KR",serif;color:#3F3532;white-space:pre-wrap}
+.my-wish-more{position:absolute;right:4px;top:4px;z-index:2;width:30px;height:26px;border:0;border-radius:8px;background:rgba(255,254,250,.92);
+  font:700 14px/1 sans-serif;color:#5E554E;cursor:pointer;opacity:0;box-shadow:-1px 2px 4px -2px rgba(60,42,34,.3);transition:opacity .15s}
+.my-wish:hover .my-wish-more,.my-wish-more:focus-visible,.my-wish-more[aria-expanded="true"]{opacity:1}
+.my-pop.is-card{top:34px;right:4px;min-width:120px}
+.my-ask{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:4px;background:rgba(255,254,250,.96)}
+.my-ask p{margin:0;font:600 14px "Noto Serif KR",serif;color:#3F3532}
+.my-ask div{display:flex;gap:6px}
+.my-empty.is-wish{flex-direction:column;align-items:flex-start;padding:16px 18px}
+
+/* the add / change dialog */
+.my-dim{position:fixed;inset:0;z-index:150;display:grid;place-items:center;padding:24px;background:rgba(60,42,34,.32)}
+.my-sheet{width:min(440px,100%);max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;padding:24px 24px 20px;border-radius:14px;background:#FFFDF8;
+  box-shadow:-10px 18px 40px -16px rgba(50,35,25,.45)}
+.my-sheet h2{margin:0 0 16px;font:700 18px/1.3 "Noto Serif KR",serif;color:#3A322D}
+.my-sheet-text{margin:0 0 10px;font-size:13.5px;line-height:1.65;color:#4A423C}
+.my-sheet-text.is-warn{color:#8A3F3F}
+.my-sheet-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.my-field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.my-field>span:first-child{font-size:12px;font-weight:600;color:#6A605F}
+.my-field input,.my-field textarea,.my-prof-rows input{box-sizing:border-box;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:#FFFEFB;
+  box-shadow:inset 0 0 0 1px rgba(142,131,121,.4);font:14px/1.5 "Noto Sans KR",system-ui,sans-serif;color:#3F3532;outline:none}
+.my-field textarea{resize:vertical;font-family:"Noto Serif KR",serif}
+.my-field input:focus,.my-field textarea:focus,.my-prof-rows input:focus{box-shadow:inset 0 0 0 1.5px #8E8379}
+.my-field-row{display:flex;gap:8px}
+.my-field-row input{flex:1}
+.my-field-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.my-hint{margin:-4px 0 12px;font-size:12px;line-height:1.5;color:#9F646A}
+.my-form-pic{display:block;width:100%;max-height:200px;object-fit:cover;margin:0 0 12px;border-radius:8px}
+.my-seg{display:inline-flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.my-seg button{height:32px;padding:0 14px;border:0;border-radius:16px;background:#FFFEFB;box-shadow:inset 0 0 0 1px rgba(142,131,121,.4);
+  font:500 13px "Noto Sans KR",system-ui,sans-serif;color:#5E554E;cursor:pointer}
+.my-seg button.is-on{background:#5E554E;color:#FBF7EF;box-shadow:none}
+.my-seg button.is-cream:not(.is-on){background:#FBF1D9}.my-seg button.is-rose:not(.is-on){background:#F6E8E7}
+.my-drop{display:grid;place-items:center;min-height:150px;margin-bottom:12px;border-radius:10px;overflow:hidden;cursor:pointer;
+  background:repeating-linear-gradient(135deg,rgba(142,131,121,.08) 0 7px,rgba(255,254,250,.6) 7px 14px);box-shadow:inset 0 0 0 1px rgba(142,131,121,.35)}
+.my-drop span{display:flex;align-items:center;gap:6px;font-size:13px;color:#6A605F}
+.my-drop img{display:block;width:100%;max-height:240px;object-fit:cover}
+
+/* ---- 5 나의 프로필 ---- */
+.my-prof{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:28px;align-items:start}
+.my-prof-main{padding:10px 14px 6px}
+.my-prof-top{display:flex;align-items:center;gap:18px;padding-bottom:18px;border-bottom:1px solid rgba(142,131,121,.22)}
+.my-prof-who{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.my-prof-who b{font:700 19px/1.3 "Noto Serif KR",serif;color:#3A322D}
+.my-prof-btns{display:flex;gap:6px}
+.my-prof-rows{margin:0}
+.my-prof-rows>div{display:grid;grid-template-columns:150px minmax(0,1fr);align-items:center;gap:16px;min-height:56px;padding:8px 0;border-bottom:1px solid rgba(142,131,121,.16)}
+.my-prof-rows>div:last-child{border-bottom:0}
+.my-prof-rows dt{display:flex;flex-direction:column;gap:3px;font-size:13px;font-weight:600;color:#6A605F}
+.my-prof-rows dt small{font-size:11px;font-weight:400;color:#9F646A}
+.my-prof-rows dd{margin:0;font:15px/1.5 "Noto Serif KR",serif;color:#3A322D}
+.my-prof-rows dd .is-empty{font-size:13.5px;color:#A89E96}
+.my-prof-rows dd .my-seg{margin:0}
+.my-prof-rows input{max-width:320px}
+.my-prof-side{display:flex;flex-direction:column;gap:16px}
+.my-data{padding:8px 10px}
+.my-data p{margin:10px 0 0;font-size:13px;line-height:1.65;color:#5E554E}
+.my-data-btns{display:flex;gap:8px;margin-top:14px}
+.my-data .my-hint{margin:10px 0 0}
+.my-login{margin:0;padding:16px 18px;border:1.5px dashed rgba(142,131,121,.5);border-radius:10px;font-size:12.5px;line-height:1.65;color:#6A605F;background:rgba(255,254,250,.35)}
+
+/* ---- narrower ---- */
+@media (max-width:1400px){.my-masonry{column-count:3}}
+@media (max-width:1180px){.my{padding-inline:64px}.my-rec,.my-prof{grid-template-columns:minmax(0,1fr)}.my-gal{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:999.98px){
+  .my{padding:20px 32px 80px}
+  .my-grid{grid-template-columns:minmax(0,1fr);gap:24px}
+  .my-left{position:static;flex-direction:row;align-items:center;gap:20px;overflow-x:auto}
+  .my-me{flex-direction:row;gap:10px;flex:none}
+  .my-me .my-avatar{width:48px!important;height:48px!important;font-size:18px!important}
+  .my-me .my-avatar::after{inset:3px}
+  .my-me b{margin:0;font-size:15px}
+  .my-me small{display:none}
+  .my-menu{flex-direction:row;margin:0;gap:4px}
+  .my-mi{height:40px;padding:0 12px;font-size:14px;white-space:nowrap;border-radius:20px}
+  .my-mi.is-on{background:rgba(255,254,250,.7)}
+  .my-mi.is-on::before{display:none}
+  .my-mi em{font-size:14px}
+  .my-masonry{column-count:2}
+  .my-gal{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .my-work{grid-template-columns:auto minmax(0,1fr)}
+  .my-work-end{grid-column:1 / -1;flex-direction:row;align-items:center;justify-content:space-between}
+}
+@media (prefers-reduced-motion:reduce){.my-btn,.my-wish-more,.my-newslot{transition:none}}

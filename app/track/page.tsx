@@ -15,6 +15,7 @@ import type { Project } from "@/lib/types";
 import { useMobile } from "@/components/mobile/useMobile";
 import { MobileTopBar, MoreButton } from "@/components/mobile/MobileTopBar";
 import { MoreSheet, SAVED_KEY } from "@/components/mobile/MoreSheet";
+import { logRow, logTime } from "@/lib/knitLog";
 
 function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
   const pp = plan(p), exp = 6 * pp.g.h;
@@ -132,8 +133,19 @@ export function TrackScreen() {
   // knitting a row makes the work 뜨는 중 again (or 완성 at the last row)
   const step = useCallback((d: number) => {
     if (!p) return; const total = plan(p).rows.length, cur = clamp((p.current || 0) + d, 0, total);
+    // My Page's 나의 기록 (뜬 날, 완성한 날) counts the rows that really moved
+    if (cur !== (p.current || 0)) logRow(p.id, cur - (p.current || 0), cur >= total);
     updateProject(p.id, { current: cur, status: cur >= total ? "done" : "knitting", pausedAt: null });
   }, [p, updateProject]);
+
+  // My Page's 뜬 시간: the time this page is open and visible
+  useEffect(() => {
+    let since = document.visibilityState === "visible" ? Date.now() : 0;
+    const flush = () => { if (since) { logTime(Date.now() - since); since = 0; } };
+    const onVis = () => { if (document.visibilityState === "visible") since = Date.now(); else flush(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { document.removeEventListener("visibilitychange", onVis); flush(); };
+  }, []);
 
   // canvas: redraw on change and on resize (120ms debounce)
   const redraw = useCallback(() => { if (p && pp && cvRef.current) drawTrack(cvRef.current, { ...p, current }, pp); }, [p, pp, current]);

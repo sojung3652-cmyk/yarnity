@@ -17,6 +17,14 @@ const MAX_IMAGE_B64 = 7_000_000; // ~5MB decoded, the API's per-image limit
 
 const fail = (error: ChatErrorCode, status: number) => Response.json({ error }, { status });
 
+// My Page's 나의 프로필 (Kim): the nickname is how Yarni calls the user. Only letters, digits, spaces and a few
+// marks, 20 at most, so it cannot carry instructions into the rules.
+function nameRule(n: unknown): string {
+  if (typeof n !== "string") return "";
+  const name = n.replace(/[^\p{L}\p{N} ._-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);
+  return name ? `\n사용자의 닉네임은 "${name}"이야. 사용자를 부를 때는 이 이름으로 불러(예: ${name}님).` : "";
+}
+
 // GET: lets the client decide whether to show the composer. Without a key the UI falls back to
 // the form-only flow (the prototype's offChat()), so the app still works with no AI at all.
 export function GET() {
@@ -64,7 +72,7 @@ export async function POST(req: Request) {
   // paid for after it.
   const client = new Anthropic(); // reads ANTHROPIC_API_KEY
   const stream = client.messages.stream(
-    { model: MODEL, max_tokens: MAX_TOKENS, system: RULES + (body.wantTitle ? TITLE_RULE : ""), messages },
+    { model: MODEL, max_tokens: MAX_TOKENS, system: RULES + nameRule(body.nickname) + (body.wantTitle ? TITLE_RULE : ""), messages },
     { signal: req.signal },
   );
   // wait for the first piece, so an error that comes at once still gets its status code

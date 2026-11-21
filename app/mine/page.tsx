@@ -8,7 +8,7 @@ import { MobileMine } from "@/components/mobile/MobileMine";
 
 export default function MinePage() {
   const m = useMobile(), router = useRouter();
-  useEffect(() => { if (m === false) router.replace("/my"); }, [m, router]);
+  useEffect(() => { if (m === false) router.replace("/my/patterns"); }, [m, router]); // My Page's 나의 도안집 (Kim)
   if (m) return <MobileMine />;
   return <main id="view-mine" />;
 }
