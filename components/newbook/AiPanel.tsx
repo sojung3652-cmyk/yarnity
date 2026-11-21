@@ -574,7 +574,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   const starters = step > 0 && !stepOff ? STEP_CHIPS[step] ?? STARTERS : STARTERS;
   const fresh = (
     <div className={"aic-fresh" + (sheet ? " is-sheet" : "")}>
-      {/* the gold star glints (Kim): a streak of light across it every 3.5s, clipped to the star */}
+      {/* the gold star breathes (Kim): a touch brighter and back every 2.4s */}
       <span className="aic-glint" aria-hidden="true"><Star size={40} /></span>
       <h2>오늘은 무엇을 떠 볼까요?</h2>
       {composer}

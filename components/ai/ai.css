@@ -329,12 +329,8 @@
 .aic-send:disabled{opacity:.45}
 .aic-root.is-phone .aic-send,.aic-root.is-win .aic-send{width:32px;height:32px}
 .aic-root.is-phone .aic-send{width:36px;height:36px}
-/* the first screen's gold star glints (Kim): every 3.5s a streak of light sweeps across it from the upper left in
-   0.9s, masked to the star's own shape so nothing shows outside it */
+/* the first screen's gold star breathes (Kim): a little brighter (+15%) and back every 2.4s, its size unchanged */
 .aic-glint{position:relative;display:inline-block;line-height:0}
-.aic-glint::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(115deg,transparent 0 38%,rgba(255,250,228,.95) 50%,transparent 62%) no-repeat;background-size:250% 100%;background-position:150% 0;
-  -webkit-mask:url(/mobile/diary/star.webp) center / contain no-repeat;mask:url(/mobile/diary/star.webp) center / contain no-repeat;
-  mix-blend-mode:screen;animation:aic-glint 3.5s ease-in-out infinite}
-@keyframes aic-glint{0%{background-position:150% 0}26%,100%{background-position:-50% 0}}
-@media (prefers-reduced-motion:reduce){.aic-glint::after{animation:none;opacity:0}}
+.aic-glint .aic-star{animation:aic-breathe 2.4s ease-in-out infinite}
+@keyframes aic-breathe{0%,100%{filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3)) brightness(1)}50%{filter:drop-shadow(-1px 1px 1px rgba(90,60,20,.3)) brightness(1.15)}}
+@media (prefers-reduced-motion:reduce){.aic-glint .aic-star{animation:none}}
