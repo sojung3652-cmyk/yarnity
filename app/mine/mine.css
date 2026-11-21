@@ -169,3 +169,5 @@ html body .mine-logo{display:block;width:auto;height:52px}
   .mine-search::placeholder{color:#857770}
   .mine-note{font-size:13px}
 }
+/* no status tag on the covers (Kim): the tabs above already sort them by status */
+.mine .mm-tag{display:none}
