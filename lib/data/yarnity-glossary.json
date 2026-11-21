@@ -1,0 +1,1863 @@
+{
+  "version": 1,
+  "updated": "2026-11-21",
+  "categories": [
+    {
+      "id": "basic",
+      "name": "기본 뜨기",
+      "color": "babypink",
+      "order": 1
+    },
+    {
+      "id": "incdec",
+      "name": "늘림·줄임",
+      "color": "apricot",
+      "order": 2
+    },
+    {
+      "id": "start",
+      "name": "시작·마무리",
+      "color": "lilac",
+      "order": 3
+    },
+    {
+      "id": "reading",
+      "name": "도안 읽기",
+      "color": "ivory",
+      "order": 4
+    },
+    {
+      "id": "yarn",
+      "name": "실·바늘·도구",
+      "color": "sage",
+      "order": 5
+    },
+    {
+      "id": "knit",
+      "name": "대바늘",
+      "color": "sky",
+      "order": 6
+    },
+    {
+      "id": "community",
+      "name": "커뮤니티 표현",
+      "color": "sand",
+      "order": 7
+    }
+  ],
+  "terms": [
+    {
+      "id": "chain",
+      "category": "basic",
+      "name": "사슬뜨기",
+      "aliases": [
+        "사슬"
+      ],
+      "en": {
+        "us": "ch",
+        "uk": "ch"
+      },
+      "ja": "鎖編み",
+      "symbol": "ch",
+      "summary": "바늘에 실을 걸어 고리를 끌어내며 사슬처럼 잇는, 모든 코바늘 뜨개의 시작이에요.",
+      "difficulty": 1,
+      "steps": [
+        {
+          "text": "실 끝으로 작은 고리를 만들어 바늘에 걸어요.",
+          "image": null
+        },
+        {
+          "text": "바늘에 실을 걸어요.",
+          "image": null
+        },
+        {
+          "text": "바늘의 고리 사이로 실을 끌어내면 사슬 1코가 돼요.",
+          "image": null
+        },
+        {
+          "text": "2~3을 반복해 필요한 코 수만큼 떠요.",
+          "image": null
+        }
+      ],
+      "mistake": "사슬을 너무 꽉 뜨면 다음 단에서 바늘이 잘 안 들어가요. 바늘에 고리가 헐렁하게 걸릴 정도로 떠요.",
+      "related": [
+        "chain_turn",
+        "sc",
+        "gauge"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "charlotte",
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "sc",
+      "category": "basic",
+      "name": "짧은뜨기",
+      "aliases": [],
+      "en": {
+        "us": "sc",
+        "uk": "dc"
+      },
+      "ja": "細編み",
+      "symbol": "sc",
+      "summary": "가장 낮고 촘촘한 기본 코예요. 코스터, 인형, 가방 바닥처럼 단단해야 하는 곳에 많이 써요.",
+      "difficulty": 1,
+      "steps": [
+        {
+          "text": "앞 단 코의 머리(사슬 두 가닥) 아래로 바늘을 넣어요.",
+          "image": null
+        },
+        {
+          "text": "바늘에 실을 걸어 앞으로 빼내요. 바늘에 고리가 2개 생겨요.",
+          "image": null
+        },
+        {
+          "text": "다시 실을 걸어요.",
+          "image": null
+        },
+        {
+          "text": "바늘의 고리 2개를 한 번에 빼내면 1코 완성이에요.",
+          "image": null
+        }
+      ],
+      "mistake": "영국식 도안의 \"dc\"는 짧은뜨기예요. 미국식 dc(한길긴뜨기)와 헷갈리지 않게 도안이 어느 나라 식인지 먼저 확인해요.",
+      "related": [
+        "chain_turn",
+        "inc",
+        "sc2tog"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "charlotte",
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "hdc",
+      "category": "basic",
+      "name": "긴뜨기",
+      "aliases": [
+        "중간길이뜨기"
+      ],
+      "en": {
+        "us": "hdc",
+        "uk": "htr"
+      },
+      "ja": "中長編み",
+      "symbol": "hdc",
+      "summary": "실을 한 번 감고 한 번에 빼내는, 짧은뜨기보다 조금 높은 코예요.",
+      "difficulty": 2,
+      "steps": [
+        {
+          "text": "바늘에 실을 한 번 감아요.",
+          "image": null
+        },
+        {
+          "text": "앞 단 코에 바늘을 넣고 실을 걸어 빼내요. 바늘에 고리가 3개 생겨요.",
+          "image": null
+        },
+        {
+          "text": "실을 걸어 고리 3개를 한 번에 빼내요.",
+          "image": null
+        }
+      ],
+      "mistake": "자료에 따라 미국식 dc를 \"긴뜨기\"로 옮긴 곳도 있어요. 기호(T, 사선 없음)로 확인하면 헷갈리지 않아요.",
+      "related": [
+        "dc",
+        "sc"
+      ],
+      "verified": "conflict",
+      "sources": [
+        "loop",
+        "charlotte",
+        "ssue_read",
+        "thnx"
+      ],
+      "note": "출처마다 이름이 다름: 긴뜨기(Loop & Dot, 한국어 도안 번역) / 중간길이뜨기(ssuessue). thnx는 dc를 긴뜨기로 표기."
+    },
+    {
+      "id": "dc",
+      "category": "basic",
+      "name": "한길긴뜨기",
+      "aliases": [],
+      "en": {
+        "us": "dc",
+        "uk": "tr"
+      },
+      "ja": "長編み",
+      "symbol": "dc",
+      "summary": "실을 한 번 감고 두 번에 나눠 빼내는 높은 코예요. 빨리 길이가 늘어나서 담요나 숄에 자주 써요.",
+      "difficulty": 2,
+      "steps": [
+        {
+          "text": "바늘에 실을 한 번 감아요.",
+          "image": null
+        },
+        {
+          "text": "앞 단 코에 바늘을 넣고 실을 걸어 빼내요. 고리가 3개 생겨요.",
+          "image": null
+        },
+        {
+          "text": "실을 걸어 고리 2개만 빼내요.",
+          "image": null
+        },
+        {
+          "text": "다시 실을 걸어 남은 고리 2개를 빼내요.",
+          "image": null
+        }
+      ],
+      "mistake": "미국식 dc와 영국식 tr이 같은 코예요. 영국식 dc는 짧은뜨기라서 반대로 뜨면 높이가 완전히 달라져요.",
+      "related": [
+        "hdc",
+        "tr",
+        "chain_turn"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "charlotte",
+        "miso_dc",
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "tr",
+      "category": "basic",
+      "name": "두길긴뜨기",
+      "aliases": [],
+      "en": {
+        "us": "tr",
+        "uk": "dtr"
+      },
+      "ja": "長々編み",
+      "symbol": "tr",
+      "summary": "실을 두 번 감고 세 번에 나눠 빼내는 아주 높은 코예요.",
+      "difficulty": 3,
+      "steps": [
+        {
+          "text": "바늘에 실을 두 번 감아요.",
+          "image": null
+        },
+        {
+          "text": "앞 단 코에 바늘을 넣고 실을 걸어 빼내요. 고리가 4개 생겨요.",
+          "image": null
+        },
+        {
+          "text": "실을 걸어 고리 2개씩 빼내기를 세 번 반복해요.",
+          "image": null
+        }
+      ],
+      "mistake": "실을 감는 횟수를 잊으면 한길긴뜨기가 돼요. 감은 횟수 = 기호의 사선 수예요.",
+      "related": [
+        "dc"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "charlotte",
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "slst",
+      "category": "basic",
+      "name": "빼뜨기",
+      "aliases": [],
+      "en": {
+        "us": "sl st",
+        "uk": "ss"
+      },
+      "ja": "引き抜き編み",
+      "symbol": "slst",
+      "summary": "높이 없이 코를 잇거나, 원형으로 뜬 단의 끝과 처음을 연결할 때 써요.",
+      "difficulty": 1,
+      "steps": [
+        {
+          "text": "앞 단 코에 바늘을 넣어요.",
+          "image": null
+        },
+        {
+          "text": "실을 걸어 코와 바늘의 고리를 한 번에 빼내요.",
+          "image": null
+        }
+      ],
+      "mistake": "빼뜨기는 코 수에 넣지 않는 경우가 많아요. 도안이 세는지 먼저 확인해요.",
+      "related": [
+        "mr",
+        "chain_turn"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "charlotte",
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "fp_bp",
+      "category": "basic",
+      "name": "걸어뜨기",
+      "aliases": [
+        "앞걸어뜨기",
+        "뒤걸어뜨기"
+      ],
+      "en": {
+        "us": "FP / BP",
+        "uk": "FP / BP"
+      },
+      "ja": null,
+      "symbol": "fp",
+      "summary": "앞 단 코의 기둥을 앞쪽(앞걸어) 또는 뒤쪽(뒤걸어)에서 감싸 떠서 입체 무늬를 만들어요.",
+      "difficulty": 3,
+      "steps": [
+        {
+          "text": "바늘에 실을 한 번 감아요.",
+          "image": null
+        },
+        {
+          "text": "앞걸어: 앞 단 코의 기둥을 앞쪽에서 오른쪽→왼쪽으로 바늘을 넣어요. (뒤걸어: 뒤쪽에서)",
+          "image": null
+        },
+        {
+          "text": "한길긴뜨기처럼 실을 걸어 2개씩 두 번 빼내요.",
+          "image": null
+        }
+      ],
+      "mistake": "코의 머리가 아니라 기둥에 바늘을 넣어요. 머리에 넣으면 평범한 한길긴뜨기가 돼요.",
+      "related": [
+        "ribbing_c",
+        "dc"
+      ],
+      "verified": "2+",
+      "sources": [
+        "charlotte",
+        "miso_irang",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "ribbing_c",
+      "category": "basic",
+      "name": "이랑뜨기",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": "fp",
+      "summary": "앞걸어뜨기와 뒤걸어뜨기를 번갈아 떠서 세로 골(이랑)을 만드는 기법이에요.",
+      "difficulty": 3,
+      "steps": [],
+      "mistake": "장력이 들쭉날쭉하면 골의 높이가 달라져요. 같은 힘으로 실을 당겨요.",
+      "related": [
+        "fp_bp"
+      ],
+      "verified": "1",
+      "sources": [
+        "miso_irang"
+      ],
+      "note": null
+    },
+    {
+      "id": "popcorn",
+      "category": "basic",
+      "name": "팝콘뜨기",
+      "aliases": [],
+      "en": {
+        "us": "pc",
+        "uk": "pc"
+      },
+      "ja": null,
+      "symbol": "popcorn",
+      "summary": "한 코에 한길긴뜨기를 여러 번 뜬 뒤 모아서, 팝콘처럼 볼록 튀어나오게 하는 무늬예요.",
+      "difficulty": 3,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "bobble"
+      ],
+      "verified": "1",
+      "sources": [
+        "thnx"
+      ],
+      "note": null
+    },
+    {
+      "id": "bobble",
+      "category": "basic",
+      "name": "방울뜨기",
+      "aliases": [
+        "보블뜨기"
+      ],
+      "en": {
+        "us": "bobble (MB)",
+        "uk": "bobble"
+      },
+      "ja": null,
+      "symbol": "bobble",
+      "summary": "몇 코를 모아 동그랗게 튀어나오게 뜨는 무늬예요.",
+      "difficulty": 3,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "popcorn"
+      ],
+      "verified": "2+",
+      "sources": [
+        "thnx",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "filet",
+      "category": "basic",
+      "name": "필레뜨기",
+      "aliases": [],
+      "en": {
+        "us": "filet crochet",
+        "uk": "filet crochet"
+      },
+      "ja": "方眼編み",
+      "symbol": "filet",
+      "summary": "사슬과 한길긴뜨기로 네모 칸을 채우거나 비워서 그림 무늬를 만드는 뜨기예요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "dc",
+        "chain"
+      ],
+      "verified": "1",
+      "sources": [
+        "loop"
+      ],
+      "note": null
+    },
+    {
+      "id": "tunisian",
+      "category": "basic",
+      "name": "아프간뜨기",
+      "aliases": [
+        "아후강"
+      ],
+      "en": {
+        "us": "Tunisian crochet",
+        "uk": "Tunisian crochet"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "대바늘과 코바늘을 섞은 방식이에요. 길고 끝이 막힌 아프간바늘을 써요.",
+      "difficulty": 3,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "inc",
+      "category": "incdec",
+      "name": "늘려뜨기",
+      "aliases": [
+        "코늘림",
+        "늘림"
+      ],
+      "en": {
+        "us": "inc (2 sc in same st)",
+        "uk": "inc"
+      },
+      "ja": "細編み2目編み入れる",
+      "symbol": "inc",
+      "summary": "같은 코에 두 번 떠서 코를 하나 늘려요. 원형 바닥이 커지는 원리예요.",
+      "difficulty": 1,
+      "steps": [
+        {
+          "text": "앞 단의 한 코에 짧은뜨기를 1코 떠요.",
+          "image": null
+        },
+        {
+          "text": "같은 코에 바늘을 다시 넣어 짧은뜨기를 1코 더 떠요.",
+          "image": null
+        }
+      ],
+      "mistake": "늘림 자리를 매 단 같은 곳에 두면 원이 육각형처럼 각져요. 자리를 반 칸씩 밀어 주면 둥글어져요.",
+      "related": [
+        "sc",
+        "sc2tog"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "ssue_read",
+        "thnx"
+      ],
+      "note": null
+    },
+    {
+      "id": "sc2tog",
+      "category": "incdec",
+      "name": "모아뜨기",
+      "aliases": [
+        "코줄임",
+        "줄임",
+        "2코 모아뜨기"
+      ],
+      "en": {
+        "us": "sc2tog (dec)",
+        "uk": "dc2tog"
+      },
+      "ja": "細編み2目一度",
+      "symbol": "dec",
+      "summary": "두 코를 한 번에 모아 떠서 코를 하나 줄여요.",
+      "difficulty": 2,
+      "steps": [
+        {
+          "text": "첫 번째 코에 바늘을 넣고 실을 걸어 빼내요.",
+          "image": null
+        },
+        {
+          "text": "바로 다음 코에도 바늘을 넣고 실을 걸어 빼내요. 고리가 3개 생겨요.",
+          "image": null
+        },
+        {
+          "text": "실을 걸어 고리 3개를 한 번에 빼내요.",
+          "image": null
+        }
+      ],
+      "mistake": "두 코를 각각 끝까지 떠 버리면 줄지 않아요. 마지막에 한 번에 빼내는 게 핵심이에요.",
+      "related": [
+        "inc",
+        "sc"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "charlotte",
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "mr",
+      "category": "start",
+      "name": "매직링",
+      "aliases": [
+        "원형 코잡기",
+        "매직루프"
+      ],
+      "en": {
+        "us": "magic ring (MR)",
+        "uk": "magic ring"
+      },
+      "ja": "輪の作り目",
+      "symbol": "mr",
+      "summary": "실로 고리를 만들어 그 안에 뜨고, 꼬리를 당겨 가운데 구멍을 닫는 원형 시작법이에요.",
+      "difficulty": 2,
+      "steps": [
+        {
+          "text": "손가락에 실을 감아 고리를 만들어요.",
+          "image": null
+        },
+        {
+          "text": "고리 안에 바늘을 넣어 실을 끌어내고, 사슬 1코로 기둥을 세워요.",
+          "image": null
+        },
+        {
+          "text": "고리 안에 짧은뜨기를 필요한 코 수만큼 떠요.",
+          "image": null
+        },
+        {
+          "text": "실 꼬리를 당겨 고리를 꽉 닫아요.",
+          "image": null
+        },
+        {
+          "text": "첫 코에 빼뜨기로 단을 이어요.",
+          "image": null
+        }
+      ],
+      "mistake": "꼬리를 당기기 전에 실 정리를 하면 구멍이 다시 벌어져요. 몇 단 뜬 뒤 한 번 더 당겨 정리해요.",
+      "related": [
+        "chain_turn",
+        "slst",
+        "sc"
+      ],
+      "verified": "conflict",
+      "sources": [
+        "loop",
+        "ssue_read",
+        "charlotte"
+      ],
+      "note": "\"매직루프\"라고 부르는 곳도 있음(Charlotte Square 번역). 대바늘의 매직루프 기법과 이름이 같아 주의."
+    },
+    {
+      "id": "chain_turn",
+      "category": "start",
+      "name": "기둥코",
+      "aliases": [
+        "기둥사슬",
+        "세워 뜨는 사슬"
+      ],
+      "en": {
+        "us": "turning chain",
+        "uk": "turning chain"
+      },
+      "ja": "立ち上がりの鎖目",
+      "symbol": "ch",
+      "summary": "단을 시작할 때 그 단의 높이만큼 먼저 세워 두는 사슬이에요.",
+      "difficulty": 2,
+      "steps": [
+        {
+          "text": "단의 시작에서 뜰 코의 높이만큼 사슬을 떠요.",
+          "image": null
+        },
+        {
+          "text": "짧은뜨기는 1코, 긴뜨기는 2코, 한길긴뜨기는 3코가 보통이에요.",
+          "image": null
+        },
+        {
+          "text": "짧은뜨기의 기둥코는 코 수에 세지 않는 경우가 많아요.",
+          "image": null
+        }
+      ],
+      "mistake": "기둥코를 코 수에 넣는지 빼는지는 도안마다 달라요. 도안 첫머리의 설명을 꼭 확인해요.",
+      "related": [
+        "chain",
+        "slst",
+        "sc"
+      ],
+      "verified": "conflict",
+      "sources": [
+        "loop",
+        "charlotte",
+        "miso_irang"
+      ],
+      "note": "\"코기둥\"은 코의 기둥 부분을 가리키는 다른 말이라 혼동 주의."
+    },
+    {
+      "id": "foundation",
+      "category": "start",
+      "name": "시작코",
+      "aliases": [
+        "첫코"
+      ],
+      "en": {
+        "us": "foundation",
+        "uk": "foundation"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "뜨개를 시작할 때 처음 만드는 코예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "chain",
+        "mr"
+      ],
+      "verified": "1",
+      "sources": [
+        "daum"
+      ],
+      "note": null
+    },
+    {
+      "id": "blocking",
+      "category": "start",
+      "name": "블로킹",
+      "aliases": [],
+      "en": {
+        "us": "blocking",
+        "uk": "blocking"
+      },
+      "ja": "ブロッキング",
+      "symbol": null,
+      "summary": "다 뜬 작품을 물이나 스팀으로 적셔 모양과 크기를 잡는 마무리예요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "gauge"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "daum"
+      ],
+      "note": null
+    },
+    {
+      "id": "frog",
+      "category": "start",
+      "name": "풀기",
+      "aliases": [
+        "프로깅"
+      ],
+      "en": {
+        "us": "frogging",
+        "uk": "frogging"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "잘못 뜬 부분을 풀어서 다시 뜨는 거예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [
+        "thnx",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "fo",
+      "category": "start",
+      "name": "마무리",
+      "aliases": [
+        "실 정리"
+      ],
+      "en": {
+        "us": "fasten off (FO)",
+        "uk": "fasten off"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "마지막 코에서 실을 자르고, 끝을 돗바늘로 편물 속에 숨겨 정리해요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "tapestry"
+      ],
+      "verified": "1",
+      "sources": [
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "st",
+      "category": "reading",
+      "name": "코",
+      "aliases": [],
+      "en": {
+        "us": "stitch (st)",
+        "uk": "stitch"
+      },
+      "ja": "目",
+      "symbol": null,
+      "summary": "뜨개의 한 고리, 가장 작은 단위예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "row"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "ssue_read",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "row",
+      "category": "reading",
+      "name": "단",
+      "aliases": [
+        "라운드"
+      ],
+      "en": {
+        "us": "row / round (rnd)",
+        "uk": "row / round"
+      },
+      "ja": "段",
+      "symbol": null,
+      "summary": "가로로 한 줄 뜬 것이에요. 원형으로 뜰 때도 한 바퀴를 한 단이라고 해요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "st"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "ssue_read",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "ply_strand",
+      "category": "reading",
+      "name": "올",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "실 한 가닥을 말해요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "gauge",
+      "category": "reading",
+      "name": "게이지",
+      "aliases": [],
+      "en": {
+        "us": "gauge",
+        "uk": "tension"
+      },
+      "ja": "ゲージ",
+      "symbol": null,
+      "summary": "가로세로 10cm 안에 들어가는 코 수와 단 수예요. 완성 크기를 맞추는 기준이에요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": "도안 게이지보다 코가 많으면 작품이 작아지고, 적으면 커져요. 바늘 굵기를 바꿔 맞춰요.",
+      "related": [
+        "swatch",
+        "tension"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "ssue_read",
+        "daum"
+      ],
+      "note": null
+    },
+    {
+      "id": "swatch",
+      "category": "reading",
+      "name": "스와치",
+      "aliases": [
+        "시험뜨기"
+      ],
+      "en": {
+        "us": "swatch",
+        "uk": "swatch"
+      },
+      "ja": "試し編み",
+      "symbol": null,
+      "summary": "게이지를 재려고 본 작품 전에 미리 떠 보는 작은 견본이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "gauge"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "daum",
+        "miso_irang"
+      ],
+      "note": null
+    },
+    {
+      "id": "chart",
+      "category": "reading",
+      "name": "도안",
+      "aliases": [
+        "차트",
+        "편물도"
+      ],
+      "en": {
+        "us": "pattern / chart",
+        "uk": "pattern / chart"
+      },
+      "ja": "編み図",
+      "symbol": null,
+      "summary": "뜨는 순서와 방법을 글이나 기호로 적은 설계도예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "symbol"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "ssue_read",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "symbol",
+      "category": "reading",
+      "name": "기호",
+      "aliases": [],
+      "en": {
+        "us": "chart symbol",
+        "uk": "chart symbol"
+      },
+      "ja": "編み目記号",
+      "symbol": null,
+      "summary": "도안에서 코의 종류를 나타내는 그림이에요. 한국 도안은 일본식 기호를 많이 써요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "chart",
+        "legend"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "legend",
+      "category": "reading",
+      "name": "범례",
+      "aliases": [
+        "약어표"
+      ],
+      "en": {
+        "us": "legend / abbreviations",
+        "uk": "legend"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "도안에 나온 기호와 약어가 무슨 뜻인지 모아 둔 목록이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "symbol"
+      ],
+      "verified": "2+",
+      "sources": [
+        "ssue_read",
+        "charlotte"
+      ],
+      "note": null
+    },
+    {
+      "id": "repeat",
+      "category": "reading",
+      "name": "반복 표시",
+      "aliases": [
+        "*…*",
+        "[ ]×3"
+      ],
+      "en": {
+        "us": "repeat (rep)",
+        "uk": "repeat"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "* 사이나 [ ] 안의 내용을 적힌 횟수만큼 반복하라는 표시예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": "반복 횟수에 처음 한 번이 포함되는지 도안의 설명을 확인해요.",
+      "related": [
+        "chart"
+      ],
+      "verified": "2+",
+      "sources": [
+        "ssue_read",
+        "charlotte"
+      ],
+      "note": null
+    },
+    {
+      "id": "round_chart",
+      "category": "reading",
+      "name": "원형 도안 읽기",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "코바늘 원형 도안은 가운데에서 바깥쪽으로 읽어요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "mr",
+        "chart"
+      ],
+      "verified": "1",
+      "sources": [
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "in_round",
+      "category": "reading",
+      "name": "원통뜨기",
+      "aliases": [
+        "원형뜨기"
+      ],
+      "en": {
+        "us": "in the round",
+        "uk": "in the round"
+      },
+      "ja": "輪編み",
+      "symbol": null,
+      "summary": "뒤집지 않고 빙글빙글 이어서 뜨는 방식이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "flat"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "flat",
+      "category": "reading",
+      "name": "왕복뜨기",
+      "aliases": [
+        "평면뜨기"
+      ],
+      "en": {
+        "us": "flat (back and forth)",
+        "uk": "flat"
+      },
+      "ja": "往復編み",
+      "symbol": null,
+      "summary": "한 단을 뜨면 편물을 뒤집어 반대 방향으로 뜨는 방식이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "in_round"
+      ],
+      "verified": "1",
+      "sources": [
+        "loop"
+      ],
+      "note": null
+    },
+    {
+      "id": "topdown",
+      "category": "reading",
+      "name": "탑다운",
+      "aliases": [
+        "바텀업"
+      ],
+      "en": {
+        "us": "top-down / bottom-up",
+        "uk": "top-down / bottom-up"
+      },
+      "ja": "トップダウン",
+      "symbol": null,
+      "summary": "옷을 목부터 아래로 떠 내려가는 방식이에요. 반대는 바텀업이에요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "daum"
+      ],
+      "note": null
+    },
+    {
+      "id": "rs_ws",
+      "category": "reading",
+      "name": "겉면 · 안면",
+      "aliases": [],
+      "en": {
+        "us": "RS / WS",
+        "uk": "RS / WS"
+      },
+      "ja": "表側 / 裏側",
+      "symbol": null,
+      "summary": "편물의 앞쪽(보이는 쪽)과 뒤쪽이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "ssue_read",
+        "thnx"
+      ],
+      "note": null
+    },
+    {
+      "id": "ease",
+      "category": "reading",
+      "name": "여유분",
+      "aliases": [],
+      "en": {
+        "us": "ease",
+        "uk": "ease"
+      },
+      "ja": "ゆとり",
+      "symbol": null,
+      "summary": "몸 치수보다 넉넉하게 더해 두는 폭이에요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "gauge"
+      ],
+      "verified": "1",
+      "sources": [
+        "loop"
+      ],
+      "note": null
+    },
+    {
+      "id": "tension",
+      "category": "reading",
+      "name": "장력",
+      "aliases": [],
+      "en": {
+        "us": "tension",
+        "uk": "tension"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "실을 당기는 손의 힘이에요. 사람마다 달라서 같은 도안도 크기가 달라져요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "gauge"
+      ],
+      "verified": "1",
+      "sources": [
+        "miso_irang"
+      ],
+      "note": null
+    },
+    {
+      "id": "fabric",
+      "category": "reading",
+      "name": "편물",
+      "aliases": [],
+      "en": {
+        "us": "fabric",
+        "uk": "fabric"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "떠서 만든 천이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [
+        "daum",
+        "moon",
+        "soop"
+      ],
+      "note": null
+    },
+    {
+      "id": "weight_intl",
+      "category": "yarn",
+      "name": "실 굵기 (국제)",
+      "aliases": [],
+      "en": {
+        "us": "yarn weight",
+        "uk": "yarn weight"
+      },
+      "ja": "糸の太さ",
+      "symbol": null,
+      "summary": "실 굵기를 가는 것부터 레이스 · 핑거링 · DK · 워스티드 · 벌키 · 슈퍼벌키로 나눠요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": "같은 이름이라도 브랜드마다 조금씩 달라요. 라벨의 권장 바늘과 게이지를 먼저 봐요.",
+      "related": [
+        "hook_size",
+        "gauge"
+      ],
+      "verified": "2+",
+      "sources": [
+        "ssue_yarn",
+        "loop"
+      ],
+      "note": null
+    },
+    {
+      "id": "weight_kr",
+      "category": "yarn",
+      "name": "실 굵기 (한국식)",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "극세사 · 세사 · 준세사 · 중사 · 준태사 · 태사 · 극태사 순으로 굵어져요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "weight_intl"
+      ],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "hap",
+      "category": "yarn",
+      "name": "합",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "면실의 굵기를 나타내는 숫자예요. 12합, 18합, 24합처럼 써요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "weight_kr"
+      ],
+      "verified": "2+",
+      "sources": [
+        "namu",
+        "gmarket"
+      ],
+      "note": null
+    },
+    {
+      "id": "ball",
+      "category": "yarn",
+      "name": "볼",
+      "aliases": [],
+      "en": {
+        "us": "ball",
+        "uk": "ball"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "실 한 뭉치를 세는 단위예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "plying",
+      "category": "yarn",
+      "name": "합사",
+      "aliases": [],
+      "en": {
+        "us": "holding double",
+        "uk": "held together"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "실 두 가닥 이상을 합쳐 한 가닥처럼 쓰는 거예요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "hap"
+      ],
+      "verified": "1",
+      "sources": [
+        "daum"
+      ],
+      "note": null
+    },
+    {
+      "id": "hook_size",
+      "category": "yarn",
+      "name": "코바늘 호수",
+      "aliases": [
+        "호수"
+      ],
+      "en": {
+        "us": "hook size (mm)",
+        "uk": "hook size (mm)"
+      },
+      "ja": "号数",
+      "symbol": null,
+      "summary": "바늘 굵기 번호예요. 숫자가 클수록 굵어요. 5호 = 3mm처럼 mm와 함께 봐요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": "나라와 브랜드마다 호수 체계가 달라서 같은 \"5호\"가 다른 굵기일 수 있어요. 항상 mm로 확인해요.",
+      "related": [
+        "weight_intl"
+      ],
+      "verified": "2+",
+      "sources": [
+        "soop",
+        "tulip",
+        "ssue_yarn"
+      ],
+      "note": null
+    },
+    {
+      "id": "hook",
+      "category": "yarn",
+      "name": "코바늘",
+      "aliases": [],
+      "en": {
+        "us": "crochet hook",
+        "uk": "crochet hook"
+      },
+      "ja": "かぎ針",
+      "symbol": null,
+      "summary": "끝에 갈고리가 달린 바늘이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "hook_size"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "tapestry",
+      "category": "yarn",
+      "name": "돗바늘",
+      "aliases": [],
+      "en": {
+        "us": "tapestry needle",
+        "uk": "tapestry needle"
+      },
+      "ja": "とじ針",
+      "symbol": null,
+      "summary": "구멍이 크고 끝이 뭉툭한 바늘이에요. 실 정리와 꿰매기에 써요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "fo"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "namu",
+        "moon"
+      ],
+      "note": null
+    },
+    {
+      "id": "marker",
+      "category": "yarn",
+      "name": "단수표시링",
+      "aliases": [
+        "코마커",
+        "마커"
+      ],
+      "en": {
+        "us": "stitch marker",
+        "uk": "stitch marker"
+      },
+      "ja": "段数マーカー",
+      "symbol": null,
+      "summary": "단이나 코의 위치를 표시하려고 끼워 두는 고리예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "row"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "moon",
+        "charlotte"
+      ],
+      "note": null
+    },
+    {
+      "id": "notions",
+      "category": "yarn",
+      "name": "부자재",
+      "aliases": [],
+      "en": {
+        "us": "notions",
+        "uk": "notions"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "단추, 라벨처럼 실과 바늘 말고 더 들어가는 재료예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "moon"
+      ],
+      "note": null
+    },
+    {
+      "id": "wing_yarn",
+      "category": "yarn",
+      "name": "날개실",
+      "aliases": [
+        "날개사",
+        "솔잎사"
+      ],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "잔털이 많은 합성섬유 실이에요. 수세미를 뜰 때 주로 써요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "scrubby_yarn"
+      ],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "scrubby_yarn",
+      "category": "yarn",
+      "name": "수세미실",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "복슬복슬한 가닥이 붙어 있는 실이에요. 코가 잘 안 보여 초보에겐 조금 어려워요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "wing_yarn"
+      ],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "doll_yarn",
+      "category": "yarn",
+      "name": "인형실",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "면과 아크릴(또는 레이온)을 섞은, 인형과 소품용 실이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "amigurumi"
+      ],
+      "verified": "1",
+      "sources": [
+        "soop"
+      ],
+      "note": null
+    },
+    {
+      "id": "boucle",
+      "category": "yarn",
+      "name": "부클실",
+      "aliases": [
+        "루프얀"
+      ],
+      "en": {
+        "us": "bouclé",
+        "uk": "bouclé"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "표면에 작은 고리가 있어 폭신한 실이에요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "tweed",
+      "category": "yarn",
+      "name": "트위드실",
+      "aliases": [
+        "땡땡이실"
+      ],
+      "en": {
+        "us": "tweed",
+        "uk": "tweed"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "바탕색에 다른 색 점이 섞인 실이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "fabric_yarn",
+      "category": "yarn",
+      "name": "패브릭얀",
+      "aliases": [
+        "티셔츠얀"
+      ],
+      "en": {
+        "us": "t-shirt yarn",
+        "uk": "t-shirt yarn"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "원단을 잘라 만든 굵은 실이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "knit_purl",
+      "category": "knit",
+      "name": "겉뜨기 · 안뜨기",
+      "aliases": [],
+      "en": {
+        "us": "k / p",
+        "uk": "k / p"
+      },
+      "ja": "表編み / 裏編み",
+      "symbol": null,
+      "summary": "대바늘의 두 가지 기본 뜨기예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "garter"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "thnx",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "co_bo",
+      "category": "knit",
+      "name": "코잡기 · 코막음",
+      "aliases": [],
+      "en": {
+        "us": "CO / BO",
+        "uk": "CO / cast off"
+      },
+      "ja": "作り目 / 伏せ止め",
+      "symbol": null,
+      "summary": "대바늘에서 처음 코를 만드는 것과, 끝 코를 막아 마무리하는 거예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "thnx",
+        "ssue_read"
+      ],
+      "note": null
+    },
+    {
+      "id": "garter",
+      "category": "knit",
+      "name": "가터뜨기 · 메리야스뜨기",
+      "aliases": [],
+      "en": {
+        "us": "garter / stockinette",
+        "uk": "garter / stocking stitch"
+      },
+      "ja": "ガーター / メリヤス編み",
+      "symbol": null,
+      "summary": "겉뜨기만 뜬 무늬와, 겉뜨기·안뜨기를 번갈아 뜬 매끈한 무늬예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "knit_purl"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "daum",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "rib",
+      "category": "knit",
+      "name": "고무뜨기",
+      "aliases": [],
+      "en": {
+        "us": "ribbing",
+        "uk": "ribbing"
+      },
+      "ja": "ゴム編み",
+      "symbol": null,
+      "summary": "겉뜨기와 안뜨기를 몇 코씩 번갈아 떠서 잘 늘어나는 무늬예요. 소매 끝과 목에 써요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "knit_purl"
+      ],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "yo",
+      "category": "knit",
+      "name": "바늘비우기",
+      "aliases": [
+        "걸기코"
+      ],
+      "en": {
+        "us": "yo",
+        "uk": "yo"
+      },
+      "ja": "かけ目",
+      "symbol": null,
+      "summary": "바늘에 실을 걸어 코를 늘리거나 구멍 무늬를 만들어요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "ssue_read",
+        "thnx"
+      ],
+      "note": null
+    },
+    {
+      "id": "cable",
+      "category": "knit",
+      "name": "꽈배기뜨기",
+      "aliases": [
+        "교차뜨기"
+      ],
+      "en": {
+        "us": "cable",
+        "uk": "cable"
+      },
+      "ja": "交差編み",
+      "symbol": null,
+      "summary": "코의 순서를 바꿔 떠서 꼬인 무늬를 만들어요.",
+      "difficulty": 3,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "thnx",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "needles",
+      "category": "knit",
+      "name": "대바늘 종류",
+      "aliases": [
+        "줄바늘",
+        "장갑바늘"
+      ],
+      "en": {
+        "us": "circular / DPN",
+        "uk": "circular / DPN"
+      },
+      "ja": "輪針 / 4本針",
+      "symbol": null,
+      "summary": "줄바늘(줄로 이어진 바늘)과 장갑바늘(양끝이 뾰족한 짧은 바늘)이 자주 쓰여요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [
+        "loop",
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "gwangsu",
+      "category": "community",
+      "name": "광수",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "190cm를 뜻하는 길이 단위예요. 배우 이광수의 키에서 왔고, \"1광수 목도리\"처럼 써요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "gwangsu"
+      ],
+      "note": null
+    },
+    {
+      "id": "ttugaebang",
+      "category": "community",
+      "name": "뜨개방",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "동네의 뜨개 가게 겸 교실이에요. 실을 사면 뜨는 법을 가르쳐 주기도 해요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    },
+    {
+      "id": "amigurumi",
+      "category": "community",
+      "name": "아미구루미",
+      "aliases": [],
+      "en": {
+        "us": "amigurumi",
+        "uk": "amigurumi"
+      },
+      "ja": "編みぐるみ",
+      "symbol": null,
+      "summary": "코바늘로 뜬 작은 인형이에요. 일본어에서 온 말이에요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "sc",
+        "mr",
+        "doll_yarn"
+      ],
+      "verified": "1",
+      "sources": [
+        "namu"
+      ],
+      "note": null
+    }
+  ],
+  "sources": {
+    "loop": "https://www.loopanddot.com/ko/glossary",
+    "namu": "https://namu.wiki/w/%EB%9C%A8%EA%B0%9C%EC%A7%88",
+    "thnx": "https://thnx.kr/dict",
+    "ssue_read": "https://ssuessuekints-test.pages.dev/magazine/reading-patterns.html",
+    "ssue_yarn": "https://ssuessue-knits-test.pages.dev/magazine/yarn-weight-guide.html",
+    "charlotte": "https://lookatwhatimade.net/wp-content/uploads/2016/03/Charlotte-Square-Part-1-Korean-Lookatwhatimade.pdf",
+    "miso_irang": "https://miso.kr/blog/thread/%EC%BD%94%EB%B0%94%EB%8A%98-%EC%9D%B4%EB%9E%91%EB%9C%A8%EA%B8%B0-%EC%88%9C%EC%84%9C",
+    "miso_dc": "https://miso.kr/blog/thread/%EC%BD%94%EB%B0%94%EB%8A%98-%ED%95%9C%EA%B8%B8%EA%B8%B4%EB%9C%A8%EA%B8%B0-%EC%88%9C%EC%84%9C",
+    "daum": "https://m.cafe.daum.net/subdued20club/LxCT/269965",
+    "soop": "https://maily.so/soopsoup/posts/10z396qezlw",
+    "moon": "https://stibee.com/api/v1.0/emails/share/cR6fj2jT03F0C0XLFDi43Vcd0SZHmh4",
+    "gwangsu": "https://maily.so/trendaword/posts/g1o4gdy6ove",
+    "tulip": "https://artbeads.com/tulip-crochet-hook-size-5-0-3-00mm",
+    "gmarket": "https://item.gmarket.co.kr/Item?goodscode=657774301"
+  },
+  "notes": {
+    "verified": "2+ = 두 곳 이상 확인, 1 = 한 곳에서만 확인, conflict = 출처마다 이름이 다름 (note 참고)",
+    "sort": "화면에서는 카테고리 order 순, 카테고리 안에서는 name 가나다순으로 정렬",
+    "images": "steps[].image 는 비워 둠. 그림(SVG) 또는 사용자 사진 경로를 나중에 채움"
+  }
+}

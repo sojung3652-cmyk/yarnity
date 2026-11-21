@@ -13,6 +13,7 @@ import { CoverPicker } from "@/components/diary/CoverPicker";
 import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { CopyLot } from "@/components/YarnInfo";
+import { GlossText } from "@/components/glossary/GlossText";
 import { drawing } from "@/lib/drawing";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { fmt, PART_KO, plan, SHAPE_KO, withChains, type Row } from "@/lib/pattern";
@@ -124,7 +125,7 @@ export function PatternScreen() {
                     <Fragment key={r.idx}>
                       <tr>
                         <th scope="row">{label}</th>
-                        <td>{r.how}<small>{r.why}</small></td>
+                        <td><GlossText text={r.how} /><small>{r.why}</small></td>
                         <td className="ps-n">{r.n}<span>코</span></td>
                       </tr>
                       {r.part === "bottom" && r.no === 3 && <tr className="ps-note"><td colSpan={3}><span>※</span>여기서 한 번 지름을 재면 남은 단을 다시 계산해요.</td></tr>}

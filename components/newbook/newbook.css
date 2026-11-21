@@ -468,7 +468,7 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .ai-msg img{display:block;max-width:160px;border-radius:4px;margin-bottom:4px}
 .ai-ai{align-self:flex-start}
 .ai-me{align-self:flex-end;padding:7px 11px;border-radius:12px 12px 2px 12px;background:#FCE8EC}
-.ai-note{align-self:stretch;max-width:none;padding:8px 10px;border-left:2px solid #F0C1CA;background:rgba(240,193,202,.14);font-size:12.5px;color:#5E4E66}
+.ai-note{align-self:stretch;max-width:none;padding:8px 10px;border-left:2px solid #F0C1CA;background:rgba(240,193,202,.14);font-size:12.5px;color:#6B5D55}
 .ai-thinking{display:inline-flex;gap:4px}
 .ai-thinking i{width:6px;height:6px;border-radius:50%;background:#F5ABB9;animation:ai-dot 1s infinite}
 .ai-thinking i:nth-child(2){animation-delay:.15s}.ai-thinking i:nth-child(3){animation-delay:.3s}
@@ -478,7 +478,7 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .ai-prop-title{font-size:11px;font-weight:600;letter-spacing:.14em;color:#DD8698}
 .ai-prop ul{display:flex;flex-wrap:wrap;gap:4px 10px;margin:6px 0 8px;padding:0;list-style:none;font-size:13px}
 .ai-prop button{min-height:30px;padding:0 14px;border:0;border-radius:15px;background:#3A2E29;color:#FBF3EA;font:inherit;font-size:12.5px;cursor:pointer}
-.ai-prop button:disabled{background:#F9D8DF;color:#5E4E66;cursor:default}
+.ai-prop button:disabled{background:#F9D8DF;color:#6B5D55;cursor:default}
 .ai-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 4px}
 .ai-chips button{min-height:30px;padding:0 12px;border:1px solid #DDCFC3;border-radius:15px;background:#FFFBF5;font:inherit;font-size:12.5px;color:#3A2E29;cursor:pointer}
 .ai-chips button:hover{border-color:#F5ABB9}
@@ -489,7 +489,7 @@ button.nb-ribbon:focus-visible{outline:2px solid #3A2E29;outline-offset:3px}
 .ai-row{display:flex;align-items:flex-end;gap:6px}
 .ai-row textarea{flex:1;min-width:0;resize:none;border:1px solid #DDCFC3;border-radius:8px;background:#FFFFFF;padding:7px 10px;font:inherit;font-size:13.5px;line-height:1.45;color:#3A2E29;outline:none}
 .ai-row textarea:focus{border-color:#F5ABB9}
-.ai-photo,.ai-send{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;cursor:pointer;color:#5E4E66}
+.ai-photo,.ai-send{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;cursor:pointer;color:#6B5D55}
 .ai-photo svg,.ai-send svg{width:19px;height:19px}
 .ai-photo:hover{background:rgba(240,193,202,.25)}
 .ai-send{border:0;background:#3A2E29;color:#FBF3EA}

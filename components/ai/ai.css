@@ -1,8 +1,8 @@
 /* "AI와 상의" (components/newbook/AiPanel.tsx): a chat app's structure in Yarnity's own look (Kim) - the blush
-   page #F7EDEB, ivory #FFFDF8, words #2F2622 / #6B5D55, lavender #9F8CC9 for what is chosen, mocha #4A3830 for
+   page #F7EDEB, ivory #FFFDF8, words #2F2622 / #6B5D55, baby pink #E2A9B3 for what is chosen (Kim: no lavender left), mocha #4A3830 for
    the send button, the gold-thread star, cloth patches; Noto Serif KR / Noto Sans KR. Light from the upper
    right: shadows fall to the lower left. Type never under 11px; touch areas 44 x 44 on phones; the box 16px. */
-.aic-root{--ink:#2F2622;--ink2:#6B5D55;--ink3:#8C7E74;--ivory:#FFFDF8;--blush:#F7EDEB;--lav:#9F8CC9;--mocha:#4A3830;--line:rgba(138,114,88,.3);
+.aic-root{--ink:#2F2622;--ink2:#6B5D55;--ink3:#8C7E74;--ivory:#FFFDF8;--blush:#F7EDEB;--lav:#E2A9B3;--mocha:#4A3830;--line:rgba(138,114,88,.3);
   position:fixed;inset:0;z-index:140;font-family:"Noto Sans KR",system-ui,sans-serif;color:var(--ink);word-break:keep-all;overflow-wrap:anywhere}
 .aic-root button{font:inherit;color:inherit}
 .aic-root .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -59,7 +59,7 @@
 .aic-row-main:hover{background:rgba(255,253,248,.55)}
 .aic-row.is-on .aic-row-main{background:var(--ivory);border-left-color:var(--lav);border-radius:0 8px 8px 0}
 .aic-row-title{flex:1;min-width:0;font-size:14px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.aic-linkdot{flex:none;width:6px;height:6px;border-radius:50%;background:#C9BCE6}
+.aic-linkdot{flex:none;width:6px;height:6px;border-radius:50%;background:#E2A9B3}
 .aic-row-more{position:absolute;right:4px;top:50%;width:28px;height:28px;margin-top:-14px;display:grid;place-items:center;padding:0;border:0;border-radius:6px;background:none;color:var(--ink2);cursor:pointer;opacity:0}
 .aic-row-more svg{width:17px;height:17px}
 .aic-row:hover .aic-row-more,.aic-row.is-menu .aic-row-more,.aic-row-more:focus-visible{opacity:1}
@@ -189,12 +189,12 @@
 .aic-plus{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--line);color:var(--ink2);cursor:pointer}
 .aic-plus svg{width:18px;height:18px}
 .aic-plus:hover{color:var(--ink);box-shadow:inset 0 0 0 1px var(--lav)}
-.aic-ctag{display:inline-flex;align-items:center;gap:5px;min-width:0;height:28px;padding:0 4px 0 9px;border-radius:999px;background:#EFEAF7;color:#5D4E86;font-size:12px}
+.aic-ctag{display:inline-flex;align-items:center;gap:5px;min-width:0;height:28px;padding:0 4px 0 9px;border-radius:999px;background:#FBE9EC;color:#8A4A55;font-size:12px}
 .aic-ctag>svg{flex:none;width:15px;height:15px}
 .aic-ctag>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.aic-ctag button{flex:none;display:grid;place-items:center;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:none;color:#5D4E86;cursor:pointer}
+.aic-ctag button{flex:none;display:grid;place-items:center;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:none;color:#8A4A55;cursor:pointer}
 .aic-ctag button svg{width:13px;height:13px}
-.aic-ctag button:hover{background:rgba(93,78,134,.12)}
+.aic-ctag button:hover{background:rgba(138,74,85,.12)}
 .aic-send{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:var(--mocha);color:#fff;cursor:pointer;transition:opacity .15s}
 .aic-send svg{width:18px;height:18px}
 .aic-send:disabled{opacity:.3;cursor:default}
@@ -212,7 +212,7 @@
 .aic-mi:last-child{border-bottom:0}
 .aic-menu-title{margin:0 0 6px;font:600 14px/1.4 "Noto Serif KR",serif;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .aic-link button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:50px;padding:8px 4px;border:0;border-bottom:1px solid #EDE2DA;background:none;text-align:left;cursor:pointer}
-.aic-link button[aria-pressed="true"] b{color:#5D4E86}
+.aic-link button[aria-pressed="true"] b{color:#8A4A55}
 .aic-link b{font:600 14px/1.3 "Noto Serif KR",serif}
 .aic-link span{font-size:12px;color:var(--ink2)}
 .aic-ask-dim{display:grid;place-items:center;z-index:3}
@@ -243,7 +243,7 @@
 .aic-root.is-phone .aic-row.is-slid .aic-row-main{transform:translateX(-136px)}
 .aic-row-acts{position:absolute;right:0;top:0;bottom:0;display:flex}
 .aic-row-acts button{width:68px;border:0;font-size:13px;font-weight:600;cursor:pointer}
-.aic-row-acts .is-arch{background:#EFEAF7;color:#5D4E86}
+.aic-row-acts .is-arch{background:#FBE9EC;color:#8A4A55}
 .aic-row-acts .is-del{background:#F3D9D8;color:#9B3A3A}
 @media (prefers-reduced-motion:reduce){.aic-root.is-phone .aic-row-main{transition:none}}
 
@@ -284,7 +284,7 @@
 .aic-root.is-page .aic-bar{padding:10px 20px 6px}
 .aic-page-head{display:flex;align-items:center;gap:10px;min-width:0}
 .aic-page-head .aic-title{flex:0 1 auto;padding-left:0;font-size:16px}
-.aic-ptag{display:inline-flex;align-items:center;gap:5px;min-width:0;height:26px;padding:0 10px;border-radius:999px;background:#EFEAF7;color:#5D4E86;font-size:12px;white-space:nowrap}
+.aic-ptag{display:inline-flex;align-items:center;gap:5px;min-width:0;height:26px;padding:0 10px;border-radius:999px;background:#FBE9EC;color:#8A4A55;font-size:12px;white-space:nowrap}
 .aic-ptag svg{flex:none;width:14px;height:14px}
 .aic-ptag span{overflow:hidden;text-overflow:ellipsis}
 .aic-foot-note{max-width:680px;margin:8px auto 0;text-align:center}

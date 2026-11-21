@@ -1,4 +1,5 @@
 "use client";
+import { GlossText } from "@/components/glossary/GlossText";
 // 완성 도안 on phones (/pattern): its own screen, outside the book. The same pattern as the web sheet
 // (app/pattern/page.tsx: plan + withChains, the same grouping of identical rows, yarnUse, the drawing, the
 // gauge and the 기둥사슬 note), laid out for a phone with room to breathe: a top bar (‹ 나의 도안집, the
@@ -97,7 +98,7 @@ export function MobilePatternScreen() {
                     <li key={r.idx}>
                       <div className="msp-row">
                         <span className="msp-pill">{label}</span>
-                        <span className="msp-how">{r.how}{r.why && <small>{r.why}</small>}</span>
+                        <span className="msp-how"><GlossText text={r.how} />{r.why && <small>{r.why}</small>}</span>
                         <span className="msp-n">{r.n}<i>코</i></span>
                       </div>
                       {r.part === "bottom" && r.no === 3 && <p className="msp-note">3단을 뜬 뒤 한 번 지름을 재면, 남은 단을 내 손에 맞게 다시 계산해요.</p>}

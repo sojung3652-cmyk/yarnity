@@ -45,7 +45,7 @@ export function RibbonGold({ w, h, ball, ballY, lineInset, lineEnd, full, notch 
           {/* standing off the ribbon: a faint shadow down-right */}
           <feOffset in="SourceAlpha" dx=".6" dy=".8" result="o" />
           <feGaussianBlur in="o" stdDeviation=".6" result="ob" />
-          <feFlood floodColor="#3B2A55" floodOpacity=".38" />
+          <feFlood floodColor="#46302A" floodOpacity=".38" />
           <feComposite in2="ob" operator="in" result="shadow" />
           <feMerge><feMergeNode in="shadow" /><feMergeNode in="foil" /></feMerge>
         </filter>

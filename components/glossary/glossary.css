@@ -1,0 +1,127 @@
+/* 뜨개 용어집 (components/glossary/Glossary.tsx). The signature: a very pale baby pink - accent #E2A9B3, pale
+   ground #FBE9EC, deep text #8A4A55, page #F8EEEE. Readability first: nothing under 11px, roomy, aligned.
+   Light from the upper right: shadows only to the lower left, faint. Cloth labels: the glossary patches,
+   stretched in one piece (no seams), ivory where a label has no category (never white). */
+body:has(.gl){background:#F8EEEE}
+.gl{--acc:#E2A9B3;--pale:#FBE9EC;--deep:#8A4A55;--ink:#3A2E29;--ink2:#6B5D55;--ink3:#8C7E74;--line:#EEDDD9;
+  color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;word-break:keep-all;overflow-wrap:anywhere}
+.gl .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.gl button{font:inherit;color:inherit}
+.gl :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* a cloth label: the patch image, one stretched piece */
+.gl-patch{box-sizing:border-box;border-style:solid;border-width:10px;border-image:var(--gp,url(/glossary/patch_ivory.webp)) 62 fill / 10px stretch;background:none}
+.gl-sympatch{display:grid;place-items:center;flex:none;color:#4A3830;filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1))}
+.gl-sym{display:block}
+.gl-sym-letter{font-family:"Noto Serif KR",serif;font-weight:700;line-height:1;color:#5B4A40}
+
+/* the head: Glossary in script, the count on the right */
+.gl-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.gl-title{margin:0;font:400 44px/1.1 "Pinyon Script","Newsreader",cursive;color:var(--deep);letter-spacing:.01em}
+.gl-count{margin:0 0 8px;font-size:12.5px;color:var(--ink3);white-space:nowrap}
+.gl-bar-title{margin:0;font:700 16px/1.3 "Noto Serif KR",serif;color:var(--ink)}
+
+/* search */
+.gl-search{display:flex;align-items:center;gap:10px;height:46px;padding:0 16px;border-radius:14px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #EAD9D5}
+.gl-search:focus-within{box-shadow:inset 0 0 0 1.5px var(--acc)}
+.gl-search svg{flex:none;width:18px;height:18px;color:var(--ink3)}
+.gl-search input{flex:1;min-width:0;border:0;background:none;font:16px/1 "Noto Sans KR",sans-serif;color:var(--ink);outline:none}
+.gl-search input::placeholder{color:#A99A92}
+
+/* the category tabs: a patch each, in its colour, with its count */
+.gl-tabs{display:flex;gap:8px}
+.gl-tab{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 6px;white-space:nowrap;cursor:pointer;font-size:13.5px;color:var(--ink)}
+.gl-tab small{font-size:11.5px;color:var(--ink2)}
+.gl-tab[aria-selected="true"]{font-weight:700;filter:drop-shadow(-1px 2px 2px rgba(90,62,44,.16))}
+.gl-tab[aria-selected="true"] small{font-weight:600;color:var(--deep)}
+
+/* sections and rows */
+.gl-section{margin-top:22px}
+.gl-sec-title{display:flex;justify-content:center;margin:0 0 6px}
+.gl-sec-title .gl-patch{display:inline-flex;align-items:center;justify-content:center;min-width:150px;min-height:38px;padding:0 14px;font:700 14px/1.2 "Noto Serif KR",serif;color:var(--ink);
+  filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1))}
+.gl-rows{margin:0;padding:0;list-style:none}
+.gl-row{display:grid;grid-template-columns:52px minmax(0,1fr) 18px;align-items:center;gap:14px;width:100%;min-height:72px;padding:10px 4px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;cursor:pointer}
+.gl-rows li:last-child .gl-row{border-bottom:0}
+.gl-row-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+.gl-row-text b{font:700 16px/1.35 "Noto Serif KR",serif;color:var(--ink)}
+.gl-row-text span{font-size:13px;line-height:1.5;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-chev{width:18px;height:18px;color:#B8A9A1}
+.gl-row:hover .gl-row-text b{color:var(--deep)}
+.gl-row.is-on{background:var(--pale);border-radius:12px;border-bottom-color:transparent}
+.gl-row.is-on .gl-chev{color:var(--deep)}
+.gl-none{margin:40px 0;font-size:14px;color:var(--ink2);text-align:center}
+
+/* ---- a term ---- */
+.gl-d-head{display:flex;align-items:center;gap:16px}
+.gl-d-head>div{min-width:0}
+.gl-d-cat{margin:0 0 2px;font-size:12px;color:var(--ink3)}
+.gl-d-head h2{margin:0;font:700 22px/1.35 "Noto Serif KR",serif;color:var(--ink)}
+.gl-d-line{margin:4px 0 0;font-size:13.5px;line-height:1.6;color:var(--ink2)}
+.gl-d-alias{margin:4px 0 0;font-size:12px;color:var(--ink3)}
+.gl-facts{display:grid;grid-template-columns:repeat(3,1fr);margin:20px 0 0;padding:4px 0;filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.08))}
+.gl-facts>div{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;text-align:center}
+.gl-facts>div+div{border-left:1px solid rgba(138,114,88,.22)}
+.gl-facts dt{font-size:11.5px;color:var(--ink3)}
+.gl-facts dd{margin:0;font:700 15px/1.3 "Noto Serif KR",serif;color:var(--ink)}
+.gl-summary{margin:20px 0 0;font-size:15px;line-height:1.8;color:var(--ink)}
+.gl-note{margin:10px 0 0;padding:10px 14px;border-radius:10px;background:var(--pale);font-size:13px;line-height:1.6;color:var(--deep)}
+.gl-block{margin-top:28px}
+/* the slim lace: 176px, the words on its satin (9% in at the sides, 24% top, 23% bottom) */
+.gl-lace{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:176px;aspect-ratio:900 / 264;margin:0 auto 14px;
+  padding:calc(176px * 264 / 900 * .24) 9% calc(176px * 264 / 900 * .23);background:var(--gl) center / 100% 100% no-repeat;
+  font:700 13.5px/1 "Noto Serif KR",serif;color:var(--ink);filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1))}
+.gl-steps{display:flex;flex-direction:column;gap:14px;margin:0;padding:0;list-style:none}
+.gl-steps li{display:grid;grid-template-columns:28px minmax(0,1fr) 92px;align-items:start;gap:12px}
+.gl-step-no{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--pale);color:var(--deep);font:700 13px/1 "Noto Sans KR",sans-serif}
+.gl-steps p{margin:3px 0 0;font-size:14.5px;line-height:1.7}
+.gl-step-img{display:block;width:92px;height:70px;border-radius:10px;object-fit:cover}
+.gl-step-img.is-empty{background:repeating-linear-gradient(135deg,#EFE8E6 0 8px,#E9E1DF 8px 16px)}
+.gl-mistake{margin:0;padding:6px 8px;font-size:14px;line-height:1.75}
+.gl-related{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.gl-chip{display:inline-flex;align-items:center;min-height:40px;padding:0 10px;font-size:13.5px;cursor:pointer;filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1))}
+.gl-chip:hover{font-weight:600}
+
+/* ---- phones ---- */
+.gl-phone{min-height:100dvh;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 110px);box-sizing:border-box}
+.gl-phone .gl-head{margin:14px 0 14px}
+.gl-phone .gl-title{font-size:40px}
+.gl-phone .gl-tabs{margin:14px -16px 0;padding:2px 16px 6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.gl-phone .gl-tabs::-webkit-scrollbar{display:none}
+.gl-phone .gl-tab{flex:none}
+.gl-phone-term .gl-detail{padding-top:16px}
+.gl-phone .gl-steps li{grid-template-columns:28px minmax(0,1fr) 76px}
+.gl-phone .gl-step-img{width:76px;height:58px}
+
+/* ---- wide screens: tabs | list | the term ---- */
+.gl-wide{max-width:1200px;margin:0 auto;padding:8px 32px 40px;box-sizing:border-box}
+.gl-wide .gl-head{margin:0 0 20px;padding:0 4px}
+.gl-cols{display:grid;grid-template-columns:180px 420px minmax(0,1fr);gap:24px;align-items:start}
+.gl-tabs.is-column{flex-direction:column;gap:6px}
+.gl-tabs.is-column .gl-tab{justify-content:space-between;width:100%;padding:0 8px}
+.gl-col-tabs{position:sticky;top:16px}
+.gl-col-list{display:flex;flex-direction:column;gap:6px;min-width:0}
+.gl-list-scroll{max-height:calc(100vh - 210px);overflow-y:auto;overscroll-behavior:contain;padding:0 6px 20px 2px;margin-top:4px}
+.gl-col-panel{position:sticky;top:16px;max-height:calc(100vh - 150px);overflow-y:auto;overscroll-behavior:contain;padding:28px 30px 32px;border-radius:18px;
+  background:rgba(255,253,248,.72);box-shadow:0 0 0 1px rgba(168,130,58,.1),-10px 14px 30px -18px rgba(60,42,34,.3)}
+.gl-panel-empty{display:grid;place-items:center;min-height:320px;text-align:center}
+.gl-panel-empty p{margin:0;font-size:14px;line-height:1.8;color:var(--ink3)}
+
+/* ---- a word of the pattern that the glossary knows, and its small card ---- */
+/* (outside .gl, so the colours are written out: the variables live on .gl) */
+.gl-word{display:inline;padding:0 2px;margin:0 -2px;border:0;border-radius:3px;background:#FBE9EC;font:inherit;color:inherit;text-decoration:underline dotted #E2A9B3;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:pointer}
+.gl-word:hover,.gl-word[aria-expanded="true"]{background:#F6D9DF}
+.gl-pop{position:absolute;z-index:60;width:min(300px,calc(100vw - 24px));box-sizing:border-box;padding:14px 14px 12px;border-radius:14px;background:#FFFDF8;
+  box-shadow:0 0 0 1px rgba(168,130,58,.14),-10px 14px 28px -12px rgba(60,42,34,.35);font-family:"Noto Sans KR",sans-serif;color:#3A2E29;text-align:left;white-space:normal;
+  animation:gl-pop .16s ease-out}
+@keyframes gl-pop{from{opacity:0;transform:translateY(-4px)}}
+.gl-pop-name{display:flex;justify-content:flex-start;margin:0 0 10px}
+.gl-pop-name .gl-patch{display:inline-flex;align-items:center;min-height:34px;padding:0 8px;font:700 14px/1.2 "Noto Serif KR",serif}
+.gl-pop-body{display:flex;align-items:center;gap:12px}
+.gl-pop-body p{margin:0;font-size:13px;line-height:1.6;color:#5E5048}
+/* chips and the link each on one line; a long abbreviation moves the link to a line of its own */
+.gl-pop-foot{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px}
+.gl-pop-ab{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:999px;background:#FBE9EC;color:#8A4A55;font-size:11.5px;font-weight:600;white-space:nowrap}
+.gl-pop-go{margin-left:auto;display:inline-flex;align-items:center;min-height:32px;padding:0 4px;border:0;background:none;font-size:13px;font-weight:600;color:#8A4A55;cursor:pointer;text-decoration:none;white-space:nowrap}
+.gl-pop-go:hover{text-decoration:underline}
+@media (prefers-reduced-motion:reduce){.gl-pop{animation:none}}
