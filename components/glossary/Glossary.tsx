@@ -67,7 +67,7 @@ function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null;
             {terms.map(t => (
               <li key={t.id}>
                 <button type="button" className={"gl-row" + (selected === t.id ? " is-on" : "")} aria-current={selected === t.id ? "true" : undefined} onClick={() => onPick(t)}>
-                  <SymPatch term={t} size={52} />
+                  <SymPatch term={t} size={44} />
                   <span className="gl-row-text"><b>{t.name}</b><span>{shortLine(t)}</span></span>
                   <Chev />
                 </button>
@@ -89,6 +89,12 @@ function Head({ total }: { total: number }) {
   );
 }
 
+/** the whole list on its own (the floating glossary over 도안 보기 / 따라 뜨기) */
+export function GlossList({ total, onPick }: { total: number; onPick: (t: GlossTerm) => void }) {
+  const s = useList();
+  return <div className="glf-list"><Head total={total} /><Search s={s} /><Tabs s={s} /><Rows s={s} onPick={onPick} /></div>;
+}
+
 // ---------------------------------------------------------------- a term
 
 /** the slim lace with a section's name, in the term's category colour */
@@ -102,7 +108,7 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
   return (
     <article className="gl-detail" aria-labelledby={`glt-${term.id}`}>
       <header className="gl-d-head">
-        <SymPatch term={term} size={76} />
+        <SymPatch term={term} size={64} />
         <div>
           <p className="gl-d-cat">{categoryOf(term).name}</p>
           <h2 id={`glt-${term.id}`}>{term.name}</h2>

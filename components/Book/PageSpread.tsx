@@ -10,6 +10,7 @@ import { GoldX } from "../GoldX";
 import { useApp } from "@/components/AppProvider";
 import { freshDraft } from "@/lib/items";
 import { store } from "@/lib/store";
+import { TERMS } from "@/lib/glossary";
 import { useBook, type WizStep } from "./BookProvider";
 
 const STEP_NAME: Record<WizStep, string> = { 1: "이름", 2: "품목", 3: "실과 크기", 4: "확인" };
@@ -95,6 +96,11 @@ export function RightPage({ onClose }: { onClose: () => void }) {
         <Link className="pg-link pg-link-rose" href="/mine">
           <span className="pg-link-text"><span className="pg-link-title">나의 도안집</span><span className="pg-link-desc">뜨던 곳부터 이어서</span></span>
           <span className="pg-link-end">{workCount ? `${workCount}개` : "아직 없어요"}</span>
+        </Link>
+        {/* 뜨개 용어집 in pastel green (Kim) */}
+        <Link className="pg-link pg-link-sage" href="/glossary">
+          <span className="pg-link-text"><span className="pg-link-title">뜨개 용어집</span><span className="pg-link-desc">모르는 말이 나오면 여기서</span></span>
+          <span className="pg-link-end">{TERMS.length}개</span>
         </Link>
       </nav>
     </div>

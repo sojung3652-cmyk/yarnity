@@ -150,3 +150,8 @@
 /* Kim: no shelf boards (only their room between the rows stays), and the storage note in the middle */
 html body .bk-shelf{height:0;background:none;box-shadow:none}
 html body .mine-note{text-align:center}
+
+/* the title as on the glossary (Kim): My Patterns in the same script, the count on the right */
+html body .mine-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 0 18px;padding:0 4px}
+html body .mine-title{margin:0;font:400 44px/1.1 "Pinyon Script","Newsreader",cursive;color:#8A4A55;letter-spacing:.01em}
+html body .mine-count{margin:0 0 8px;font-size:12.5px;color:#8C7E74;white-space:nowrap}

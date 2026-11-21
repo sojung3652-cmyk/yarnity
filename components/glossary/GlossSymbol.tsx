@@ -28,7 +28,7 @@ const PATH: Record<string, { d: string; fill?: boolean }> = {
 
 export function GlossSymbol({ term, size }: { term: GlossTerm; size: number }) {
   const p = term.symbol ? PATH[term.symbol] : null;
-  if (!p) return <span className="gl-sym-letter" style={{ fontSize: Math.round(size * 0.5) }} aria-hidden="true">{term.name.slice(0, 1)}</span>;
+  if (!p) return <span className="gl-sym-letter" style={{ fontSize: Math.round(size * 0.36) }} aria-hidden="true">{term.name.slice(0, 1)}</span>;
   return (
     <svg className="gl-sym" width={size * 0.56} height={size * 0.56} viewBox="-0.6 -0.6 1.2 1.2" aria-hidden="true">
       <path d={p.d} fill={p.fill ? "currentColor" : "none"} stroke={p.fill ? "none" : "currentColor"} strokeWidth={0.075} strokeLinecap="round" strokeLinejoin="round" />

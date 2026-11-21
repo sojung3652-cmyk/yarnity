@@ -186,6 +186,11 @@ function List() {
   return (
     <>
       <GoldDefs />
+      {/* the title as on the glossary (Kim): My Patterns in script, the count on the right */}
+      <header className="mine-head">
+        <h1 className="mine-title" lang="en">My Patterns<span className="sr"> · 나의 도안집</span></h1>
+        <p className="mine-count">나의 도안집 · {counts.all}권</p>
+      </header>
       <div className="mine-tools">
         {/* a small search box with a magnifier (Kim: the long underlined field was too big) */}
         <label className="mine-find" htmlFor="mineSearch">
@@ -261,7 +266,6 @@ export default function MinePage() {
   if (m) return <MobileMine />;
   return (
     <main id="view-mine" className="mine">
-      {/* the My Patterns title is in the nav bar here (components/Nav.tsx), where the wordmark is elsewhere */}
       <List />
       <p className="mine-note">작품과 사진은 이 브라우저에만 저장돼요.</p>
     </main>

@@ -4,6 +4,8 @@ import "./globals.css";
 import "./patches.css";
 import { AppProvider } from "@/components/AppProvider";
 import { Nav } from "@/components/Nav";
+import { GlossaryFloat } from "@/components/glossary/GlossaryFloat";
+import { AiHost } from "@/components/newbook/AiPanel";
 import { FoilLogo } from "@/components/FoilLogo";
 import { BookProvider } from "@/components/Book/BookProvider";
 import { Hero } from "@/components/home/Hero";
@@ -40,6 +42,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             {/* phones (767px and narrower): the bottom bar and the AI sheet */}
             <MobileChrome />
+            {/* the glossary floating over 도안 보기 / 따라 뜨기 (their 용어집 button), phones and wide screens */}
+            <GlossaryFloat />
+            {/* the AI window (wide screens): here, not in the home hero, so it stays visible on every page once open */}
+            <AiHost />
           </BookProvider>
         </AppProvider>
       </body>

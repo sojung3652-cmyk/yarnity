@@ -7,7 +7,6 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Book } from "@/components/Book/Book";
-import { AiHost } from "@/components/newbook/AiPanel";
 import { FoilLogo } from "@/components/FoilLogo";
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
 import { useMobile } from "@/components/mobile/useMobile";
@@ -60,8 +59,6 @@ export function Hero() {
         </div>
       </div>
       <Book />
-      {/* the one AI sheet, beside the open book (menu or 도안 만들기) */}
-      <AiHost />
     </section>
   );
 }

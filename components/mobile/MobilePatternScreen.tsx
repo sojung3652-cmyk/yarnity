@@ -18,6 +18,7 @@ import { yarnUse } from "@/lib/yarnUse";
 import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
 import { CoverPicker } from "@/components/diary/CoverPicker";
 import { MobileTopBar, MoreButton } from "./MobileTopBar";
+import { GlossButton } from "@/components/glossary/GlossaryFloat";
 import { MoreSheet } from "./MoreSheet";
 import { useNewDraft } from "./useNewDraft";
 
@@ -62,7 +63,7 @@ export function MobilePatternScreen() {
 
   return (
     <main id="view-pattern" className="ms-screen msp">
-      <MobileTopBar back={() => router.push("/mine")} logo={84} tip right={<MoreButton onClick={() => setMore(true)} />} />
+      <MobileTopBar back={() => router.push("/mine")} logo={84} tip right={<><GlossButton /><MoreButton onClick={() => setMore(true)} /></>} />
       <header className="msp-head">
         <p className="msp-kicker" lang="en">Crochet pattern · <span>{made}</span></p>
         {renaming ? (

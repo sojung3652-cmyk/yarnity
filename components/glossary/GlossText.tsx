@@ -38,7 +38,7 @@ function Word({ word, term }: { word: string; term: GlossTerm }) {
         <div ref={card} className="gl gl-pop" role="dialog" aria-label={term.name} style={{ left: at.x, top: at.y }}>
           <p className="gl-pop-name"><span className="gl-patch" style={{ ["--gp" as string]: `url(/glossary/patch_${colorOf(term)}.webp)` } as CSSProperties}>{term.name}</span></p>
           <div className="gl-pop-body">
-            <span className="gl-patch gl-sympatch" style={{ width: 48, height: 48 }}><GlossSymbol term={term} size={48} /></span>
+            <span className="gl-patch gl-sympatch" style={{ width: 42, height: 42 }}><GlossSymbol term={term} size={42} /></span>
             <p>{shortLine(term)}</p>
           </div>
           <div className="gl-pop-foot">

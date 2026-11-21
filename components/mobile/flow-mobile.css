@@ -220,3 +220,10 @@
   .mfw-screen,.mfw-screen.is-back{animation:mfw-fade .2s ease both}
 }
 @keyframes mfw-fade{from{opacity:0}}
+
+/* the home two by two (Kim): equal columns; 도안 만들기 | 나의 도안집 on top, AI와 상의 | 뜨개 용어집 under */
+@media (max-width:767.98px){
+  body .mfh-foot{grid-template-columns:1fr 1fr}
+  body .mfh-foot.mfh-top{margin-top:0}
+  body .mf-patch.is-green{--patch:url(/glossary/patch_sage.webp)}
+}

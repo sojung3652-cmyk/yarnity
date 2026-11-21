@@ -13,6 +13,7 @@ import { clamp, fmt, PART_KO, plan, withChains, type Row } from "@/lib/pattern";
 import type { Project } from "@/lib/types";
 import { useMobile } from "@/components/mobile/useMobile";
 import { MobileTopBar, MoreButton } from "@/components/mobile/MobileTopBar";
+import { GlossButton } from "@/components/glossary/GlossaryFloat";
 import { MoreSheet, SAVED_KEY } from "@/components/mobile/MoreSheet";
 
 function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
@@ -213,7 +214,7 @@ export function TrackScreen() {
     const measuring = !measureLater && (showMeasure || showMeasureRows);
     return (
       <main id="view-track" className="ms-screen mst">
-        <MobileTopBar back={() => router.push("/pattern")} logo={70} right={<MoreButton onClick={() => setMore(true)} />} />
+        <MobileTopBar back={() => router.push("/pattern")} logo={70} right={<><GlossButton /><MoreButton onClick={() => setMore(true)} /></>} />
         <h1 className="mst-name">{p.name}</h1>
         <div className="mst-progress">
           <span className="mst-part"><b>{secNo(r.part)}</b> {part}</span>
