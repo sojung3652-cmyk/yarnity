@@ -1,6 +1,6 @@
 "use client";
 // My Page (web only, Kim): the profile and a plain menu on the left - sticky under the NavBar, no box - and one of
-// four screens on the right: 나의 도안집 (/my, the latest work on the hook on top), 나의 기록 (/my/records), 위시
+// four screens on the right: 나의 도안집 (/my, the latest work on the hook on top), 갤러리 (/my/gallery), 위시
 // 보관함 (/my/wish), 나의 프로필 (/my/profile). Below 1000px the left goes on top as a row of tabs. Phones keep their own
 // 나의 도안집 (/mine): every /my address sends them there.
 import Link from "next/link";
@@ -18,7 +18,7 @@ import "./myPage.css";
 // no 진행 중 screen (Kim): 나의 도안집 is the first one, with the latest work on the hook on top of it
 export const MY_MENU = [
   { href: "/my", label: "나의 도안집" },
-  { href: "/my/records", label: "나의 기록" },
+  { href: "/my/gallery", label: "갤러리" },
   { href: "/my/wish", label: "위시 보관함" },
   { href: "/my/profile", label: "나의 프로필" },
 ] as const;

@@ -1,7 +1,10 @@
 "use client";
-// My Page · 나의 기록 (web; components/my/MyRecords.tsx).
-import { MyRecords } from "@/components/my/MyRecords";
+// An old address: 나의 기록 became 갤러리 (Kim).
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Page() {
-  return <MyRecords />;
+  const router = useRouter();
+  useEffect(() => { router.replace("/my/gallery"); }, [router]);
+  return null;
 }

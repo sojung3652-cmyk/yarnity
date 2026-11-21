@@ -99,20 +99,14 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 .my .my-newslot span{font:300 26px/1 "Noto Sans KR",sans-serif;color:#8C807A}
 .my .my-newslot:hover{background:rgba(255,254,250,.75);color:#3A322D}
 
-/* ---- 3 나의 기록 ---- */
-.my-stats{display:grid;gap:14px;margin:0 0 30px}
-.my-stats>div{padding:6px 8px;text-align:center}
-.my-stats dt{font-size:12.5px;color:#6A605F}
-.my-stats dd{margin:6px 0 0;font:700 24px/1.2 "Noto Serif KR",serif;color:#3A322D}
-.my-stats dd small{margin-left:3px;font-size:12px;font-weight:400;color:#6A605F}
-.my-rec{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+/* ---- 3 갤러리 (in place of 나의 기록, Kim) ---- */
 .my-sec-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 .my-pick-wrap{position:relative}
-.my-gal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 18px;list-style:none;margin:0;padding:0}
+.my-gal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:26px 20px;list-style:none;margin:0;padding:0}
 .my-gal li{display:flex;flex-direction:column;gap:4px;min-width:0}
 .my-gal b{margin-top:6px;font:700 14px/1.35 "Noto Serif KR",serif;color:#3A322D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .my-gal small{font-size:12px;color:#6A605F}
-.my-gal-pic{position:relative;display:block;width:100%;height:150px;padding:0;border:0;border-radius:6px;overflow:hidden;background:#EFE8DD;cursor:zoom-in;
+.my-gal-pic{position:relative;display:block;width:100%;aspect-ratio:1;height:auto;padding:0;border:0;border-radius:6px;overflow:hidden;background:#EFE8DD;cursor:zoom-in;
   box-shadow:-3px 5px 10px -5px rgba(70,50,35,.3),0 0 0 1px rgba(142,131,121,.18)}
 .my-gal-pic img{width:100%;height:100%;object-fit:cover;display:block}
 .my-gal-n{position:absolute;right:8px;bottom:8px;padding:2px 8px;border-radius:10px;background:rgba(60,48,42,.62);color:#FBF7EF;font-size:11px}
@@ -120,13 +114,6 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
   background:repeating-linear-gradient(135deg,rgba(142,131,121,.1) 0 7px,rgba(255,254,250,.5) 7px 14px);box-shadow:inset 0 0 0 1px rgba(142,131,121,.3)}
 .my-gal-pic.is-empty span{font:600 13px "Noto Serif KR",serif;color:#6A605F}
 .my-gal-pic.is-empty small{font-size:11.5px;color:#8C807A}
-.my-days{padding:8px 10px}
-.my-heat{display:flex;gap:5px;margin-top:14px}
-.my-heat-col{display:flex;flex-direction:column;gap:5px}
-.my-heat i{display:block;width:14px;height:14px;border-radius:3px;background:rgba(142,131,121,.12)}
-.my-heat i.l1{background:#F1D6D8}.my-heat i.l2{background:#E2AEB3}.my-heat i.l3{background:#CE999B}
-.my-heat i.is-future{background:none;box-shadow:inset 0 0 0 1px rgba(142,131,121,.12)}
-.my-heat-note{margin:12px 0 0;font-size:11.5px;color:#6A605F}
 .my-lb{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:40px;background:rgba(40,30,24,.72)}
 .my-lb figure{position:relative;margin:0;max-width:min(1000px,92vw)}
 .my-lb img{display:block;max-width:100%;max-height:78vh;border-radius:6px;box-shadow:-8px 14px 30px -10px rgba(0,0,0,.5)}
@@ -220,7 +207,7 @@ body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have
 
 /* ---- narrower ---- */
 @media (max-width:1400px){.my-masonry{column-count:3}}
-@media (max-width:1180px){.my-rec,.my-prof{grid-template-columns:minmax(0,1fr)}.my-gal{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1180px){.my-prof{grid-template-columns:minmax(0,1fr)}.my-gal{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:999.98px){
   .my{padding-top:20px}
   .my-grid{grid-template-columns:minmax(0,1fr);gap:24px}
