@@ -35,13 +35,12 @@ export function usePhotoUrl(id?: string) {
   return url;
 }
 
-/** the avatar (Kim): no picture - the ivory patch with the gold embroidered bird; a picture - set in the stitched
- *  ivory frame with the little stars at its corners (the photo shows through the frame's window) */
+/** the avatar (Kim): the ivory lace oval with a ribbon - no picture: linen with the gold embroidered bird inside;
+ *  a picture: the photo in the oval (it shows through the frame's window). Both are 1 : 1.31, the same size. */
 export function Avatar({ size }: { size: number }) {
   const prof = useProfile(), url = usePhotoUrl(prof.avatar);
   return (
-    // a photo: the ivory lace oval frame (Kim), as wide as the patch and 4:3 tall
-    <span className={"my-avatar" + (url ? " has-photo" : "")} style={{ width: size, height: url ? Math.round(size * 933 / 700) : size }} aria-hidden="true">
+    <span className={"my-avatar" + (url ? " has-photo" : "")} style={{ width: size, height: Math.round(size * 1345 / 1026) }} aria-hidden="true">
       {/* eslint-disable @next/next/no-img-element */}
       {url
         ? <><img className="my-avatar-pic" src={url} alt="" /><img className="my-avatar-frame" src="/brand/avatar_lace.webp" alt="" /></>
