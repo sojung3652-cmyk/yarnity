@@ -173,12 +173,3 @@
 /* Kim: no shelf boards (only their room between the rows stays), and the storage note in the middle */
 body .mm-shelf{height:0;background:none;box-shadow:none}
 body .mm-note{text-align:center}
-
-/* the top as on the glossary (Kim): 나의 도안집 in the bar, My Patterns in script under it, the count on the right */
-body .mm-bar-title{font:700 16px/1.3 "Noto Serif KR",serif;color:#3A2E29}
-body .mm-title-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:10px 0 14px}
-body .mm-title{margin:0;font:400 40px/1.1 "Pinyon Script","Newsreader",cursive;color:#8A4A55;letter-spacing:.01em}
-body .mm-title-count{margin:0 0 8px;font-size:12.5px;color:#8C7E74;white-space:nowrap}
-/* the My Patterns wordmark at its earlier size (Kim): 90px on the web, 34px on phones */
-body .mm-title{line-height:0}
-body .mm-logo{display:block;width:auto;height:34px}

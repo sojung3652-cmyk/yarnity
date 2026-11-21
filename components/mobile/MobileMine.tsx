@@ -84,17 +84,12 @@ export function MobileMine() {
   return (
     <main id="view-mine" className="mm">
       <GoldDefs />
-      {/* the top as on the glossary (Kim): ‹ · 나의 도안집 · ··· (처음으로, 새 도안 만들기); under it My Patterns in
-          script with the count on the right */}
+      {/* the top (Kim): ‹ · the My Patterns wordmark in the middle of the bar · ··· (처음으로, 새 도안 만들기) */}
       <MobileTopBar back={() => router.push("/")}
-        center={<span className="mm-bar-title">나의 도안집</span>}
+        // eslint-disable-next-line @next/next/no-img-element
+        center={<h1 className="mm-head-title" lang="en"><img src="/pic/my-patterns.png" alt="My Patterns · 나의 도안집" width={900} height={366} /></h1>}
         right={<MoreButton onClick={() => setMore(true)} />} />
       {more && <MoreSheet title={`나의 도안집 · ${projects.length}권`} skip={["mine"]} items={[]} onClose={() => setMore(false)} />}
-      <header className="mm-title-head">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <h1 className="mm-title"><img className="mm-logo" src="/pic/my-patterns.png" alt="My Patterns · 나의 도안집" width={900} height={366} /></h1>
-        <p className="mm-title-count">{ready ? `${projects.length}권` : " "}</p>
-      </header>
 
       {!ready ? null : !projects.length && !undo ? (
         <section className="mm-empty">
