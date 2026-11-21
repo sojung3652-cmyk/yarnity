@@ -69,7 +69,7 @@ export function MyLayout({ children }: { children: ReactNode }) {
     return [projects.length, st.filter(s => s === "done").length, wishes.length, null] as (number | null)[];
   }, [projects, wishes]);
   if (m !== false) return <main id="view-my" />;
-  const sub = [prof.craft, prof.career].filter(Boolean).join(" · ");
+  const sub = prof.craft; // what the user mostly knits (Kim: no 경력)
   return (
     <main className="my" id="view-my">
       <GoldDefs />
