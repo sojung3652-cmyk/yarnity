@@ -10,7 +10,7 @@
 // `instant` is true when the new state must appear without motion: first load, refresh, typed address,
 // or arriving from a page that has no book.
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
 import { freshDraft } from "@/lib/items";
 import { store } from "@/lib/store";
@@ -87,6 +87,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const [closing, setClosing] = useState(false);
   // the book opened over another page ("새 도안"), and the page to come back to from the wizard
   const [overlay, setOverlay] = useState(false);
+  const menuNext = useRef(false);
+  const [sinking, setSinking] = useState(false);
   const [origin, setOrigin] = useState<string | null>(null);
 
   // address -> state, during render (not in an effect) so the book sees the new view and `instant`
@@ -97,12 +99,16 @@ export function BookProvider({ children }: { children: ReactNode }) {
     const phone = isPhone();
     const bookPage = (p: string | null) => p === "/" || p === "/new" || (phone && !!bookPageOf(p));
     setSeenPath(path);
-    // wide screens (Kim): there is no menu spread any more - / is the opening, the book only rises to the wizard
+    // wide screens (Kim): / is the opening; the book with its menu spread floats over it (overlay), so the menu is
+    // never the old desk. Phones keep their own menu on /.
     if (path === "/") setHomeOpen(phone && (seenPath === "/new" || !!bookPageOf(seenPath) || seenPath === "/mine" || seenPath === "/pattern" || seenPath === "/track") && !closing);
     if (closing) setClosing(false);
     setInstant(!bookPage(seenPath) && !overlay);
-    if (overlay) setOverlay(false); // going anywhere (the wizard, 내 작품) ends the overlay
-    if (origin && path !== "/new") setOrigin(null); // back on a page (the origin or any other): forgotten
+    // wide screens: "← 메뉴" in a wizard raised over the opening turns back to the floating menu spread
+    const toMenu = menuNext.current && path === "/"; menuNext.current = false;
+    if (overlay !== toMenu) setOverlay(toMenu); // going anywhere (the wizard, 내 작품) ends the overlay
+    if (origin && path !== "/new" && !toMenu) setOrigin(null); // back on a page (the origin or any other): forgotten
+    if (sinking) setSinking(false); // the sunk book stays down until the screen it goes back to is there
   }
   // a step change on the same page (next / previous / Back / Forward) always turns the page, also after
   // the wizard was opened by a typed address or a refresh (which only skips the motion of that first view)
@@ -129,7 +135,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     router.replace(`/new?${sp}`, { scroll: false });
   }, [path, urlStep, router]);
 
-  const view: BookView = path === "/" ? (homeOpen ? "home" : "closed") : path === "/new" ? "wizard" : overlay ? "home" : "hidden";
+  const view: BookView = path === "/" ? (homeOpen || overlay ? "home" : "closed") : path === "/new" ? "wizard" : overlay ? "home" : "hidden";
   const step: WizStep = urlStep ?? 1;
 
   // Wide screens (Kim): the book is called from two places only - the opening's Start and the nav's 새 도안 -
@@ -140,15 +146,20 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (path === "/new") { const sp = new URLSearchParams(location.search); sp.delete("edit"); sp.set("step", "1"); router.push(`/new?${sp}`, { scroll: false }); return; }
     setOrigin(path + location.search); router.push("/new?step=1", { scroll: false });
   }, [path, router]);
-  const open = useCallback(() => { if (!isPhone()) { raise(); return; } setInstant(false); setHomeOpen(true); }, [raise]);
+  // wide screens, on the opening: the book rises from the bottom onto its first spread (the menu: 도안 만들기,
+  // 이어서 뜨기 ...), floating over the opening, which draws back under it (Kim)
+  const rise = useCallback(() => {
+    if (path !== "/") { raise(); return; }
+    setInstant(false); setOrigin("/"); setOverlay(true);
+  }, [path, raise]);
+  const open = useCallback(() => { if (!isPhone()) { rise(); return; } setInstant(false); setHomeOpen(true); }, [rise]);
   // close: the same everywhere in the book. In the wizard it goes home with the book closed
   const floating = overlay || (path === "/new" && !!origin);
-  const [sinking, setSinking] = useState(false);
   const finishClose = useCallback(() => {
     setInstant(false); setHomeOpen(false);
-    if (overlay) { setOverlay(false); return; } // opened over a page: just put the book away
+    if (overlay) { setOverlay(false); if (!isPhone()) setOrigin(null); return; } // opened over a page: just put the book away
     // the wizard entered from a page (새 도안 -> 도안 만들기, 도안 고치기) goes back to that page
-    if (path === "/new" && origin) { const o = origin; setOrigin(null); router.push(o, { scroll: false }); return; }
+    if (path === "/new" && origin) { const o = origin; if (isPhone()) setOrigin(null); router.push(o, { scroll: false }); return; } // wide screens: the path change forgets it, so the book stays floating (sunk) until that page is there
     if (path === "/new") { setClosing(true); router.push("/", { scroll: false }); }
     // phones: 도안집, 도안 and 따라 뜨기 are pages of the open book too; closing it goes to the desk, closed
     else if (isPhone() && bookPageOf(path)) { setClosing(true); router.push("/", { scroll: false }); }
@@ -158,16 +169,19 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (sinking) return;
     if (!floating) { finishClose(); return; }
     setSinking(true);
-    setTimeout(() => { finishClose(); setSinking(false); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700);
-  }, [floating, sinking, finishClose]);
+    // going back to another address: .is-sinking stays until that screen is there (the path change ends it);
+    // ending it earlier showed the book once more, open, for a frame before it vanished
+    const stays = overlay || isPhone(); // phones: as before
+    setTimeout(() => { finishClose(); if (stays) setSinking(false); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700);
+  }, [floating, sinking, finishClose, overlay]);
   const editHere = useCallback((id: string) => {
     setInstant(false); setOrigin(path + location.search); router.push(`/new?edit=${encodeURIComponent(id)}`, { scroll: false });
   }, [path, router]);
   const openHere = useCallback(() => {
-    if (!isPhone()) { raise(); return; }
+    if (!isPhone()) { rise(); return; }
     if (path === "/" || path === "/new") { setInstant(false); setHomeOpen(true); if (path === "/new") router.push("/", { scroll: false }); return; }
     setInstant(false); setOrigin(path + location.search); setOverlay(true);
-  }, [path, router, raise]);
+  }, [path, router, rise]);
   const doHome = useCallback(() => { setInstant(false); router.push("/", { scroll: false }); }, [router]);
 
   // Leaving a new pattern half made (a name typed, or past step 1) asks first: keep it for
@@ -195,8 +209,15 @@ export function BookProvider({ children }: { children: ReactNode }) {
     const sp = new URLSearchParams(location.search); sp.set("step", String(s));
     router.push(`/new?${sp}`, { scroll: false });
   }, [router]);
-  // wide screens: no menu to go back to - "← 메뉴" puts the book away (it sinks to the screen it rose over)
-  const toHome = useCallback(() => { if (!isPhone()) { close(); return; } if (asks()) setLeaving("home"); else doHome(); }, [asks, doHome, close]);
+  // wide screens: "← 메뉴" turns back to the menu spread when the wizard was raised from the opening; raised over
+  // another page (새 도안), there is no menu there - the book is put away (it sinks to that page)
+  const toHome = useCallback(() => {
+    if (!isPhone()) {
+      if (origin?.split("?")[0] !== "/") { close(); return; }
+      menuNext.current = true;
+    }
+    if (asks()) setLeaving("home"); else doHome();
+  }, [asks, doHome, close, origin]);
   const toDesk = useCallback(() => { setClosing(true); router.push("/", { scroll: false }); }, [router]);
   const leaveTo = useCallback((to: string) => { if (asks()) setLeaving({ path: to }); else { setInstant(false); router.push(to, { scroll: false }); } }, [asks, router]);
 
@@ -210,7 +231,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [view, close, leaving]);
 
-  const fromOpening = path === "/new" && origin?.split("?")[0] === "/"; // the path only (a query such as ?debug stays)
+  // the book floats over the opening: its menu on /, or the wizard raised from there (origin: the path only)
+  const fromOpening = (path === "/" && overlay) || (path === "/new" && origin?.split("?")[0] === "/");
   const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, sinkAway: doClose, fromOpening }),
     [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, doClose, fromOpening]);
   return (

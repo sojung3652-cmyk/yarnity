@@ -44,7 +44,7 @@ export function makeScene(cv: HTMLCanvasElement, img: WebOpeningImages) {
   function layout() {
     const portrait = VH / VW > 1.12; LW = portrait ? 1080 : 1920; LH = portrait ? 1920 : 1080; SC = Math.min(VW / LW, VH / LH); OX = (VW - LW * SC) / 2; OY = (VH - LH * SC) / 2; PX = SC * DPR;
     const mr = img.med.naturalWidth / img.med.naturalHeight, lr = img.logo.naturalHeight / img.logo.naturalWidth, tr = img.text.naturalHeight / img.text.naturalWidth;
-    L = (portrait ? { mh: 940, mx: 540, my: 610, lw: 1010, lcx: 548, lcy: 1318, tw: 940, tcx: 540, tcy: 1610, bh: 1100 } : { mh: 575, mx: 960, my: 332, lw: 640, lcx: 978, lcy: 744, tw: 600, tcx: 960, tcy: 932, bh: 760 }) as Lay;
+    L = (portrait ? { mh: 940, mx: 540, my: 610, lw: 1010, lcx: 548, lcy: 1318, tw: 680, tcx: 540, tcy: 1590, bh: 1100 } : { mh: 575, mx: 960, my: 332, lw: 640, lcx: 978, lcy: 744, tw: 430, tcx: 960, tcy: 920, bh: 760 }) as Lay;
     L.mw = L.mh * mr; L.lh = L.lw * lr; L.th = L.tw * tr; L.lx = L.lcx - L.lw / 2; L.ly = L.lcy - L.lh / 2; L.tx = L.tcx - L.tw / 2; L.ty = L.tcy - L.th / 2;
     tc.width = Math.ceil(L.tw * PX); tc.height = Math.ceil(L.th * PX);
     const k = LWp / 1200; lastP = -1; SP = (RAW as number[][][]).map(s => { const p = s.map(([x, y]) => [x * k, y * k]), sm = [p[0]]; for (let i = 1; i < p.length - 1; i++) sm.push(...quad([(p[i - 1][0] + p[i][0]) / 2, (p[i - 1][1] + p[i][1]) / 2], p[i], [(p[i][0] + p[i + 1][0]) / 2, (p[i][1] + p[i + 1][1]) / 2])); sm.push(p[p.length - 1]); return resample(sm, Math.max(1.5, 2 * k)); });

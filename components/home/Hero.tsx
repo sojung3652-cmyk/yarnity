@@ -16,7 +16,8 @@ import { OpeningIntroWeb } from "@/components/opening/OpeningIntroWeb";
 export function Hero() {
   const b = useBook();
   // /new on phones or without WebGL: the one-page wizard of app/new draws itself; no stage
-  const hidden = b.view === "hidden" || (b.view === "wizard" && !wizardInBook(b));
+  // wide screens: the old desk is not shown any more - with the book away (closed) the stage is hidden under the opening
+  const hidden = b.view === "hidden" || b.view === "closed" || (b.view === "wizard" && !wizardInBook(b));
   const open = b.view === "home" || b.view === "wizard";
   // coming back to the home screen from another page: the logo, the copy and the book float in (as the
   // other pages do, globals.css .is-arriving); not on the very first load, not for the book opened over a page

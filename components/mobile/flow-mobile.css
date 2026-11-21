@@ -225,7 +225,7 @@
 @media (max-width:767.98px){
   body .mfh-foot{grid-template-columns:1fr 1fr}
   body .mfh-foot.mfh-top{margin-top:0}
-  body .mf-patch.is-green{--patch:url(/glossary/patch_sage.webp)}
+  body .mf-patch.is-green{--patch:url(/glossary/patch_leaf.webp)} /* the medallion leaves green (Kim) */
 }
 /* the embroidered wordmark (2.82 : 1): its width only, or it would stretch */
 @media (max-width:767.98px){ body .mfh-foil{width:150px;height:auto} }
