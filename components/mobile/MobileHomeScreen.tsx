@@ -1,6 +1,6 @@
 "use client";
 // ② The phone's home, "Girl's Diary" (Kim's spec): the gold logo and its caption; the bird picture in an
-// ivory lace oval; then cream paper cards as on the web (Kim; flow-mobile.css): 도안 만들기 -> step 1;
+// ivory lace oval; then ivory cloth labels, one cream (Kim; flow-mobile.css): 도안 만들기 -> step 1;
 // 이어서 뜨기 (a dusty-rose band) when a work is on the hook -> its 따라 뜨기; 나의 도안집 (n권); AI와 상의
 // (a gold embroidered star) -> the existing AI sheet; 뜨개 용어집.
 import { useRouter } from "next/navigation";
