@@ -26,15 +26,15 @@ export function MobileHomeScreen() {
   return (
     <main id="view-m-home" className={"mf mfh" + (ready && hook ? " has-resume" : "")}>
       <GoldDefs />
+      {/* the knitted bird in its lace oval on top, the gold-thread Yarnity under it (Kim swapped them): a picture
+          only (no words, not a button) */}
+      <div className="mfh-lace" aria-hidden="true">
+        <img className="mfh-lace-frame" src="/mobile/diary/lace_bird.webp" alt="" />
+      </div>
       <header className="mfh-brand">
         <h1 className="mfh-logo"><span className="sr">Yarnity</span><FoilLogo className="mfh-foil" /></h1>
         <p className="mfh-cap" lang="en">Intelligent Crochet</p>
       </header>
-
-      {/* the knitted bird in its lace oval (one picture, Kim): a picture only (no words, not a button) */}
-      <div className="mfh-lace" aria-hidden="true">
-        <img className="mfh-lace-frame" src="/mobile/diary/lace_bird.webp" alt="" />
-      </div>
 
       <div className="mfh-actions">
       {/* two by two (Kim): 도안 만들기 | 나의 도안집, then AI와 상의 | 용어집 (pastel green) */}

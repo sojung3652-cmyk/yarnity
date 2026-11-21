@@ -588,20 +588,13 @@
 }
 @media (max-width:767.98px){.mbp .lb-cover-label span{font-size:10px;padding:5px 3px}}
 
-/* the splash from its pieces (Kim): the starry linen; the gold-thread Yarnity, its line and a small gold rule on
-   top; the knitted bird in its lace oval under them. A tap anywhere goes on. */
+/* the splash is one picture now (Kim): the knitted bird and the gold-thread Yarnity, the whole screen, a tap
+   anywhere goes on; the picture's own cream behind it where a screen is wider than it */
 @media (max-width:767.98px){
-  .m-splash.mf-splash{padding:0;background:#F4E8DE url(/mobile/bg_stars.webp) center / cover no-repeat}
-  .m-splash-go{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5svh;padding:5svh 24px 6svh;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .m-splash-go:focus-visible{outline:2px solid #3A2E29;outline-offset:-6px}
-  .m-splash-head{display:flex;flex-direction:column;align-items:center}
-  .m-splash-mark{display:block;width:min(70vw,290px);height:auto}
-  .m-splash-line{margin-top:14px;font:italic 500 17px/1.3 var(--font-cormorant),"Cormorant Garamond",serif;color:#9C7A36;letter-spacing:.01em}
-  .m-splash-orn{display:flex;align-items:center;gap:10px;margin-top:14px}
-  .m-splash-orn::before,.m-splash-orn::after{content:"";width:56px;height:1px;background:linear-gradient(90deg,rgba(176,140,69,0),#B08C45)}
-  .m-splash-orn::after{transform:scaleX(-1)}
-  .m-splash-orn img{width:14px;height:14px}
-  .m-splash-medal{display:block;width:min(72vw,300px);height:auto;filter:drop-shadow(-3px 5px 6px rgba(90,62,44,.18))}
+  .m-splash.mf-splash{padding:0;background:#F1E6DC}
+  .m-splash-pic{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .m-splash-pic img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 40%}
+  .m-splash-pic:focus-visible{outline:2px solid #3A2E29;outline-offset:-6px}
 }
 
 

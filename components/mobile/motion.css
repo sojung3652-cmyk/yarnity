@@ -13,7 +13,9 @@
   .mm-hook,.mm-tools,.mm-empty,.mm-row,.mm-note,
   .msp-head,.msp-tabs,.msp-facts,.msp-part{
     animation:pg-rise .42s cubic-bezier(.22,.61,.36,1) both;animation-delay:calc(80ms + var(--rise,0) * 40ms)}
-  .mfh-lace,.mm-hook,.msp-tabs{--rise:1}
+  .mm-hook,.msp-tabs{--rise:1}
+  /* the home: the lace bird first, then the wordmark under it */
+  .mfh-brand{--rise:1}
   .mfh-actions>:nth-child(1),.mm-tools,.msp-facts{--rise:2}
   .mfh-actions>:nth-child(2),.mm-row:nth-child(1),.mm-empty,.msp-part:nth-of-type(1){--rise:3}
   .mfh-actions>:nth-child(3),.mm-row:nth-child(2),.msp-part:nth-of-type(2){--rise:4}
