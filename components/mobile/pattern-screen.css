@@ -4,7 +4,7 @@
 @media (max-width:767.98px){
   .ms-screen.msp{
     --ink:#443B3B;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;
-    --gold:#A08A67;--gold-l:#D1C3A9;--paper:#FCFAF5;--card:#FFFEFB;
+    --gold:#A98C5E;--gold-l:#D7C5A3;--paper:#FCFAF5;--card:#FFFEFB;
     position:relative;isolation:isolate;color:var(--ink)}
   /* a veil over the starry linen, so the stars stay quiet even around the title */
   .ms-screen.msp::before{content:"";position:fixed;inset:0;z-index:-1;background:rgba(247,242,232,.55);pointer-events:none}
@@ -18,7 +18,7 @@
 
   /* the paper panel: from the tabs down, 12px from the screen edges, to the bottom of the page */
   .ms-screen.msp .msp-paper{margin:20px -14px 0;padding:14px 14px 24px;min-height:60svh;border-radius:14px 14px 0 0;background:var(--paper);
-    box-shadow:-5px 8px 22px -12px rgba(70,56,40,.28),0 0 0 1px rgba(160,138,103,.2)}
+    box-shadow:-5px 8px 22px -12px rgba(70,56,40,.28),0 0 0 1px rgba(169,140,94,.2)}
   /* down to the bottom of the screen: the panel takes over the screen's bottom padding (room for the foot) */
   .ms-screen.msp .msp-paper{margin-bottom:calc(-1 * (env(safe-area-inset-bottom,0px) + 214px));padding-bottom:calc(env(safe-area-inset-bottom,0px) + 238px)}
   .ms-screen.msp .msp-tabs{margin-top:0;background:var(--rose-l)}
@@ -27,7 +27,7 @@
 
   /* 실 · 바늘 · 실 양 · 한 코 */
   .ms-screen.msp .msp-facts{background:var(--card);box-shadow:inset 0 0 0 1px var(--gold-l)}
-  .ms-screen.msp .msp-facts div+div{border-left-color:rgba(160,138,103,.25)}
+  .ms-screen.msp .msp-facts div+div{border-left-color:rgba(169,140,94,.25)}
   .ms-screen.msp .msp-facts dt{color:var(--ink2)}
   .ms-screen.msp .msp-facts dd{color:var(--ink)}
 
@@ -38,7 +38,7 @@
   .ms-screen.msp .msp-part h2 small{color:var(--ink2)}
 
   /* the rows */
-  .ms-screen.msp .msp-part li{border-bottom-color:rgba(160,138,103,.18)}
+  .ms-screen.msp .msp-part li{border-bottom-color:rgba(169,140,94,.18)}
   .ms-screen.msp .msp-pill{background:var(--rose-l);color:var(--rose-d);font-family:"Noto Serif KR",serif;font-weight:700}
   .ms-screen.msp .msp-how{color:var(--ink)}
   .ms-screen.msp .msp-how small{color:var(--ink2)}
@@ -54,7 +54,7 @@
   /* 준비물과 모양 */
   .ms-screen.msp .msp-shape{background:var(--card);box-shadow:inset 0 0 0 1px var(--gold-l)}
   .ms-screen.msp .msp-cap,.ms-screen.msp .msp-small,.ms-screen.msp .msp-list dt,.ms-screen.msp .msp-list dd small{color:var(--ink2)}
-  .ms-screen.msp .msp-list div{border-top-color:rgba(160,138,103,.18)}
+  .ms-screen.msp .msp-list div{border-top-color:rgba(169,140,94,.18)}
 
   /* the foot: the paper fades in from above, so the list never shows through under the buttons */
   .ms-screen.msp .ms-foot{background:linear-gradient(to bottom,rgba(252,250,245,0),var(--paper) 30px)}

@@ -11,7 +11,7 @@
   font-family:"Noto Serif KR",serif;font-weight:700;font-size:15.5px;line-height:1.25;text-align:center;white-space:nowrap;overflow:hidden}
 .dlace-lavender .dlace-satin small{font-family:"Noto Sans KR",system-ui,sans-serif;font-size:11px;font-weight:500;color:#4A3D36}
 .dlace-mocha .dlace-satin{font-weight:600;font-size:15px}
-.dlace-mocha .dlace-satin small{font-size:10px;font-weight:500;letter-spacing:.22em;color:#DBCEAD}
+.dlace-mocha .dlace-satin small{font-size:10px;font-weight:500;letter-spacing:.22em;color:#E3D1A5}
 /* the name tag (900 x 418): the ivory lace tag, its satin 15% in at the sides, 31% top, 30% bottom */
 .dlace-white{--lace:url(/mobile/diary/lace_tag_name.webp);aspect-ratio:900 / 418;color:#4B3F3A}
 .dlace-white .dlace-satin{left:15%;right:15%;top:31%;bottom:30%;font-weight:600}

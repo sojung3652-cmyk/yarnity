@@ -46,12 +46,12 @@
 .wmore-btn:hover,.wmore-btn[aria-expanded="true"]{background:rgba(142,131,121,.12)}
 .wmore-btn:focus-visible{outline:2px solid #8E8379;outline-offset:2px}
 .wmore-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:40;min-width:180px;padding:6px;border-radius:10px;background:#FFFEFB;text-align:left;
-  box-shadow:-5px 8px 22px -10px rgba(70,56,40,.32),0 0 0 1px rgba(160,138,103,.22)}
+  box-shadow:-5px 8px 22px -10px rgba(70,56,40,.32),0 0 0 1px rgba(169,140,94,.22)}
 .wmore-menu>button{display:block;width:100%;min-height:40px;padding:0 14px;border:0;border-radius:6px;background:none;text-align:left;font:500 13.5px/1 "Noto Serif KR",serif;color:#443B3B;cursor:pointer}
 .wmore-menu>button:hover{background:#F6E8E7}
 .wmore-menu .danger{color:#9F4A50}
 .wmore-rename{display:flex;gap:6px;padding:4px}
-.wmore-rename input{flex:1;min-width:0;height:36px;padding:0 8px;border:1px solid #D1C3A9;border-radius:6px;font:14px "Noto Serif KR",serif}
+.wmore-rename input{flex:1;min-width:0;height:36px;padding:0 8px;border:1px solid #D7C5A3;border-radius:6px;font:14px "Noto Serif KR",serif}
 .wmore-rename button,.wmore-ask button{min-height:36px;padding:0 10px;border:0;border-radius:6px;background:#F6E8E7;font:500 13px "Noto Serif KR",serif;cursor:pointer}
 .wmore-ask{padding:8px}
 .wmore-ask p{margin:0 0 8px;font:13px/1.5 "Noto Serif KR",serif;color:#443B3B}

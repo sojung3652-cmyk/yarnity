@@ -114,11 +114,11 @@
 /* 완성 도안 보기 on wide screens (Kim): rose pink, ivory and gold, readability first - this page only (printing
    keeps the sheet on white). A veil over the starry linen; the sheet is the paper, its shadow to the lower left. */
 @media screen and (min-width:768px){
-  .ps-main{--ink:#443B3B;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;--gold:#A08A67;--gold-l:#D1C3A9;--card:#FFFEFB;
-    --ps-ink:var(--ink);--ps-soft:var(--ink2);--ps-rule:var(--gold-l);--ps-hair:rgba(160,138,103,.18);--ps-paper:#FCFAF5;--ps-lav:var(--note-b);
+  .ps-main{--ink:#443B3B;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;--gold:#A98C5E;--gold-l:#D7C5A3;--card:#FFFEFB;
+    --ps-ink:var(--ink);--ps-soft:var(--ink2);--ps-rule:var(--gold-l);--ps-hair:rgba(169,140,94,.18);--ps-paper:#FCFAF5;--ps-lav:var(--note-b);
     position:relative;isolation:isolate}
   .ps-main::before{content:"";position:fixed;inset:0;z-index:-1;background:rgba(247,242,232,.55);pointer-events:none}
-  .ps-sheet{box-shadow:-5px 8px 22px -12px rgba(70,56,40,.28),0 0 0 1px rgba(160,138,103,.2)}
+  .ps-sheet{box-shadow:-5px 8px 22px -12px rgba(70,56,40,.28),0 0 0 1px rgba(169,140,94,.2)}
   .ps-kicker{font-weight:600;letter-spacing:.28em;color:#8C7E78} /* quiet warm grey (Kim: the gold read cheap) */
   .ps-kicker span+span::before{color:#C9BDB5}
   .ps-part-title{border-bottom:1px solid var(--gold-l);color:var(--ink)}

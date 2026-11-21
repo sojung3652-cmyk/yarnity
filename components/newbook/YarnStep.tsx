@@ -18,7 +18,7 @@ import { HookSelect } from "./HookSelect";
 
 export const COLORS: [string, string][] = [
   ["크림", "#F3E9D2"], ["라벤더", "#F0C1CA"], ["연핑크", "#FAD6DC"], ["하늘", "#BCD8EC"], ["세이지 그린", "#B5C4A8"],
-  ["버터 노랑", "#E3D5A8"], ["살구", "#F5C3A0"], ["모카 브라운", "#9C7A62"], ["차콜", "#4E4A4C"], ["흰색", "#FFFFFF"],
+  ["버터 노랑", "#ECDA9F"], ["살구", "#F5C3A0"], ["모카 브라운", "#9C7A62"], ["차콜", "#4E4A4C"], ["흰색", "#FFFFFF"],
 ];
 const COMMON_MATERIALS = ["코튼", "울", "아크릴", "메리노", "리넨", "혼방"];
 const MAX_COLORS = 6;
@@ -216,7 +216,7 @@ function ColorEditor({ c, i, onChange }: { c: YarnColor; i: number; onChange: (c
         <label className={"nb-picker" + (!preset && c.hex ? " is-own" : "")} title="팔레트에서 색 고르기">
           <span className="nb-picker-dot" aria-hidden="true">
             {!preset && c.hex ? <i style={{ background: c.hex }} /> : (
-              <svg viewBox="0 0 32 32">{["#F28B82", "#E0BD8D", "#E1D49C", "#A8D5A2", "#9CC7EA", "#F5ABB9"].map((col, k) => {
+              <svg viewBox="0 0 32 32">{["#F28B82", "#ECBF81", "#EBDB92", "#A8D5A2", "#9CC7EA", "#F5ABB9"].map((col, k) => {
                 const a0 = (k / 6) * 2 * Math.PI - Math.PI / 2, a1 = ((k + 1) / 6) * 2 * Math.PI - Math.PI / 2;
                 return <path key={col} d={`M16 16L${16 + 15 * Math.cos(a0)} ${16 + 15 * Math.sin(a0)}A15 15 0 0 1 ${16 + 15 * Math.cos(a1)} ${16 + 15 * Math.sin(a1)}Z`} fill={col} />;
               })}<circle cx="16" cy="16" r="5.5" fill="#FFFBF5" /><path d="M16 13.2v5.6M13.2 16h5.6" stroke="#6B5C55" strokeWidth="1.4" strokeLinecap="round" /></svg>

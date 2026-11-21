@@ -105,7 +105,7 @@ body:has(.gl){background:#F8EEEE}
 .gl-col-list{display:flex;flex-direction:column;gap:6px;min-width:0}
 .gl-list-scroll{max-height:calc(100vh - 210px);overflow-y:auto;overscroll-behavior:contain;padding:0 6px 20px 2px;margin-top:4px}
 .gl-col-panel{position:sticky;top:16px;max-height:calc(100vh - 150px);overflow-y:auto;overscroll-behavior:contain;padding:28px 30px 32px;border-radius:18px;
-  background:rgba(255,253,248,.72);box-shadow:0 0 0 1px rgba(149,124,77,.1),-10px 14px 30px -18px rgba(60,42,34,.3)}
+  background:rgba(255,253,248,.72);box-shadow:0 0 0 1px rgba(160,127,66,.1),-10px 14px 30px -18px rgba(60,42,34,.3)}
 .gl-panel-empty{display:grid;place-items:center;min-height:320px;text-align:center}
 .gl-panel-empty p{margin:0;font-size:14px;line-height:1.8;color:var(--ink3)}
 
@@ -114,7 +114,7 @@ body:has(.gl){background:#F8EEEE}
 .gl-word{display:inline;padding:0 2px;margin:0 -2px;border:0;border-radius:3px;background:#FBE9EC;font:inherit;color:inherit;text-decoration:underline dotted #E2A9B3;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:pointer}
 .gl-word:hover,.gl-word[aria-expanded="true"]{background:#F6D9DF}
 .gl-pop{position:absolute;z-index:60;width:min(300px,calc(100vw - 24px));box-sizing:border-box;padding:14px 14px 12px;border-radius:14px;background:#FFFDF8;
-  box-shadow:0 0 0 1px rgba(149,124,77,.14),-10px 14px 28px -12px rgba(60,42,34,.35);font-family:"Noto Serif KR",serif;color:#4A3D38;text-align:left;white-space:normal;
+  box-shadow:0 0 0 1px rgba(160,127,66,.14),-10px 14px 28px -12px rgba(60,42,34,.35);font-family:"Noto Serif KR",serif;color:#4A3D38;text-align:left;white-space:normal;
   animation:gl-pop .16s ease-out}
 @keyframes gl-pop{from{opacity:0;transform:translateY(-4px)}}
 .gl-pop-name{display:flex;justify-content:flex-start;margin:0 0 10px}
@@ -131,7 +131,7 @@ body:has(.gl){background:#F8EEEE}
 /* ---- the glossary floating over 도안 보기 / 따라 뜨기 (GlossaryFloat.tsx) ---- */
 .glf{position:fixed;inset:0;z-index:150}
 .glf-panel{position:absolute;display:flex;flex-direction:column;overflow:hidden;background:#F8EEEE}
-.glf-bar{flex:none;display:flex;align-items:center;gap:4px;min-height:52px;padding:0 8px;border-bottom:1px solid rgba(149,124,77,.12)}
+.glf-bar{flex:none;display:flex;align-items:center;gap:4px;min-height:52px;padding:0 8px;border-bottom:1px solid rgba(160,127,66,.12)}
 .glf-title{flex:1;min-width:0;text-align:center;font:700 15px/1.3 "Noto Serif KR",serif;color:var(--ink)}
 .glf-icon{flex:none;display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:8px;background:none;color:var(--ink2);cursor:pointer}
 .glf-icon svg{width:20px;height:20px}
@@ -157,7 +157,7 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
 /* wide screens: a 400px window at the upper right, like the AI's; to its left when the AI window is open */
 .glf.is-win{pointer-events:none}
 .glf.is-win .glf-panel{pointer-events:auto;top:22px;right:24px;width:400px;height:min(650px,calc(100vh - 44px));border-radius:16px;background:#FBF6EF;
-  box-shadow:0 0 0 1px rgba(149,124,77,.16),-18px 24px 48px -14px rgba(60,42,34,.42);animation:glf-in .2s cubic-bezier(.22,.61,.36,1);transition:transform .2s ease-in,opacity .2s ease-in}
+  box-shadow:0 0 0 1px rgba(160,127,66,.16),-18px 24px 48px -14px rgba(60,42,34,.42);animation:glf-in .2s cubic-bezier(.22,.61,.36,1);transition:transform .2s ease-in,opacity .2s ease-in}
 .glf.is-win.is-beside .glf-panel{right:440px}
 .glf.is-win.is-leaving .glf-panel{transform:translateY(12px);opacity:0}
 @keyframes glf-in{from{transform:translateY(12px);opacity:0}}
@@ -310,7 +310,7 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
   /* a clean sheet of paper (Kim: not vintage) - plain white, a hairline edge, a soft shadow to the lower left */
   .gl-wide .gl-col-panel.is-memo{border-radius:6px;
     /* warm notepaper (Kim: not so white, no folded corner) with faint ruled lines that scroll with the text */
-    background:repeating-linear-gradient(to bottom,transparent 0 33px,rgba(160,138,103,.12) 33px 34px) local,#FBF7EF;
+    background:repeating-linear-gradient(to bottom,transparent 0 33px,rgba(169,140,94,.12) 33px 34px) local,#FBF7EF;
     box-shadow:0 0 0 1px rgba(142,131,121,.14),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
   /* the list on a plain cream card (Kim), a shade deeper than the memo, so the two read as two sheets */
   /* ...with a faint fine grain (Kim): a tiled noise, no stains or blotches */

@@ -13,7 +13,7 @@
   body .mbz-steps li.on{color:#4A3D38;font-weight:600}
   body .mbz-dot{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;border:1px solid #CDBFB4;font-size:9.5px;line-height:1;font-family:"Noto Sans KR",sans-serif}
   body .mbz-steps li.on .mbz-dot{border-color:#4A3D38;background:#4A3D38;color:#FBF3EA}
-  body .mbz-steps li.done .mbz-dot{border-color:#957C4D;color:#957C4D}
+  body .mbz-steps li.done .mbz-dot{border-color:#A07F42;color:#A07F42}
 
   /* the sheet: scrolls on its own between the bar and the buttons */
   body .mbz-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;margin:0 -8px 0 0;padding:30px 8px 16px 0;-webkit-overflow-scrolling:touch}
@@ -92,5 +92,5 @@
   body .mbz-final .mw-final-face{flex-direction:column;gap:1px;max-width:240px;min-height:48px;padding:6px 18px;font-size:13px;white-space:nowrap}
   body .mbz-back.is-short{min-width:44px}
   body .mbz-back.is-short .mbz-face{padding:0 16px}
-  body .mbz-final .mw-final-face small{font-size:11px;color:#BBAB88;letter-spacing:.04em}
+  body .mbz-final .mw-final-face small{font-size:11px;color:#C3AE80;letter-spacing:.04em}
 }

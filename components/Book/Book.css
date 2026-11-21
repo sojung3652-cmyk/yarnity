@@ -109,7 +109,7 @@
 .pg-ribbon-tab:has(.rib-gold-full){background:transparent;box-shadow:none;filter:drop-shadow(0 1px 1.5px rgba(70,50,30,.28))} /* the whole ribbon is gold leaf */
 /* the two actions as pastel woven labels (like the book's label buttons): weave, stitches inside both ends
    in a deeper shade of the same colour, a slight tilt that straightens on hover */
-.pg-link.pg-link-lav{--lb:#EEE9D3;--ls:#C2B488} /* 도안 만들기: pastel yellow */
+.pg-link.pg-link-lav{--lb:#F3EBCE;--ls:#CBB97F} /* 도안 만들기: pastel yellow */
 .pg-link.pg-link-rose{--lb:#F5E2E0;--ls:#D9AFAA}
 /* the two choices under 도안 만들기: 새 도안 = apricot, 이어서 = lavender */
 .pg-link.pg-link-apricot{--lb:#F8E1D0;--ls:#DDA684}
@@ -142,7 +142,7 @@
 /* wide screens: the menu page's labels scroll inside the page when 도안 만들기 opens its two choices and the list
    runs past the page's foot (Kim); a little room around them so their shadows are not cut */
 @media (min-width:768px){
-  .pg-actions{bottom:5%;overflow-y:auto;overscroll-behavior:contain;margin-left:-10px;width:calc(72% + 20px);box-sizing:border-box;padding:6px 10px 14px;scrollbar-width:thin;scrollbar-color:rgba(160,138,103,.35) transparent}
+  .pg-actions{bottom:5%;overflow-y:auto;overscroll-behavior:contain;margin-left:-10px;width:calc(72% + 20px);box-sizing:border-box;padding:6px 10px 14px;scrollbar-width:thin;scrollbar-color:rgba(169,140,94,.35) transparent}
   .pg-actions>*{flex:none}
 }
 /* wide screens, the left page (Kim): a bigger glinting wordmark (its own shape, 1500 x 437) and INTELLIGENT CROCHET

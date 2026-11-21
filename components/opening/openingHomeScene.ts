@@ -27,7 +27,7 @@ function resample(pts: number[][], step: number): Path {
 const quad = (a: number[], b: number[], c: number[], n = 8) => { const o: number[][] = []; for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; o.push([u * u * a[0] + 2 * u * t * b[0] + t * t * c[0], u * u * a[1] + 2 * u * t * b[1] + t * t * c[1]]); } return o; };
 function flare(c: CanvasRenderingContext2D, x: number, y: number, r: number, a: number) {
   if (a <= .01) return; c.save(); c.globalCompositeOperation = "lighter"; c.globalAlpha = a;
-  const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, "rgba(255,250,225,1)"); g.addColorStop(.25, "rgba(242,230,193,.55)"); g.addColorStop(1, "rgba(237,217,168,0)"); c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+  const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, "rgba(255,250,225,1)"); g.addColorStop(.25, "rgba(249,233,186,.55)"); g.addColorStop(1, "rgba(247,222,158,0)"); c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
   c.strokeStyle = "rgba(255,250,228,.95)"; c.lineCap = "round"; c.lineWidth = Math.max(.5, r * .09); c.beginPath(); c.moveTo(x - r * 1.5, y); c.lineTo(x + r * 1.5, y); c.moveTo(x, y - r * 1.5); c.lineTo(x, y + r * 1.5); c.stroke(); c.restore();
 }
 
@@ -80,13 +80,13 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
     if ((tp > 0 || dp > 0) && ta > 0) { tx.globalCompositeOperation = "source-in"; tx.drawImage(img.text, 0, 0, tw_, th_); tx.globalCompositeOperation = "source-over"; ctx.globalAlpha = ta; thread(tc, L.tx, L.ty, L.tw, L.th); ctx.globalAlpha = 1; }
     // shimmer over the gold thread only
     const band = (u: number, al: number) => {
-      if (u <= 0 || u >= 1) return; const gp = -w * .15 + w * 1.3 * u; gx.globalCompositeOperation = "source-over"; gx.clearRect(0, 0, w, h); const g = gx.createLinearGradient(gp - w * .11, 0, gp + w * .11, h * .3); g.addColorStop(0, "rgba(246,239,214,0)"); g.addColorStop(.5, "rgba(249,243,224,1)"); g.addColorStop(1, "rgba(246,239,214,0)"); gx.fillStyle = g; gx.fillRect(0, 0, w, h);
+      if (u <= 0 || u >= 1) return; const gp = -w * .15 + w * 1.3 * u; gx.globalCompositeOperation = "source-over"; gx.clearRect(0, 0, w, h); const g = gx.createLinearGradient(gp - w * .11, 0, gp + w * .11, h * .3); g.addColorStop(0, "rgba(251,242,209,0)"); g.addColorStop(.5, "rgba(252,245,221,1)"); g.addColorStop(1, "rgba(251,242,209,0)"); gx.fillStyle = g; gx.fillRect(0, 0, w, h);
       gx.globalCompositeOperation = "destination-in"; gx.drawImage(lc, 0, 0); ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = al * (1 - out); ctx.drawImage(gl, L.lx, L.ly, L.lw, L.lh); ctx.restore();
     };
     band((t - 2.5) / .9, .42); if (t > OH_END) band(((t - OH_END) % 3.8) / 1.2, .34);
     // sentence + flower: soft breathing glow, a light sweep, flower and gold glints
     const tb = (u: number, al: number) => {
-      if (u <= 0 || u >= 1) return; const W2 = g2.width, H2 = g2.height, gp = -W2 * .12 + W2 * 1.24 * u; g2x.globalCompositeOperation = "source-over"; g2x.clearRect(0, 0, W2, H2); const g = g2x.createLinearGradient(gp - W2 * .09, 0, gp + W2 * .09, H2 * .4); g.addColorStop(0, "rgba(246,239,214,0)"); g.addColorStop(.5, "rgba(255,247,220,1)"); g.addColorStop(1, "rgba(246,239,214,0)"); g2x.fillStyle = g; g2x.fillRect(0, 0, W2, H2);
+      if (u <= 0 || u >= 1) return; const W2 = g2.width, H2 = g2.height, gp = -W2 * .12 + W2 * 1.24 * u; g2x.globalCompositeOperation = "source-over"; g2x.clearRect(0, 0, W2, H2); const g = g2x.createLinearGradient(gp - W2 * .09, 0, gp + W2 * .09, H2 * .4); g.addColorStop(0, "rgba(251,242,209,0)"); g.addColorStop(.5, "rgba(255,247,220,1)"); g.addColorStop(1, "rgba(251,242,209,0)"); g2x.fillStyle = g; g2x.fillRect(0, 0, W2, H2);
       g2x.globalCompositeOperation = "destination-in"; g2x.drawImage(tc, 0, 0); ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = al; ctx.drawImage(g2, L.tx, L.ty, L.tw, L.th); ctx.restore();
     };
     if (ta >= 1) {

@@ -60,13 +60,13 @@ export function AiTab({ variant }: { variant: "menu" | "page" | "phone" }) {
         <defs><GoldLeafDefs ids={L} /></defs>
         <g filter={`url(#${L.fr})`}><path d={d} fill={`url(#${L.g})`} /><path d={d} fill={`url(#${L.weave})`} /></g>
         {/* the plate's edge: a light line on the upper left, a dark one on the lower right */}
-        <path d={`M${W - 5} .5H.5V${H - .5}`} fill="none" stroke="#F7F0DA" strokeOpacity=".75" strokeWidth="1" />
-        <path d={`M${W - .5} 5V${H - 5}Q${W - .5} ${H - .5} ${W - 5} ${H - .5}H.5`} fill="none" stroke="#4D3B1D" strokeOpacity=".5" strokeWidth="1" />
+        <path d={`M${W - 5} .5H.5V${H - .5}`} fill="none" stroke="#FCF2D5" strokeOpacity=".75" strokeWidth="1" />
+        <path d={`M${W - .5} 5V${H - 5}Q${W - .5} ${H - .5} ${W - 5} ${H - .5}H.5`} fill="none" stroke="#543D16" strokeOpacity=".5" strokeWidth="1" />
         {/* "AI" stamped small into the plate (debossed: dark letters, a light lip on their lower right),
             centred on the part that shows (the inner 6 units are under the page) */}
         <g className="ai-ftab-mark" fontFamily="var(--font-cormorant), 'Cormorant Garamond', serif" fontWeight="700" fontSize={phone ? 9 : 10} textAnchor="middle" letterSpacing=".6">
-          <text x={(W + 6) / 2 + .6} y={H / 2 + 3.6} fill="#F7F0DA" fillOpacity=".7">AI</text>
-          <text x={(W + 6) / 2} y={H / 2 + 3} fill="#4D3B1D" fillOpacity=".78">AI</text>
+          <text x={(W + 6) / 2 + .6} y={H / 2 + 3.6} fill="#FCF2D5" fillOpacity=".7">AI</text>
+          <text x={(W + 6) / 2} y={H / 2 + 3} fill="#543D16" fillOpacity=".78">AI</text>
         </g>
       </svg>
       {/* the gold-thread star (Girl's Diary), as on the phone's AI와 상의 */}

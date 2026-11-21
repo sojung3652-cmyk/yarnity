@@ -50,7 +50,7 @@ export function MoreSheet({ title, items, onClose, skip = [] }: { title: string;
   );
   return (
     <div className="ms-dim" onClick={onClose}>
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true"><defs><linearGradient id="mtGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#7C6A48" /><stop offset=".5" stopColor="#B9A57C" /><stop offset="1" stopColor="#806C47" /></linearGradient></defs></svg>
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true"><defs><linearGradient id="mtGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#846C40" /><stop offset=".5" stopColor="#C2A973" /><stop offset="1" stopColor="#886E3F" /></linearGradient></defs></svg>
       <div className="ms-sheet" role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()} style={drag ? { transform: `translateY(${drag}px)`, transition: "none" } : undefined}
         onTouchStart={e => { y0.current = e.touches[0].clientY; }} onTouchMove={e => { if (y0.current != null) setDrag(Math.max(0, e.touches[0].clientY - y0.current)); }}
         onTouchEnd={() => { if (drag > 80) onClose(); setDrag(0); y0.current = null; }}>

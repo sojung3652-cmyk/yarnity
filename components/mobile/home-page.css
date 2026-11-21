@@ -23,7 +23,7 @@
   /* 5. the space between pushes the labels down; 6. the two labels, the page's width, 12 apart */
   body .pg-actions{margin-top:auto;width:100%;gap:calc(12 * var(--u))}
   body .pg-actions .pg-link{min-height:0;padding:calc((3 + 11) * var(--u)) calc((4 + 12) * var(--u));align-items:center;gap:calc(10 * var(--u));
-    box-shadow:0 1px 2px rgba(100,86,60,.3),0 4px 8px -6px rgba(100,86,60,.4)}
+    box-shadow:0 1px 2px rgba(106,88,54,.3),0 4px 8px -6px rgba(106,88,54,.4)}
   /* the dashed stitches stay, just inside the label's outer 3 / 4 */
   body .pg-actions .pg-link::before,body .pg-actions .pg-link::after{top:calc(3 * var(--u));bottom:calc(3 * var(--u))}
   body .pg-actions .pg-link::before{left:calc(4 * var(--u))}
