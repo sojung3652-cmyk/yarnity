@@ -158,3 +158,14 @@ html body .mine-count{margin:0 0 8px;font-size:12.5px;color:#8C7E74;white-space:
 /* the My Patterns wordmark, small (Kim): the height of the Glossary wordmark (the web; phones keep theirs in the bar) */
 html body .mine-title{line-height:0}
 html body .mine-logo{display:block;width:auto;height:52px}
+/* wide screens (Kim: the small grey words were hard to read on the linen): darker ink, a size up */
+@media (min-width:768px){
+  .mine{--m-label:#5A4E48;--m-help:#6E625C;--m-accent:#5A3F3C}
+  html body .mine-count{font-size:13.5px;color:#5A4E48}
+  .mine-tab,.mine-sort,.mine-link{font-size:14px}
+  .mine-tab span{font-size:12px}
+  .mine-find{border-color:#CDBBAC;color:#6E625C}
+  .mine-search{font-size:14px}
+  .mine-search::placeholder{color:#857770}
+  .mine-note{font-size:13px}
+}

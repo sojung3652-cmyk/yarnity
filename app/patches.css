@@ -67,7 +67,7 @@ html body .title-tag{display:inline-grid;place-items:center;height:44px;aspect-r
   border:0;background:url(/mobile/diary/lace_btn_ivory.webp) center / 100% 100% no-repeat;
   filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));font:600 14px/1 "Noto Serif KR",serif;letter-spacing:.04em;color:#332C2C}
 /* web: a touch bigger than the phone (Kim) */
-@media (min-width:768px){html body .title-tag{height:52px;font-size:15px}}
+@media (min-width:768px){html body .title-tag{height:58px;font-size:15px}}
 html body .gl-title{line-height:1}
 /* the web book's first page: 나의 도안집 in ivory (Kim) */
 @media (min-width:768px){html body .pg-link.pg-link-rose{--patch:url(/mobile/diary/patch_cream.webp)}}
