@@ -188,7 +188,9 @@ function List() {
       <GoldDefs />
       {/* the title as on the glossary (Kim): My Patterns in script, the count on the right */}
       <header className="mine-head">
-        <h1 className="mine-title" lang="en">My Patterns<span className="sr"> · 나의 도안집</span></h1>
+        {/* the My Patterns wordmark again (Kim), small: the glossary's title size */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <h1 className="mine-title"><img className="mine-logo" src="/pic/my-patterns.png" alt="My Patterns · 나의 도안집" width={900} height={366} /></h1>
         <p className="mine-count">나의 도안집 · {counts.all}권</p>
       </header>
       <div className="mine-tools">

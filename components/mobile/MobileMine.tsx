@@ -91,7 +91,8 @@ export function MobileMine() {
         right={<MoreButton onClick={() => setMore(true)} />} />
       {more && <MoreSheet title={`나의 도안집 · ${projects.length}권`} skip={["mine"]} items={[]} onClose={() => setMore(false)} />}
       <header className="mm-title-head">
-        <h1 className="mm-title" lang="en">My Patterns<span className="sr"> · 나의 도안집</span></h1>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <h1 className="mm-title"><img className="mm-logo" src="/pic/my-patterns.png" alt="My Patterns · 나의 도안집" width={900} height={366} /></h1>
         <p className="mm-title-count">{ready ? `${projects.length}권` : " "}</p>
       </header>
 

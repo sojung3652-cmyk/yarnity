@@ -83,7 +83,9 @@ function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null;
 function Head({ total }: { total: number }) {
   return (
     <header className="gl-head">
-      <h1 className="gl-title" lang="en">Glossary<span className="sr"> · 뜨개 용어집</span></h1>
+      {/* the Glossary wordmark (Kim's, public/pic/glossary.png: taken off its checkerboard, transparent) */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <h1 className="gl-title"><img className="gl-logo" src="/pic/glossary.png" alt="Glossary · 뜨개 용어집" width={1200} height={396} /></h1>
       <p className="gl-count">가나다순 · {total}개</p>
     </header>
   );

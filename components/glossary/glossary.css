@@ -248,3 +248,9 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
 .gl-pop-ab{height:22px;font-size:11px}
 .gl-pop-go{font-size:12px}
 .gl-open-btn{font:600 13px/1 "Noto Serif KR",serif}
+
+/* the Glossary wordmark (an image now, Kim): its height by place */
+.gl-title{line-height:0}
+.gl-logo{display:block;width:auto;height:52px}
+.gl-phone .gl-logo{height:46px}
+.glf .gl-logo{height:42px}
