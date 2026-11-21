@@ -10,8 +10,9 @@
   .ms-screen.msp::before{content:"";position:fixed;inset:0;z-index:-1;background:rgba(247,242,232,.55);pointer-events:none}
 
   /* title area: the only place the stars show */
-  .ms-screen.msp .msp-kicker{font:600 10.5px/1.4 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.28em;color:var(--gold)}
-  .ms-screen.msp .msp-kicker span{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:11px;letter-spacing:.12em;color:var(--gold)}
+  /* the kicker in a quiet warm grey (Kim: the gold read cheap) */
+  .ms-screen.msp .msp-kicker{font:600 10.5px/1.4 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.28em;color:#8C7E78}
+  .ms-screen.msp .msp-kicker span{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:11px;letter-spacing:.12em;color:#8C7E78}
   .ms-screen.msp .msp-head h1{color:var(--ink)}
   .ms-screen.msp .msp-sub{color:var(--ink2)}
 

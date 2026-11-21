@@ -83,9 +83,8 @@ function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null;
 function Head({ total }: { total: number }) {
   return (
     <header className="gl-head">
-      {/* the Glossary wordmark (Kim's, public/pic/glossary.png: taken off its checkerboard, transparent) */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <h1 className="gl-title"><img className="gl-logo" src="/pic/glossary.png" alt="Glossary · 뜨개 용어집" width={1200} height={396} /></h1>
+      {/* the name on an ivory cloth label (Kim; it was the Glossary wordmark picture) */}
+      <h1 className="gl-title"><span className="title-tag">뜨개 용어집</span></h1>
       <p className="gl-count">가나다순 · {total}개</p>
     </header>
   );
@@ -182,7 +181,7 @@ export function GlossaryScreen({ id }: { id?: string }) {
       <main className="gl gl-phone">
         {/* the Glossary wordmark in the middle of the bar, as 나의 도안집 has My Patterns (Kim); the count under it */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <MobileTopBar back={back} center={<h1 className="gl-bar-logo"><img src="/pic/glossary.png" alt="Glossary · 뜨개 용어집" width={1200} height={396} /></h1>} />
+        <MobileTopBar back={back} center={<h1 className="gl-bar-logo"><span className="title-tag">뜨개 용어집</span></h1>} />
         <p className="gl-count gl-phone-count">가나다순 · {TERMS.length}개</p>
         <Search s={s} />
         <Tabs s={s} />

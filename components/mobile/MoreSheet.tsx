@@ -6,6 +6,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNewDraft } from "./useNewDraft";
+import { openGloss } from "@/components/glossary/glossFloat";
 
 const G = { fill: "none", stroke: "url(#mtGold)", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 export const ICONS: Record<string, ReactNode> = {
@@ -16,6 +17,7 @@ export const ICONS: Record<string, ReactNode> = {
   tag: <><path d="M3.5 12.5V4h8.5l8.5 8.5-8.5 8.5-8.5-8.5Z" {...G} /><circle cx="8" cy="8.5" r="1.4" {...G} /></>,
   trash: <><path d="M5 7h14M9.5 7V4.5h5V7M7 7l1 13h8l1-13" {...G} /></>,
   sheet: <><rect x="5" y="3.5" width="14" height="17" rx="1.5" {...G} /><path d="M8.5 8h7M8.5 12h7M8.5 16h4" {...G} /></>,
+  gloss: <><path d="M5 4.5h10.5a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3V4.5Z" {...G} /><path d="M5 17a3 3 0 0 1 3-3h10.5M9 8.5h6" {...G} /></>,
   again: <><path d="M5 12a7 7 0 1 0 2.2-5.1" {...G} /><path d="M5 4.5V8h3.5" {...G} /></>,
 };
 
@@ -30,6 +32,8 @@ export function MoreSheet({ title, items, onClose, skip = [] }: { title: string;
     { key: "home", icon: "home", label: "처음으로", sub: "홈 화면", onClick: () => router.push("/") },
     { key: "new", icon: "plus", label: "새 도안 만들기", onClick: () => { onClose(); newDraft(); } },
     { key: "mine", icon: "shelf", label: "나의 도안집", onClick: () => router.push("/mine") },
+    // the glossary floats over the screen (Kim: in ··· rather than its own button in the bar)
+    { key: "gloss", icon: "gloss", label: "뜨개 용어집", onClick: () => { onClose(); openGloss(); } },
   ];
   const row = (it: MoreItem) => asking === it.key ? (
     <div key={it.key} className="ms-ask" role="alert">

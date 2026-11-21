@@ -87,7 +87,7 @@ export function MobileMine() {
       {/* the top (Kim): ‹ · the My Patterns wordmark in the middle of the bar · ··· (처음으로, 새 도안 만들기) */}
       <MobileTopBar back={() => router.push("/")}
         // eslint-disable-next-line @next/next/no-img-element
-        center={<h1 className="mm-head-title" lang="en"><img src="/pic/my-patterns.png" alt="My Patterns · 나의 도안집" width={900} height={366} /></h1>}
+        center={<h1 className="mm-head-title"><span className="title-tag">나의 도안집</span></h1>}
         right={<MoreButton onClick={() => setMore(true)} />} />
       {more && <MoreSheet title={`나의 도안집 · ${projects.length}권`} skip={["mine"]} items={[]} onClose={() => setMore(false)} />}
 
