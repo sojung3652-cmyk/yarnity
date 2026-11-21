@@ -97,3 +97,7 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 .dstitch:disabled{opacity:.45;cursor:default}
 .dstitch:focus-visible{outline:none}.dstitch:focus-visible .dstitch-disc{outline:2px solid #3A2E29;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.dlace,.dpatch,.dstitch-disc{transition:none}}
+/* the round buttons (고치기, 인쇄 ...) as round cloth patches (Kim): the ivory patch cloth cut in a circle, a ring of
+   running stitches inside the edge, a soft shadow to the lower left */
+.dstitch-disc{background:url(/mobile/diary/patch_cream.webp) center / 170% 170% no-repeat,#F4EEE2;background-blend-mode:normal;
+  box-shadow:-1.5px 2.5px 3px -1px rgba(90,62,44,.3),inset 0 0 0 1px rgba(150,120,85,.18)}

@@ -58,7 +58,7 @@
 
   /* the foot: the paper fades in from above, so the list never shows through under the buttons */
   .ms-screen.msp .ms-foot{background:linear-gradient(to bottom,rgba(252,250,245,0),var(--paper) 30px)}
-  .ms-screen.msp .dstitch-disc{background:var(--card);color:var(--rose-d)}
+  .ms-screen.msp .dstitch-disc{color:var(--rose-d)}
   .ms-screen.msp .dstitch-disc::before{border:1.5px dashed var(--gold)}
   .ms-screen.msp .dstitch-label{color:var(--ink2)}
   .ms-screen.msp .dlace-satin{color:var(--ink);font-family:"Noto Serif KR",serif;font-weight:700}
