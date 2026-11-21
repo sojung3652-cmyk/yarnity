@@ -6,6 +6,7 @@ import { AppProvider } from "@/components/AppProvider";
 import { Nav } from "@/components/Nav";
 import { GlossaryFloat } from "@/components/glossary/GlossaryFloat";
 import { AiHost } from "@/components/newbook/AiPanel";
+import { AiBadge } from "@/components/AiBadge";
 import { FoilLogo } from "@/components/FoilLogo";
 import { BookProvider } from "@/components/Book/BookProvider";
 import { Hero } from "@/components/home/Hero";
@@ -46,6 +47,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <GlossaryFloat />
             {/* the AI window (wide screens): here, not in the home hero, so it stays visible on every page once open */}
             <AiHost />
+            {/* the one AI button, a round linen badge at the lower right (web and phones) */}
+            <AiBadge />
           </BookProvider>
         </AppProvider>
       </body>

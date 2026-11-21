@@ -18,7 +18,7 @@ const ICONS = {
 
 /** `onNew`: the + (the menu book rises over this screen, MobileChrome); `bookUp` while it is up. */
 export function MobileNavBar({ onNew, bookUp }: { onNew: () => void; bookUp: boolean }) {
-  const path = usePathname(), { chat, setChat } = useApp();
+  const path = usePathname(), { chat } = useApp();
   const ai = !!chat.open;
   const cur = (on: boolean) => (on && !ai ? "page" : undefined);
   return (
@@ -29,7 +29,7 @@ export function MobileNavBar({ onNew, bookUp }: { onNew: () => void; bookUp: boo
         <span className="m-new"><span className="m-new-in">{ICONS.plus}</span></span>
       </button>
       <Link className="m-tab" href="/track" aria-current={cur(path === "/track")}>{ICONS.knit}<span>뜨는 중</span></Link>
-      <button type="button" className="m-tab m-tab-ai" aria-expanded={ai} aria-current={ai ? "page" : undefined} onClick={() => setChat(c => ({ ...c, open: !c.open }))}>{ICONS.ai}<span>AI 상담</span></button>
+      {/* AI 상담 left the bar: the round AI badge (components/AiBadge.tsx) is the one AI button (Kim) */}
     </nav>
   );
 }
