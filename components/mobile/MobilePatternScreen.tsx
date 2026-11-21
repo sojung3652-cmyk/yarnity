@@ -25,7 +25,7 @@ import { useNewDraft } from "./useNewDraft";
 export const JUST_MADE_KEY = "m.justMade";
 
 export function MobilePatternScreen() {
-  const { ready, active: p, updateProject, removeProjects } = useApp();
+  const { ready, active: p, updateProject, removeProjects, setChat } = useApp();
   const router = useRouter(), book = useBook(), newDraft = useNewDraft();
   const [tab, setTab] = useState<"rows" | "supplies">("rows"), [more, setMore] = useState(false);
   const [renaming, setRenaming] = useState(false), [name, setName] = useState("");
@@ -139,9 +139,12 @@ export function MobilePatternScreen() {
         <div className="ms-foot-row">
           <StitchButton icon={DiaryIcon.pen} patch="/brand/btn_edit.webp" label="고치기" onClick={() => book.editHere(p.id)} />
           <div className="ms-go">
-            <LaceButton variant="lavender" width="fill" onClick={go}>{started ? `이어서 뜨기 · ${pp.rows[cur].label}부터 →` : cur >= total ? "뜨기 기록 보기 →" : "뜨기 시작 →"}</LaceButton>
+            {/* just 이어서 (Kim): where it starts is the line under it */}
+            <LaceButton variant="lavender" width="fill" onClick={go}>{started ? "이어서" : cur >= total ? "뜨기 기록 보기" : "뜨기 시작"}</LaceButton>
             <p className="ms-go-sub">{started ? `${pp.rows[cur].label}부터` : "1단부터"} · 화면이 꺼지지 않아요</p>
           </div>
+          {/* Yarni right beside it (Kim), as on 따라 뜨기; the floating badge stays off this screen */}
+          <StitchButton icon={null} patch="/brand/ai_badge.webp" label="Yarni" aria-label="Yarni와 상의하기" onClick={() => setChat(c => ({ ...c, open: true }))} />
         </div>
       </div>
 

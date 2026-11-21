@@ -23,7 +23,9 @@ export function AiBadge() {
     // web: on / only once the opening has become the home (Kim: the badge shows at home too); not in the book
     || (!phone && ((path === "/" && !hs.home) || b.floating || b.view === "wizard"))
     // the phone home keeps its own AI와 상의 tile (Kim): no badge there
-    || (phone && path === "/");
+    || (phone && path === "/")
+    // 도안 보기 and 따라 뜨기 have Yarni beside their main button (Kim): no second one floating above
+    || (phone && (path === "/pattern" || path === "/track"));
 
   // phones: above the screen's fixed foot, measured (it changes with the screen and its state)
   useEffect(() => {
