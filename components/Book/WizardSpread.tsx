@@ -10,6 +10,7 @@
 import { createPortal } from "react-dom";
 import { useNewBook } from "@/components/newbook/NewBook";
 import { AiTab } from "@/components/AiTab";
+import { NavTabs } from "@/components/newbook/NavTabs";
 import type { WizStep } from "./BookProvider";
 
 /** the width each page is laid out at before zooming to the page: the original /new page on a 1440px
@@ -29,6 +30,8 @@ export function WizardSpread({ step, left, right }: { step: WizStep; left: HTMLE
       {createPortal(form("r", <>{v.ribbon}{v.right}</>), right)}
       {/* the AI index tab on the right page's fore edge, after the page's content (hides with the page) */}
       {createPortal(<AiTab variant="page" />, right)}
+      {/* under it, 홈 · 도안집 · 용어집 as cloth tabs (Kim) */}
+      {createPortal(<NavTabs />, right)}
     </>
   );
 }

@@ -323,7 +323,8 @@ function BookModel({ anim, onOpen, layer, m, leaf, sz }: { anim: Anim; onOpen: (
       <PageControls anim={anim} layer={layer} sz={sz} />
       <FlatPages anim={anim} layer={layer} />
       <Leaf anim={anim} mat={leaf} />
-      <Bookmark anim={anim} />
+      {/* web (Kim): no ribbon hanging out of the open book; phones keep it */}
+      {!m.over[0] && <Bookmark anim={anim} />}
     </group>
   );
 }
