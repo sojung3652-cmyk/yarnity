@@ -301,6 +301,10 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
     padding:0 9%;border:0;border-image:none;background:var(--gl) center / 100% 100% no-repeat;font:700 12.5px/1 "Noto Serif KR",serif;color:var(--ink);
     filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1))}
   /* a clean sheet of paper (Kim: not vintage) - plain white, a hairline edge, a soft shadow to the lower left */
-  .gl-wide .gl-col-panel.is-memo{border-radius:6px;background:#FFFFFE;
+  /* ...with its lower right corner folded over (Kim): the corner cut away, the folded flap drawn in its place; both are
+     the panel's own background, so they stay put while the term scrolls */
+  .gl-wide .gl-col-panel.is-memo{border-radius:6px 6px 0 6px;
+    background:linear-gradient(135deg,#E6DED2 0,#F3EEE6 46%,rgba(60,42,34,.12) 50%,transparent 51%) right bottom / 26px 26px no-repeat,
+      linear-gradient(315deg,transparent 18.5px,#FFFFFE 18.5px);
     box-shadow:0 0 0 1px rgba(142,131,121,.14),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
 }
