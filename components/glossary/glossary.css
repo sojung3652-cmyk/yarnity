@@ -270,3 +270,69 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
   .gl-phone{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 32px)}
   .gl-phone .mt-bar-top{height:auto;min-height:44px;padding:20px 0 8px}
 }
+
+/* ---- wide screens (Kim): the glossary reads like the finished pattern page (app/pattern/pattern.css) - the starry
+   linen under an ivory veil, the list and the term on paper sheets with a gold hairline, ink / rose / gold, quiet type,
+   no coloured patches; readability first ---- */
+@media (min-width:768px){
+  .gl-wide{--ink:#332C2C;--ink2:#6A605F;--rose:#CE999B;--rose-l:#F6E8E7;--rose-d:#9F646A;--note:#F9F0EE;--note-b:#EBD6D4;--gold:#B08D57;--gold-l:#DCC69E;
+    position:relative;isolation:isolate;color:var(--ink)}
+  .gl-wide::before{content:"";position:fixed;inset:0;z-index:-1;background:rgba(247,242,232,.55);pointer-events:none}
+  .gl-wide .gl-head{margin:0 0 18px}
+  .gl-wide .gl-count{font:600 11px/1.4 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.2em;color:#8C7E78}
+  .gl-wide .gl-cols{grid-template-columns:170px 400px minmax(0,1fr);gap:28px}
+  /* paper sheets */
+  .gl-wide .gl-col-list,.gl-wide .gl-col-panel{background:#FCFAF5;border-radius:6px;box-shadow:-5px 8px 22px -12px rgba(70,56,40,.28),0 0 0 1px rgba(176,141,87,.2)}
+  .gl-wide .gl-col-list{padding:16px 16px 12px;gap:12px}
+  .gl-wide .gl-col-panel{padding:32px 36px 36px}
+  .gl-wide .gl-patch{border:0;border-image:none}
+  /* the categories: plain words, the chosen one in rose */
+  .gl-wide .gl-tabs.is-column{display:flex;flex-direction:column;gap:2px}
+  .gl-wide .gl-tab{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:38px;padding:0 12px;border-radius:6px;background:none;
+    font:500 14px/1.3 "Noto Serif KR",serif;color:var(--ink2);text-align:left;cursor:pointer}
+  .gl-wide .gl-tab small{font-size:12px;color:#8C7E78}
+  .gl-wide .gl-tab:hover{color:var(--ink);background:rgba(246,232,231,.45)}
+  .gl-wide .gl-tab[aria-selected="true"]{background:var(--rose-l);color:var(--rose-d);font-weight:700}
+  .gl-wide .gl-tab[aria-selected="true"] small{color:var(--rose-d)}
+  /* the list */
+  .gl-wide .gl-sec-title{margin:14px 4px 4px;padding-bottom:6px;border-bottom:1px solid var(--gold-l);text-align:left}
+  .gl-wide .gl-sec-title .gl-patch{display:inline;min-width:0;min-height:0;padding:0;font:700 14px/1.3 "Noto Serif KR",serif;color:var(--ink)}
+  .gl-wide .gl-section:first-child .gl-sec-title{margin-top:4px}
+  .gl-wide .gl-rows li+li{border-top:1px solid rgba(176,141,87,.18)}
+  .gl-wide .gl-row{gap:12px;padding:10px 6px;border-radius:6px;background:none}
+  .gl-wide .gl-row:hover{background:rgba(246,232,231,.35)}
+  .gl-wide .gl-row.is-on{background:var(--rose-l)}
+  .gl-wide .gl-sympatch{border-radius:6px;background:#FFFEFB;box-shadow:inset 0 0 0 1px var(--gold-l);color:var(--gold)}
+  .gl-wide .gl-row-text b{font:600 15px/1.35 "Noto Serif KR",serif;color:var(--ink)}
+  .gl-wide .gl-row-text span{font-size:13px;line-height:1.5;color:var(--ink2)}
+  .gl-wide .gl-chev{color:#B9A99D}
+  /* the term */
+  .gl-wide .gl-d-head{gap:18px;padding-bottom:18px;border-bottom:1px solid var(--gold-l)}
+  .gl-wide .gl-d-cat{font:600 11px/1.4 "Noto Serif KR",serif;letter-spacing:.08em;color:var(--gold)}
+  .gl-wide .gl-d-head h2{margin:4px 0 0;font:700 24px/1.3 "Noto Serif KR",serif;color:var(--ink)}
+  .gl-wide .gl-d-line{margin:6px 0 0;font-size:14.5px;line-height:1.6;color:var(--ink2)}
+  .gl-wide .gl-d-alias{font-size:13px;color:var(--ink2)}
+  .gl-wide .gl-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:20px 0 0;padding:0;border-radius:8px;background:#FFFEFB;box-shadow:inset 0 0 0 1px var(--gold-l)}
+  .gl-wide .gl-facts div{padding:12px 8px;text-align:center}
+  .gl-wide .gl-facts div+div{border-left:1px solid rgba(176,141,87,.25)}
+  .gl-wide .gl-facts dt{font-size:12px;color:var(--ink2)}
+  .gl-wide .gl-facts dd{margin:3px 0 0;font:600 15px/1.3 "Noto Serif KR",serif;color:var(--ink)}
+  .gl-wide .gl-summary{margin-top:22px;font-size:15.5px;line-height:1.9;color:var(--ink)}
+  .gl-wide .gl-note{font-size:13.5px;line-height:1.75;color:var(--ink2)}
+  .gl-wide .gl-block{margin-top:30px}
+  /* section titles as the pattern's parts: the words and a gold hairline, no lace */
+  .gl-wide .gl-lace{display:block;width:auto;aspect-ratio:auto;margin:0 0 12px;padding:0 0 8px;background:none;border-bottom:1px solid var(--gold-l);text-align:left}
+  .gl-wide .gl-lace span{position:static;display:inline;font:700 16px/1.3 "Noto Serif KR",serif;color:var(--ink)}
+  .gl-wide .gl-steps{gap:0}
+  .gl-wide .gl-steps li{grid-template-columns:auto minmax(0,1fr) 84px;gap:14px;padding:14px 0}
+  .gl-wide .gl-steps li+li{border-top:1px solid rgba(176,141,87,.18)}
+  .gl-wide .gl-step-no{width:auto;min-width:30px;height:24px;padding:0 8px;border-radius:12px;background:var(--rose-l);color:var(--rose-d);font:700 12px/1 "Noto Serif KR",serif}
+  .gl-wide .gl-steps p{margin-top:2px;font-size:15px;line-height:1.85;color:var(--ink)}
+  .gl-wide .gl-step-img{border-radius:6px;background:#FFFEFB;box-shadow:inset 0 0 0 1px rgba(176,141,87,.25)}
+  .gl-wide .gl-step-img.is-empty{background:#FFFEFB}
+  .gl-wide .gl-mistake{margin:0;padding:14px 16px;border-radius:8px;background:var(--note);box-shadow:inset 0 0 0 1px var(--note-b);font-size:14.5px;line-height:1.8;color:var(--ink)}
+  .gl-wide .gl-related{gap:8px}
+  .gl-wide .gl-chip{min-height:0;padding:6px 12px;border-radius:14px;background:var(--rose-l);font:600 13px/1.2 "Noto Serif KR",serif;color:var(--rose-d);cursor:pointer}
+  .gl-wide .gl-chip:hover{background:#F1DCDA}
+  .gl-wide .gl-panel-empty p{font-size:14.5px;line-height:1.8;color:var(--ink2)}
+}
