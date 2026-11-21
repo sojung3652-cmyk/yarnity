@@ -8,14 +8,18 @@
 // Enter goes on to the next step.
 import { useLayoutEffect, useRef, useState } from "react";
 import { FoilLogo } from "@/components/FoilLogo";
+import { SparkleLogo } from "@/components/SparkleLogo";
+import { useMobile } from "@/components/mobile/useMobile";
 
 const MAX = 30, BIG = 26, SMALL = 19;
 
 export function TitleCover({ month }: { month: string }) {
+  const phone = !!useMobile();
   return (
     <div className="tp tp-cover">
       <div className="tp-head">
-        <FoilLogo className="tp-logo" />
+        {/* wide screens: the glinting wordmark, bigger, as the book's first page (Kim); phones keep theirs */}
+        {phone ? <FoilLogo className="tp-logo" /> : <SparkleLogo className="tp-logo tp-logo-web" />}
         <p className="tp-cap">Intelligent Crochet</p>
         <span className="tp-rule" aria-hidden="true" />
         <p className="tp-sub" lang="en">a crochet pattern book</p>

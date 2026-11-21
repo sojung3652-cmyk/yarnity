@@ -545,3 +545,9 @@ button.nb-ribbon:hover .nb-ribbon-tip,button.nb-ribbon:focus-visible .nb-ribbon-
 button.nb-ribbon:hover,button.nb-ribbon:focus-visible{transform:scale(1.1)}
 @media (max-width:899px){.nb-ribbon{width:30px;right:calc(5% - 6px)}}
 
+/* wide screens, 도안 만들기's left page (Kim): as the book's first page - a bigger glinting wordmark and
+   INTELLIGENT CROCHET a little smaller, a small gap under it */
+@media (min-width:768px){
+  .tp-cover .tp-logo.tp-logo-web{width:250px}
+  .tp-cover .tp-logo-web+.tp-cap{margin-top:-1px;font-size:10px}
+}
