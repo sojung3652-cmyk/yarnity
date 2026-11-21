@@ -30,10 +30,11 @@ export function Nav() {
 
   const mine = path === "/my" || path.startsWith("/my/") || path === "/mine" || path === "/library", gloss = path === "/glossary" || path.startsWith("/glossary/");
   const items: { label: string; on: boolean; go: () => void }[] = [
+    // Home · My Page · Glossary · New Pattern (Kim)
     { label: "Home", on: atHome, go: () => router.push("/") },
-    { label: "New Pattern", on: false, go: book.newPattern },
-    { label: "Glossary", on: gloss, go: () => router.push("/glossary") },
     { label: "My Page", on: mine, go: () => router.push("/my") },
+    { label: "Glossary", on: gloss, go: () => router.push("/glossary") },
+    { label: "New Pattern", on: false, go: book.newPattern },
   ];
   const links = (cls: string) => items.map(it => (
     <button key={it.label} type="button" className={cls + (it.on ? " is-on" : "")} aria-current={it.on ? "page" : undefined}
