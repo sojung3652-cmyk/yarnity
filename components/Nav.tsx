@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FoilLogo } from "./FoilLogo";
+import { SparkleLogo } from "@/components/SparkleLogo";
 import { useBook, wizardInBook } from "./Book/BookProvider";
 import { useMobile } from "./mobile/useMobile";
 import { GlossButton } from "./glossary/GlossaryFloat";
@@ -20,7 +20,7 @@ export function Nav() {
     <nav className={"nav" + (mine ? " is-mine" : "")} aria-label="주 메뉴">
       {/* the wordmark in the middle, in gold foil like the home hero (나의 도안집 writes its own title under it,
           as the glossary does: Kim) */}
-      <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈"><FoilLogo className="nav-foil" /></Link>
+      <Link className="brand brand-logo" href="/" aria-label="Yarnity 홈"><SparkleLogo className="nav-foil" /></Link>
       <div className="nav-links">
         {/* 도안 보기 / 따라 뜨기 (Kim): the glossary floats over the page, which stays where it was */}
         {(path === "/pattern" || path === "/track") && <GlossButton />}

@@ -1,0 +1,25 @@
+/* SparkleLogo (Kim's spec, as given): the light sweep through the logo's own shape (mask), three glints */
+.ylogo{position:relative;display:inline-block;aspect-ratio:1500/437;line-height:0}
+.ylogo img{width:100%;height:100%;display:block}
+.ylogo::after{content:"";position:absolute;inset:0;pointer-events:none;
+  -webkit-mask:url(/brand/logo_small.webp) center/100% 100% no-repeat;
+  mask:url(/brand/logo_small.webp) center/100% 100% no-repeat;
+  background:linear-gradient(105deg,rgba(255,247,220,0) 40%,rgba(255,248,226,.95) 50%,rgba(255,247,220,0) 60%);
+  background-size:300% 100%;background-position:120% 0;mix-blend-mode:screen;
+  animation:ylogo-sweep 6s cubic-bezier(.45,.05,.35,1) infinite}
+@keyframes ylogo-sweep{0%,58%{background-position:120% 0}88%,100%{background-position:-20% 0}}
+.ylogo i{position:absolute;width:12%;aspect-ratio:1;transform:translate(-50%,-50%) scale(0);pointer-events:none;
+  animation:ylogo-tw 3.2s ease-in-out infinite}
+.ylogo i::before,.ylogo i::after{content:"";position:absolute;left:50%;top:50%;background:#FFF8E4;border-radius:50%;
+  transform:translate(-50%,-50%);box-shadow:0 0 4px 1px rgba(255,236,180,.85)}
+.ylogo i::before{width:100%;height:7%}
+.ylogo i::after{width:7%;height:100%}
+.ylogo i:nth-of-type(1){left:52.2%;top:6%;animation-delay:.2s}
+.ylogo i:nth-of-type(2){left:26%;top:13%;animation-delay:1.3s}
+.ylogo i:nth-of-type(3){left:67.7%;top:17%;animation-delay:2.4s}
+@keyframes ylogo-tw{0%,70%,100%{transform:translate(-50%,-50%) scale(0) rotate(0);opacity:0}
+  80%{transform:translate(-50%,-50%) scale(1) rotate(20deg);opacity:1}
+  90%{transform:translate(-50%,-50%) scale(.4) rotate(40deg);opacity:.6}}
+@media (prefers-reduced-motion:reduce){.ylogo::after,.ylogo i{animation:none;opacity:0}}
+/* a hair of shadow under the gold thread, so it sits on the linen rather than on top of it (Kim) */
+.ylogo img{filter:drop-shadow(0 .5px .5px rgba(84,58,38,.22)) drop-shadow(0 1px 2px rgba(84,58,38,.10))}

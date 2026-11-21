@@ -30,7 +30,7 @@ a{color:inherit}
 .nav .nav-links{grid-column:3;justify-self:end}
 .brand{font-family:var(--sans);font-weight:700;font-size:18px;text-decoration:none;letter-spacing:-.02em;line-height:1}
 .brand-logo{display:inline-flex;line-height:0}
-.brand-logo img,.brand-logo .nav-foil{width:154px;height:auto;display:block;overflow:visible}
+.brand-logo img,.brand-logo .nav-foil{width:170px;height:auto;display:block;overflow:visible}
 .pcard-wrap{position:relative}
 .pcard-edit{position:absolute;top:14px;right:14px;font-size:12.5px;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
 .pcard-edit:hover{color:var(--ink)}
@@ -366,15 +366,15 @@ body:has(.hero-desk.is-open) #view-home .hero-foot{opacity:0}
   .nav{grid-template-columns:auto 1fr;gap:8px;padding-block:14px}
   .nav .brand-logo{grid-column:1}
   .nav .nav-links{grid-column:2}
-  .brand-logo img,.brand-logo .nav-foil{width:106px;height:auto}
+  .brand-logo img,.brand-logo .nav-foil{width:116px;height:auto}
 }
 
 /* the embroidered gold wordmark (components/FoilLogo.tsx, 2.82 : 1): where a place set the old foil's height,
    it now sets the width the old one took (2.02 : 1), so each logo keeps its footprint; never both (it would
    stretch) */
-.nav-foil{height:auto;width:154px}
+.nav-foil{height:auto;width:170px}
 .foot-foil{height:auto;width:86px}
-@media (max-width:899px){.nav-foil{width:106px}}
+@media (max-width:899px){.nav-foil{width:116px}}
 
 /* ==== the web's background (Kim): the starry linen, the whole window, held still (fixed), cover + centre so
    it never stretches; the book and the logo stay their own layers above it, moving as before. The yarn photo
