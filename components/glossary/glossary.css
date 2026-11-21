@@ -295,7 +295,7 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
   .gl-wide .gl-tab[aria-selected="true"]{background:var(--rose-l);color:var(--rose-d);font-weight:700}
   .gl-wide .gl-tab[aria-selected="true"] small{color:var(--rose-d)}
   /* the list */
-  .gl-wide .gl-sec-title{margin:14px 4px 4px;padding-bottom:6px;border-bottom:1px solid var(--gold-l);text-align:left}
+  .gl-wide .gl-sec-title{margin:14px 4px 4px;padding-bottom:6px;border-bottom:1px solid var(--gold-l);text-align:left;justify-content:flex-start}
   .gl-wide .gl-sec-title .gl-patch{display:inline;min-width:0;min-height:0;padding:0;font:700 14px/1.3 "Noto Serif KR",serif;color:var(--ink)}
   .gl-wide .gl-section:first-child .gl-sec-title{margin-top:4px}
   .gl-wide .gl-rows li+li{border-top:1px solid rgba(176,141,87,.18)}
@@ -321,7 +321,7 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
   .gl-wide .gl-note{font-size:13.5px;line-height:1.75;color:var(--ink2)}
   .gl-wide .gl-block{margin-top:30px}
   /* section titles as the pattern's parts: the words and a gold hairline, no lace */
-  .gl-wide .gl-lace{display:block;width:auto;aspect-ratio:auto;margin:0 0 12px;padding:0 0 8px;background:none;border-bottom:1px solid var(--gold-l);text-align:left}
+  .gl-wide .gl-lace{display:block;width:auto;aspect-ratio:auto;margin:0 0 12px;padding:0 0 8px;background:none;border-bottom:1px solid var(--gold-l);text-align:left;justify-content:flex-start}
   .gl-wide .gl-lace span{position:static;display:inline;font:700 16px/1.3 "Noto Serif KR",serif;color:var(--ink)}
   .gl-wide .gl-steps{gap:0}
   .gl-wide .gl-steps li{grid-template-columns:auto minmax(0,1fr) 84px;gap:14px;padding:14px 0}
