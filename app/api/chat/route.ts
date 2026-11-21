@@ -2,7 +2,7 @@
 // Replaces the prototype's window.claude.use("sample"), which only existed inside Claude.
 // The API key stays on the server (.env.local -> ANTHROPIC_API_KEY).
 import Anthropic from "@anthropic-ai/sdk";
-import { RULES, safeParseReply, type ChatErrorCode, type ChatRequest } from "@/lib/chat";
+import { RULES, STREAM_ERR, TITLE_RULE, type ChatErrorCode, type ChatRequest } from "@/lib/chat";
 
 export const runtime = "nodejs";
 
@@ -47,19 +47,50 @@ export async function POST(req: Request) {
     return { role: m.role, content: m.content };
   });
 
-  try {
-    const client = new Anthropic(); // reads ANTHROPIC_API_KEY
-    const res = await client.messages.create({ model: MODEL, max_tokens: MAX_TOKENS, system: RULES, messages });
-    if (res.stop_reason === "refusal") return fail("refused", 200);
-    const text = res.content.map(b => (b.type === "text" ? b.text : "")).join("");
-    const parsed = safeParseReply(text);
-    if (!parsed) return fail("invalid_json", 502);
-    return Response.json(parsed);
-  } catch (e) {
-    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return fail("not_granted", 502);
-    if (e instanceof Anthropic.RateLimitError) return fail("rate_limited", 429);
-    if (e instanceof Anthropic.BadRequestError && img && /image/i.test(e.message)) return fail("image_rejected", 400);
+  const code = (e: unknown): ChatErrorCode => {
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return "not_granted";
+    if (e instanceof Anthropic.RateLimitError) return "rate_limited";
+    if (e instanceof Anthropic.BadRequestError && img && /image/i.test(e.message)) return "image_rejected";
     console.error("[api/chat]", e);
-    return fail("upstream", 502);
-  }
+    return "upstream";
+  };
+  const STATUS: Record<string, number> = { not_granted: 502, rate_limited: 429, image_rejected: 400, upstream: 502 };
+
+  // The answer streams (Kim: the words come as they are written): the model's text as it arrives, as plain
+  // text. The client reads the "reply" string out of the JSON while it grows (lib/chat partialReply) and parses
+  // the whole with safeParseReply at the end (Rule 5). An error before the first word keeps its status (the
+  // client shows the same notes as before); one after it ends the stream with STREAM_ERR + its code.
+  // Stopping in the client (그만) aborts the request: req.signal ends the model's stream too, so no tokens are
+  // paid for after it.
+  const client = new Anthropic(); // reads ANTHROPIC_API_KEY
+  const stream = client.messages.stream(
+    { model: MODEL, max_tokens: MAX_TOKENS, system: RULES + (body.wantTitle ? TITLE_RULE : ""), messages },
+    { signal: req.signal },
+  );
+  // wait for the first piece, so an error that comes at once still gets its status code
+  const it = stream[Symbol.asyncIterator]();
+  let first: IteratorResult<Anthropic.MessageStreamEvent>;
+  try { first = await it.next(); } catch (e) { const c = code(e); return fail(c, STATUS[c] ?? 502); }
+
+  const enc = new TextEncoder();
+  const body2 = new ReadableStream<Uint8Array>({
+    async start(ctl) {
+      let refused = false;
+      const take = (ev: Anthropic.MessageStreamEvent) => {
+        if (ev.type === "content_block_delta" && ev.delta.type === "text_delta") ctl.enqueue(enc.encode(ev.delta.text));
+        if (ev.type === "message_delta" && ev.delta.stop_reason === "refusal") refused = true;
+      };
+      try {
+        if (!first.done) take(first.value);
+        for (let r = await it.next(); !r.done; r = await it.next()) take(r.value);
+        if (refused) ctl.enqueue(enc.encode(`\n${STREAM_ERR}refused`));
+      } catch (e) {
+        if (!req.signal.aborted) ctl.enqueue(enc.encode(`\n${STREAM_ERR}${code(e)}`));
+      } finally {
+        try { ctl.close(); } catch {}
+      }
+    },
+    cancel() { stream.abort(); },
+  });
+  return new Response(body2, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" } });
 }

@@ -28,11 +28,41 @@ export interface ChatReply {
   reply: string;
   set: Record<string, unknown>;
   chips: string[];
+  /** a short title for the conversation (asked for with the first answer only) */
+  title?: string;
 }
 
 export interface ChatRequest {
   messages: { role: "user" | "assistant"; content: string }[];
   image?: { data: string; mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" };
+  /** the first answer of a conversation also names it ("title") */
+  wantTitle?: boolean;
+}
+
+/** added to RULES for the first answer: the conversation's title comes with it (no second call) */
+export const TITLE_RULE = `\n이번 답의 JSON에는 "title":"이 대화의 제목(20자 이내, 명사형, 따옴표·마침표 없이)"도 넣어.`;
+
+/** The stream's last line when something went wrong after the answer had started (the status is already 200). */
+export const STREAM_ERR = "\u0000ERR:";
+
+/**
+ * The reply text so far, from a model answer still arriving (the JSON is cut anywhere): the "reply" string up
+ * to where it has come, its escapes read; an escape cut in half waits for the next piece. "" before it starts.
+ */
+export function partialReply(raw: string): string {
+  const m = /"reply"\s*:\s*"/.exec(raw);
+  if (!m) return "";
+  let out = "";
+  for (let i = m.index + m[0].length; i < raw.length; i++) {
+    const ch = raw[i];
+    if (ch === '"') break;
+    if (ch !== "\\") { out += ch; continue; }
+    const n = raw[i + 1];
+    if (n === undefined) break;
+    if (n === "u") { const hex = raw.slice(i + 2, i + 6); if (hex.length < 4) break; out += String.fromCharCode(parseInt(hex, 16)); i += 5; continue; }
+    out += n === "n" ? "\n" : n === "t" ? "\t" : n === "r" ? "" : n; i++;
+  }
+  return out;
 }
 
 export type ChatErrorCode = "not_configured" | "not_granted" | "rate_limited" | "image_rejected" | "invalid_json" | "refused" | "bad_request" | "upstream";
@@ -65,5 +95,6 @@ function normalize(o: Record<string, unknown>): ChatReply {
     reply: typeof o.reply === "string" ? o.reply : "",
     set: o.set && typeof o.set === "object" && !Array.isArray(o.set) ? (o.set as Record<string, unknown>) : {},
     chips: Array.isArray(o.chips) ? o.chips.map(String) : [],
+    ...(typeof o.title === "string" && o.title.trim() ? { title: o.title.trim().slice(0, 20) } : {}),
   };
 }
