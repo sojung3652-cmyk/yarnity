@@ -1,7 +1,7 @@
 "use client";
 // "AI와 상의", made to work like a chat app (Kim: Claude's structure, Yarnity's look). Web and phone alike.
 //   Web: the AI tab opens a panel from the right (760px): the conversations on the left (260px, folds to 56px
-//   icons), the chat on the right; ⤢ 전체 화면 makes it the /ai page (the same, the whole window).
+//   icons), the chat on the right; no full screen on the web (Kim: /ai there goes back to the small window).
 //   Phones: straight into the chat (the last conversation, or a new one): ☰ the conversations (a drawer from
 //   the left), the title (tap to rename), ✎ a new one. A sheet from the bottom, pulled down to put it away;
 //   from 도안 만들기 a half sheet, pulled up or ⤢ for the whole screen.
@@ -152,7 +152,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   const open = page || !!chat.open, convId = chat.conv && chat.conv !== "new" ? chat.conv : null, sheet = !page && phone && !!chat.sheet;
   const conv = convId ? all.find(c => c.id === convId) ?? null : null;
   // wide screens, not /ai: a small floating window (Kim) with the phone's chat inside - ☰ the list as a drawer,
-  // ✎ a new one, ⤢ the /ai page, ✕; the page behind is not dimmed and stays clickable
+  // ✎ a new one, ✕ (no full screen on the web: Kim); the page behind is not dimmed and stays clickable
   const win = !phone && !page;
   const key = conv ? conv.id : "new";
   // the step of 도안 만들기 it was opened in: the book's (web), or the phone's screens' (/new?step=N)
@@ -200,7 +200,8 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   };
 
   // /ai (wide): leaving it by the browser's back also comes back to the small window, on this conversation
-  useEffect(() => { if (page && m === false) setChat(c => ({ ...c, open: true })); }, [page, m]); // eslint-disable-line react-hooks/exhaustive-deps
+  // and the web has no full-screen chat any more (Kim): /ai opened there goes home with the small window open
+  useEffect(() => { if (page && m === false) { setChat(c => ({ ...c, open: true })); router.replace("/"); } }, [page, m]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // availability, once per page load
   useEffect(() => {
@@ -608,8 +609,6 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
             {titleEl}
             <span className="aic-bar-end">
               <button type="button" className="aic-icon" aria-label="새 대화" title="새 대화" onClick={() => go(null)}>{Ic.pen}</button>
-              {/* the same conversation, on the whole window */}
-              <button type="button" className="aic-icon" aria-label="전체 화면" title="전체 화면" onClick={() => { setChat(c => ({ ...c, open: false })); router.push("/ai"); }}>{Ic.expand}</button>
               <button type="button" className="aic-icon" aria-label="닫기" title="닫기" onClick={close}>{Ic.x}</button>
             </span>
           </>

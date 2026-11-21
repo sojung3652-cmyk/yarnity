@@ -275,6 +275,30 @@
 .aic-newrow svg{width:17px;height:17px;color:var(--ink2)}
 .aic-newrow:hover{background:rgba(255,253,248,.7)}
 @media (prefers-reduced-motion:reduce){.aic-root.is-win .aic-panel{animation:none;transition:none}}
+/* the small window (web, Kim): smaller type inside and the room used better - tighter bar, edges, box and
+   bubbles; nothing under 11px */
+.aic-root.is-win .aic-bar{min-height:44px;padding:0 6px}
+.aic-root.is-win .aic-bar .aic-icon{width:30px;height:30px}
+.aic-root.is-win .aic-bar .aic-icon svg{width:17px;height:17px}
+.aic-root.is-win .aic-title{font-size:13.5px}
+.aic-root.is-win .aic-msgs{padding:10px 12px 12px}
+.aic-root.is-win .aic-foot{padding:0 10px 10px}
+.aic-root.is-win .aic-box{padding:8px 8px 7px 12px;border-radius:14px}
+.aic-root.is-win .aic-box textarea{font-size:13.5px;line-height:1.5;min-height:22px}
+.aic-root.is-win .aic-me{max-width:86%}
+.aic-root.is-win .aic-me-bubble{padding:7px 11px;border-radius:13px}
+.aic-root.is-win .aic-me-bubble p,.aic-root.is-win .md,.aic-root.is-win .aic-thinking,.aic-root.is-win .aic-edit textarea{font-size:13.5px;line-height:1.6}
+.aic-root.is-win .md table,.aic-root.is-win .aic-prop ul{font-size:12.5px}
+.aic-root.is-win .aic-acts button,.aic-root.is-win .aic-notice,.aic-root.is-win .aic-chips button,.aic-root.is-win .aic-starters button{font-size:12px}
+.aic-root.is-win .aic-chips button,.aic-root.is-win .aic-starters button{min-height:30px;padding:0 11px}
+.aic-root.is-win .aic-chips,.aic-root.is-win .aic-starters{gap:6px;margin-top:10px}
+.aic-root.is-win .aic-date,.aic-root.is-win .aic-note,.aic-root.is-win .aic-prop-kick{font-size:11px}
+.aic-root.is-win .aic-fresh{padding:8px 0 2vh}
+.aic-root.is-win .aic-fresh h2{margin:8px 0 14px;font-size:17px}
+.aic-root.is-win .aic-drawer .aic-side-name{font-size:14px}
+.aic-root.is-win .aic-drawer .aic-search input{font-size:13px}
+.aic-root.is-win .aic-drawer .aic-row-title,.aic-root.is-win .aic-newrow{font-size:13px}
+.aic-root.is-win .aic-drawer .aic-day{font-size:11px}
 
 /* ---- /ai on wide screens: the small gold logo and ⇤ at the top of the sidebar; the title and the work over
    the 680px column; the box at the foot with the formulas note under it ---- */
