@@ -317,11 +317,15 @@
 
 /* the chat in the site's letters (Kim): Noto Serif KR everywhere in it */
 .aic-root,.aic-root input,.aic-root textarea,.aic-root button,.aic-root .md{font-family:"Noto Serif KR",serif}
-/* 보내기 (Kim: not the dark round arrow): a small pink cloth label with the word, as 이어서 뜨기; while an answer
-   comes, 멈추기 on the ivory one */
-.aic-send{display:inline-flex;align-items:center;justify-content:center;width:auto;height:auto;min-height:0;padding:0 8px;border-radius:0;background:none;
-  border-style:solid;border-width:10px;border-image-source:url(/mobile/diary/patch_pink.webp);border-image-slice:62 fill;border-image-repeat:stretch;
-  font:600 13px/1.2 "Noto Serif KR",serif;color:#3F3532;white-space:nowrap;filter:drop-shadow(-1px 1.5px 1px rgba(90,62,44,.16))}
-.aic-send.is-stop{border-image-source:url(/mobile/diary/patch_cream.webp)}
+/* 보내기 (Kim): a small round pink cloth label - the pink patch's weave, a running stitch ring inside, the arrow in
+   ink; 멈추기 the same in ivory */
+.aic-send{position:relative;display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;
+  background:url(/mobile/diary/patch_pink.webp) center / 260% auto;color:#4A3D38;
+  box-shadow:0 0 0 1px rgba(159,100,106,.25),-1.5px 2px 3px -1px rgba(90,62,44,.3)}
+.aic-send::after{content:"";position:absolute;inset:3px;border-radius:50%;border:1px dashed rgba(159,100,106,.55);pointer-events:none}
+.aic-send svg{position:relative;width:16px;height:16px}
+.aic-send.is-stop{background-image:url(/mobile/diary/patch_cream.webp)}
+.aic-send.is-stop::after{border-color:rgba(142,131,121,.6)}
 .aic-send:disabled{opacity:.45}
-.aic-root.is-phone .aic-send,.aic-root.is-win .aic-send{width:auto;height:auto}
+.aic-root.is-phone .aic-send,.aic-root.is-win .aic-send{width:32px;height:32px}
+.aic-root.is-phone .aic-send{width:36px;height:36px}

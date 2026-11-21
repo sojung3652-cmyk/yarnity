@@ -505,8 +505,8 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
           {tag && <span className="aic-ctag">{Ic.yarn}<span>{tag}</span><button type="button" aria-label="연결 풀기" onClick={unlink}>{Ic.x}</button></span>}
           <span className="aic-grow" />
           {busy && busy.id === key
-            ? <button type="button" className="aic-send is-stop" aria-label="답 멈추기" onClick={() => busy.ctl.abort()}>멈추기</button>
-            : <button type="submit" className="aic-send" disabled={!input.trim() || !!busy || !chat.checked}>보내기</button>}
+            ? <button type="button" className="aic-send is-stop" aria-label="답 멈추기" onClick={() => busy.ctl.abort()}>{Ic.stop}</button>
+            : <button type="submit" className="aic-send" aria-label="보내기" disabled={!input.trim() || !!busy || !chat.checked}>{Ic.up}</button>}
         </div>
       </div>
     </form>
