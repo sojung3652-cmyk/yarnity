@@ -180,8 +180,10 @@ export function GlossaryScreen({ id }: { id?: string }) {
     );
     return (
       <main className="gl gl-phone">
-        <MobileTopBar back={back} center={<span className="gl-bar-title">뜨개 용어집</span>} />
-        <Head total={TERMS.length} />
+        {/* the Glossary wordmark in the middle of the bar, as 나의 도안집 has My Patterns (Kim); the count under it */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <MobileTopBar back={back} center={<h1 className="gl-bar-logo"><img src="/pic/glossary.png" alt="Glossary · 뜨개 용어집" width={1200} height={396} /></h1>} />
+        <p className="gl-count gl-phone-count">가나다순 · {TERMS.length}개</p>
         <Search s={s} />
         <Tabs s={s} />
         <Rows s={s} onPick={t => router.push(`/glossary/${t.id}`)} />

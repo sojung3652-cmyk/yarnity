@@ -254,3 +254,8 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
 .gl-logo{display:block;width:auto;height:52px}
 .gl-phone .gl-logo{height:46px}
 .glf .gl-logo{height:42px}
+
+/* phones: the Glossary wordmark in the bar, the same height as 나의 도안집's My Patterns (40px); the count under */
+.gl-bar-logo{margin:0;line-height:0;justify-self:center}
+.gl-bar-logo img{display:block;width:auto;height:40px}
+.gl-phone-count{margin:14px 0 14px;text-align:right}

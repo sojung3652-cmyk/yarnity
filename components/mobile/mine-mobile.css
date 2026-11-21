@@ -28,7 +28,7 @@
 
   /* the My Patterns title in the top bar, where the wordmark was */
   .mm-head-title{margin:0;line-height:0;justify-self:center}
-  .mm-head-title img{display:block;width:auto;height:34px}
+  .mm-head-title img{display:block;width:auto;height:40px} /* a little bigger (Kim); the glossary bar logo matches */
   .mm .mtb-right{gap:2px}
   /* the title */
   .mm-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:18px 0 0}
