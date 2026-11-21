@@ -333,3 +333,8 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
     font:700 15px/1 "Noto Serif KR",serif;color:#3A322D;letter-spacing:-.01em;white-space:nowrap}
   .gl-whead-line{margin:16px 0 0;font-size:13px;color:#6A605F}
 }
+/* 용어집's title on the same ivory cloth label as My Page's (Kim) */
+@media (min-width:768px){
+  .gl-whead-title{width:168px;aspect-ratio:480 / 197;padding:0 18px;background:url(/brand/label_title.webp) center / 100% 100% no-repeat;
+    filter:drop-shadow(-1.5px 2.5px 2px rgba(90,62,44,.16))}
+}
