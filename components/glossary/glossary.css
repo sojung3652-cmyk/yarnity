@@ -308,4 +308,8 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
     /* warm notepaper (Kim: not so white, no folded corner) with faint ruled lines that scroll with the text */
     background:repeating-linear-gradient(to bottom,transparent 0 33px,rgba(176,141,87,.12) 33px 34px) local,#FBF7EF;
     box-shadow:0 0 0 1px rgba(142,131,121,.14),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
+  /* the list on a plain cream card (Kim), a shade deeper than the memo, so the two read as two sheets */
+  .gl-wide .gl-col-list{padding:20px 14px 6px 20px;border-radius:6px;background:#F5EEDF;
+    box-shadow:0 0 0 1px rgba(142,131,121,.16),-10px 16px 28px -18px rgba(60,42,34,.28),-2px 3px 6px -3px rgba(60,42,34,.1)}
+  .gl-wide .gl-list-scroll{max-height:calc(100vh - 236px)}
 }
