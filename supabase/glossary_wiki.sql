@@ -32,3 +32,6 @@ begin
 end $$;
 drop trigger if exists glossary_edits_throttle on public.glossary_edits;
 create trigger glossary_edits_throttle before insert on public.glossary_edits for each row execute function public.glossary_edits_throttle();
+
+-- the trigger function is not for calling from the API (Supabase advisor 0028/0029); the trigger still fires
+revoke execute on function public.glossary_edits_throttle() from public, anon, authenticated;

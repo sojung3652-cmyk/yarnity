@@ -12,6 +12,7 @@ import { useMobile } from "@/components/mobile/useMobile";
 import { CATEGORIES, DIFFICULTY, TERMS, categoryOf, colorOf, searchTerms, shortLine, termById, type GlossColor, type GlossTerm } from "@/lib/glossary";
 import { GlossSymbol } from "./GlossSymbol";
 import { WikiSummary } from "./WikiSummary";
+import { useTermLine } from "@/lib/glossWiki";
 import "./glossary.css";
 
 const patch = (c: GlossColor): CSSProperties => ({ ["--gp" as string]: `url(/glossary/patch_${c}.webp)` });
@@ -58,6 +59,7 @@ function Search({ s }: { s: ListState }) {
 }
 
 function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null; onPick: (t: GlossTerm) => void }) {
+  const line = useTermLine();
   if (!s.sections.length) return <p className="gl-none">{s.q ? "찾는 용어가 없어요" : "이 칸에는 아직 용어가 없어요"}</p>;
   return (
     <>
@@ -69,7 +71,7 @@ function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null;
               <li key={t.id}>
                 <button type="button" className={"gl-row" + (selected === t.id ? " is-on" : "")} aria-current={selected === t.id ? "true" : undefined} onClick={() => onPick(t)}>
                   <SymPatch term={t} size={44} />
-                  <span className="gl-row-text"><b>{t.name}</b><span>{shortLine(t)}</span></span>
+                  <span className="gl-row-text"><b>{t.name}</b><span>{line(t)}</span></span>
                   <Chev />
                 </button>
               </li>
@@ -105,7 +107,7 @@ const LaceTitle = ({ children }: { children: ReactNode }) => (
 );
 
 export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTerm) => void }) {
-  const related = term.related.map(termById).filter((t): t is GlossTerm => !!t);
+  const related = term.related.map(termById).filter((t): t is GlossTerm => !!t), line = useTermLine();
   return (
     <article className="gl-detail" aria-labelledby={`glt-${term.id}`}>
       <header className="gl-d-head">
@@ -113,7 +115,7 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
         <div>
           <p className="gl-d-cat">{categoryOf(term).name}</p>
           <h2 id={`glt-${term.id}`}>{term.name}</h2>
-          <p className="gl-d-line">{shortLine(term)}</p>
+          <p className="gl-d-line">{line(term)}</p>
           {term.aliases.length > 0 && <p className="gl-d-alias">다른 이름 · {term.aliases.join(", ")}</p>}
         </div>
       </header>

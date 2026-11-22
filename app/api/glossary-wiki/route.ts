@@ -19,7 +19,8 @@ const COLS = "id,term_id,summary,author,note,reverts,created_at";
 const off = () => Response.json({ error: "off" }, { status: 503 });
 const db = (path: string, init?: RequestInit) =>
   fetch(`${URL_}/rest/v1/${path}`, { ...init, cache: "no-store", signal: AbortSignal.timeout(6000),
-    headers: { apikey: KEY!, authorization: `Bearer ${KEY}`, "content-type": "application/json", ...(init?.headers ?? {}) } });
+    // the publishable key goes in apikey only (it is not a JWT, so no Bearer header)
+    headers: { apikey: KEY!, "content-type": "application/json", ...(init?.headers ?? {}) } });
 
 export async function GET(req: Request) {
   if (!URL_ || !KEY) return off();

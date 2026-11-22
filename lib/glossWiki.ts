@@ -1,6 +1,7 @@
 // 뜨개 사전 · 커뮤니티 표현 위키 (Kim): the shared 설명 of the community terms (app/api/glossary-wiki). Read once a
 // page load; "off" when the server has no wiki (then only the built-in 설명 shows and 고치기 is hidden).
 import { useSyncExternalStore } from "react";
+import { shortLine, type GlossTerm } from "./glossary";
 
 export interface WikiEdit { id: number; term_id: string; summary: string; author: string; note: string | null; reverts: number | null; created_at: string }
 type State = { status: "loading" | "on" | "off"; latest: Record<string, WikiEdit> };
@@ -35,4 +36,10 @@ export async function wikiSave(body: { term: string; summary: string; author?: s
   if (!r.ok || !j.edit) throw new Error(j.error ?? "off");
   set({ ...state, latest: { ...state.latest, [body.term]: j.edit } });
   return j.edit;
+}
+
+/** a term's one line, from its newest wiki 판 when there is one (the list rows and the detail's head) */
+export function useTermLine() {
+  const w = useWiki();
+  return (t: GlossTerm) => { const e = w.latest[t.id]; return shortLine(e ? { ...t, summary: e.summary } : t); };
 }
