@@ -73,7 +73,7 @@ export const YARNS: Yarn[] = [
     caution: "열에 약해 다리미를 직접 대면 녹을 수 있습니다. 땀을 잘 흡수하지 못해 100% 나일론 옷은 덥고 답답할 수 있습니다.",
   },
   {
-    id: "polyester", name: "폴리에스터", nameEn: "Polyester", group: "synthetic", short: "가볍고 형태가 잘 유지됨", seasons: ["spring", "summer", "autumn", "winter"],
+    id: "polyester", image: "/dictionary/yarns/polyester.jpg", name: "폴리에스터", nameEn: "Polyester", group: "synthetic", short: "가볍고 형태가 잘 유지됨", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 2, stretch: 2, softness: 3, care: 5, price: 1 },
     about: "가장 흔한 합성 섬유로 가볍고 질기며 구김이 잘 가지 않습니다. 물을 머금지 않아 빨리 마르고, 형태가 잘 유지되어 가방실, 수세미실, 반짝이는 펄사 등 여러 실의 재료가 됩니다. 재활용 페트병으로 만든 폴리에스터 실도 있습니다.",
     caution: "열에 약해 높은 온도의 다리미나 건조기는 피합니다. 정전기가 잘 생기고, 땀을 흡수하지 못해 옷으로 입으면 덥게 느껴질 수 있습니다.",
@@ -85,7 +85,7 @@ export const YARNS: Yarn[] = [
     caution: "물에 젖으면 약해지고 무거워져 편물이 늘어나기 쉽습니다. 비틀어 짜지 말고 눌러 물기를 뺀 뒤 눕혀 말립니다.",
   },
   {
-    id: "nalgae", name: "날개사", nameEn: "Brushed scrubber yarn", group: "synthetic", short: "잔털이 많은 수세미실", seasons: ["spring", "summer", "autumn", "winter"],
+    id: "nalgae", image: "/dictionary/yarns/nalgae.jpg", name: "날개사", nameEn: "Brushed scrubber yarn", group: "synthetic", short: "잔털이 많은 수세미실", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 2, stretch: 2, softness: 2, care: 5, price: 1 },
     about: "아크릴 같은 합성 섬유에 잔털이 날개처럼 붙어 있는 실입니다. 까슬까슬한 잔털이 거품을 잘 내고 때를 잘 닦아 주로 수세미를 뜰 때 씁니다. 반짝이는 펄이 섞인 것도 있고, '솔잎사'라고도 부릅니다.",
     caution: "털 때문에 코가 잘 보이지 않아 처음 뜨는 사람에게는 어렵습니다. 단수링을 자주 걸고, 한 번 뜬 것을 풀면 털이 엉키니 천천히 풉니다.",
