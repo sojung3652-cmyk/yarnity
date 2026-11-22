@@ -38,6 +38,8 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
   let tw: { fx: number; x: number; y: number; ph: number; sp: number; s: number }[] = [], tip: number[] | null = null;
   const LWp = img.logo.naturalWidth, LHp = img.logo.naturalHeight;
   let TM: Uint8Array, LA: Uint8Array, outD: ImageData;
+  // the sentence's opacity (1: as drawn); the phone's start fades it out as the scene rises to the home (Kim)
+  let TA = 1;
   // prep
   {
     [lc, gl].forEach(c => { c.width = LWp; c.height = LHp; });
@@ -60,7 +62,7 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
 
   function frame(t: number) {
     const W = cv.width, H = cv.height, B = cover();
-    const out = 0, ta = 1;
+    const out = 0, ta = TA;
     sx.setTransform(1, 0, 0, 1, 0, 0); sx.clearRect(0, 0, sv.width, sv.height);
     (DATA.stars as number[][]).forEach(([fx, fy, sz], i) => { const v = Math.sin((t * (.22 + (i % 5) * .04) + i * .37) * Math.PI * 2), a = Math.pow(Math.max(0, v), 6); flare(sx, B.x + fx * B.w, B.y + fy * B.h, (7 + sz * 9) * DPR, a * .5); });
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
@@ -124,5 +126,8 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
     s = Math.min(1, (RH * .94) / contentH); tX = 0; tY = top + RH * .5 - ay;
     return { start, origin: `${ax}px ${ay}px`, homeT: `translate(${tX}px,${tY}px) scale(${s})`, narrow: !wide };
   }
-  return { size, frame };
+  /** the medallion's and the logo's boxes on screen (CSS px), for the phone's start to land them on the home's */
+  const geom = () => ({ med: { cx: OX + L.mx * SC, cy: OY + L.my * SC, h: L.mh * SC }, logo: { cx: OX + L.lcx * SC, cy: OY + L.lcy * SC, w: L.lw * SC } });
+  const setText = (a: number) => { TA = Math.max(0, Math.min(1, a)); };
+  return { size, frame, geom, setText };
 }
