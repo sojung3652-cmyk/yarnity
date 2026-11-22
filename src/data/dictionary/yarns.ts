@@ -103,13 +103,13 @@ export const YARNS: Yarn[] = [
     caution: "코를 너무 느슨하게 뜨면 털 실이 빠져나와 고리가 생기기 쉽습니다(웜잉). 조금 촘촘하게 뜨고, 실 끝은 매듭을 지어 단단히 정리합니다.",
   },
   {
-    id: "fabric", name: "패브릭얀", nameEn: "T-shirt yarn", group: "special", short: "원단을 잘라 만든 넓은 실", seasons: ["spring", "summer", "autumn", "winter"],
+    id: "fabric", image: "/dictionary/yarns/fabric.jpg", name: "패브릭얀", nameEn: "T-shirt yarn", group: "special", short: "원단을 잘라 만든 넓은 실", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 2, stretch: 3, softness: 3, care: 4, price: 2 },
     about: "티셔츠 같은 저지 원단을 길게 잘라 만든 넓고 납작한 실입니다. 아주 굵어서 8~12mm 바늘로 금방 뜰 수 있고, 힘이 있어 바구니, 러그, 가방, 컵받침에 많이 씁니다. 의류를 만들고 남은 원단을 재활용한 경우가 많습니다.",
     caution: "타래마다 굵기와 신축성이 조금씩 달라 한 작품에는 같은 타래를 쓰는 것이 좋습니다. 손에 힘이 많이 들어가므로 오래 뜰 때는 쉬어 가며 뜹니다.",
   },
   {
-    id: "raffia", name: "라피아", nameEn: "Raffia", group: "plant", short: "여름 모자와 가방용", seasons: ["summer"],
+    id: "raffia", image: "/dictionary/yarns/raffia.jpg", name: "라피아", nameEn: "Raffia", group: "plant", short: "여름 모자와 가방용", seasons: ["summer"],
     traits: { warmth: 1, stretch: 1, softness: 1, care: 2, price: 3 },
     about: "라피아 야자 잎에서 얻은 섬유, 또는 그것처럼 보이게 만든 종이·레이온 실입니다. 가볍고 빳빳해 형태가 잘 잡히고, 밀짚 같은 느낌이 나서 여름 모자, 가방, 바구니에 잘 어울립니다.",
     caution: "꺾이면 자국이 남고, 종이 라피아는 물에 약합니다. 물세탁보다는 마른 솔로 털어 관리하고, 찌그러지면 스팀을 살짝 쐬어 모양을 잡습니다.",
@@ -127,13 +127,13 @@ export const YARNS: Yarn[] = [
     caution: "털이 잘 빠지고 날립니다. 마찰과 뜨거운 물에 쉽게 펠팅되니 찬물에 살짝 눌러 빨고, 보관할 때는 접어서 서랍에 넣습니다.",
   },
   {
-    id: "tencel", name: "텐셀", nameEn: "Tencel (lyocell)", group: "plant", short: "매끄럽고 찰랑임", seasons: ["spring", "summer"],
+    id: "tencel", image: "/dictionary/yarns/tencel.jpg", name: "텐셀", nameEn: "Tencel (lyocell)", group: "plant", short: "매끄럽고 찰랑임", seasons: ["spring", "summer"],
     traits: { warmth: 1, stretch: 1, softness: 5, care: 3, price: 3 },
     about: "유칼립투스 같은 나무 펄프를 녹여 다시 뽑은 재생 섬유(라이오셀)입니다. 매끄럽고 찰랑거리며 은은한 광택이 있고, 땀을 잘 흡수해 여름 상의나 숄에 잘 어울립니다.",
     caution: "탄력이 없어 무게 때문에 편물이 늘어나기 쉽습니다. 물에 젖으면 약해지니 비틀어 짜지 말고, 눌러 물기를 뺀 뒤 눕혀 말립니다.",
   },
   {
-    id: "hemp", name: "헴프", nameEn: "Hemp", group: "plant", short: "질기고 빳빳함, 빨수록 부드러움", seasons: ["summer"],
+    id: "hemp", image: "/dictionary/yarns/hemp.jpg", name: "헴프", nameEn: "Hemp", group: "plant", short: "질기고 빳빳함, 빨수록 부드러움", seasons: ["summer"],
     traits: { warmth: 1, stretch: 1, softness: 1, care: 4, price: 3 },
     about: "대마 줄기에서 얻은 섬유입니다. 린넨보다 더 질기고 거칠지만, 빨수록 부드러워지고 광택이 살아납니다. 튼튼해서 시장바구니, 그물가방, 행주에 잘 어울립니다.",
     caution: "신축성이 없어 손에 힘이 많이 들어갑니다. 처음에는 뻣뻣하니 뜨고 나서 물에 적셔 블로킹하면 코가 가지런해집니다.",

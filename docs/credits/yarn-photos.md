@@ -25,5 +25,9 @@
 | tweed.jpg | 트위드사 | https://unsplash.com/photos/lY0MpDoh2BA |
 | bamboo.jpg | 대나무 | https://unsplash.com/photos/2tZ2JD25as0 (니트 탑의 배 부분만 확대해 자름) |
 | jute.jpg | 황마 | https://unsplash.com/photos/hh2ulVuYbcw |
+| fabric.jpg | 패브릭얀 | https://unsplash.com/photos/SVclj-GzwxU |
+| raffia.jpg | 라피아 | https://unsplash.com/photos/9wtQ-IXSy_g (가방 편물만 확대해 자름) |
+| tencel.jpg | 텐셀 | https://unsplash.com/photos/JDwEVCVyBWs (니트 탑의 등판만 확대해 자름) |
+| hemp.jpg | 헴프 | https://unsplash.com/photos/ieppoqQTIto (가방 편물만 확대해 자름) |
 
 사진은 그 실과 질감이 비슷한 편물을 가까이 찍은 것이에요. 사진 설명에 실의 소재가 적혀 있지 않아서, 실제로 그 소재로 뜬 편물이라는 보장은 없어요.
