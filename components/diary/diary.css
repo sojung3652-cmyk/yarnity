@@ -111,3 +111,5 @@ html body .mm-cover.is-diary .mm-tag{left:12%;top:4%}
 .dlace.nb-final-lace,.dlace.mfw-final-lace{--lace:url(/mobile/diary/lace_btn_pink.webp);color:#3F3532}
 .dlace.nb-final-lace .dlace-satin,.dlace.mfw-final-lace .dlace-satin{color:#3F3532}
 .dlace.nb-final-lace .dlace-satin small,.dlace.mfw-final-lace .dlace-satin small{color:#7A5A5E;letter-spacing:.08em}
+/* a cover narrower than its slot (same height as the widest, Kim) sits in the middle of it */
+html body .mm-cover.is-diary{margin-inline:auto}
