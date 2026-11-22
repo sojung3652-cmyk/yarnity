@@ -33,3 +33,30 @@ export function TroubleArt({ name, className }: { name: string; className?: stri
 export function ProjectIcon({ name, className }: { name: string; className?: string }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{I[name]}</svg>;
 }
+
+// care-label symbols (ISO 3758 shapes, drawn here): wash tub, bleach triangle, drying square, iron, professional-care circle
+const TUB = <><path d="M6 11 L9.5 28 H30.5 L34 11" /><path d="M4 11 q3.5 -4 7 0 t7 0 t7 0 t7 0 t7 0" /></>;
+const SQ = <rect x="6" y="5" width="28" height="24" rx="1" />;
+const IRON = <path d="M8 26 H33 L33 19 C33 13 29 11 24 11 H15 C14 11 13 12 12.6 13 Z" />;
+const X = <path d="M5 4 L35 30 M35 4 L5 30" />;
+const dot = (x: number, y: number) => <circle key={x} cx={x} cy={y} r="1.5" fill="currentColor" stroke="none" />;
+const C: Record<string, ReactNode> = {
+  "wash-30": <>{TUB}<text x="20" y="24" textAnchor="middle" fontSize="9" fill="currentColor" stroke="none" fontFamily="serif">30</text></>,
+  "wash-hand": <>{TUB}<path d="M17 25 v-7 M19.5 25 v-8 M22 25 v-7 M24.5 25 v-5 M17 25 q4 3 7.5 0" strokeWidth="1.2" /></>,
+  "wash-gentle": <>{TUB}<text x="20" y="24" textAnchor="middle" fontSize="9" fill="currentColor" stroke="none" fontFamily="serif">30</text><path d="M9 31.5 H31" /></>,
+  "wash-no": <>{TUB}{X}</>,
+  "bleach": <path d="M20 5 L35 29 H5 Z" />,
+  "bleach-oxygen": <><path d="M20 5 L35 29 H5 Z" /><path d="M17 27 L25 12 M21 27 L28.5 14" strokeWidth="1.2" /></>,
+  "bleach-no": <><path d="M20 5 L35 29 H5 Z" />{X}</>,
+  "tumble-1": <>{SQ}<circle cx="20" cy="17" r="9" />{dot(20, 17)}</>,
+  "tumble-no": <>{SQ}<circle cx="20" cy="17" r="9" />{X}</>,
+  "dry-flat": <>{SQ}<path d="M11 17 H29" /></>,
+  "dry-line": <>{SQ}<path d="M6 9 q14 8 28 0" /></>,
+  "iron-1": <>{IRON}{dot(22, 19)}</>,
+  "iron-no": <>{IRON}{X}</>,
+  "dryclean-p": <><circle cx="20" cy="17" r="12" /><text x="20" y="21.5" textAnchor="middle" fontSize="12" fill="currentColor" stroke="none" fontFamily="serif">P</text></>,
+  "dryclean-no": <><circle cx="20" cy="17" r="12" />{X}</>,
+};
+export function CareIcon({ name, className }: { name: string; className?: string }) {
+  return <svg className={className} viewBox="0 0 40 34" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" role="img" aria-hidden="true">{C[name]}</svg>;
+}

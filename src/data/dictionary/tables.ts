@@ -1,4 +1,4 @@
-// 한눈에 보는 표 (뜨개 사전 · web). Checked against:
+// 기타 (뜨개 사전 · web; was 한눈에 보는 표). Checked against:
 // - 바늘 호수: Lovecrafts / Craft Yarn Council (mm · US · UK), ronique.jp (かぎ針 2/0~5/0호), a Japanese 棒針 chart
 //   (0호 2.1mm, 0.3mm a step). Brands differ a little: mm is the one to trust.
 // - 실 굵기: Craft Yarn Council Standard Yarn Weight System (0 Lace ~ 7 Jumbo), gauge over 10cm.
@@ -7,6 +7,27 @@
 import type { DictTable } from "./types";
 
 export const TABLES: DictTable[] = [
+  {
+    id: "care-symbols", title: "세탁 기호", short: "실 라벨의 그림 읽기",
+    cols: ["그림", "뜻"],
+    rows: [
+      ["@wash-30", "물세탁 가능, 숫자는 물 온도의 상한(°C)"],
+      ["@wash-hand", "손세탁만"],
+      ["@wash-gentle", "약하게 세탁 (아래 선 2줄이면 아주 약하게)"],
+      ["@wash-no", "물세탁 금지"],
+      ["@bleach", "표백제 사용 가능"],
+      ["@bleach-oxygen", "산소계 표백제만"],
+      ["@bleach-no", "표백 금지"],
+      ["@tumble-1", "낮은 온도로 텀블 건조 (점 2개면 보통 온도)"],
+      ["@tumble-no", "텀블 건조 금지"],
+      ["@dry-flat", "눕혀서 말리기"],
+      ["@dry-line", "걸어서 말리기"],
+      ["@iron-1", "110°C 이하로 다림질 (점 2개 150°C, 3개 200°C)"],
+      ["@iron-no", "다림질 금지"],
+      ["@dryclean-p", "드라이클리닝 가능, 글자는 용제 종류 (P · F)"],
+      ["@dryclean-no", "드라이클리닝 금지"],
+    ],
+  },
   {
     id: "needle-sizes", title: "바늘 호수 대조", short: "한국 호수 · mm · US · UK",
     cols: ["한국·일본 호수", "mm", "US", "UK(옛 번호)"], num: [0, 1, 2, 3],
@@ -51,27 +72,6 @@ export const TABLES: DictTable[] = [
       ["메리야스뜨기 (대바늘)", "stockinette stitch", "stocking stitch"],
       ["게이지", "gauge", "tension"],
       ["바늘 비우기", "yarn over (yo)", "yarn forward / yarn round needle"],
-    ],
-  },
-  {
-    id: "care-symbols", title: "세탁 기호", short: "실 라벨의 그림 읽기",
-    cols: ["그림", "뜻"],
-    rows: [
-      ["대야 (안에 숫자)", "물세탁 가능, 숫자는 물 온도의 상한(°C)"],
-      ["대야 + 손", "손세탁만"],
-      ["대야 아래 선 1~2줄", "약하게(1줄), 아주 약하게(2줄) 세탁"],
-      ["대야에 X", "물세탁 금지"],
-      ["빈 삼각형", "표백제 사용 가능"],
-      ["빗금 두 줄 삼각형", "산소계 표백제만"],
-      ["삼각형에 X", "표백 금지"],
-      ["네모 안 원 (점 1~2개)", "텀블 건조 가능, 낮은(1) · 보통(2) 온도"],
-      ["네모 안 원에 X", "텀블 건조 금지"],
-      ["네모 안 가로줄", "눕혀서 말리기"],
-      ["네모 안 세로줄", "걸어서 말리기"],
-      ["다리미 (점 1~3개)", "110°C · 150°C · 200°C 이하로 다림질"],
-      ["다리미에 X", "다림질 금지"],
-      ["원 (안에 P · F)", "드라이클리닝 가능, 글자는 용제 종류"],
-      ["원에 X", "드라이클리닝 금지"],
     ],
   },
 ];

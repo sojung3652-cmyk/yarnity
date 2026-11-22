@@ -17,7 +17,7 @@ import { PROJECTS } from "@/src/data/dictionary/projects";
 import { TROUBLES } from "@/src/data/dictionary/trouble";
 import { TABLES } from "@/src/data/dictionary/tables";
 import { craftTags, SEASON_KO, type Craft, type DictTable, type Knowhow, type ProjectGuide, type Season, type Trouble, type Yarn } from "@/src/data/dictionary/types";
-import { ProjectIcon, TroubleArt } from "./DictArt";
+import { CareIcon, ProjectIcon, TroubleArt } from "./DictArt";
 import "@/components/my/myPage.css";
 import "@/components/glossary/glossary.css";
 import "./dictionary.css";
@@ -27,7 +27,7 @@ export const DICT_MENU = [
   { href: "/glossary/yarns", label: "실 도감", n: YARNS.length },
   { href: "/glossary/projects", label: "작품별 가이드", n: PROJECTS.length },
   { href: "/glossary/trouble", label: "막힐 때", n: TROUBLES.length },
-  { href: "/glossary/tables", label: "한눈에 보는 표", n: TABLES.length },
+  { href: "/glossary/tables", label: "기타", n: TABLES.length },
 ] as const;
 
 /** the frame (wide screens) */
@@ -292,7 +292,7 @@ export function TablesScreen() {
   const [open, setOpen] = useState<DictTable | null>(null);
   return (
     <>
-      <MyHead title="한눈에 보는 표" />
+      <MyHead title="기타" />
       <ul className="dict-grid is-2">
         {TABLES.map(t => (
           <li key={t.id}><button type="button" className="dict-card dict-tablecard" aria-haspopup="dialog" onClick={() => setOpen(t)}>
@@ -303,7 +303,7 @@ export function TablesScreen() {
       </ul>
       {open && (
         <DictPop label={open.title} onClose={() => setOpen(null)} wide>
-          <p className="my-memo-kick">한눈에 보는 표</p>
+          <p className="my-memo-kick">기타</p>
           <h2>{open.title}</h2>
           {open.cols && (open.rows || open.groups) ? (
             <div className="dict-sheet">
@@ -312,7 +312,7 @@ export function TablesScreen() {
                 {(open.groups ?? [{ label: "", rows: open.rows! }]).map(g => (
                   <tbody key={g.label || "all"}>
                     {g.label && <tr className="dict-group"><th colSpan={open.cols!.length} scope="colgroup">{g.label}</th></tr>}
-                    {g.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={(open.num?.includes(j) ? "is-num" : "") + (c === "-" ? " is-none" : "") || undefined}>{c === "-" ? "–" : c}</td>)}</tr>)}
+                    {g.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={(open.num?.includes(j) ? "is-num" : "") + (c === "-" ? " is-none" : "") + (c.startsWith("@") ? " is-icon" : "") || undefined}>{c.startsWith("@") ? <CareIcon name={c.slice(1)} className="dict-care" /> : c === "-" ? "–" : c}</td>)}</tr>)}
                   </tbody>
                 ))}
               </table>

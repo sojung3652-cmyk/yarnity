@@ -154,3 +154,6 @@
 .dict-sheet .dict-table td.is-none{color:#C9BFB8}
 .dict-sheet .dict-table tr.dict-group th{padding:12px 16px 8px;background:#FBF7EF;font-size:13px;font-weight:700;color:#8A6A3E;border-bottom:1px solid rgba(176,141,87,.22)}
 .dict-sheet .dict-table tbody tr:last-child td{border-bottom:0}
+/* 세탁 기호: the care-label drawings in the table's first column */
+.dict-table td.is-icon{width:72px;text-align:center;vertical-align:middle}
+.dict-care{display:block;width:40px;height:34px;margin:0 auto;color:#5B4F49}
