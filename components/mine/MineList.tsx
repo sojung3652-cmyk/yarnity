@@ -267,7 +267,10 @@ export function MineList({ query, onNew, onImport }: { query?: string; onNew?: (
               {row.map(b => {
                 if (!b) return (
                   <li key="new" className="my-newwrap">
-                    {onImport
+                    {/* the tab says which (Kim): 가져온 도안 -> straight to 가져오기, 내 도안 -> straight to 만들기; the others ask */}
+                    {onImport && filter === "imported"
+                      ? <button type="button" className="my-newslot" onClick={onImport}><span aria-hidden="true">+</span>도안 가져오기</button>
+                      : onImport && filter !== "yarnity"
                       ? <button type="button" className="my-newslot" aria-haspopup="menu" aria-expanded={newMenu} onClick={() => setNewMenu(v => !v)}><span aria-hidden="true">+</span>새 도안<small>만들기 · 가져오기</small></button>
                       : <button type="button" className="my-newslot" onClick={onNew}><span aria-hidden="true">+</span>새 도안</button>}
                     {newMenu && (
