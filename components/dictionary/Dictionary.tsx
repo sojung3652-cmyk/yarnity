@@ -65,12 +65,13 @@ const Soon = () => <p className="dict-soon">준비 중</p>;
 /** a text with **bold** runs */
 const Rich = ({ text }: { text: string }) => <>{text.split(/(\*\*[^*]+\*\*)/).map((t, i) => (t.startsWith("**") ? <b key={i}>{t.slice(2, -2)}</b> : <Fragment key={i}>{t}</Fragment>))}</>;
 
-function Filters<T extends string>({ groups, value, onPick, label }: { groups: { id: T; label: string; n?: number }[][]; value: T; onPick: (v: T) => void; label: string }) {
+function Filters<T extends string>({ groups, value, onPick, label, names }: { groups: { id: T; label: string; n?: number }[][]; value: T; onPick: (v: T) => void; label: string; names?: (string | undefined)[] }) {
   return (
     <div className="dict-filters" role="group" aria-label={label}>
       {groups.map((g, gi) => (
         <Fragment key={gi}>
           {gi > 0 && <span className="dict-filters-sep" aria-hidden="true" />}
+          {names?.[gi] && <span className="dict-filters-name">{names[gi]}</span>}
           {g.map(f => <button key={f.id} type="button" className={"dict-chip" + (value === f.id ? " is-on" : "")} aria-pressed={value === f.id} onClick={() => onPick(f.id)}>{f.label}{f.n !== undefined ? ` ${f.n}` : ""}</button>)}
         </Fragment>
       ))}
@@ -176,7 +177,7 @@ export function YarnsScreen() {
       <Filters label="거르기" value={f} onPick={setF} groups={[
         [{ id: "all", label: "전체", n: YARNS.length }, ...YARN_GROUPS.map(g => ({ id: g.id as YarnFilter, label: g.label }))],
         [{ id: "ss", label: "봄 · 여름" }, { id: "aw", label: "가을 · 겨울" }],
-      ]} />
+      ]} names={[undefined, "계절별"]} />
       <ul className="dict-grid is-4">
         {shown.map(y => (
           <li key={y.id}><button type="button" className="dict-card dict-yarn" aria-haspopup="dialog" onClick={() => setOpen(y)}>
@@ -192,7 +193,9 @@ export function YarnsScreen() {
           <p className="my-memo-kick">실 도감 · {YARN_GROUPS.find(g => g.id === open.group)?.label}</p>
           <h2>{open.name} <span lang="en" className="dict-en">{open.nameEn}</span></h2>
           {/* two columns (Kim: no tall box): the numbers and tags on the left, the reading on the right */}
-          <div className="dict-yarn-cols">
+          <div className="dict-yarn-cols has-photo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div className="dict-yarn-photo">{open.image ? <img src={open.image} alt={`${open.name} 실`} /> : <span>실 사진</span>}</div>
             <div>
               <Lace>실의 성격</Lace>
               {open.traits ? (
