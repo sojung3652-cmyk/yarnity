@@ -69,7 +69,7 @@ export function PatternScreen() {
 
   return (
     <main id="view-pattern" className="ps-main">
-      {picking && !p.cover && <CoverPicker first p={p} onPick={id => { updateProject(p.id, { cover: id }); setPicking(false); }} onClose={() => setPicking(false)} />}
+      {picking && (!p.cover || p.coverAuto) && <CoverPicker first p={p} onPick={id => { updateProject(p.id, { cover: id, coverAuto: false }); setPicking(false); }} onClose={() => setPicking(false)} />}
       <div className="ps-actions">
         <div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div>
         <div className="ps-btns">

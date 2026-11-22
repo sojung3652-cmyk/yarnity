@@ -77,7 +77,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const save = useCallback(() => { store.set("iyarn.projects", pr.current); store.set("iyarn.active", ar.current); }, []);
 
   const setDraft = useCallback((d: Draft, persist = true) => { setDraftState(d); if (persist) store.set("iyarn.draft", d); }, []);
-  const addProject = useCallback((p: Project) => {
+  const addProject = useCallback((p0: Project) => {
+    // a new work with no cover gets one of the 꽃 자수 covers at random (Kim); picking one later replaces it
+    const p = p0.cover ? p0 : { ...p0, cover: `a_${String(1 + Math.floor(Math.random() * 10)).padStart(2, "0")}`, coverAuto: true };
     pr.current = [p, ...pr.current]; ar.current = p.id; save();
     setProjects(pr.current); setActiveId(p.id);
   }, [save]);

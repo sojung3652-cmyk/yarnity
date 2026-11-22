@@ -12,10 +12,10 @@ import { ClothPatch } from "./Diary";
 const SETS: { title: string; ids: string[] }[] = COVER_SETS.map(st => ({ title: st.title, ids: COVERS.filter(c => c.id.startsWith(st.prefix)).map(c => c.id) }));
 
 export function CoverPicker({ p, onPick, onClose, first }: { p: Project; onPick: (id: string) => void; onClose: () => void; first?: boolean }) {
-  const [sel, setSel] = useState<string | null>(p.cover ?? null);
+  const [sel, setSel] = useState<string | null>(p.coverAuto ? null : p.cover ?? null);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [onClose]);
   // the preview book: this work, without its state tag
-  const as = (id: string): Project => ({ ...p, cover: id, current: 0, status: "knitting" });
+  const as = (id: string): Project => ({ ...p, cover: id, coverAuto: false, current: 0, status: "knitting" });
   return (
     <div className="cpk-dim" onClick={onClose}>
       <section className="cpk" role="dialog" aria-modal="true" aria-labelledby="cpkTitle" onClick={e => e.stopPropagation()}>

@@ -60,6 +60,8 @@ export interface Project extends Draft {
   measuredW?: number | null;
   /** the Girl's Diary book cover chosen after the pattern is made (lib/covers.ts id); none: the linen cover */
   cover?: string;
+  /** the cover was given at random (Kim: none picked) - the picker shows nothing chosen yet */
+  coverAuto?: boolean;
   current: number;
   created: number;
 }

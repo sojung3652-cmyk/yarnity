@@ -72,7 +72,7 @@ export function MobileMine({ embedded = false }: { embedded?: boolean } = {}) {
     else if (a === "unpause") updateProject(p.id, { status: "knitting", pausedAt: null });
     else if (a === "done") updateProject(p.id, { status: "done", pausedAt: null });
     else if (a === "rename" && v) updateProject(p.id, { name: v });
-    else if (a === "cover" && v) updateProject(p.id, { cover: v });
+    else if (a === "cover" && v) updateProject(p.id, { cover: v, coverAuto: false });
     else if (a === "copy") { const now = Date.now(); addProject({ ...p, id: "p" + now.toString(36), name: `${p.name} (복제)`.slice(0, 30), current: 0, measuredH: null, measuredW: null, status: "knitting", pausedAt: null, created: now, updatedAt: now }); }
     else if (a === "delete") {
       setOpen(null); if (timer.current) clearTimeout(timer.current);

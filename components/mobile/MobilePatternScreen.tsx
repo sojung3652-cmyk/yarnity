@@ -148,7 +148,7 @@ export function MobilePatternScreen() {
         </div>
       </div>
 
-      {picking && !p.cover && <CoverPicker first p={p} onPick={id => { updateProject(p.id, { cover: id }); setPicking(false); }} onClose={() => setPicking(false)} />}
+      {picking && (!p.cover || p.coverAuto) && <CoverPicker first p={p} onPick={id => { updateProject(p.id, { cover: id, coverAuto: false }); setPicking(false); }} onClose={() => setPicking(false)} />}
       {more && (
         <MoreSheet title={p.name} onClose={() => setMore(false)} items={[
           { key: "edit", icon: "pen", label: "고치기", sub: "마법사로 돌아가요", onClick: () => { setMore(false); book.editHere(p.id); } },

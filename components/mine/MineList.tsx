@@ -197,7 +197,7 @@ export function MineList({ query, onNew, onImport }: { query?: string; onNew?: (
       setActive(id); router.push("/track");
     }
     else if (a === "view") setActive(p.id);
-    else if (a === "cover" && v) updateProject(p.id, { cover: v });
+    else if (a === "cover" && v) updateProject(p.id, { cover: v, coverAuto: false });
     else if (a === "photos") setPhotoFor(p.id);
     else if (a === "edit") { setOpen(null); book.editHere(p.id); } // the book rises over this list; closing it comes back here
     else if (a === "pause") updateProject(p.id, { status: "paused", pausedAt: Date.now() });
