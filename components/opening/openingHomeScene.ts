@@ -31,7 +31,9 @@ function flare(c: CanvasRenderingContext2D, x: number, y: number, r: number, a: 
   c.strokeStyle = "rgba(255,250,228,.95)"; c.lineCap = "round"; c.lineWidth = Math.max(.5, r * .09); c.beginPath(); c.moveTo(x - r * 1.5, y); c.lineTo(x + r * 1.5, y); c.moveTo(x, y - r * 1.5); c.lineTo(x, y + r * 1.5); c.stroke(); c.restore();
 }
 
-export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElement, img: OHImages) {
+/** `stars`: the twinkles' places on the background picture (fractions and a size); default the web's linen. The phone
+ *  draws the scene over the app home's own starry linen (Kim), so it passes that picture's stars. */
+export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElement, img: OHImages, stars: number[][] = DATA.stars as number[][]) {
   const ctx = cv.getContext("2d")!, sx = sv.getContext("2d")!;
   const mk = () => document.createElement("canvas"), lc = mk(), lx = lc.getContext("2d")!, gl = mk(), gx = gl.getContext("2d")!, tc = mk(), tx = tc.getContext("2d")!, g2 = mk(), g2x = g2.getContext("2d")!;
   let VW = 1, VH = 1, DPR = 1, SC = 1, OX = 0, OY = 0, PX = 1, LW = 1920, LH = 1080, L = {} as Lay, SP: Path[] = [], STOT = 0, lastP = -1;
@@ -64,7 +66,7 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
     const W = cv.width, H = cv.height, B = cover();
     const out = 0, ta = TA;
     sx.setTransform(1, 0, 0, 1, 0, 0); sx.clearRect(0, 0, sv.width, sv.height);
-    (DATA.stars as number[][]).forEach(([fx, fy, sz], i) => { const v = Math.sin((t * (.22 + (i % 5) * .04) + i * .37) * Math.PI * 2), a = Math.pow(Math.max(0, v), 6); flare(sx, B.x + fx * B.w, B.y + fy * B.h, (7 + sz * 9) * DPR, a * .5); });
+    stars.forEach(([fx, fy, sz], i) => { const v = Math.sin((t * (.22 + (i % 5) * .04) + i * .37) * Math.PI * 2), a = Math.pow(Math.max(0, v), 6); flare(sx, B.x + fx * B.w, B.y + fy * B.h, (7 + sz * 9) * DPR, a * .5); });
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
     ctx.setTransform(PX, 0, 0, PX, OX * DPR, OY * DPR); ctx.globalAlpha = 1;
     // medallion sits on the fabric

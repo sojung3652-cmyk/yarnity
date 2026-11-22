@@ -1,8 +1,8 @@
-/* The phone's opening (PhoneOpening.tsx), the web's scene in portrait: the starry linen (a picture, its twinkles on
-   their own canvas) under the stage canvas (medallion, logo, sentence). Start: the linen gives way to the home under
+/* The phone's opening (PhoneOpening.tsx), the web's scene in portrait: the app home's own starry linen (bg_stars.webp,
+   Kim; its twinkles on their own canvas) under the stage canvas (medallion, logo, sentence). Start: the linen gives way to the home under
    it (0.45s) while the stage rises and shrinks onto the home's medallion (0.75s); then a quick fade hands over. */
 .pho{position:fixed;inset:0;z-index:130;overflow:hidden;background:#F3E8DE;transition:opacity .9s ease-out}
-.pho-bg{position:absolute;inset:0;background:url(/opening-web/bg.jpg) center/cover;opacity:0;transition:opacity .4s ease}
+.pho-bg{position:absolute;inset:0;background:url(/mobile/bg_stars.webp) center/cover no-repeat;opacity:0;transition:opacity .4s ease}
 .pho.is-on .pho-bg{opacity:1}
 .pho-sv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transition:opacity .45s ease}
 .pho-stage{position:absolute;inset:0;transition:transform .75s cubic-bezier(.22,1,.36,1)}

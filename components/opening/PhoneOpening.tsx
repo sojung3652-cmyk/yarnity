@@ -7,6 +7,11 @@
 // then the home's medallion and logo take over. No home under it (the 도안 만들기 address) or reduced motion: a fade.
 import { useEffect, useRef, useState } from "react";
 import { makeOpeningHomeScene, OH_END, OH_SRC, type OHImages } from "./openingHomeScene";
+import PHONE_STARS from "@/lib/data/opening-web/phone-stars.json";
+
+// the background is the app home's own starry linen, not the web's wide one cropped (Kim): the opening sits on the
+// very picture the home has, and its twinkles are on that picture's embroidered stars
+const PHONE_BG = "/mobile/bg_stars.webp";
 import "./phoneOpening.css";
 
 export const OPENING_SEEN = "yarnity.opening.seen";
@@ -25,7 +30,7 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
     const r = root.current!, b = btn.current!;
     let alive = true, raf = 0, t0 = 0, done = false;
     const img = {} as OHImages;
-    const load = (k: keyof typeof OH_SRC) => new Promise<void>(res => { const i = new Image(); i.onload = i.onerror = () => res(); i.src = OH_SRC[k]; img[k] = i; });
+    const load = (k: keyof typeof OH_SRC) => new Promise<void>(res => { const i = new Image(); i.onload = i.onerror = () => res(); i.src = k === "bg" ? PHONE_BG : OH_SRC[k]; img[k] = i; });
     const size = () => {
       const sc = sceneRef.current; if (!sc) return;
       const rc = r.getBoundingClientRect(), z = sc.size(rc.width, rc.height, window.devicePixelRatio || 1);
@@ -58,7 +63,7 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
     window.addEventListener("scroll", onScroll, { passive: true });
     Promise.all((Object.keys(OH_SRC) as (keyof typeof OH_SRC)[]).map(load)).then(() => {
       if (!alive || !cv.current || !sv.current) return;
-      sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img); size();
+      sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img, PHONE_STARS); size();
       if (home) sceneRef.current.setText(0); else setLoaded(true);
       t0 = performance.now() - (rm || home ? OH_END * 1000 : 0);
       attach();
