@@ -5,7 +5,8 @@
 // on the spread. Geometry: geometry.ts / meshes.ts. Materials: materials.ts. Cover art: ../coverArt.ts.
 import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { bookPause } from "@/src/features/yarn3d/pause";
 import { createPortal } from "react-dom";
 import * as THREE from "three";
 import { CSS3DObject, CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
@@ -758,6 +759,8 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
   const [phoneGL] = useState(() => matchMedia("(max-width: 767.98px)").matches);
   const [gen, setGen] = useState(0);
   const reduce = useReducedMotion();
+  // the yarn 3D preview covers the screen: the book stops drawing until it closes
+  const paused = useSyncExternalStore(bookPause.subscribe, bookPause.get, () => false);
   const cssHost = useRef<HTMLDivElement>(null), flatHost = useRef<HTMLDivElement>(null);
   const [layer] = useState<CssLayer>(() => {
     const mk = (id: string) => { const el = document.createElement("div"); el.id = id; el.style.opacity = "0"; el.inert = true; return el; };
@@ -779,7 +782,7 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
         // this when a click hits none of the objects with handlers (the book's meshes have one; the page
         // content is DOM above the canvas). The wizard's draft is saved on every change, so nothing is lost.
         onPointerMissed={() => { if (!page && (b.view === "home" || b.view === "wizard")) b.close(); }}
-        frameloop="demand"
+        frameloop={paused ? "never" : "demand"}
         shadows={OFF.has("shadow") ? false : { type: THREE.PCFShadowMap }}
         camera={{ fov: FOV, near: 20, far: 600, position: [0, 60, 80] }}
         // phones: no logarithmic depth (it writes depth per pixel, heavy for a phone's tile GPU) and the default

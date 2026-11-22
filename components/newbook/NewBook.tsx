@@ -31,6 +31,7 @@ import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import { AskAiLine } from "@/components/AskAiLine";
 import { AiTab } from "@/components/AiTab";
 import { LaceButton } from "@/components/diary/Diary";
+import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -204,6 +205,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   const input = useMemo(() => engineInput(draft), [draft]);
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
+  // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
+  const yarnSrc = useMemo(() => ({ ...input, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials }), [input, draft.color, draft.yarnMm, draft.materials]);
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
@@ -428,6 +431,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
           {(input.object === "coaster" || input.object === "bag") && <b>{`바닥 ${pp.bottomRounds}단 · 마지막 단 ${pp.last}코`}</b>}
           {input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (flapRows ? ` · 덮개 ${flapRows}단` : "") + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
         </p>
+        <YarnPreviewButton source={yarnSrc} plan={pp} />
         <p className="nb-help">{input.object === "rows" || input.object === "tube"
           ? "코 수는 공식으로 계산합니다. 5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 내 손에 맞게 고쳐 드립니다."
           : "코 수는 공식으로 계산합니다. 3단을 뜬 뒤 지름을 재면 내 손에 맞게 다시 계산해 드립니다."}</p>
