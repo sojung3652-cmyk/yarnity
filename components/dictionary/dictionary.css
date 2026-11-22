@@ -6,8 +6,8 @@
 .dict .my-menu{margin-top:26px}
 .dict-rule{width:calc(100% - 24px);margin:12px 12px;border:0;border-top:1px solid rgba(142,131,121,.35)}
 /* the screens' titles on the cloth label, at the left as on My Page; the filters under them */
-.dict .my-head{margin-bottom:22px}
-.dict-filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 22px}
+.dict .my-head{margin-bottom:30px}
+.dict-filters{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 34px}
 .dict-filters-sep{width:1px;height:18px;margin:0 6px;background:rgba(142,131,121,.45)}
 .dict-chip{min-height:30px;padding:0 13px;border:1px solid rgba(142,131,121,.4);border-radius:4px;background:rgba(255,254,250,.6);
   font:500 13px/1 "Noto Serif KR",serif;color:#5E554E;cursor:pointer;transition:background .15s ease}
@@ -16,7 +16,7 @@
 .dict-chip:focus-visible,.dict-card:focus-visible,.dict-toc button:focus-visible,.dict-foot button:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
 
 /* ---- cards (실 도감 · 작품별 가이드 · 막힐 때 · 표) */
-.dict-grid{display:grid;gap:20px;margin:0;padding:0;list-style:none}
+.dict-grid{display:grid;gap:30px 26px;margin:0;padding:0;list-style:none}
 .dict-grid.is-4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .dict-grid.is-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .dict-grid.is-2{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -24,10 +24,10 @@
   background:#FCF9F3;text-align:left;font:inherit;color:inherit;cursor:pointer;
   box-shadow:-8px 12px 22px -16px rgba(60,42,34,.35),-2px 3px 5px -3px rgba(60,42,34,.08);transition:transform .2s ease,box-shadow .2s ease}
 .dict-card:hover{transform:translateY(-2px);box-shadow:-10px 16px 26px -16px rgba(60,42,34,.4),-2px 3px 5px -3px rgba(60,42,34,.1)}
-.dict-card-text{display:flex;flex-direction:column;gap:4px;padding:14px 14px 16px}
+.dict-card-text{display:flex;flex-direction:column;gap:6px;padding:18px 18px 20px}
 .dict-card b{font:700 15px/1.35 "Noto Serif KR",serif;color:#2F2824}
 .dict-card small{font-size:12.5px;line-height:1.45;color:#6A605F}
-.dict-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.dict-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .dict-tags i{padding:1px 8px;border-radius:99px;background:rgba(142,131,121,.14);font:normal 500 11px/1.6 "Noto Serif KR",serif;color:#6A605F}
 .dict-tags i.is-rose{background:rgba(224,170,174,.28);color:#7A4E52}
 .dict-tags.is-big{margin:0 0 6px;gap:8px}
@@ -37,30 +37,30 @@
   font:400 12px "Noto Serif KR",serif;color:#A89C94}
 .dict-photo img{width:100%;height:100%;object-fit:cover;display:block}
 /* 작품별 가이드: a round badge with a line drawing */
-.dict-proj{padding:16px 14px 18px;gap:6px}
+.dict-proj{padding:20px 16px 22px;gap:8px}
 .dict-proj .dict-tags{gap:4px;flex-wrap:nowrap}
 .dict-proj .dict-tags i{padding:1px 7px}
-.dict-proj-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.dict-proj-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
 .dict-proj-top>span:last-child{display:flex;flex-direction:column;flex:1;min-width:0}
 .dict-badge{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#F1EBE0;color:#9C7B45}
 .dict-badge svg{width:26px;height:26px}
 .dict-kv{display:block;font-size:12.5px;line-height:1.55;color:#3F3532}
 .dict-kv em{font-style:normal;margin-right:8px;color:#8C807A}
 /* 막힐 때: the drawing on a white paper strip */
-.dict-trouble{padding:16px 16px 0}
-.dict-art{display:grid;place-items:center;height:72px;border:1px solid rgba(142,131,121,.25);border-radius:3px;background:#FFFDF8;color:#B08A3E}
+.dict-trouble{padding:20px 20px 0}
+.dict-art{display:grid;place-items:center;height:84px;border:1px solid rgba(142,131,121,.25);border-radius:3px;background:#FFFDF8;color:#B08A3E}
 .dict-art svg,.dict-compare svg{width:100%;max-width:200px;height:60px}
-.dict-trouble .dict-card-text{padding:14px 2px 16px}
+.dict-trouble .dict-card-text{padding:18px 2px 22px}
 /* 표 cards */
-.dict-tablecard{flex-direction:row;align-items:center;gap:16px;padding:18px}
+.dict-tablecard{flex-direction:row;align-items:center;gap:20px;padding:24px}
 .dict-tablecard .dict-card-text{padding:0}
 .dict-mini{flex:none;display:grid;grid-template-columns:repeat(2,18px);gap:3px;padding:8px;border-radius:3px;background:#FFFDF8;box-shadow:inset 0 0 0 1px rgba(142,131,121,.25)}
 .dict-mini i{height:8px;background:rgba(176,141,87,.3)}
 
 /* ---- 뜨개 상식: the numbered list | the article on ruled memo paper */
-.dict-know{display:grid;grid-template-columns:250px minmax(0,1fr);gap:30px;align-items:start}
+.dict-know{display:grid;grid-template-columns:250px minmax(0,1fr);gap:44px;align-items:start}
 .dict-toc{margin:0;padding:0;list-style:none}
-.dict-toc button{display:flex;align-items:baseline;gap:14px;width:100%;min-height:45px;padding:12px 6px;border:0;border-bottom:1px solid rgba(142,131,121,.22);background:none;
+.dict-toc button{display:flex;align-items:baseline;gap:14px;width:100%;min-height:52px;padding:16px 6px;border:0;border-bottom:1px solid rgba(142,131,121,.22);background:none;
   text-align:left;font:400 14px/1.45 "Noto Serif KR",serif;color:#5E554E;cursor:pointer}
 .dict-toc button i{flex:none;width:12px;font:italic 600 13px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#B08A3E}
 .dict-toc button:hover{color:#2F2824}
@@ -68,16 +68,18 @@
 .dict .dict-article{position:relative;top:auto;max-height:none;overflow:visible}
 .dict-article h2,.dict-pop h2{margin:8px 0 0;font:700 22px/1.35 "Noto Serif KR",serif;color:#2F2824}
 .dict-en{margin-left:6px;font:500 16px var(--font-cormorant),"Cormorant Garamond",serif;color:#8C807A}
-.dict-summary{margin:6px 0 4px;font-size:14px;line-height:34px;color:#5E554E}
-.dict .dict-lace,.dict-pop .dict-lace{width:auto;min-width:150px;max-width:100%;aspect-ratio:auto;height:42px;margin:20px auto 10px;padding:0 22px;width:fit-content}
+.dict-summary{margin:10px 0 8px;font-size:14px;line-height:34px;color:#5E554E}
+.dict .dict-lace,.dict-pop .dict-lace{width:auto;min-width:150px;max-width:100%;aspect-ratio:auto;height:42px;margin:34px auto 14px;padding:0 22px;width:fit-content}
+/* in the pop-ups the subheads sit at the left (Kim) */
+.dict-pop .dict-lace{margin-left:0;margin-right:auto}
 .dict-body{margin:0;font:400 14.5px/34px "Noto Serif KR",serif;color:#3F3532}
 .dict-body b{font-weight:700;color:#2F2824}
 .dict-soon{margin:6px 0;font-size:13px;line-height:34px;color:#8C807A}
-.dict-table{width:100%;margin:24px 0 6px;border-collapse:collapse;font:400 13.5px/1.5 "Noto Serif KR",serif;color:#3F3532;background:rgba(255,254,250,.7)}
-.dict-table th,.dict-table td{padding:9px 12px;border:1px solid rgba(176,141,87,.3);text-align:left;vertical-align:top}
+.dict-table{width:100%;margin:34px 0 10px;border-collapse:collapse;font:400 13.5px/1.5 "Noto Serif KR",serif;color:#3F3532;background:rgba(255,254,250,.7)}
+.dict-table th,.dict-table td{padding:12px 14px;border:1px solid rgba(176,141,87,.3);text-align:left;vertical-align:top}
 .dict-table thead th{font-weight:700;color:#2F2824;background:rgba(224,170,174,.16)}
 .dict-table tbody th{width:22%;font-weight:600;color:#5E554E}
-.dict-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;margin:26px 0 0}
+.dict-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 24px;margin:40px 0 0}
 .dict-foot button{padding:4px 0;border:0;background:none;font:500 13px "Noto Serif KR",serif;color:#6A605F;cursor:pointer}
 .dict-foot button:hover{color:#2F2824;text-decoration:underline;text-underline-offset:3px}
 .dict-foot button:last-child{margin-left:auto}
@@ -85,13 +87,13 @@
 /* ---- the pop-up (the wish box's memo paper), wider for the 막힐 때 drawings */
 .my-memo.my-memo-pop.dict-pop{width:min(640px,100%)}
 .dict-traits{margin:0 0 4px}
-.dict-traits div{display:grid;grid-template-columns:90px 1fr;align-items:center;min-height:34px}
+.dict-traits div{display:grid;grid-template-columns:100px 1fr;align-items:center;min-height:38px}
 .dict-traits dt{font-size:13.5px;color:#5E554E}
-.dict-traits dd{display:flex;gap:7px;margin:0}
+.dict-traits dd{display:flex;gap:9px;margin:0}
 .dict-traits dd i{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1.3px #B08A3E}
 .dict-traits dd i.is-on{background:#B08A3E}
-.dict-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 0;padding:0;list-style:none}
-.dict-compare li{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 8px 12px;border:1px solid rgba(142,131,121,.3);border-radius:3px;background:#FFFDF8;color:#B08A3E;text-align:center}
+.dict-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:26px 0 0;padding:0;list-style:none}
+.dict-compare li{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px 16px;border:1px solid rgba(142,131,121,.3);border-radius:3px;background:#FFFDF8;color:#B08A3E;text-align:center}
 .dict-compare li.is-on{border-color:rgba(190,110,118,.7);box-shadow:0 0 0 1px rgba(224,170,174,.6)}
 .dict-compare small{font-size:12px;color:#6A605F}
 .dict-compare b{font:600 12.5px "Noto Serif KR",serif;color:#2F2824}
@@ -106,9 +108,9 @@
 @media (max-width:999.98px){.dict-grid.is-4,.dict-grid.is-3{grid-template-columns:repeat(2,minmax(0,1fr))}.dict-know{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.dict-card,.dict-chip{transition:none}.dict-card:hover{transform:none}.dict .my-memo{animation:none}}
 /* 용어집 inside the frame: the categories as the filter row (the dictionary's chips), then the list | the term */
-.dict .gl-cols.is-dict{grid-template-columns:330px minmax(0,1fr);gap:24px}
-.dict .gl-dict-tabs{margin:0 0 22px}
-.dict .gl-dict-tabs .gl-tabs{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px}
+.dict .gl-cols.is-dict{grid-template-columns:330px minmax(0,1fr);gap:34px}
+.dict .gl-dict-tabs{margin:0 0 34px}
+.dict .gl-dict-tabs .gl-tabs{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px}
 .dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch{display:inline-flex;justify-content:center;gap:5px;width:auto;min-height:30px;padding:0 13px;border:1px solid rgba(142,131,121,.4);border-radius:4px;
   background:rgba(255,254,250,.6);filter:none;font:500 13px/1 "Noto Serif KR",serif;color:#5E554E}
 .dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch:hover{background:rgba(224,170,174,.16)}
@@ -116,3 +118,8 @@
 .dict.my .gl-wide .gl-dict-tabs .gl-tab>span{padding-left:0}
 .dict.my .gl-wide .gl-dict-tabs .gl-tab>span::before{display:none}
 .dict.my .gl-wide .gl-dict-tabs .gl-tab small{font-size:11px;font-weight:400;color:#8C807A}
+
+/* air (Kim: everything too close): the pop-up a little roomier inside, the menu's rows apart */
+.my-memo.my-memo-pop.dict-pop{padding:44px 48px 46px}
+.dict .my-menu{gap:6px}
+.dict-rule{margin:16px 12px}
