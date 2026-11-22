@@ -43,6 +43,12 @@
       "name": "커뮤니티 표현",
       "color": "sand",
       "order": 7
+    },
+    {
+      "id": "abbr",
+      "name": "도안 약어",
+      "color": "ivory",
+      "order": 4.5
     }
   ],
   "terms": [
@@ -1836,6 +1842,335 @@
       "sources": [
         "namu"
       ],
+      "note": null
+    },
+    {
+      "id": "blo",
+      "category": "abbr",
+      "name": "뒷고리만 뜨기",
+      "aliases": [
+        "뒷고리"
+      ],
+      "en": {
+        "us": "BLO (back loop only)",
+        "uk": "BLO (back loop only)"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "앞 단 코의 두 가닥 중 뒤쪽 한 가닥에만 바늘을 넣어 떠요. 앞쪽 가닥이 줄무늬처럼 남아요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "ribbing_c",
+        "flo"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "flo",
+      "category": "abbr",
+      "name": "앞고리만 뜨기",
+      "aliases": [
+        "앞고리"
+      ],
+      "en": {
+        "us": "FLO (front loop only)",
+        "uk": "FLO (front loop only)"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "앞 단 코의 두 가닥 중 앞쪽 한 가닥에만 바늘을 넣어 떠요. 뒤쪽 가닥이 남아 나중에 그 자리에 다시 뜰 수 있어요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "blo"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "sk",
+      "category": "abbr",
+      "name": "건너뛰기",
+      "aliases": [],
+      "en": {
+        "us": "sk (skip)",
+        "uk": "miss"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "앞 단의 코를 뜨지 않고 지나가요. \"sk 2\"는 두 코를 건너뛰라는 뜻이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "sp"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "sp",
+      "category": "abbr",
+      "name": "사슬 공간",
+      "aliases": [
+        "사슬 구멍"
+      ],
+      "en": {
+        "us": "sp / ch-sp (chain space)",
+        "uk": "sp / ch-sp"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "사슬 아래에 생긴 빈 공간이에요. \"ch-sp에 뜨기\"는 사슬의 코가 아니라 그 아래 구멍에 바늘을 넣으라는 뜻이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "chain",
+        "sk"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "beg",
+      "category": "abbr",
+      "name": "시작 부분",
+      "aliases": [],
+      "en": {
+        "us": "beg (beginning)",
+        "uk": "beg"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "단이나 무늬의 처음을 가리켜요. \"beg ch 3\"은 단을 시작하는 사슬 3코예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "chain_turn"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "rem",
+      "category": "abbr",
+      "name": "남은 코",
+      "aliases": [],
+      "en": {
+        "us": "rem (remaining)",
+        "uk": "rem"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "그 단에서 아직 뜨지 않은 나머지 코예요. \"rem sts에 sc\"는 남은 코마다 짧은뜨기를 하라는 뜻이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "st"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "inv_dec",
+      "category": "abbr",
+      "name": "보이지 않는 줄임",
+      "aliases": [],
+      "en": {
+        "us": "inv dec (invisible decrease)",
+        "uk": "inv dec"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "앞고리 두 개에만 바늘을 넣어 줄여요. 줄인 자리가 거의 보이지 않아 인형에 많이 써요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "sc2tog",
+        "flo"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "pm_sm",
+      "category": "abbr",
+      "name": "링 걸기 · 옮기기",
+      "aliases": [],
+      "en": {
+        "us": "pm / sm (place / slip marker)",
+        "uk": "pm / sm"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "pm은 그 자리에 단수표시링을 걸고, sm은 바늘에 걸린 링을 오른쪽 바늘로 옮기라는 뜻이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "marker"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "k2tog",
+      "category": "abbr",
+      "name": "왼코 겹치기",
+      "aliases": [
+        "2코 모아뜨기"
+      ],
+      "en": {
+        "us": "k2tog (knit 2 together)",
+        "uk": "k2tog"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "왼쪽 바늘의 두 코에 한꺼번에 바늘을 넣어 겉뜨기해요. 1코가 줄고 오른쪽으로 기울어요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "ssk",
+        "knit_purl"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "ssk",
+      "category": "abbr",
+      "name": "오른코 겹치기",
+      "aliases": [],
+      "en": {
+        "us": "ssk (slip, slip, knit)",
+        "uk": "ssk"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "두 코를 하나씩 겉뜨기 방향으로 옮긴 뒤 함께 겉뜨기해요. 1코가 줄고 왼쪽으로 기울어요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "k2tog",
+        "sl"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "kfb",
+      "category": "abbr",
+      "name": "앞뒤로 떠서 늘리기",
+      "aliases": [],
+      "en": {
+        "us": "kfb (knit front and back)",
+        "uk": "kfb"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "한 코의 앞고리로 겉뜨기한 뒤, 코를 빼지 않고 뒷고리로 한 번 더 떠요. 1코가 늘어요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "m1",
+        "knit_purl"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "m1",
+      "category": "abbr",
+      "name": "코 만들어 늘리기",
+      "aliases": [
+        "M1"
+      ],
+      "en": {
+        "us": "M1 (make one)",
+        "uk": "M1"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "코와 코 사이의 가로 실을 걸어 올려 새 코를 만들어요. 늘린 자리에 구멍이 잘 생기지 않아요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "kfb"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "sl",
+      "category": "abbr",
+      "name": "걸러뜨기",
+      "aliases": [
+        "걸러 옮기기"
+      ],
+      "en": {
+        "us": "sl (slip)",
+        "uk": "sl"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "뜨지 않고 왼쪽 바늘의 코를 오른쪽 바늘로 옮기기만 해요. 코바늘의 빼뜨기(sl st)와는 다른 말이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "ssk",
+        "slst"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "tbl",
+      "category": "abbr",
+      "name": "꼬아뜨기",
+      "aliases": [
+        "돌려뜨기"
+      ],
+      "en": {
+        "us": "tbl (through back loop)",
+        "uk": "tbl"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "코의 뒷고리에 바늘을 넣어 떠요. 코가 한 번 꼬여 더 단단하고 또렷해져요.",
+      "difficulty": 2,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "knit_purl"
+      ],
+      "verified": "2+",
+      "sources": [],
       "note": null
     }
   ],
