@@ -15,7 +15,7 @@
 | boucle.jpg | 부클레 | https://unsplash.com/photos/UMrnkV01EJQ |
 | silk.jpg | 실크 | https://unsplash.com/photos/AIcA7gb8c2A (실 콘 표면만 크게 확대해 자름) |
 | cashmere.jpg | 캐시미어 | https://unsplash.com/photos/brOaC3sxzhI |
-| nylon.jpg | 나일론 | https://unsplash.com/photos/huX8hfbrEh4 (채도를 낮추고 밝게 해 파스텔 톤으로 보정) |
+| nylon.jpg | 나일론 | https://unsplash.com/photos/q2rwcbQEUQ4 (편물 부분만 확대해 자름) |
 | polyester.jpg | 폴리에스터 | https://unsplash.com/photos/yJrhChncOgQ |
 | nalgae.jpg | 날개사 | https://unsplash.com/photos/Qxfi3763uos |
 
