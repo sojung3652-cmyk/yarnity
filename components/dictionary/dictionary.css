@@ -190,3 +190,22 @@
 .dict-faq-arrow{flex:none;font-size:20px;line-height:1;color:#8C807A}
 .dict-faq-a{padding:0 6px 26px 52px}
 .dict-faq-a .dict-label{margin-top:6px}
+
+/* Kim: no tall boxes, more room. The yarn pop-up wide, two columns */
+.my-memo.my-memo-pop.dict-pop.is-yarn{width:min(1000px,calc(100vw - 48px));padding:48px 56px 50px}
+.dict-yarn-cols{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:0 56px}
+@media (max-width:900px){.dict-yarn-cols{grid-template-columns:1fr}}
+/* room between the text and the objects in every pop-up */
+.dict-pop .dict-label{margin:38px 0 22px}
+.dict-pop .dict-yarn-cols .dict-label:first-child,.dict-pop h2 + .dict-label{margin-top:30px}
+.dict-pop .dict-traits div{min-height:44px}
+.dict-pop .dict-tags.is-big{margin:2px 0 8px;gap:10px 10px}
+.dict-pop .dict-body{margin:0 0 4px}
+/* 기타: the tables as small cloth labels (the subhead label, quieter), the chosen one in pink */
+.dict-tabrow{display:flex;flex-wrap:wrap;gap:12px 14px;margin:0 0 30px}
+.dict-tablabel{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 22px;border:0;background:url(/brand/label_title.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1px 2px 2px rgba(90,62,44,.14));font:600 13px/1 "Noto Serif KR",serif;color:#6A605F;cursor:pointer;transition:transform .15s}
+.dict-tablabel:hover{transform:translateY(-1px);color:#4A3F3B}
+.dict-tablabel.is-on{background:none;border-style:solid;border-width:10px;border-image:url(/mobile/diary/patch_pink.webp) 62 fill / 10px;padding:0 12px;color:#4A3F3B;font-weight:700}
+.dict-tablabel:focus-visible{outline:2px solid #C9A050;outline-offset:3px}
+.dict-tablepage-short{margin:0 0 18px;font-size:13.5px;color:#8C807A}
+@media (prefers-reduced-motion:reduce){.dict-tablabel{transition:none}.dict-tablabel:hover{transform:none}}

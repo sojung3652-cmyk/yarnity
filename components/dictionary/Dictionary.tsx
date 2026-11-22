@@ -79,14 +79,14 @@ function Filters<T extends string>({ groups, value, onPick, label }: { groups: {
 }
 
 /** the wish box's memo-paper pop-up (Esc, ✕ and the dim close it) */
-function DictPop({ label, onClose, children, wide }: { label: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+function DictPop({ label, onClose, children, wide, cls }: { label: string; onClose: () => void; children: ReactNode; wide?: boolean; cls?: string }) {
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", key); return () => document.removeEventListener("keydown", key);
   }, [onClose]);
   return (
     <div className="my-dim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <article className={"my-memo my-memo-pop dict-pop" + (wide ? " is-wide" : "")} role="dialog" aria-modal="true" aria-label={label}>
+      <article className={"my-memo my-memo-pop dict-pop" + (wide ? " is-wide" : "") + (cls ? " " + cls : "")} role="dialog" aria-modal="true" aria-label={label}>
         <button type="button" className="my-pop-x" aria-label="닫기" autoFocus onClick={onClose}>✕</button>
         {children}
       </article>
@@ -188,27 +188,34 @@ export function YarnsScreen() {
         ))}
       </ul>
       {open && (
-        <DictPop label={open.name} onClose={() => setOpen(null)}>
+        <DictPop label={open.name} onClose={() => setOpen(null)} cls="is-yarn">
           <p className="my-memo-kick">실 도감 · {YARN_GROUPS.find(g => g.id === open.group)?.label}</p>
           <h2>{open.name} <span lang="en" className="dict-en">{open.nameEn}</span></h2>
-          <Lace>실의 성격</Lace>
-          {open.traits ? (
-            <dl className="dict-traits">
-              {TRAITS.map(([k, t]) => (
-                <div key={k}><dt>{t}</dt><dd aria-label={`5점 중 ${open.traits![k]}점`}>{[1, 2, 3, 4, 5].map(i => <i key={i} className={i <= open.traits![k] ? "is-on" : ""} />)}</dd></div>
-              ))}
-            </dl>
-          ) : <Soon />}
-          <Lace>어울리는 계절</Lace>
-          <p className="dict-tags is-big">{(Object.keys(SEASON_KO) as Season[]).map(s => <i key={s} className={open.seasons.includes(s) ? "is-rose" : ""}>{SEASON_KO[s]}</i>)}</p>
-          <Lace>이런 실입니다</Lace>
-          {open.about ? <p className="dict-body">{open.about}</p> : <Soon />}
-          <Lace>뜨면 이런 편물</Lace>
-          {open.fabric ? <p className="dict-body">{open.fabric}</p> : <Soon />}
-          <Lace>어울리는 작품</Lace>
-          {open.goodFor?.length ? <p className="dict-tags is-big">{open.goodFor.map(w => <i key={w} className="is-rose">{w}</i>)}</p> : <Soon />}
-          <Lace>주의할 점</Lace>
-          {open.caution ? <p className="dict-body">{open.caution}</p> : <Soon />}
+          {/* two columns (Kim: no tall box): the numbers and tags on the left, the reading on the right */}
+          <div className="dict-yarn-cols">
+            <div>
+              <Lace>실의 성격</Lace>
+              {open.traits ? (
+                <dl className="dict-traits">
+                  {TRAITS.map(([k, t]) => (
+                    <div key={k}><dt>{t}</dt><dd aria-label={`5점 중 ${open.traits![k]}점`}>{[1, 2, 3, 4, 5].map(i => <i key={i} className={i <= open.traits![k] ? "is-on" : ""} />)}</dd></div>
+                  ))}
+                </dl>
+              ) : <Soon />}
+              <Lace>어울리는 계절</Lace>
+              <p className="dict-tags is-big">{(Object.keys(SEASON_KO) as Season[]).map(s => <i key={s} className={open.seasons.includes(s) ? "is-rose" : ""}>{SEASON_KO[s]}</i>)}</p>
+              <Lace>어울리는 작품</Lace>
+              {open.goodFor?.length ? <p className="dict-tags is-big">{open.goodFor.map(w => <i key={w} className="is-rose">{w}</i>)}</p> : <Soon />}
+            </div>
+            <div>
+              <Lace>이런 실입니다</Lace>
+              {open.about ? <p className="dict-body">{open.about}</p> : <Soon />}
+              <Lace>뜨면 이런 편물</Lace>
+              {open.fabric ? <p className="dict-body">{open.fabric}</p> : <Soon />}
+              <Lace>주의할 점</Lace>
+              {open.caution ? <p className="dict-body">{open.caution}</p> : <Soon />}
+            </div>
+          </div>
         </DictPop>
       )}
     </>
@@ -317,26 +324,22 @@ function GroupedSheet({ t }: { t: DictTable }) {
 }
 
 export function TablesScreen() {
-  const [open, setOpen] = useState<DictTable | null>(null);
+  // Kim: the four as small cloth labels, the chosen table right below (no pop-up, no big cards)
+  const [id, setId] = useState(TABLES[0].id);
+  const open = TABLES.find(t => t.id === id) ?? TABLES[0];
   return (
     <>
       <MyHead title="기타" />
-      <ul className="dict-grid is-2">
+      <div className="dict-tabrow" role="tablist" aria-label="표 고르기">
         {TABLES.map(t => (
-          <li key={t.id}><button type="button" className="dict-card dict-tablecard" aria-haspopup="dialog" onClick={() => setOpen(t)}>
-            <span className="dict-mini" aria-hidden="true">{[0, 1, 2, 3].map(i => <i key={i} />)}</span>
-            <span className="dict-card-text"><b>{t.title}</b><small>{t.short}</small></span>
-          </button></li>
+          <button key={t.id} type="button" role="tab" aria-selected={t.id === open.id} className={"dict-tablabel" + (t.id === open.id ? " is-on" : "")} onClick={() => setId(t.id)}><span>{t.title}</span></button>
         ))}
-      </ul>
-      {open && (
-        <DictPop label={open.title} onClose={() => setOpen(null)} wide>
-          <p className="my-memo-kick">기타</p>
-          <h2>{open.title}</h2>
-          {open.cols && open.groups ? <GroupedSheet key={open.id} t={open} />
-            : open.cols && open.rows ? <><Sheet cols={open.cols} rows={open.rows} num={open.num} />{open.foot && <p className="dict-sheet-note is-foot">{open.foot}</p>}</> : <Soon />}
-        </DictPop>
-      )}
+      </div>
+      <section className="dict-tablepage" role="tabpanel" aria-label={open.title}>
+        <p className="dict-tablepage-short">{open.short}</p>
+        {open.cols && open.groups ? <GroupedSheet key={open.id} t={open} />
+          : open.cols && open.rows ? <><Sheet cols={open.cols} rows={open.rows} num={open.num} />{open.foot && <p className="dict-sheet-note is-foot">{open.foot}</p>}</> : <Soon />}
+      </section>
     </>
   );
 }
