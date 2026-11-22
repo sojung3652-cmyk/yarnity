@@ -67,9 +67,31 @@ export function OpeningIntro({ onDone }: { onDone: () => void }) {
     return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); document.removeEventListener("visibilitychange", vis); };
   }, []);
 
-  const go = () => { if (leaving) return; setLeaving(true); setTimeout(onDone, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 900); };
+  // the start (Kim): the medallion and the logo rise and shrink onto the home's own (0.7s, easing to rest) while the
+  // home's menu cards come up below; then the home's medallion and logo take over. No home under it (the
+  // 도안 만들기 address, or reduced motion): the old fade.
+  const [rising, setRising] = useState(false);
+  const go = () => {
+    if (leaving || rising) return;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const c = cv.current, lace = document.querySelector<HTMLElement>(".mfh-lace");
+    if (reduce || !c || !lace) { setLeaving(true); setTimeout(onDone, reduce ? 0 : 900); return; }
+    // the medallion in the picture (image px): x 152-789, y 85-905
+    const cr = c.getBoundingClientRect(), sc = cr.width / IW;
+    const mx = cr.left + 470.5 * sc, my = cr.top + 495 * sc, mh = 820 * sc;
+    const lr = lace.getBoundingClientRect(), k = lr.height / mh;
+    // scaled from the canvas's top left, the medallion's centre goes to the home medallion's centre
+    const dx = lr.left + lr.width / 2 - (cr.left + (mx - cr.left) * k), dy = lr.top + lr.height / 2 - (cr.top + (my - cr.top) * k);
+    c.style.transformOrigin = "0 0";
+    document.body.classList.add("m-intro-rise", "m-intro-cards");
+    setRising(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => { c.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`; }));
+    setTimeout(() => { document.body.classList.remove("m-intro-rise"); setLeaving(true); }, 720);
+    setTimeout(onDone, 860);
+    setTimeout(() => document.body.classList.remove("m-intro-cards"), 1000);
+  };
   return (
-    <div ref={stage} className={"op-stage" + (leaving ? " is-leaving" : "")}>
+    <div ref={stage} className={"op-stage" + (rising ? " is-rising" : "") + (leaving ? " is-leaving" + (rising ? " is-quick" : "") : "")}>
       <div ref={bg} className={"op-bg" + (ready ? " is-on" : "")} />
       <canvas ref={cv} className="op-cv" aria-label="Yarnity 오프닝: 파랑새 메달리온 아래에 금실 Yarnity 로고와 'Start making my own pattern book' 문구가 한 땀씩 수놓아지고 반짝입니다." />
       <button ref={start} type="button" className="op-start" hidden={!shown} onClick={go}>Start making my own pattern book</button>
