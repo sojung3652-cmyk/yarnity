@@ -9,6 +9,7 @@ import { GlossText } from "@/components/glossary/GlossText";
 // + 새 도안 · 나의 도안집. Styles: screens-mobile.css.
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useYarn3D } from "@/src/features/yarn3d/YarnPreviewButton";
 import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { drawing } from "@/lib/drawing";
@@ -32,6 +33,8 @@ export function MobilePatternScreen() {
   const [justMade, setJustMade] = useState(false);
   // just made: the + 새 도안 · 나의 도안집 links, and the book cover to pick (once, if it has none yet)
   const [picking, setPicking] = useState(false);
+  // 3D로 보기 in the ··· sheet
+  const y3 = useYarn3D(p);
   useEffect(() => { try { if (sessionStorage.getItem(JUST_MADE_KEY)) { sessionStorage.removeItem(JUST_MADE_KEY); setJustMade(true); setPicking(true); } } catch {} }, []);
   useEffect(() => { if (ready && !p) router.replace("/mine"); }, [ready, p, router]);
   if (!ready || !p) return <main id="view-pattern" className="ms-screen" />;
@@ -153,9 +156,11 @@ export function MobilePatternScreen() {
         <MoreSheet title={p.name} onClose={() => setMore(false)} items={[
           { key: "edit", icon: "pen", label: "고치기", sub: "마법사로 돌아갑니다", onClick: () => { setMore(false); book.editHere(p.id); } },
           { key: "rename", icon: "tag", label: "이름 바꾸기", onClick: () => { setMore(false); setName(p.name); setRenaming(true); } },
+          ...(y3.supported ? [{ key: "3d", icon: "cube", label: "3D로 보기", onClick: () => { setMore(false); y3.show(); } }] : []),
           { key: "delete", icon: "trash", label: "지우기", danger: true, confirm: "이 작품을 지우시겠습니까? 되돌릴 수 없습니다.", onClick: () => { setMore(false); removeProjects([p.id]); router.push("/mine"); } },
         ]} />
       )}
+      {y3.node}
     </main>
   );
 }

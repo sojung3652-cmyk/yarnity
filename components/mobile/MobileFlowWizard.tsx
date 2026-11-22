@@ -97,6 +97,8 @@ export function MobileFlowWizard() {
         {NAMES.map((t, i) => <li key={t} className={i + 1 <= step ? "on" : ""} aria-current={i + 1 === step ? "step" : undefined}><span className="sr">{t}</span></li>)}
       </ol>
 
+      {/* 3D로 보기 from the first step on (round coasters and bags), at the right under the progress */}
+      <div className="mbz-3d mfw-3d">{v.threeD}</div>
       <form className={`mfw-form mfw-s${key}`} noValidate onSubmit={e => { e.preventDefault(); if (!blocked) next(); }} onKeyDown={v.onKeyDown}
         onClickCapture={e => { if (step === 2 && (e.target as Element).closest(".nb-item")) setTimeout(() => setIntro(true), 0); }}>
         <div ref={body} className="mfw-body">

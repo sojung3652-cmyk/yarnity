@@ -56,6 +56,8 @@ export function MobileBookWizard({ sheet = 0 }: { sheet?: number }) {
           </li>
         ))}
       </ol>
+      {/* 3D로 보기 on every sheet (round coasters and bags) */}
+      <div className="mbz-3d">{v.threeD}</div>
       <div className="mbz-scroll">{body}</div>
       <div className="mbz-foot">
         {/* on the last sheet 이전 is just the arrow, so the ribbon's words keep to one line on small phones */}

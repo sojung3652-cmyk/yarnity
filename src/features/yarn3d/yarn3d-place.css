@@ -1,0 +1,13 @@
+/* where "3D로 보기" sits (loaded with the button; yarn3d.css comes with the overlay only) */
+.y3-open{display:inline-flex}
+/* the places it sits: the phone 도안집's sheet (a third label filling its share), the phone wizard (a small
+   label at the right, above the sheet; nothing when the draft is not round) */
+.mm-sheet-btns .y3-open>.mm-label{flex:1}
+.mbz-3d{display:flex;justify-content:flex-end;flex:none;margin:-4px 0 -2px}
+.mbz-3d:empty{display:none}
+html body .mbz-3d .cloth-face{--pw:9px;height:28px;padding:0 8px;font-size:11.5px}
+html body .mbz-3d .cloth-label{min-height:36px;position:relative;inset:auto;margin:0}
+/* 나의 도안집's work window (web): with a third patch the lace tag goes to its own line rather than cut its words */
+.bk-pop-btns:has(.y3-open){flex-wrap:wrap}
+.bk-pop-btns:has(.y3-open) .bk-lace{flex:1 1 100%;max-width:none}
+.mfw-3d{margin:4px 16px -10px;position:relative;z-index:1}

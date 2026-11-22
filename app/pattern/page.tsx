@@ -20,6 +20,7 @@ import { fmt, PART_KO, plan, SHAPE_KO, withChains, type Row } from "@/lib/patter
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { yarnUse } from "@/lib/yarnUse";
 import { WorkMore } from "@/components/WorkMore";
+import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import "./pattern.css";
 
 // phones: 완성 도안 as its own screen (components/mobile/MobilePatternScreen.tsx)
@@ -76,6 +77,7 @@ export function PatternScreen() {
           {/* Girl's Diary (components/diary): two round cloth buttons and the lavender lace tag */}
           <StitchButton icon={DiaryIcon.pen} patch="/brand/btn_edit.webp" label="고치기" onClick={() => book.editHere(p.id)} />
           <StitchButton icon={DiaryIcon.print} patch="/brand/btn_print.webp" label="인쇄" onClick={() => window.print()} />
+          <YarnPreviewButton source={p} plan={pp} look="ps" />
           <LaceButton variant="lavender" width={260} id="startBtn" href="/track">{p.current > 0 ? (p.current >= pp.rows.length ? "뜨기 기록 보기 →" : `이어서 뜨기 · ${pp.rows[p.current].label} →`) : "뜨기 시작 →"}</LaceButton>
         </div>
       </div>

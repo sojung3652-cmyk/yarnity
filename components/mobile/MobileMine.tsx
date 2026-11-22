@@ -7,6 +7,7 @@
 // book opens a sheet from the bottom with everything about it. Light comes from the upper right: every
 // shadow falls to the lower left. Styles: mine-mobile.css.
 import { useRouter } from "next/navigation";
+import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp, type Removed } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
@@ -246,6 +247,7 @@ function Sheet({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: 
           <div className="mm-sheet-btns">
             <button type="button" className="mm-label is-cream" onClick={() => act("view")}><span>도안 보기</span></button>
             <button type="button" className="mm-label is-rose" onClick={() => { act("photos"); }}><span>사진 기록</span></button>
+            <YarnPreviewButton source={p} look="mm" />
           </div>
           {w.done
             ? <button type="button" className="mm-label is-cream mm-again" onClick={() => act("again")}><span>다시 뜨기</span></button>

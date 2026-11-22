@@ -15,7 +15,7 @@ import "./yarn3d.css";
 const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["mohair", "모헤어"], ["cord", "코드사"], ["fur", "털실"], ["metal", "메탈릭"]];
 
 export default function YarnPreview({ pattern, onClose }: { pattern: YarnPattern; onClose: () => void }) {
-  const cv = useRef<HTMLCanvasElement>(null), closeRef = useRef<HTMLButtonElement>(null), viewer = useRef<YarnViewer | null>(null);
+  const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), closeRef = useRef<HTMLButtonElement>(null), viewer = useRef<YarnViewer | null>(null);
   const [mat, setMat] = useState<YarnMaterial>(pattern.material);
   const [view, setView] = useState<"yarn" | "holo">("yarn");
   const [info, setInfo] = useState<YarnInfo | null>(null);
@@ -29,9 +29,19 @@ export default function YarnPreview({ pattern, onClose }: { pattern: YarnPattern
     bookPause.set(true);
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
     closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); onClose(); } };
-    window.addEventListener("keydown", onKey);
-    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; bookPause.set(false); };
+    // caught first (capture on window) and kept from the windows under it (나의 도안집's work window closes on
+    // Esc and keeps Tab inside itself): Esc closes only this, Tab goes round this overlay's buttons
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onClose(); return; }
+      if (e.key !== "Tab" || !root.current) return;
+      e.stopPropagation();
+      const f = [...root.current.querySelectorAll<HTMLElement>("button")];
+      if (!f.length) return;
+      const i = f.indexOf(document.activeElement as HTMLElement), j = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i < 0 || i === f.length - 1 ? 0 : i + 1);
+      e.preventDefault(); f[j].focus();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => { window.removeEventListener("keydown", onKey, true); document.body.style.overflow = prev; bookPause.set(false); };
   }, [onClose]);
 
   // the engine, loaded now
@@ -53,7 +63,7 @@ export default function YarnPreview({ pattern, onClose }: { pattern: YarnPattern
   const size = info ? `지름 약 ${info.diameterCm}cm${info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : ""}` : "";
 
   return createPortal(
-    <div className="y3" role="dialog" aria-modal="true" aria-label="3D 미리 보기" data-built-ms={builtMs ?? undefined}>
+    <div ref={root} className="y3" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="3D 미리 보기" data-built-ms={builtMs ?? undefined}>
       {noGL ? <p className="y3-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
         : <canvas ref={cv} className="y3-canvas" aria-label="완성 모양 3D" />}
       <button ref={closeRef} type="button" className="y3-close" aria-label="닫기" onClick={onClose}><GoldX /></button>

@@ -8,6 +8,7 @@ import { StitchLegend } from "@/components/StitchLegend";
 import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
 import "../pattern/pattern.css";
 import { WorkMore } from "@/components/WorkMore";
+import { useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
 import { clamp, fmt, PART_KO, plan, withChains, type Row } from "@/lib/pattern";
@@ -126,6 +127,8 @@ export function TrackScreen() {
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
 
   const pp = useMemo(() => (p ? withChains(plan(p)) : null), [p]), total = pp ? pp.rows.length : 0;
+  // phones: 3D로 보기 in the ··· sheet (the web has it as a label in the header)
+  const y3 = useYarn3D(p, pp);
   const current = p ? clamp(p.current || 0, 0, total) : 0;
 
   // persist the clamped position (prototype renderTrack() ended with save())
@@ -288,11 +291,13 @@ export function TrackScreen() {
         {more && (
           <MoreSheet title="나가도 지금 단까지 저장됩니다" onClose={() => setMore(false)} items={[
             { key: "sheet", icon: "sheet", label: "도안 전체 보기", onClick: () => router.push("/pattern") },
+            ...(y3.supported ? [{ key: "3d", icon: "cube", label: "3D로 보기", onClick: () => { setMore(false); y3.show(); } }] : []),
             { key: "again", icon: "again", label: "처음 단부터 다시", danger: true, confirm: "지금까지 뜬 단을 지우고 1단부터 다시 하시겠습니까?", onClick: () => { setMore(false); updateProject(p.id, { current: 0, status: "knitting", pausedAt: null }); } },
             // the work itself, from where it is being knitted (Kim: there was no delete for it here)
             { key: "delete", icon: "trash", label: "이 작품 지우기", danger: true, confirm: "이 작품과 뜬 기록을 지우시겠습니까? 되돌릴 수 없습니다.", onClick: () => { setMore(false); removeProjects([p.id]); router.push("/mine"); } },
           ]} />
         )}
+        {y3.node}
       </main>
     );
   }
@@ -310,6 +315,7 @@ export function TrackScreen() {
           <div className="tk-head-r">
             <span className="tk-wake" id="wakeNote">{wakeOn ? "화면 켜짐 유지 중" : ""}</span>
             <Link className="ps-label tk-label" href="/pattern"><span>도안 보기</span></Link>
+            <YarnPreviewButton source={p} plan={pp} look="ps" />
             {/* the work's ··· at the right end of the title row (Kim) */}
             <WorkMore p={p} />
           </div>

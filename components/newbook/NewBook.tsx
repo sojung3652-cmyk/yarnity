@@ -106,6 +106,8 @@ export interface NewBookView {
   onSubmit: (e: React.FormEvent) => void;
   onKeyDown: (e: KeyboardEvent<HTMLFormElement>) => void;
   ribbon: ReactNode;
+  /** 3D로 보기 for the pattern so far (the phone wizard puts it above each sheet) */
+  threeD: ReactNode;
   left: ReactNode;
   right: ReactNode;
   /** the same step for the phone's notebook (components/mobile/MobileWizard.tsx): one page, top to bottom */
@@ -272,7 +274,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     const t = e.target as HTMLElement;
     if (e.key === "Enter" && !e.nativeEvent.isComposing && (t.getAttribute("role") === "radio" || t === titleRef.current)) { e.preventDefault(); next(); }
   };
-  if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, left: null, right: null };
+  if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, threeD: null, left: null, right: null };
 
 
   const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
@@ -431,7 +433,6 @@ export function useNewBook(inBook?: WizStep): NewBookView {
           {(input.object === "coaster" || input.object === "bag") && <b>{`바닥 ${pp.bottomRounds}단 · 마지막 단 ${pp.last}코`}</b>}
           {input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (flapRows ? ` · 덮개 ${flapRows}단` : "") + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
         </p>
-        <YarnPreviewButton source={yarnSrc} plan={pp} />
         <p className="nb-help">{input.object === "rows" || input.object === "tube"
           ? "코 수는 공식으로 계산합니다. 5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 내 손에 맞게 고쳐 드립니다."
           : "코 수는 공식으로 계산합니다. 3단을 뜬 뒤 지름을 재면 내 손에 맞게 다시 계산해 드립니다."}</p>
@@ -457,6 +458,9 @@ export function useNewBook(inBook?: WizStep): NewBookView {
 
   return {
     ready, formRef, onSubmit, onKeyDown, phone: phoneStep,
+    // 3D로 보기 on every step (Kim: from the start and between steps), the pattern so far; hidden while the
+    // draft is not a round coaster or bag
+    threeD: <YarnPreviewButton source={yarnSrc} plan={pp} className="nb-3d" />,
     // the gold ribbon closes the book, as on the menu page (the draft is saved on every change)
     // the very same ribbon as the menu page's (PageSpread.tsx): all gold leaf, hanging from the page's top
     // edge, "책 덮기" beside it on hover
@@ -477,6 +481,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
         <div className="nb-foot">
           {step > 1 ? <ClothLabel side="back" type="button" onClick={() => go((step - 1) as Step)}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" type="button" onClick={book.close}>← 돌아가기</ClothLabel>
             : <ClothLabel side="back" type="button" onClick={book.toHome}>← 메뉴</ClothLabel>}
+          <YarnPreviewButton source={yarnSrc} plan={pp} className="nb-3d" />
           <span className="nb-folio">{step * 2 - 1}</span>
         </div>
       </section>

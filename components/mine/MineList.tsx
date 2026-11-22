@@ -6,6 +6,7 @@
 // (도안 고치기, 중단 / 다시 시작, 완성으로 표시, 이름 바꾸기, 복제, 지우기). Deleting asks first and can be undone
 // for 6 seconds. Light from the upper right: every shadow falls to the lower left (mine.css).
 import Link from "next/link";
+import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useApp, type Removed } from "@/components/AppProvider";
@@ -116,6 +117,7 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
           {/* Girl's Diary (components/diary): two cloth patches and the lavender lace tag */}
           <ClothPatch color="cream" href="/pattern" onClick={() => act("view")}>도안 보기</ClothPatch>
           <ClothPatch color="lavender" onClick={() => act("photos")}>{/* the pink cloth (Kim; "pink" draws the blue one) */}사진 기록{photos ? ` ${photos}` : ""}</ClothPatch>
+          <YarnPreviewButton source={p} look="patch" />
           {w.done
             ? <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("again")}>다시 뜨기</LaceButton>
             : <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}
