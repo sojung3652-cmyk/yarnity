@@ -130,12 +130,7 @@ export const YARNS: Yarn[] = [
     caution: "섬유 가루가 날리고 손이 거칠어질 수 있습니다. 물에 약해 곰팡이가 생기기 쉬우니 젖지 않게 두고, 더러워지면 마른 솔로 털어 냅니다.",
   },
 
-  {
-    id: "poodle", image: "/dictionary/yarns/poodle.jpg", name: "푸들사", nameEn: "Poodle yarn", group: "special", short: "푸들 털처럼 곱슬곱슬", seasons: ["autumn", "winter"],
-    traits: { warmth: 4, stretch: 2, softness: 4, care: 3, price: 2 },
-    about: "작은 고리가 촘촘히 뭉쳐 푸들 털처럼 곱슬곱슬한 실입니다. 고리가 작고 빽빽해서 짧은뜨기만 해도 양털 인형 같은 결이 나옵니다. 곰 인형, 모자, 가방, 쿠션에 많이 씁니다.",
-    caution: "고리 때문에 코가 거의 보이지 않아 코 수를 세기 어렵습니다. 단수링을 자주 걸고, 한 번 뜬 것을 풀면 고리가 엉키니 천천히 풉니다.",
-  },
+
 
 
   {
@@ -153,9 +148,11 @@ export const YARNS: Yarn[] = [
   },
 
   {
-    id: "tweed", image: "/dictionary/yarns/tweed.jpg", name: "트위드사", nameEn: "Tweed yarn", group: "special", short: "알록달록한 점이 박힌 울", seasons: ["autumn", "winter"],
-    traits: { warmth: 4, stretch: 3, softness: 2, care: 2, price: 3 },
-    about: "울 바탕에 다른 색 섬유 알갱이(넵)가 점점이 박힌 실입니다. 단색으로 떠도 자연스러운 색감이 살아나 빈티지한 스웨터, 모자, 목도리에 잘 어울립니다.",
-    caution: "털이 조금 거칠어 맨살에 닿으면 따끔할 수 있습니다. 울이라 뜨거운 물과 마찰에 줄어드니 찬물에 손세탁합니다.",
+    // Kim: 트위드사 -> 모헤어 루프얀 (no photo yet: the striped empty square)
+    id: "mohair-loop", name: "모헤어 루프얀", nameEn: "Mohair loop yarn", group: "special", short: "고리가 보송한 모헤어 실", seasons: ["autumn", "winter"],
+    traits: { warmth: 4, stretch: 3, softness: 4, care: 2, price: 4 },
+    about: "모헤어를 작은 고리(루프)가 생기도록 꼬아 만든 실로, 고리 위로 모헤어의 긴 잔털이 피어올라 편물이 구름처럼 보송합니다. 굵은 바늘로 성글게 떠도 빈틈이 잘 메워져 가볍고 따뜻한 스웨터, 카디건, 목도리에 많이 씁니다.",
+    caution: "고리와 잔털 때문에 코가 잘 보이지 않고, 한 번 뜬 것을 풀면 털이 엉켜 잘 풀리지 않습니다. 모헤어라 뜨거운 물과 마찰에 줄어드니 찬물에 손세탁하고 눕혀서 말립니다.",
   },
+
 ];
