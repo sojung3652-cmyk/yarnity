@@ -137,8 +137,13 @@ function KnowhowArticle({ k, n, next, onNext, onAsk }: { k: Knowhow; n: number; 
       <p className="my-memo-kick">{KNOWHOW_TOPICS.find(t => t.id === k.topic)?.label} · {n}</p>
       <h2>{k.title}</h2>
       <p className="dict-summary">{k.summary}</p>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {k.image && <img className="dict-photo is-lead" src={k.image.src} alt={k.image.alt} loading="lazy" />}
       {k.sections.length ? k.sections.map(s => (
-        <section key={s.heading}><Lace>{s.heading}</Lace><p className="dict-body"><Rich text={s.body} /></p></section>
+        <section key={s.heading} className={s.image ? "dict-sec has-photo" : undefined}><Lace>{s.heading}</Lace>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {s.image && <img className="dict-photo" src={s.image.src} alt={s.image.alt} loading="lazy" />}
+          <p className="dict-body"><Rich text={s.body} /></p></section>
       )) : <Soon />}
       {k.table && (
         <table className="dict-table">

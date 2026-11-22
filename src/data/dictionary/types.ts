@@ -18,8 +18,10 @@ export interface Knowhow {
   order: number;
   title: string;
   summary: string;
-  /** under lace subheads; none yet: "준비 중" */
-  sections: { heading: string; body: string }[];
+  /** a photo under the summary (Kim: free for commercial use only; sources in docs/credits/knowhow-photos.md) */
+  image?: { src: string; alt: string };
+  /** under lace subheads; none yet: "준비 중". A section may carry its own photo. */
+  sections: { heading: string; body: string; image?: { src: string; alt: string } }[];
   /** a comparison: the column heads, then rows of [what, ...one cell per column] */
   table?: { cols: string[]; rows: string[][] };
   /** the next article's id (default: the next one in its topic) */
