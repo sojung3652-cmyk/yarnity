@@ -12,26 +12,23 @@
 | cotton.jpg | 면 | Kim이 ChatGPT로 만든 이미지 |
 | linen.jpg | 린넨 | Kim이 ChatGPT로 만든 이미지 |
 | acrylic.jpg | 아크릴 | Kim이 ChatGPT로 만든 이미지 |
-| boucle.jpg | 부클레 | https://unsplash.com/photos/0EpEN-1bU_8 |
 | silk.jpg | 실크 | Kim이 ChatGPT로 만든 이미지 |
 | cashmere.jpg | 캐시미어 | Kim이 ChatGPT로 만든 이미지 |
-| nylon.jpg | 나일론 | https://unsplash.com/photos/q2rwcbQEUQ4 (편물 부분만 확대해 자르고 오른쪽으로 90° 돌림) |
-| polyester.jpg | 폴리에스터 | https://unsplash.com/photos/-5gx3fOCkb8 |
-| nalgae.jpg | 날개사 | Kim이 직접 찍은 사진 |
+| nylon.jpg | 나일론 | Kim이 ChatGPT로 만든 이미지 |
+| nalgae.jpg | 날개사 | Kim이 ChatGPT로 만든 이미지 |
 | merino.jpg | 메리노 울 | https://unsplash.com/photos/Jsoc9j82ErY (스웨터 몸판만 확대해 자름) |
-| mink.jpg | 밍크사 | Kim이 직접 찍은 사진 |
+| mink.jpg | 밍크사 | Kim이 ChatGPT로 만든 이미지 |
 | chenille.jpg | 셔닐 · 벨벳사 | Kim이 ChatGPT로 만든 이미지 |
 | angora.jpg | 앙고라 | Kim이 ChatGPT로 만든 이미지 |
 | tweed.jpg | 트위드사 | https://unsplash.com/photos/lY0MpDoh2BA |
-| bamboo.jpg | 대나무 | https://unsplash.com/photos/OQrZQ80eNM4 |
+| bamboo.jpg | 대나무 | Kim이 ChatGPT로 만든 이미지 |
 | jute.jpg | 황마 | https://unsplash.com/photos/hh2ulVuYbcw |
-| fabric.jpg | 패브릭얀 | https://unsplash.com/photos/neCu4YrL5F4 |
-| raffia.jpg | 라피아 | https://unsplash.com/photos/THJU51SiY6s (짠 부분만 확대해 자름) |
+| fabric.jpg | 패브릭얀 | Kim이 ChatGPT로 만든 이미지 |
+| raffia.jpg | 라피아 | Kim이 ChatGPT로 만든 이미지 |
 | tencel.jpg | 텐셀 | https://unsplash.com/photos/JDwEVCVyBWs (니트 탑의 등판만 확대해 자름) |
 | hemp.jpg | 헴프 | https://unsplash.com/photos/ieppoqQTIto (가방 편물만 확대해 자름) |
 | poodle.jpg | 푸들사 | Kim이 직접 찍은 사진 |
 | loop.jpg | 루프얀 | https://unsplash.com/photos/-yHaS_K1xgw |
-| scrubber.jpg | 수세미실 | https://unsplash.com/photos/zNmBA5eSwp0 (벽에 걸린 수세미만 크게 확대해 자름) |
 | metal.jpg | 메탈사 | Kim이 직접 찍은 사진 |
 
 사진은 그 실과 질감이 비슷한 편물을 가까이 찍은 것이에요. 사진 설명에 실의 소재가 적혀 있지 않아서, 실제로 그 소재로 뜬 편물이라는 보장은 없어요.

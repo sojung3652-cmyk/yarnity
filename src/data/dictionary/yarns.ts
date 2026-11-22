@@ -44,16 +44,11 @@ export const YARNS: Yarn[] = [
   {
     id: "acrylic", image: "/dictionary/yarns/acrylic.jpg", name: "아크릴", nameEn: "Acrylic", group: "synthetic", short: "저렴하고 관리가 쉬움", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 3, stretch: 3, softness: 3, care: 5, price: 1 },
-    about: "석유에서 만든 합성 섬유로 울과 비슷한 촉감을 냅니다. 값이 싸고 색이 다양하며, 세탁기에 빨아도 줄어들지 않아 연습용, 담요, 인형, 수세미실로 많이 씁니다.",
+    about: "석유에서 만든 합성 섬유로 울과 비슷한 촉감을 냅니다. 값이 싸고 색이 다양하며, 세탁기에 빨아도 줄어들지 않아 연습용, 담요, 인형으로 많이 씁니다.",
     caution: "열에 약해 다리미를 직접 대면 녹거나 광택이 죽습니다(스팀은 띄워서). 보풀과 정전기가 생기기 쉽고, 울만큼 숨을 쉬지 못해 오래 입으면 덥게 느껴질 수 있습니다.",
   },
 
-  {
-    id: "boucle", image: "/dictionary/yarns/boucle.jpg", name: "부클레", nameEn: "Bouclé", group: "special", short: "고리가 동글동글 맺힌 실", seasons: ["autumn", "winter"],
-    traits: { warmth: 4, stretch: 2, softness: 4, care: 2, price: 3 },
-    about: "실을 꼴 때 한 가닥을 느슨하게 넣어 작은 고리가 송글송글 맺히게 만든 실입니다. 단순한 뜨기만으로도 양털 같은 입체감이 나서 겉옷, 쿠션, 인형에 잘 어울립니다.",
-    caution: "고리 때문에 코가 잘 보이지 않고 바늘이 고리에 걸리기 쉬워 첫 작품에는 어렵습니다. 끝이 둥근 바늘을 쓰고, 코 수를 자주 셉니다. 한 번 뜬 것을 풀기도 어렵습니다.",
-  },
+
   {
     id: "silk", image: "/dictionary/yarns/silk.jpg", name: "실크", nameEn: "Silk", group: "animal", short: "은은한 광택, 매끄러움", seasons: ["spring", "autumn"],
     traits: { warmth: 3, stretch: 1, softness: 5, care: 1, price: 5 },
@@ -72,12 +67,7 @@ export const YARNS: Yarn[] = [
     about: "아주 질기고 잘 닳지 않는 합성 섬유입니다. 단독으로보다는 울에 20~25%쯤 섞어 양말실로 많이 쓰고, 신축성이 좋아 모양이 잘 돌아옵니다. 광택 있는 끈실로도 만들어집니다.",
     caution: "열에 약해 다리미를 직접 대면 녹을 수 있습니다. 땀을 잘 흡수하지 못해 100% 나일론 옷은 덥고 답답할 수 있습니다.",
   },
-  {
-    id: "polyester", image: "/dictionary/yarns/polyester.jpg", name: "폴리에스터", nameEn: "Polyester", group: "synthetic", short: "가볍고 형태가 잘 유지됨", seasons: ["spring", "summer", "autumn", "winter"],
-    traits: { warmth: 2, stretch: 2, softness: 3, care: 5, price: 1 },
-    about: "가장 흔한 합성 섬유로 가볍고 질기며 구김이 잘 가지 않습니다. 물을 머금지 않아 빨리 마르고, 형태가 잘 유지되어 가방실, 수세미실 등 여러 실의 재료가 됩니다. 재활용 페트병으로 만든 폴리에스터 실도 있습니다.",
-    caution: "열에 약해 높은 온도의 다리미나 건조기는 피합니다. 정전기가 잘 생기고, 땀을 흡수하지 못해 옷으로 입으면 덥게 느껴질 수 있습니다.",
-  },
+
   {
     id: "bamboo", image: "/dictionary/yarns/bamboo.jpg", name: "대나무", nameEn: "Bamboo (viscose)", group: "plant", short: "시원하고 실크처럼 매끄러움", seasons: ["spring", "summer"],
     traits: { warmth: 1, stretch: 1, softness: 5, care: 3, price: 3 },
@@ -85,9 +75,9 @@ export const YARNS: Yarn[] = [
     caution: "물에 젖으면 약해지고 무거워져 편물이 늘어나기 쉽습니다. 비틀어 짜지 말고 눌러 물기를 뺀 뒤 눕혀 말립니다.",
   },
   {
-    id: "nalgae", image: "/dictionary/yarns/nalgae.jpg", name: "날개사", nameEn: "Brushed scrubber yarn", group: "synthetic", short: "잔털이 많은 수세미실", seasons: ["spring", "summer", "autumn", "winter"],
+    id: "nalgae", image: "/dictionary/yarns/nalgae.jpg", name: "날개사", nameEn: "Polyester scrubber yarn", group: "synthetic", short: "반짝이는 폴리에스터 수세미실", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 2, stretch: 2, softness: 2, care: 5, price: 1 },
-    about: "아크릴 같은 합성 섬유에 잔털이 날개처럼 붙어 있는 실입니다. 까슬까슬한 잔털이 거품을 잘 내고 때를 잘 닦아 주로 수세미를 뜰 때 씁니다. 반짝이는 펄이 섞인 것도 있고, '솔잎사'라고도 부릅니다.",
+    about: "폴리에스터 심 실에 가늘고 짧은 잔털이 날개처럼 촘촘히 붙은 실로, 흔히 '수세미실'이라고 하면 이 실을 말합니다. 까슬까슬한 잔털이 거품을 잘 내고 기름때를 잘 닦으며, 폴리에스터라 물을 머금지 않아 빨리 마르고 오래 써도 모양이 잘 유지됩니다. 펄이 섞여 반짝이는 것이 많습니다.",
     caution: "털 때문에 코가 잘 보이지 않아 처음 뜨는 사람에게는 어렵습니다. 단수링을 자주 걸고, 한 번 뜬 것을 풀면 털이 엉키니 천천히 풉니다.",
   },
   {
@@ -148,15 +138,10 @@ export const YARNS: Yarn[] = [
   {
     id: "poodle", image: "/dictionary/yarns/poodle.jpg", name: "푸들사", nameEn: "Poodle yarn", group: "special", short: "푸들 털처럼 곱슬곱슬", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 2, softness: 4, care: 3, price: 2 },
-    about: "작은 고리가 촘촘히 뭉쳐 푸들 털처럼 곱슬곱슬한 실입니다. 부클레보다 고리가 더 작고 빽빽해서, 짧은뜨기만 해도 양털 인형 같은 결이 나옵니다. 곰 인형, 모자, 가방, 쿠션에 많이 씁니다.",
+    about: "작은 고리가 촘촘히 뭉쳐 푸들 털처럼 곱슬곱슬한 실입니다. 고리가 작고 빽빽해서 짧은뜨기만 해도 양털 인형 같은 결이 나옵니다. 곰 인형, 모자, 가방, 쿠션에 많이 씁니다.",
     caution: "고리 때문에 코가 거의 보이지 않아 코 수를 세기 어렵습니다. 단수링을 자주 걸고, 한 번 뜬 것을 풀면 고리가 엉키니 천천히 풉니다.",
   },
-  {
-    id: "scrubber", image: "/dictionary/yarns/scrubber.jpg", name: "수세미실", nameEn: "Acrylic scrubber yarn", group: "synthetic", short: "세제 없이도 잘 닦임", seasons: ["spring", "summer", "autumn", "winter"],
-    traits: { warmth: 1, stretch: 2, softness: 2, care: 5, price: 1 },
-    about: "아크릴로 만든 수세미 전용 실입니다. 아크릴 섬유가 기름때를 잘 잡아 세제를 적게 써도 설거지가 잘 되고, 물이 금방 빠져 빨리 마릅니다. 색이 다양하고 값이 싸서 첫 작품으로 많이 뜹니다.",
-    caution: "열에 약해 뜨거운 물에 삶으면 줄거나 뻣뻣해집니다. 쓰고 나서 물기를 짜 잘 말리고, 낡으면 새로 뜹니다.",
-  },
+
 
   {
     id: "metal", image: "/dictionary/yarns/metal.jpg", name: "메탈사", nameEn: "Metallic tape yarn", group: "special", short: "통째로 반짝이는 테이프 실", seasons: ["spring", "summer", "autumn", "winter"],
