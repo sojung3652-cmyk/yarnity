@@ -4,15 +4,12 @@
 // Phones: a sheet from the bottom, three to a row. Wide screens: a dialog, six to a row. Styles: diary.css.
 import { useEffect, useState } from "react";
 import { BookCover, GoldDefs } from "@/components/BookCover";
-import { COVERS } from "@/lib/covers";
+import { COVER_SETS, COVERS } from "@/lib/covers";
 import type { Project } from "@/lib/types";
 import { ClothPatch } from "./Diary";
 
-const SETS: { title: string; ids: string[] }[] = [
-  { title: "레이스와 리본", ids: COVERS.filter(c => /^\d/.test(c.id)).map(c => c.id) },
-  { title: "단정한 표지", ids: COVERS.filter(c => c.id.startsWith("simple")).map(c => c.id) },
-  { title: "어두운 표지", ids: COVERS.filter(c => c.id.startsWith("dark")).map(c => c.id) },
-];
+// the four sets of 2026-11-22 (Kim): 꽃 자수, 레이스와 리본, 무늬 천, 금실 자수
+const SETS: { title: string; ids: string[] }[] = COVER_SETS.map(st => ({ title: st.title, ids: COVERS.filter(c => c.id.startsWith(st.prefix)).map(c => c.id) }));
 
 export function CoverPicker({ p, onPick, onClose, first }: { p: Project; onPick: (id: string) => void; onClose: () => void; first?: boolean }) {
   const [sel, setSel] = useState<string | null>(p.cover ?? null);
