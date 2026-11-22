@@ -41,16 +41,16 @@ export function DictLayout({ children }: { children: ReactNode }) {
     <main className="my dict" id="view-dict">
       <div className="my-grid">
         <aside className="my-left dict-left">
-          {/* as My Page's avatar (Kim): the gold-thread spool and needle in the ivory lace oval, the name under it */}
+          {/* as My Page's avatar (Kim): the gold-thread spool and needle in the ivory lace oval (no name under it, Kim) */}
           <div className="my-me dict-me">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="dict-badge-img" src="/brand/dict_spool.webp" alt="" width={112} height={147} />
-            <b>뜨개 사전</b>
+            <img className="dict-badge-img" src="/brand/dict_spool.webp" alt="뜨개 사전" width={112} height={147} />
           </div>
           <nav className="my-menu" aria-label="뜨개 사전">
-            {DICT_MENU.map(it => item(it.href, it.label, it.n, path === it.href))}
-            <hr className="dict-rule" />
+            {/* 용어집 first, right under the medallion (Kim), then the dictionary's own five */}
             {item("/glossary/terms", "용어집", TERMS.length, onTerms)}
+            <hr className="dict-rule" />
+            {DICT_MENU.map(it => item(it.href, it.label, it.n, path === it.href))}
           </nav>
         </aside>
         <div className="my-right">{children}</div>
@@ -81,14 +81,14 @@ function Filters<T extends string>({ groups, value, onPick, label }: { groups: {
 }
 
 /** the wish box's memo-paper pop-up (Esc, ✕ and the dim close it) */
-function DictPop({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
+function DictPop({ label, onClose, children, wide }: { label: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", key); return () => document.removeEventListener("keydown", key);
   }, [onClose]);
   return (
     <div className="my-dim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <article className="my-memo my-memo-pop dict-pop" role="dialog" aria-modal="true" aria-label={label}>
+      <article className={"my-memo my-memo-pop dict-pop" + (wide ? " is-wide" : "")} role="dialog" aria-modal="true" aria-label={label}>
         <button type="button" className="my-pop-x" aria-label="닫기" autoFocus onClick={onClose}>✕</button>
         {children}
       </article>
@@ -302,14 +302,21 @@ export function TablesScreen() {
         ))}
       </ul>
       {open && (
-        <DictPop label={open.title} onClose={() => setOpen(null)}>
+        <DictPop label={open.title} onClose={() => setOpen(null)} wide>
           <p className="my-memo-kick">한눈에 보는 표</p>
           <h2>{open.title}</h2>
-          {open.cols && open.rows ? (
-            <table className="dict-table is-big">
-              <thead><tr>{open.cols.map(c => <th key={c} scope="col">{c}</th>)}</tr></thead>
-              <tbody>{open.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{c}</td>)}</tr>)}</tbody>
-            </table>
+          {open.cols && (open.rows || open.groups) ? (
+            <div className="dict-sheet">
+              <table className="dict-table is-big">
+                <thead><tr>{open.cols.map((c, j) => <th key={c} scope="col" className={open.num?.includes(j) ? "is-num" : undefined}>{c}</th>)}</tr></thead>
+                {(open.groups ?? [{ label: "", rows: open.rows! }]).map(g => (
+                  <tbody key={g.label || "all"}>
+                    {g.label && <tr className="dict-group"><th colSpan={open.cols!.length} scope="colgroup">{g.label}</th></tr>}
+                    {g.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={(open.num?.includes(j) ? "is-num" : "") + (c === "-" ? " is-none" : "") || undefined}>{c === "-" ? "–" : c}</td>)}</tr>)}
+                  </tbody>
+                ))}
+              </table>
+            </div>
           ) : <Soon />}
         </DictPop>
       )}

@@ -16,8 +16,8 @@
 .dict-chip,.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch{min-height:0;height:auto;padding:0 6px;border-style:solid;border-width:10px;border-radius:0;
   border-image-source:url(/mobile/diary/patch_cream.webp);border-image-slice:62 fill;border-image-repeat:stretch;background:none;
   font:500 13px/1.25 "Noto Serif KR",serif;color:#5E554E;cursor:pointer;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));transition:transform .15s ease}
-.dict-chip:hover,.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch:hover{background:none;transform:translateY(-1px);color:#2F2824}
-.dict-chip.is-on,.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch[aria-selected="true"]{border-image-source:url(/mobile/diary/patch_pink.webp);background:none;color:#2F2824;font-weight:700}
+.dict-chip:hover,.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch:hover{background:none;transform:translateY(-1px);color:#4A3F3B}
+.dict-chip.is-on,.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch[aria-selected="true"]{border-image-source:url(/mobile/diary/patch_pink.webp);background:none;color:#4A3F3B;font-weight:700}
 .dict-chip:focus-visible,.dict-card:focus-visible,.dict-toc button:focus-visible,.dict-foot button:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
 
 /* ---- cards (실 도감 · 작품별 가이드 · 막힐 때 · 표) */
@@ -30,7 +30,7 @@
   box-shadow:-8px 12px 22px -16px rgba(60,42,34,.35),-2px 3px 5px -3px rgba(60,42,34,.08);transition:transform .2s ease,box-shadow .2s ease}
 .dict-card:hover{transform:translateY(-2px);box-shadow:-10px 16px 26px -16px rgba(60,42,34,.4),-2px 3px 5px -3px rgba(60,42,34,.1)}
 .dict-card-text{display:flex;flex-direction:column;gap:6px;padding:18px 18px 20px}
-.dict-card b{font:700 15px/1.35 "Noto Serif KR",serif;color:#2F2824}
+.dict-card b{font:700 15px/1.35 "Noto Serif KR",serif;color:#4A3F3B}
 .dict-card small{font-size:12.5px;line-height:1.45;color:#6A605F}
 .dict-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .dict-tags i{padding:1px 8px;border-radius:99px;background:rgba(142,131,121,.14);font:normal 500 11px/1.6 "Noto Serif KR",serif;color:#6A605F}
@@ -49,7 +49,7 @@
 .dict-proj-top>span:last-child{display:flex;flex-direction:column;flex:1;min-width:0}
 .dict-badge{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#F1EBE0;color:#9C7B45}
 .dict-badge svg{width:26px;height:26px}
-.dict-kv{display:block;font-size:12.5px;line-height:1.55;color:#3F3532}
+.dict-kv{display:block;font-size:12.5px;line-height:1.55;color:#5B4F49}
 .dict-kv em{font-style:normal;margin-right:8px;color:#8C807A}
 /* 막힐 때: the drawing on a white paper strip */
 .dict-trouble{padding:20px 20px 0}
@@ -68,10 +68,10 @@
 .dict-toc button{display:flex;align-items:baseline;gap:14px;width:100%;min-height:52px;padding:16px 6px;border:0;border-bottom:1px solid rgba(142,131,121,.22);background:none;
   text-align:left;font:400 14px/1.45 "Noto Serif KR",serif;color:#5E554E;cursor:pointer}
 .dict-toc button i{flex:none;width:12px;font:italic 600 13px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#B08A3E}
-.dict-toc button:hover{color:#2F2824}
-.dict-toc button.is-on{color:#2F2824;font-weight:700}
+.dict-toc button:hover{color:#4A3F3B}
+.dict-toc button.is-on{color:#4A3F3B;font-weight:700}
 .dict .dict-article{position:relative;top:auto;max-height:none;overflow:visible}
-.dict-article h2,.dict-pop h2{margin:8px 0 0;font:700 22px/1.35 "Noto Serif KR",serif;color:#2F2824}
+.dict-article h2,.dict-pop h2{margin:8px 0 0;font:700 22px/1.35 "Noto Serif KR",serif;color:#4A3F3B}
 .dict-en{margin-left:6px;font:500 16px var(--font-cormorant),"Cormorant Garamond",serif;color:#8C807A}
 .dict-summary{margin:10px 0 8px;font-size:14px;line-height:34px;color:#5E554E}
 /* subheads on the cloth label we use everywhere (Kim): the ivory stitched label of the titles (public/brand/label_title.webp),
@@ -80,19 +80,19 @@
 .dict-label span,.dict .gl-wide .gl-lace,.dict .gl-wide .gl-sec-title .gl-patch{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
   width:auto;min-width:132px;height:44px;min-height:0;aspect-ratio:auto;padding:0 26px;border:0;border-image:none;border-radius:0;outline:0;
   background:url(/brand/label_title.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1.5px 2.5px 2px rgba(90,62,44,.16));
-  font:700 13px/1 "Noto Serif KR",serif;color:#2F2824;white-space:nowrap}
+  font:700 13px/1 "Noto Serif KR",serif;color:#4A3F3B;white-space:nowrap}
 .dict .gl-wide .gl-lace{margin:0 0 16px}
 .dict .gl-wide .gl-sec-title{justify-content:flex-start}
-.dict-body{margin:0;font:400 14.5px/34px "Noto Serif KR",serif;color:#3F3532}
-.dict-body b{font-weight:700;color:#2F2824}
+.dict-body{margin:0;font:400 14.5px/34px "Noto Serif KR",serif;color:#5B4F49}
+.dict-body b{font-weight:700;color:#4A3F3B}
 .dict-soon{margin:6px 0;font-size:13px;line-height:34px;color:#8C807A}
-.dict-table{width:100%;margin:34px 0 10px;border-collapse:collapse;font:400 13.5px/1.5 "Noto Serif KR",serif;color:#3F3532;background:rgba(255,254,250,.7)}
+.dict-table{width:100%;margin:34px 0 10px;border-collapse:collapse;font:400 13.5px/1.5 "Noto Serif KR",serif;color:#5B4F49;background:rgba(255,254,250,.7)}
 .dict-table th,.dict-table td{padding:12px 14px;border:1px solid rgba(176,141,87,.3);text-align:left;vertical-align:top}
-.dict-table thead th{font-weight:700;color:#2F2824;background:rgba(224,170,174,.16)}
+.dict-table thead th{font-weight:700;color:#4A3F3B;background:rgba(224,170,174,.16)}
 .dict-table tbody th{width:22%;font-weight:600;color:#5E554E}
 .dict-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 24px;margin:40px 0 0}
 .dict-foot button{padding:4px 0;border:0;background:none;font:500 13px "Noto Serif KR",serif;color:#6A605F;cursor:pointer}
-.dict-foot button:hover{color:#2F2824;text-decoration:underline;text-underline-offset:3px}
+.dict-foot button:hover{color:#4A3F3B;text-decoration:underline;text-underline-offset:3px}
 .dict-foot button:last-child{margin-left:auto}
 
 /* ---- the pop-up (the wish box's memo paper), wider for the 막힐 때 drawings */
@@ -108,9 +108,9 @@
 .dict-compare li{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px 16px;border:1px solid rgba(142,131,121,.3);border-radius:3px;background:#FFFDF8;color:#B08A3E;text-align:center}
 .dict-compare li.is-on{border-color:rgba(190,110,118,.7);box-shadow:0 0 0 1px rgba(224,170,174,.6)}
 .dict-compare small{font-size:12px;color:#6A605F}
-.dict-compare b{font:600 12.5px "Noto Serif KR",serif;color:#2F2824}
+.dict-compare b{font:600 12.5px "Noto Serif KR",serif;color:#4A3F3B}
 .dict-compare li.is-on b{color:#9F646A}
-.dict-fixes{margin:0;padding-left:20px;font:400 14.5px/34px "Noto Serif KR",serif;color:#3F3532}
+.dict-fixes{margin:0;padding-left:20px;font:400 14.5px/34px "Noto Serif KR",serif;color:#5B4F49}
 
 /* the 용어집 inside the frame: its own heading is the frame's title, the columns fit the narrower room */
 .dict .gl-wide{padding:0;min-height:0}
@@ -132,3 +132,25 @@
 .my-memo.my-memo-pop.dict-pop{padding:44px 48px 46px}
 .dict .my-menu{gap:6px}
 .dict-rule{margin:16px 12px}
+
+/* lighter letters (Kim: too dark): headings #4A3F3B, text #5B4F49 - the menu's chosen item and the 용어집 in the same tone */
+.dict .my-mi.is-on,.dict .my-mi.is-on:hover{color:#4A3F3B}
+.dict .my-mi{color:#857A74}
+.dict .gl-wide{--ink:#5B4F49}
+.dict .my-memo h2,.dict .my-memo-pop h2{color:#4A3F3B}
+.dict .my-title{color:#4A3F3B}
+
+/* 한눈에 보는 표 (Kim: readable): the table on a sheet of white paper over the ruled memo (the lines do not show
+   through), no vertical rules, faint hairlines between rows, every other row a breath darker, the numbers centred,
+   empty cells a faint dash, groups (코바늘 / 대바늘) under their own title row; the pop-up a little wider */
+.my-memo.my-memo-pop.dict-pop.is-wide{width:min(760px,100%)}
+.dict-sheet{margin:22px 0 4px;border-radius:4px;background:#FFFDF8;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(142,131,121,.16),-6px 10px 20px -14px rgba(60,42,34,.3)}
+.dict-sheet .dict-table{margin:0;background:none;font-size:13.5px;line-height:1.45}
+.dict-sheet .dict-table th,.dict-sheet .dict-table td{padding:9px 16px;border:0;border-bottom:1px solid rgba(176,141,87,.14);text-align:left;vertical-align:middle;color:#5B4F49}
+.dict-sheet .dict-table thead th{position:sticky;top:0;background:#F6EBE7;font-size:12.5px;font-weight:700;color:#4A3F3B;border-bottom:1px solid rgba(176,141,87,.3)}
+.dict-sheet .dict-table tbody tr:nth-child(even) td{background:rgba(246,240,228,.45)}
+.dict-sheet .dict-table .is-num{text-align:center;font-variant-numeric:tabular-nums}
+.dict-sheet .dict-table td.is-none{color:#C9BFB8}
+.dict-sheet .dict-table tr.dict-group th{padding:12px 16px 8px;background:#FBF7EF;font-size:13px;font-weight:700;color:#8A6A3E;border-bottom:1px solid rgba(176,141,87,.22)}
+.dict-sheet .dict-table tbody tr:last-child td{border-bottom:0}

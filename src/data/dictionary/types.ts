@@ -79,4 +79,8 @@ export interface DictTable {
   short: string;
   cols?: string[];
   rows?: string[][];
+  /** rows in titled groups (e.g. 코바늘 / 대바늘) in place of `rows` */
+  groups?: { label: string; rows: string[][] }[];
+  /** the columns holding numbers (centred) */
+  num?: number[];
 }
