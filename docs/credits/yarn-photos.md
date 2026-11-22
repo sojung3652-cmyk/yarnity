@@ -26,7 +26,6 @@
 | fabric.jpg | 패브릭얀 | Kim이 ChatGPT로 만든 이미지 |
 | raffia.jpg | 라피아 | Kim이 ChatGPT로 만든 이미지 |
 | tencel.jpg | 텐셀 | https://unsplash.com/photos/JDwEVCVyBWs (니트 탑의 등판만 확대해 자름) |
-| hemp.jpg | 헴프 | https://unsplash.com/photos/ieppoqQTIto (가방 편물만 확대해 자름) |
 | poodle.jpg | 푸들사 | Kim이 직접 찍은 사진 |
 | loop.jpg | 루프얀 | https://unsplash.com/photos/-yHaS_K1xgw |
 | metal.jpg | 메탈사 | Kim이 직접 찍은 사진 |

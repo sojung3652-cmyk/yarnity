@@ -122,12 +122,7 @@ export const YARNS: Yarn[] = [
     about: "유칼립투스 같은 나무 펄프를 녹여 다시 뽑은 재생 섬유(라이오셀)입니다. 매끄럽고 찰랑거리며 은은한 광택이 있고, 땀을 잘 흡수해 여름 상의나 숄에 잘 어울립니다.",
     caution: "탄력이 없어 무게 때문에 편물이 늘어나기 쉽습니다. 물에 젖으면 약해지니 비틀어 짜지 말고, 눌러 물기를 뺀 뒤 눕혀 말립니다.",
   },
-  {
-    id: "hemp", image: "/dictionary/yarns/hemp.jpg", name: "헴프", nameEn: "Hemp", group: "plant", short: "질기고 빳빳함, 빨수록 부드러움", seasons: ["summer"],
-    traits: { warmth: 1, stretch: 1, softness: 1, care: 4, price: 3 },
-    about: "대마 줄기에서 얻은 섬유입니다. 린넨보다 더 질기고 거칠지만, 빨수록 부드러워지고 광택이 살아납니다. 튼튼해서 시장바구니, 그물가방, 행주에 잘 어울립니다.",
-    caution: "신축성이 없어 손에 힘이 많이 들어갑니다. 처음에는 뻣뻣하니 뜨고 나서 물에 적셔 블로킹하면 코가 가지런해집니다.",
-  },
+
   {
     id: "jute", image: "/dictionary/yarns/jute.jpg", name: "황마", nameEn: "Jute", group: "plant", short: "거칠고 자연스러운 끈", seasons: ["spring", "summer"],
     traits: { warmth: 1, stretch: 1, softness: 1, care: 2, price: 1 },
