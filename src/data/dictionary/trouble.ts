@@ -1,23 +1,56 @@
 // 막힐 때 (뜨개 사전 · web). ~입니다체. `illustration` / `compare[].art` name drawings in components/dictionary/DictArt.tsx.
 import type { Trouble } from "./types";
 
+const CIRCLE = (on: "cup" | "wave") => [
+  { art: "cup", label: "컵처럼 말림", note: "늘림이 부족", on: on === "cup" },
+  { art: "flat", label: "평평함", note: "알맞음" },
+  { art: "wave", label: "물결침", note: "늘림이 많음", on: on === "wave" },
+];
+
 export const TROUBLES: Trouble[] = [
   {
-    id: "cupping", title: "원이 컵처럼 말려요", craft: "crochet", cause: "늘림이 부족할 때", illustration: "cup",
-    compare: [
-      { art: "cup", label: "컵처럼 말림", note: "늘림이 부족", on: true },
-      { art: "flat", label: "평평함", note: "알맞음" },
-      { art: "wave", label: "물결침", note: "늘림이 많음" },
-    ],
+    id: "cupping", title: "원이 컵처럼 말려요", craft: "crochet", cause: "늘림이 부족할 때", illustration: "cup", compare: CIRCLE("cup"),
     why: "원은 바깥으로 갈수록 둘레가 길어집니다. 늘린 코가 둘레를 따라가지 못하면 편물이 위로 솟습니다. 손 힘이 세서 코가 작아져도 같은 일이 생깁니다.",
     fixes: ["단마다 코 수를 세어 6코씩 늘었는지 확인합니다.", "늘림 위치를 단마다 반 칸씩 엇갈리게 합니다.", "그래도 말리면 바늘을 한 호수 굵게 바꿉니다."],
   },
-  { id: "ruffling", title: "원이 물결쳐요", craft: "crochet", cause: "늘림이 많을 때", illustration: "wave" },
-  { id: "count-drift", title: "코 수가 자꾸 변해요", craft: "both", cause: "단 끝과 시작 코를 확인", illustration: "dots" },
-  { id: "wavy-edge", title: "가장자리가 울퉁불퉁해요", craft: "crochet", cause: "기둥코와 마지막 코", illustration: "edges" },
-  { id: "spiral-lean", title: "원형뜨기가 비스듬히 꼬여요", craft: "both", cause: "나선형으로 뜰 때", illustration: "lean" },
-  { id: "dropped", title: "코가 빠졌어요", craft: "knit", cause: "당황하지 말고 코바늘로", illustration: "drop" },
-  { id: "tension", title: "너무 빡빡하거나 헐렁해요", craft: "both", cause: "손 힘과 바늘 호수", illustration: "lines" },
-  { id: "run-out", title: "실이 모자라요", craft: "both", cause: "로트 번호와 이어 붙이기", illustration: "join" },
-  { id: "magic-ring", title: "매직링이 풀려요", craft: "crochet", cause: "실 끝 정리 요령", illustration: "ring" },
+  {
+    id: "ruffling", title: "원이 물결쳐요", craft: "crochet", cause: "늘림이 많을 때", illustration: "wave", compare: CIRCLE("wave"),
+    why: "늘린 코가 둘레에 필요한 것보다 많으면 남는 길이가 갈 곳이 없어 편물이 주름처럼 출렁입니다. 손이 헐렁해 코가 커졌을 때나, 한길긴뜨기처럼 키가 큰 코로 뜰 때 더 잘 생깁니다.",
+    fixes: ["단마다 늘어난 코 수가 도안과 같은지 셉니다.", "늘림 코를 같은 자리에 겹치지 않게 고르게 나눕니다.", "그래도 출렁이면 바늘을 한 호수 가늘게 바꿉니다."],
+  },
+  {
+    id: "count-drift", title: "코 수가 자꾸 변해요", craft: "both", cause: "단 끝과 시작 코를 확인", illustration: "dots",
+    why: "대부분 단의 처음이나 끝에서 생깁니다. 코바늘은 기둥코를 한 코로 셀지 말지에 따라, 마지막 코를 빼먹거나 기둥코에 한 번 더 뜨면서 코가 줄거나 늡니다. 대바늘은 실이 바늘에 감겨 코가 하나 더 생기거나, 두 코가 한 번에 떠지며 줄어듭니다.",
+    fixes: ["단의 첫 코와 마지막 코에 단수링을 걸어 둡니다.", "단이 끝날 때마다 코 수를 세는 습관을 들입니다.", "도안이 기둥코를 한 코로 세는지 먼저 확인합니다."],
+  },
+  {
+    id: "wavy-edge", title: "가장자리가 울퉁불퉁해요", craft: "crochet", cause: "기둥코와 마지막 코", illustration: "edges",
+    why: "평면뜨기에서 단의 처음 기둥코가 너무 길거나 짧으면 옆선이 들쭉날쭉해집니다. 마지막 코를 앞 단의 기둥코에 뜨지 않고 건너뛰면 편물이 점점 좁아지기도 합니다.",
+    fixes: ["기둥코의 사슬 수를 도안에 맞추고, 너무 느슨하지 않게 당깁니다.", "단의 마지막 코는 앞 단 기둥코의 맨 위 사슬에 뜹니다.", "옆선을 따라 짧은뜨기로 한 바퀴 둘러 정리합니다."],
+  },
+  {
+    id: "spiral-lean", title: "원형뜨기가 비스듬히 꼬여요", craft: "both", cause: "나선형으로 뜰 때", illustration: "lean",
+    why: "단을 닫지 않고 나선형으로 이어 뜨면, 코가 한쪽으로 조금씩 밀리면서 편물 전체가 비스듬히 돌아갑니다. 짧은뜨기 원통이나 메리야스 원통에서 자주 보이는 자연스러운 성질입니다.",
+    fixes: ["늘림과 줄임 위치를 단마다 조금씩 옮겨 고르게 흩어 놓습니다.", "코바늘은 짧은뜨기 대신 뒷고리 짧은뜨기를 쓰면 덜 꼬입니다.", "옷처럼 꼬임이 거슬리면 단을 빼뜨기로 닫는 방식으로 바꿉니다."],
+  },
+  {
+    id: "dropped", title: "코가 빠졌어요", craft: "knit", cause: "당황하지 말고 코바늘로", illustration: "drop",
+    why: "대바늘의 코는 서로 이어진 고리라, 바늘에서 한 코가 빠지면 아래 단까지 사다리처럼 풀려 내려갑니다. 금방 발견하면 쉽게 되살릴 수 있습니다.",
+    fixes: ["빠진 코에 단수링이나 옷핀을 먼저 걸어 더 풀리지 않게 합니다.", "코바늘을 빠진 고리에 넣고, 위쪽 가로실을 한 단씩 걸어 끌어올립니다.", "다 올리면 다시 대바늘에 원래 방향대로 걸어 줍니다."],
+  },
+  {
+    id: "tension", title: "너무 빡빡하거나 헐렁해요", craft: "both", cause: "손 힘과 바늘 호수", illustration: "lines",
+    why: "실을 당기는 힘(손 힘)은 사람마다 달라서, 같은 실과 바늘로도 편물의 촘촘함이 달라집니다. 빡빡하면 바늘이 잘 안 들어가고 손목이 아프며, 헐렁하면 편물이 늘어지고 구멍이 보입니다.",
+    fixes: ["게이지 스와치를 떠서 도안과 비교합니다.", "빡빡하면 바늘을 한 호수 굵게, 헐렁하면 한 호수 가늘게 바꿉니다.", "실을 잡는 손가락에 실을 한 번 더 감거나 덜 감아 당기는 힘을 조절합니다."],
+  },
+  {
+    id: "run-out", title: "실이 모자라요", craft: "both", cause: "로트 번호와 이어 붙이기", illustration: "join",
+    why: "같은 색 이름이라도 염색한 날(로트)이 다르면 색이 미세하게 다릅니다. 다른 로트를 중간에 이으면 줄무늬처럼 경계가 보일 수 있습니다.",
+    fixes: ["실을 살 때 라벨의 로트(Lot) 번호를 확인하고 넉넉히 삽니다(Yarnity는 작품마다 로트를 기록해 둡니다).", "로트가 다르면 두 실을 2단씩 번갈아 떠서 경계를 흐리게 합니다.", "실은 단의 시작이나 가장자리에서 이어, 실 끝을 편물 속에 숨깁니다."],
+  },
+  {
+    id: "magic-ring", title: "매직링이 풀려요", craft: "crochet", cause: "실 끝 정리 요령", illustration: "ring",
+    why: "매직링은 실 고리를 조여서 가운데 구멍을 막는 방법이라, 실 끝을 제대로 숨기지 않으면 쓰는 동안 고리가 다시 벌어집니다. 미끄러운 면실이나 아크릴에서 더 잘 풀립니다.",
+    fixes: ["링을 조인 뒤 실 끝을 돗바늘로 링 둘레 코에 한 바퀴 통과시킵니다.", "방향을 바꿔 한 번 더 지나가게 하고, 다시 한 번 링을 조입니다.", "실 끝은 바로 자르지 말고 솜을 넣은 뒤 마지막에 정리합니다."],
+  },
 ];
