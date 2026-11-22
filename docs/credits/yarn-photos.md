@@ -19,7 +19,7 @@
 | polyester.jpg | 폴리에스터 | https://unsplash.com/photos/-5gx3fOCkb8 |
 | nalgae.jpg | 날개사 | Kim이 직접 찍은 사진 |
 | merino.jpg | 메리노 울 | https://unsplash.com/photos/Jsoc9j82ErY (스웨터 몸판만 확대해 자름) |
-| mink.jpg | 밍크사 | https://unsplash.com/photos/VGAj7fxL_ao (재킷의 털 부분만 크게 확대해 자름) |
+| mink.jpg | 밍크사 | Kim이 직접 찍은 사진 |
 | chenille.jpg | 셔닐 | https://unsplash.com/photos/tzZU01BLJ4o |
 | angora.jpg | 앙고라 | https://unsplash.com/photos/5VMlj33cc4A (카디건 소매만 크게 확대해 자름) |
 | tweed.jpg | 트위드사 | https://unsplash.com/photos/lY0MpDoh2BA |
