@@ -41,7 +41,12 @@ export function DictLayout({ children }: { children: ReactNode }) {
     <main className="my dict" id="view-dict">
       <div className="my-grid">
         <aside className="my-left dict-left">
-          <p className="dict-name">뜨개 사전</p>
+          {/* as My Page's avatar (Kim): the gold-thread spool and needle in the ivory lace oval, the name under it */}
+          <div className="my-me dict-me">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="dict-badge-img" src="/brand/dict_spool.webp" alt="" width={112} height={147} />
+            <b>뜨개 사전</b>
+          </div>
           <nav className="my-menu" aria-label="뜨개 사전">
             {DICT_MENU.map(it => item(it.href, it.label, it.n, path === it.href))}
             <hr className="dict-rule" />
