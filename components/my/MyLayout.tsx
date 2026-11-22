@@ -73,7 +73,14 @@ export function MyLayout({ children }: { children: ReactNode }) {
     return [projects.length + imp.list.length, st.filter(s => s === "done").length + imp.list.filter(p => p.status === "done").length, wishes.length, null] as (number | null)[];
   }, [projects, wishes, imp.list]);
   const sub = prof.craft; // what the user mostly knits (Kim: no 경력)
+  const sendBack = m === true && path.startsWith("/my/imported/");
+  useEffect(() => { if (sendBack) router.replace("/my"); }, [sendBack, router]);
   if (m === null || m === undefined) return <main id="view-my" />;
+  // 가져온 도안's follow-along page (web, Kim: S_D) has the whole width - no profile column; phones go to 마이페이지
+  if (path.startsWith("/my/imported/")) {
+    if (m) return <main id="view-my" />;
+    return <main className="my my-imp" id="view-my"><GoldDefs />{children}</main>;
+  }
   if (m) return (
     <main className={"my my-m mf" + (path === "/my/profile" ? " is-profile" : "")} id="view-my">
       <GoldDefs />

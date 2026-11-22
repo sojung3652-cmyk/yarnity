@@ -74,4 +74,63 @@
 @media (prefers-reduced-motion:reduce){.my-sheet.im-sheet{animation:none}.im-choice button,.im-del{transition:none}}
 .my-sheet.im-sheet .im-head h2{display:block;width:auto;aspect-ratio:auto;margin:0;padding:0;background:none;filter:none;white-space:normal}
 
+/* ---- 보면서 따라 뜨기 (S_D): pages | the paper | the panel, on the plain ivory */
+.my.my-imp{padding:28px 32px 80px}
+.iv{display:grid;grid-template-columns:96px minmax(0,1fr) 330px;gap:28px 36px;align-items:start;max-width:1400px;margin:0 auto}
+.iv-pages{position:sticky;top:76px;display:flex;flex-direction:column;align-items:center;gap:12px;max-height:calc(100vh - 100px)}
+.iv-back{align-self:flex-start;white-space:nowrap;margin-left:-6px;font:500 13px "Noto Serif KR",serif;color:#6A605F;text-decoration:none}
+.iv-back:hover{color:#2F2824}
+.iv-thumbs{display:flex;flex-direction:column;gap:12px;margin:0;padding:4px;list-style:none;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(142,131,121,.35) transparent}
+.iv-thumb{display:block;padding:0;border:2px solid transparent;border-radius:4px;background:#fff;cursor:pointer;
+  box-shadow:-3px 4px 7px -3px rgba(70,48,34,.3);transition:border-color .15s ease}
+.iv-thumb canvas{display:block;border-radius:2px}
+.iv-thumb:hover{border-color:rgba(201,160,80,.45)}
+.iv-thumb.is-on{border-color:#C9A050}
+.iv-thumb:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
+.iv-count{margin:0;font:500 12px "Noto Serif KR",serif;color:#6A605F}
+.iv-stage{min-width:0;overflow-x:auto;padding:0 0 8px}
+.iv-paper{position:relative;width:max-content;margin:0 auto;background:#FFFDF8;
+  box-shadow:0 0 0 1px rgba(142,131,121,.12),-12px 16px 30px -16px rgba(60,42,34,.35),-2px 3px 6px -3px rgba(60,42,34,.1);touch-action:none}
+.iv-canvas{display:block}
+.iv-done{position:absolute;left:0;right:0;top:0;background:rgba(246,240,228,.55);pointer-events:none}
+.iv-band{position:absolute;left:0;right:0;box-sizing:border-box;background:rgba(224,170,174,.28);border-top:1px solid rgba(160,90,96,.55);border-bottom:1px solid rgba(160,90,96,.55);cursor:grab}
+.iv-band:active{cursor:grabbing}
+.iv-band:focus-visible{outline:2px solid #C9A050;outline-offset:1px}
+.iv-now{position:absolute;left:12px;top:50%;transform:translateY(-50%);font:600 12px "Noto Serif KR",serif;color:#A0565E;white-space:nowrap}
+.iv-grip{position:absolute;left:0;right:0;bottom:-5px;height:10px;cursor:ns-resize}
+.iv-grip::after{content:"";position:absolute;left:50%;top:3px;width:28px;height:3px;margin-left:-14px;border-radius:2px;background:rgba(160,90,96,.45)}
+.iv-bad,.iv-missing{padding:60px 0;text-align:center;font-size:14px;color:#6A605F}
+.iv-missing{display:flex;flex-direction:column;align-items:center;gap:16px}
+/* the panel */
+.iv-side{position:sticky;top:76px;display:flex;flex-direction:column;gap:18px}
+.iv-title{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:196px;aspect-ratio:480 / 197;margin:0;padding:0 26px;
+  background:url(/brand/label_title.webp) center / 100% 100% no-repeat;filter:drop-shadow(-2px 3px 3px rgba(90,62,44,.18))}
+.iv-title span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 14.5px/1.2 "Noto Serif KR",serif;color:#2F2824}
+.iv-card{box-sizing:border-box;padding:20px 22px;border-radius:4px;background:#FBF7EF;
+  box-shadow:0 0 0 1px rgba(142,131,121,.12),-10px 14px 26px -16px rgba(60,42,34,.3),-2px 3px 6px -3px rgba(60,42,34,.08)}
+.iv-label{display:block;margin:0;font:500 12.5px "Noto Serif KR",serif;color:#6A605F}
+.iv-count-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.iv-step{display:grid;place-items:center;width:52px;height:40px;padding:0;border-style:solid;border-width:10px;border-image-source:url(/mobile/diary/patch_cream.webp);border-image-slice:62 fill;
+  border-image-repeat:stretch;background:none;font:400 16px/1 "Noto Serif KR",serif;color:#4A3D38;cursor:pointer;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.16))}
+.iv-step:disabled{opacity:.4;cursor:default}
+.iv-step:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
+.iv-num{display:flex;align-items:baseline;gap:4px;margin:0}
+.iv-num b{font:500 52px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#2F2824}
+.iv-num span{font:500 16px "Noto Serif KR",serif;color:#5E554E}
+.iv-help{margin:12px 0 0;text-align:center;font-size:11.5px;color:#6A605F}
+.iv-memo{padding-bottom:14px}
+/* the lines are the textarea's own, so they scroll with its words and sit under them */
+.iv-memo textarea{display:block;box-sizing:border-box;width:100%;min-height:150px;margin-top:6px;padding:0;border:0;resize:vertical;
+  background:repeating-linear-gradient(to bottom,transparent 0 29px,rgba(176,141,87,.22) 29px 30px) local;
+  font:400 14px/30px "Noto Serif KR",serif;color:#2F2824;outline:0}
+.iv-links{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0;font-size:12.5px;color:#8C807A}
+.iv-links button{padding:2px 0;border:0;background:none;font:500 12.5px "Noto Serif KR",serif;color:#5E554E;cursor:pointer}
+.iv-links button:hover{color:#2F2824;text-decoration:underline;text-underline-offset:3px}
+.iv-links button:disabled{opacity:.4;cursor:default;text-decoration:none}
+.iv-links.is-sub button{color:#8C807A}
+.iv-zoom{font-size:11.5px;color:#8C807A}
+.iv-done-note{margin:0;font-size:12px;color:#6A605F}
+.my-sheet.im-ask h2{width:230px}
+@media (max-width:1180px){.iv{grid-template-columns:84px minmax(0,1fr) 280px;gap:24px}}
+@media (prefers-reduced-motion:reduce){.iv-thumb{transition:none}}
 .my-sheet.im-sheet .im-fields input:focus,.my-sheet.im-sheet .im-fields input:focus-visible{outline:none;box-shadow:none;border-radius:0}
