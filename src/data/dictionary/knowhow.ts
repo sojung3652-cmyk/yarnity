@@ -85,7 +85,8 @@ export const KNOWHOW: Knowhow[] = [
     // 8종 (2.5~6.0mm), 단수링, 오픈 카운터링, 쪽가위, 플라스틱 돗바늘, 실리콘 바늘캡, 꽈배기바늘, 카운터기, 골무,
     // 줄자, 전용 케이스
     id: "notions", topic: "tools", order: 3, title: "뜨개질 필수 도구", summary: "바늘과 실 말고도 꼭 챙겨야 할 작은 도구들입니다. 바늘은 '코바늘 고르기'와 '대바늘의 종류'에서 다룹니다.",
-    // the hooks and needles themselves are in 코바늘 고르기 / 대바늘의 종류 (Kim), not here
+    // the hooks and needles themselves are in 코바늘 고르기 / 대바늘의 종류 (Kim), not here. The photo is Kim's own.
+    image: { src: "/dictionary/knowhow/tools.webp", alt: "카운터기, 카운터 반지, 코바늘, 단수링, 오픈 링, 바늘캡, 꽈배기바늘, 돗바늘, 가위, 줄자, 골무" },
     sections: [
       { heading: "단수링 · 오픈 카운터링", body: "코나 단에 걸어 위치를 표시하는 작은 고리입니다. 원형뜨기에서 단의 첫 코를 표시하는 데 꼭 필요합니다. 코바늘에는 **열고 닫을 수 있는 링**을 써야 코에서 빼고 옮길 수 있습니다. 동그란 오픈 카운터링은 대바늘에 걸어 두기 좋습니다." },
       { heading: "카운터기", body: "몇 단째인지 숫자를 돌려 기록하는 작은 통입니다. 대바늘 끝에 끼워 두거나 곁에 두고, 한 단이 끝날 때마다 한 칸씩 돌립니다. 늘림·줄임이 단마다 달라지는 도안에서 단을 잊지 않게 해 줍니다." },
