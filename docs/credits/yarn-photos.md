@@ -17,6 +17,6 @@
 | cashmere.jpg | 캐시미어 | https://unsplash.com/photos/brOaC3sxzhI |
 | nylon.jpg | 나일론 | https://unsplash.com/photos/q2rwcbQEUQ4 (편물 부분만 확대해 자르고 오른쪽으로 90° 돌림) |
 | polyester.jpg | 폴리에스터 | https://unsplash.com/photos/yJrhChncOgQ |
-| nalgae.jpg | 날개사 | https://unsplash.com/photos/CX01iryZXU8 (스웨터 소매 부분만 확대해 자름) |
+| nalgae.jpg | 날개사 | Kim이 직접 찍은 사진 |
 
 사진은 그 실과 질감이 비슷한 편물을 가까이 찍은 것이에요. 사진 설명에 실의 소재가 적혀 있지 않아서, 실제로 그 소재로 뜬 편물이라는 보장은 없어요.
