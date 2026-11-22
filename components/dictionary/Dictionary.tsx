@@ -13,11 +13,10 @@ import { MyHead } from "@/components/my/MyLayout";
 import { TERMS } from "@/lib/glossary";
 import { KNOWHOW, KNOWHOW_TOPICS, knowhowOf } from "@/src/data/dictionary/knowhow";
 import { YARNS, YARN_GROUPS } from "@/src/data/dictionary/yarns";
-import { PROJECTS } from "@/src/data/dictionary/projects";
 import { TROUBLES } from "@/src/data/dictionary/trouble";
 import { TABLES } from "@/src/data/dictionary/tables";
-import { craftTags, SEASON_KO, type Craft, type DictTable, type Knowhow, type ProjectGuide, type Season, type Trouble, type Yarn } from "@/src/data/dictionary/types";
-import { CareIcon, ProjectIcon, TroubleArt } from "./DictArt";
+import { craftTags, SEASON_KO, type Craft, type DictTable, type Knowhow, type Season, type Trouble, type Yarn } from "@/src/data/dictionary/types";
+import { CareIcon } from "./DictArt";
 import "@/components/my/myPage.css";
 import "@/components/glossary/glossary.css";
 import "./dictionary.css";
@@ -25,8 +24,7 @@ import "./dictionary.css";
 export const DICT_MENU = [
   { href: "/glossary", label: "뜨개 상식", n: KNOWHOW.length },
   { href: "/glossary/yarns", label: "실 도감", n: YARNS.length },
-  { href: "/glossary/projects", label: "작품별 가이드", n: PROJECTS.length },
-  { href: "/glossary/trouble", label: "막힐 때", n: TROUBLES.length },
+  { href: "/glossary/trouble", label: "FAQ", n: TROUBLES.length },
   { href: "/glossary/tables", label: "기타", n: TABLES.length },
 ] as const;
 
@@ -205,6 +203,10 @@ export function YarnsScreen() {
           <p className="dict-tags is-big">{(Object.keys(SEASON_KO) as Season[]).map(s => <i key={s} className={open.seasons.includes(s) ? "is-rose" : ""}>{SEASON_KO[s]}</i>)}</p>
           <Lace>이런 실입니다</Lace>
           {open.about ? <p className="dict-body">{open.about}</p> : <Soon />}
+          <Lace>뜨면 이런 편물</Lace>
+          {open.fabric ? <p className="dict-body">{open.fabric}</p> : <Soon />}
+          <Lace>어울리는 작품</Lace>
+          {open.goodFor?.length ? <p className="dict-tags is-big">{open.goodFor.map(w => <i key={w} className="is-rose">{w}</i>)}</p> : <Soon />}
           <Lace>주의할 점</Lace>
           {open.caution ? <p className="dict-body">{open.caution}</p> : <Soon />}
         </DictPop>
@@ -213,82 +215,42 @@ export function YarnsScreen() {
   );
 }
 
-// ---------------------------------------------------------------- 3) 작품별 가이드
-
-type ProjFilter = "all" | "crochet" | "knit" | ProjectGuide["level"];
 const crafted = (c: Craft, want: "crochet" | "knit") => c === want || c === "both";
 
-export function ProjectsScreen() {
-  const [f, setF] = useState<ProjFilter>("all"), [open, setOpen] = useState<ProjectGuide | null>(null);
-  const shown = PROJECTS.filter(p => f === "all" ? true : f === "crochet" || f === "knit" ? crafted(p.craft, f) : p.level === f);
-  return (
-    <>
-      <MyHead title="작품별 가이드" />
-      <Filters label="거르기" value={f} onPick={setF} groups={[
-        [{ id: "all", label: "전체", n: PROJECTS.length }, { id: "crochet", label: "코바늘" }, { id: "knit", label: "대바늘" }],
-        [{ id: "쉬움", label: "쉬움" }, { id: "보통", label: "보통" }, { id: "어려움", label: "어려움" }],
-      ]} />
-      <ul className="dict-grid is-4">
-        {shown.map(p => (
-          <li key={p.id}><button type="button" className="dict-card dict-proj" aria-haspopup="dialog" onClick={() => setOpen(p)}>
-            <span className="dict-proj-top"><span className="dict-badge"><ProjectIcon name={p.icon} /></span>
-              <span><b>{p.name}</b><span className="dict-tags">{craftTags(p.craft).map(t => <i key={t} className="is-rose">{t}</i>)}<i>{p.level}</i></span></span></span>
-            <span className="dict-kv"><em>실</em>{p.yarns}</span>
-            <span className="dict-kv"><em>요령</em>{p.tip}</span>
-          </button></li>
-        ))}
-      </ul>
-      {open && (
-        <DictPop label={open.name} onClose={() => setOpen(null)}>
-          <p className="my-memo-kick">작품별 가이드 · {craftTags(open.craft).join(" · ")} · {open.level}</p>
-          <h2>{open.name}</h2>
-          {open.firstProject && <p className="dict-summary">첫 작품으로 좋습니다.</p>}
-          <Lace>어울리는 실</Lace><p className="dict-body">{open.yarns}</p>
-          <Lace>바늘</Lace>{open.hook ? <p className="dict-body">{open.hook}</p> : <p className="dict-body">{craftTags(open.craft).join(" · ")}</p>}
-          <Lace>요령</Lace><p className="dict-body">{open.more ?? open.tip}</p>
-        </DictPop>
-      )}
-    </>
-  );
-}
+// ---------------------------------------------------------------- 4) FAQ (was 막힐 때; Kim)
 
-// ---------------------------------------------------------------- 4) 막힐 때
-
+/** each trouble as a question you open in place: why, then what to try */
 export function TroubleScreen() {
-  const [f, setF] = useState<"all" | "crochet" | "knit">("all"), [open, setOpen] = useState<Trouble | null>(null);
+  const [f, setF] = useState<"all" | "crochet" | "knit">("all"), [open, setOpen] = useState<string | null>(null);
   const shown = TROUBLES.filter(t => f === "all" || crafted(t.craft, f));
   const ask = useAskYarni();
   return (
     <>
-      <MyHead title="막힐 때" />
+      <MyHead title="FAQ" />
       <Filters label="거르기" value={f} onPick={setF} groups={[[{ id: "all", label: "전체", n: TROUBLES.length }, { id: "crochet", label: "코바늘" }, { id: "knit", label: "대바늘" }]]} />
-      <ul className="dict-grid is-3">
-        {shown.map(t => (
-          <li key={t.id}><button type="button" className="dict-card dict-trouble" aria-haspopup="dialog" onClick={() => setOpen(t)}>
-            <span className="dict-art"><TroubleArt name={t.illustration} /></span>
-            <span className="dict-card-text"><b>{t.title}</b><small>{t.cause}</small>
-              <span className="dict-tags">{craftTags(t.craft).map(c => <i key={c}>{c}</i>)}</span></span>
-          </button></li>
-        ))}
+      <ul className="dict-faq">
+        {shown.map(t => {
+          const on = open === t.id;
+          return (
+            <li key={t.id} className={on ? "is-open" : undefined}>
+              <button type="button" className="dict-faq-q" aria-expanded={on} aria-controls={`faq-${t.id}`} onClick={() => setOpen(on ? null : t.id)}>
+                <span className="dict-faq-mark" aria-hidden="true">Q</span>
+                <span className="dict-faq-text"><b>{t.title}</b><small>{craftTags(t.craft).join(" · ")} · {t.cause}</small></span>
+                <span className="dict-faq-arrow" aria-hidden="true">{on ? "−" : "+"}</span>
+              </button>
+              {on && (
+                <div className="dict-faq-a" id={`faq-${t.id}`}>
+                  <Lace>왜 그럴까요</Lace>
+                  {t.why ? <p className="dict-body">{t.why}</p> : <Soon />}
+                  <Lace>이렇게 해 보세요</Lace>
+                  {t.fixes?.length ? <ol className="dict-fixes">{t.fixes.map(x => <li key={x}>{x}</li>)}</ol> : <Soon />}
+                  <p className="dict-foot"><button type="button" onClick={() => ask(`편물이 '${t.title}' 같아요. 사진을 보여 줄게요.`)}>Yarni에게 내 편물 사진 보여주기 →</button></p>
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
-      {open && (
-        <DictPop label={open.title} onClose={() => setOpen(null)}>
-          <p className="my-memo-kick">막힐 때 · {craftTags(open.craft).join(" · ")}</p>
-          <h2>{open.title}</h2>
-          {open.compare && (
-            <ul className="dict-compare">
-              {open.compare.map(c => (
-                <li key={c.art} className={c.on ? "is-on" : ""}><TroubleArt name={c.art} /><small>{c.label}</small><b>{c.note}</b></li>
-              ))}
-            </ul>
-          )}
-          <Lace>왜 그럴까요</Lace>
-          {open.why ? <p className="dict-body">{open.why}</p> : <Soon />}
-          <Lace>이렇게 해 보세요</Lace>
-          {open.fixes?.length ? <ol className="dict-fixes">{open.fixes.map(x => <li key={x}>{x}</li>)}</ol> : <Soon />}
-          <p className="dict-foot"><button type="button" onClick={() => ask(`편물이 '${open.title}' 같아요. 사진을 보여 줄게요.`)}>Yarni에게 내 편물 사진 보여주기 →</button></p>
-        </DictPop>
-      )}
     </>
   );
 }

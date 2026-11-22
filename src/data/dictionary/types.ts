@@ -42,25 +42,13 @@ export interface Yarn {
   caution?: string;
   /** a picture under /public (none: the striped empty square) */
   image?: string;
+  /** 어울리는 작품 (Kim: in place of 작품별 가이드) */
+  goodFor?: string[];
+  /** 뜨면 이런 편물: what the fabric is like, from the yarn's nature */
+  fabric?: string;
 }
 
-/** 작품별 가이드 */
-export interface ProjectGuide {
-  id: string;
-  name: string;
-  craft: Craft;
-  level: "쉬움" | "보통" | "어려움";
-  yarns: string;
-  tip: string;
-  /** the line drawing in its round badge (components/dictionary/DictArt.tsx) */
-  icon: string;
-  hook?: string;
-  firstProject?: boolean;
-  /** the longer text in its pop-up (none yet: "준비 중") */
-  more?: string;
-}
-
-/** 막힐 때 */
+/** FAQ (was 막힐 때) */
 export interface Trouble {
   id: string;
   title: string;

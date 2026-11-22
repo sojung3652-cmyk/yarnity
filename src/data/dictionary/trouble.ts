@@ -1,4 +1,4 @@
-// 막힐 때 (뜨개 사전 · web). ~입니다체. `illustration` / `compare[].art` name drawings in components/dictionary/DictArt.tsx.
+// FAQ (뜨개 사전 · web; was 막힐 때). ~입니다체. `illustration` / `compare[].art` name drawings in components/dictionary/DictArt.tsx.
 import type { Trouble } from "./types";
 
 const CIRCLE = (on: "cup" | "wave") => [

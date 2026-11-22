@@ -176,3 +176,17 @@
 .dict-yarn .dict-card-text{flex:1;gap:4px;padding:16px 16px 18px}
 .dict-yarn b,.dict-yarn small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dict-yarn .dict-tags{flex-wrap:nowrap;overflow:hidden;margin-top:auto;padding-top:10px}
+
+/* FAQ (Kim, was 막힐 때): questions on one sheet, each opening in place */
+.dict-faq{margin:0;padding:0;list-style:none;border-top:1px solid rgba(142,131,121,.22)}
+.dict-faq li{border-bottom:1px solid rgba(142,131,121,.22)}
+.dict-faq-q{display:flex;align-items:center;gap:16px;width:100%;padding:20px 6px;border:0;background:none;text-align:left;cursor:pointer;font:inherit;color:#4A3F3B}
+.dict-faq-q:hover b{color:#7A4E52}
+.dict-faq-q:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
+.dict-faq-mark{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(224,170,174,.28);font:600 14px/1 var(--font-cormorant),"Cormorant Garamond",serif;color:#7A4E52}
+.dict-faq-text{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.dict-faq-text b{font:700 15.5px/1.4 "Noto Serif KR",serif}
+.dict-faq-text small{font-size:12.5px;color:#8C807A}
+.dict-faq-arrow{flex:none;font-size:20px;line-height:1;color:#8C807A}
+.dict-faq-a{padding:0 6px 26px 52px}
+.dict-faq-a .dict-label{margin-top:6px}
