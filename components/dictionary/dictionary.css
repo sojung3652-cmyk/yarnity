@@ -69,18 +69,13 @@
 .dict-article h2,.dict-pop h2{margin:8px 0 0;font:700 22px/1.35 "Noto Serif KR",serif;color:#2F2824}
 .dict-en{margin-left:6px;font:500 16px var(--font-cormorant),"Cormorant Garamond",serif;color:#8C807A}
 .dict-summary{margin:10px 0 8px;font-size:14px;line-height:34px;color:#5E554E}
-/* subheads on plain cloth labels (Kim: not the lace; the colours mine): a small woven tag with a running stitch inside,
-   the shadow to the lower left, at the left; a muted pastel set taken in turn - rose, sage, butter, mist, lilac */
-.dict-label,.dict .gl-wide .gl-lace,.dict .gl-wide .gl-sec-title .gl-patch{--lb:#EFDCD8;--ls:rgba(150,96,96,.4)}
+/* subheads on the cloth label we use everywhere (Kim): the ivory stitched label of the titles (public/brand/label_title.webp),
+   smaller, at the left, the shadow to the lower left */
 .dict-label{display:flex;margin:34px 0 14px}
-.dict-label span,.dict .gl-wide .gl-lace,.dict .gl-wide .gl-sec-title .gl-patch{display:inline-flex;align-items:center;box-sizing:border-box;width:auto;min-width:0;min-height:0;height:auto;aspect-ratio:auto;
-  padding:7px 16px 6px;border:0;border-image:none;border-radius:2px;background:var(--lb);outline:1px dashed var(--ls);outline-offset:-4px;filter:none;
-  box-shadow:-1.5px 2px 3px rgba(70,48,34,.14);font:700 13px/1.3 "Noto Serif KR",serif;color:#3F3532;white-space:nowrap}
-section:nth-of-type(5n+2) .dict-label,.dict-label:nth-of-type(5n+2),.dict .gl-wide .gl-block:nth-of-type(5n+2) .gl-lace,.dict .gl-wide .gl-section:nth-of-type(5n+2) .gl-patch{--lb:#DFE7D8;--ls:rgba(96,124,90,.4)}
-section:nth-of-type(5n+3) .dict-label,.dict-label:nth-of-type(5n+3),.dict .gl-wide .gl-block:nth-of-type(5n+3) .gl-lace,.dict .gl-wide .gl-section:nth-of-type(5n+3) .gl-patch{--lb:#F2E8CC;--ls:rgba(150,124,70,.4)}
-section:nth-of-type(5n+4) .dict-label,.dict-label:nth-of-type(5n+4),.dict .gl-wide .gl-block:nth-of-type(5n+4) .gl-lace,.dict .gl-wide .gl-section:nth-of-type(5n+4) .gl-patch{--lb:#DDE4EB;--ls:rgba(90,112,136,.4)}
-section:nth-of-type(5n+5) .dict-label,.dict-label:nth-of-type(5n+5),.dict .gl-wide .gl-block:nth-of-type(5n+5) .gl-lace,.dict .gl-wide .gl-section:nth-of-type(5n+5) .gl-patch{--lb:#E7DFEC;--ls:rgba(118,96,136,.4)}
-/* the glossary (용어집, web): its term's subheads and the list's category titles the same labels, at the left */
+.dict-label span,.dict .gl-wide .gl-lace,.dict .gl-wide .gl-sec-title .gl-patch{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  width:auto;min-width:132px;height:44px;min-height:0;aspect-ratio:auto;padding:0 26px;border:0;border-image:none;border-radius:0;outline:0;
+  background:url(/brand/label_title.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1.5px 2.5px 2px rgba(90,62,44,.16));
+  font:700 13px/1 "Noto Serif KR",serif;color:#2F2824;white-space:nowrap}
 .dict .gl-wide .gl-lace{margin:0 0 16px}
 .dict .gl-wide .gl-sec-title{justify-content:flex-start}
 .dict-body{margin:0;font:400 14.5px/34px "Noto Serif KR",serif;color:#3F3532}
