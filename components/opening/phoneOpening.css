@@ -17,10 +17,11 @@
    sheets the home opens (AI, ...) come over it */
 .pho.is-kept{pointer-events:none;z-index:5}
 .pho.is-kept .pho-stage{transition:none}
+/* the home's own (mode "home"): only the medallion and logo, fading in as the home's blocks arrive */
+.pho.is-home{background:transparent;opacity:0;transition:opacity .42s cubic-bezier(.22,.61,.36,1) .08s}
+.pho.is-home.is-on{opacity:1}
 .pho.is-rising.is-out,.pho.is-out:not(.is-rising){transition:opacity .2s ease}
-/* the home under it: its own medallion and logo wait (the rising ones stand in); its menu cards come up one by one,
-   as the web's NavBar comes down */
-body.m-intro-rise .mfh-lace,body.m-intro-rise .mfh-brand{opacity:0}
+/* the home under it: its menu cards come up one by one, as the web's NavBar comes down */
 body.m-intro-cards .mfh-actions>*{animation:m-intro-card .55s cubic-bezier(.22,1,.36,1) both}
 body.m-intro-cards .mfh-actions>*:nth-child(1){animation-delay:.2s}
 body.m-intro-cards .mfh-actions>*:nth-child(2){animation-delay:.28s}

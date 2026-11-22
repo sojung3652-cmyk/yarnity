@@ -253,6 +253,9 @@
   body .mfh .mfh-logo{width:auto}
   /* the glinting logo (SparkleLogo, the same picture as the scene's logo): 1.0745 x mh as drawn in the scene */
   body .mfh .mfh-foil{width:calc(var(--mh) * 1.0745);height:auto}
+  /* the slots the opening's scene sits on: they hold still (no arrival rise, so the scene lands on them exactly) */
+  body .mfh .mfh-slot{display:block;aspect-ratio:1500 / 437}
+  body .mfh .mfh-lace,body .mfh .mfh-brand{animation:none}
   /* the medallion and the logo stay together (no share of the spare room between them); the spare room goes above
      the medallion and under the cards */
   body .mfh{justify-content:center}

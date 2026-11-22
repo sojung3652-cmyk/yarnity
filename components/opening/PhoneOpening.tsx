@@ -11,13 +11,16 @@ import "./phoneOpening.css";
 
 export const OPENING_SEEN = "yarnity.opening.seen";
 
-export function PhoneOpening({ onDone, onKept }: { onDone: () => void; onKept?: () => void }) {
+// mode "home" (Kim: the opening's medallion and logo ARE the home's - no second home logo): the scene at its end,
+// still glinting, sat on the home's lace slot without the opening (no linen, no sentence, no Start)
+export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () => void; onKept?: () => void; mode?: "intro" | "home" }) {
+  const home = mode === "home";
   const root = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), sv = useRef<HTMLCanvasElement>(null), btn = useRef<HTMLButtonElement>(null);
   const sceneRef = useRef<ReturnType<typeof makeOpeningHomeScene> | null>(null), fadeFrom = useRef(0), placed = useRef(false);
-  const [loaded, setLoaded] = useState(false), [shown, setShown] = useState(false), [phase, setPhase] = useState<"" | "rise" | "kept" | "out">("");
+  const [loaded, setLoaded] = useState(false), [shown, setShown] = useState(false), [phase, setPhase] = useState<"" | "rise" | "kept" | "out">(home ? "kept" : "");
 
   useEffect(() => {
-    try { sessionStorage.setItem(OPENING_SEEN, "1"); } catch {}
+    if (!home) { try { sessionStorage.setItem(OPENING_SEEN, "1"); } catch {} }
     const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const r = root.current!, b = btn.current!;
     let alive = true, raf = 0, t0 = 0, done = false;
@@ -35,23 +38,33 @@ export function PhoneOpening({ onDone, onKept }: { onDone: () => void; onKept?: 
       // Start pressed: the sentence fades out in 0.3s
       if (fadeFrom.current) sc.setText(1 - (now - fadeFrom.current) / 300);
       sc.frame(t);
-      if (t >= OH_END && !done) { done = true; setShown(true); }
+      if (t >= OH_END && !done && !home) { done = true; setShown(true); }
       if (document.visibilityState === "visible") raf = requestAnimationFrame(tick);
     };
     const vis = () => { if (document.visibilityState === "visible" && sceneRef.current) { cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); } };
     document.addEventListener("visibilitychange", vis);
     const ro = new ResizeObserver(size); ro.observe(r);
-    // risen: the home's lace may still change (the resume card appears, the page scrolls) - follow it
-    const lace = document.querySelector<HTMLElement>(".mfh-lace"); if (lace) ro.observe(lace);
+    // risen: the home's lace slot may still change (the resume card appears, the page scrolls) - follow it; the home
+    // page may mount a moment after this, so look for it until it is there
+    let tries = 0;
+    const attach = () => {
+      if (!alive) return;
+      const lace = document.querySelector<HTMLElement>(".mfh-lace");
+      if (!lace) { if (tries++ < 120) requestAnimationFrame(attach); return; }
+      ro.observe(lace);
+      if (home && sceneRef.current) { place(); placed.current = true; setLoaded(true); }
+    };
     const onScroll = () => { if (placed.current) place(); };
     window.addEventListener("scroll", onScroll, { passive: true });
     Promise.all((Object.keys(OH_SRC) as (keyof typeof OH_SRC)[]).map(load)).then(() => {
       if (!alive || !cv.current || !sv.current) return;
-      sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img); size(); setLoaded(true);
-      t0 = performance.now() - (rm ? OH_END * 1000 : 0);
+      sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img); size();
+      if (home) sceneRef.current.setText(0); else setLoaded(true);
+      t0 = performance.now() - (rm || home ? OH_END * 1000 : 0);
+      attach();
       raf = requestAnimationFrame(tick);
     });
-    return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener("scroll", onScroll); document.removeEventListener("visibilitychange", vis); document.body.classList.remove("m-intro-rise"); };
+    return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener("scroll", onScroll); document.removeEventListener("visibilitychange", vis); };
   }, []);
 
   // the medallion lands on the home's: same centre, same height (the logo comes along at the same scale)
@@ -68,18 +81,18 @@ export function PhoneOpening({ onDone, onKept }: { onDone: () => void; onKept?: 
     if (phase) return;
     const sc = sceneRef.current, st = stage.current, lace = document.querySelector<HTMLElement>(".mfh-lace");
     const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (rm || !sc || !st || !lace) { setPhase("out"); setTimeout(onDone, rm ? 0 : 700); return; }
+    if (rm || !sc || !st || !lace) { setPhase("out"); setTimeout(() => onDone?.(), rm ? 0 : 700); return; }
     fadeFrom.current = performance.now();
-    document.body.classList.add("m-intro-rise", "m-intro-cards");
+    document.body.classList.add("m-intro-cards");
     setPhase("rise");
     requestAnimationFrame(() => requestAnimationFrame(() => { place(); placed.current = true; }));
-    // no handover (Kim): the risen medallion and logo stay as the home's - still glinting - and the home's own stay
-    // hidden; the overlay lets taps through. Leaving the home takes it away (MobileSplash).
+    // no handover (Kim): the risen medallion and logo stay as the home's - still glinting; the overlay lets taps
+    // through. Leaving the home takes it away (MobileSplash), and the home shows it again in its "home" mode.
     setTimeout(() => { setPhase("kept"); onKept?.(); }, 800);
   };
 
   return (
-    <div ref={root} className={"pho" + (loaded ? " is-on" : "") + (phase === "rise" || phase === "kept" ? " is-rising" : "") + (phase === "kept" ? " is-kept" : "") + (phase === "out" ? " is-out" : "")}>
+    <div ref={root} className={"pho" + (home ? " is-home" : "") + (loaded ? " is-on" : "") + (phase === "rise" || phase === "kept" ? " is-rising" : "") + (phase === "kept" ? " is-kept" : "") + (phase === "out" ? " is-out" : "")}>
       <div className="pho-bg" aria-hidden="true" />
       <canvas ref={sv} className="pho-sv" aria-hidden="true" />
       <div ref={stage} className="pho-stage">

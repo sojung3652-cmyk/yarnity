@@ -20,9 +20,10 @@ export function MobileSplash() {
     return decided;
   });
   // once the opening's medallion and logo stay on as the home's (kept), leaving the home takes them away; back on the
-  // home, the home's own glinting logo shows
+  // home, the same scene shows again in its "home" mode
   const kept = useRef<string | null>(null);
   useEffect(() => { if (kept.current !== null && path !== kept.current) { decided = false; setOn(false); } }, [path]);
-  if (!on) return null;
+  // the home's medallion and logo are the opening's scene (Kim: one home, not two); off the home, nothing
+  if (!on) return path === "/" ? <PhoneOpening key="home" mode="home" /> : null;
   return <PhoneOpening onKept={() => { kept.current = path; }} onDone={() => { decided = false; setOn(false); if (path !== "/") router.push("/"); }} />;
 }
