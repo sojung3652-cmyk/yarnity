@@ -431,3 +431,11 @@
 .my-tag.is-on{background:rgba(224,170,174,.28);color:#4B3436;font-weight:700}
 .my-tag:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
 .my-memo-text .my-tag{min-height:0;padding:1px 6px;margin:0 1px;font-size:inherit;line-height:1.5;vertical-align:baseline}
+/* the shelf tabs (나의 도안집, 위시 보관함; Kim: the names and counts ran together): wider apart, the count small and
+   faint a little away from its name, the chosen one bold over its line (web only) */
+@media (min-width:768px){
+  .my .mine-tabs{gap:30px}
+  .my .mine-tab span{margin-left:4px;font-size:11px;color:#A89C94}
+  .my .mine-tab[aria-selected="true"]{font-weight:700}
+  .my .mine-tab[aria-selected="true"] span{font-weight:400;color:#8C807A}
+}
