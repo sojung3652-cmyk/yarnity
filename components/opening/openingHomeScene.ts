@@ -33,7 +33,9 @@ function flare(c: CanvasRenderingContext2D, x: number, y: number, r: number, a: 
 
 /** `stars`: the twinkles' places on the background picture (fractions and a size); default the web's linen. The phone
  *  draws the scene over the app home's own starry linen (Kim), so it passes that picture's stars. */
-export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElement, img: OHImages, stars: number[][] = DATA.stars as number[][]) {
+/** `lite` (the phone, Kim): the sentence is drawn straight onto the stage, revealed by a clip, with no offscreen
+ *  compositing and no glow over it - phone GPUs (a Galaxy) broke it into specks; the web keeps the full effect. */
+export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElement, img: OHImages, stars: number[][] = DATA.stars as number[][], lite = false) {
   const ctx = cv.getContext("2d")!, sx = sv.getContext("2d")!;
   const mk = () => document.createElement("canvas"), lc = mk(), lx = lc.getContext("2d")!, gl = mk(), gx = gl.getContext("2d")!, tc = mk(), tx = tc.getContext("2d")!, g2 = mk(), g2x = g2.getContext("2d")!;
   let VW = 1, VH = 1, DPR = 1, SC = 1, OX = 0, OY = 0, PX = 1, LW = 1920, LH = 1080, L = {} as Lay, SP: Path[] = [], STOT = 0, lastP = -1;
@@ -81,7 +83,14 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
     const tw_ = tc.width, th_ = tc.height, tp = soft((t - 2.7) / 1.0), dp = soft((t - 3.6) / .8); tx.globalCompositeOperation = "source-over"; tx.clearRect(0, 0, tw_, th_);
     if (tp > 0) { const xe = tw_ * 1.08 * tp, g = tx.createLinearGradient(xe - tw_ * .08, 0, xe, 0); g.addColorStop(0, "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); tx.fillStyle = g; tx.fillRect(0, 0, xe, th_ * .505); }
     if (dp > 0) { const hw = tw_ * (.04 + .3 * dp), g = tx.createLinearGradient(tw_ / 2 - hw, 0, tw_ / 2 + hw, 0); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(.12, "#000"); g.addColorStop(.88, "#000"); g.addColorStop(1, "rgba(0,0,0,0)"); tx.fillStyle = g; tx.fillRect(tw_ / 2 - hw, th_ * .505, hw * 2, th_ * .5); }
-    if ((tp > 0 || dp > 0) && ta > 0) { tx.globalCompositeOperation = "source-in"; tx.drawImage(img.text, 0, 0, tw_, th_); tx.globalCompositeOperation = "source-over"; ctx.globalAlpha = ta; thread(tc, L.tx, L.ty, L.tw, L.th); ctx.globalAlpha = 1; }
+    if (lite) {
+      if ((tp > 0 || dp > 0) && ta > 0) {
+        ctx.save(); ctx.beginPath();
+        if (tp > 0) ctx.rect(L.tx, L.ty, L.tw * 1.04 * tp, L.th * .505);
+        if (dp > 0) { const hw = L.tw * (.04 + .3 * dp); ctx.rect(L.tx + L.tw / 2 - hw, L.ty + L.th * .505, hw * 2, L.th * .5); }
+        ctx.clip(); ctx.globalAlpha = ta; ctx.drawImage(img.text, L.tx, L.ty, L.tw, L.th); ctx.restore();
+      }
+    } else if ((tp > 0 || dp > 0) && ta > 0) { tx.globalCompositeOperation = "source-in"; tx.drawImage(img.text, 0, 0, tw_, th_); tx.globalCompositeOperation = "source-over"; ctx.globalAlpha = ta; thread(tc, L.tx, L.ty, L.tw, L.th); ctx.globalAlpha = 1; }
     // shimmer over the gold thread only
     const band = (u: number, al: number) => {
       if (u <= 0 || u >= 1) return; const gp = -w * .15 + w * 1.3 * u; gx.globalCompositeOperation = "source-over"; gx.clearRect(0, 0, w, h); const g = gx.createLinearGradient(gp - w * .11, 0, gp + w * .11, h * .3); g.addColorStop(0, "rgba(255,244,205,0)"); g.addColorStop(.5, "rgba(255,247,218,1)"); g.addColorStop(1, "rgba(255,244,205,0)"); gx.fillStyle = g; gx.fillRect(0, 0, w, h);
@@ -94,8 +103,8 @@ export function makeOpeningHomeScene(cv: HTMLCanvasElement, sv: HTMLCanvasElemen
       g2x.globalCompositeOperation = "destination-in"; g2x.drawImage(tc, 0, 0); ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = al; ctx.drawImage(g2, L.tx, L.ty, L.tw, L.th); ctx.restore();
     };
     if (ta >= 1) {
-      tb((t - 3.75) / .9, .4); if (t > OH_END) tb(((t - OH_END + 1.9) % 3.8) / 1.2, .32);
-      if (t > OH_END) {
+      if (!lite) { tb((t - 3.75) / .9, .4); if (t > OH_END) tb(((t - OH_END + 1.9) % 3.8) / 1.2, .32); }
+      if (t > OH_END && !lite) {
         const br = .5 + .5 * Math.sin((t - OH_END) * Math.PI * 2 / 2.6 - Math.PI / 2), cx = L.tx + L.tw * .5, cy = L.ty + L.th * .36, rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, L.tw * .56);
         rg.addColorStop(0, `rgba(255,246,222,${.30 + .22 * br})`); rg.addColorStop(1, "rgba(255,246,222,0)"); ctx.save(); ctx.globalCompositeOperation = "soft-light"; ctx.fillStyle = rg; ctx.fillRect(cx - L.tw * .6, cy - L.th * .5, L.tw * 1.2, L.th); ctx.restore();
         ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = .10 + .12 * br; ctx.drawImage(tc, L.tx, L.ty, L.tw, L.th); ctx.restore();

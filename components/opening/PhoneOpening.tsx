@@ -63,7 +63,7 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
     window.addEventListener("scroll", onScroll, { passive: true });
     Promise.all((Object.keys(OH_SRC) as (keyof typeof OH_SRC)[]).map(load)).then(() => {
       if (!alive || !cv.current || !sv.current) return;
-      sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img, PHONE_STARS); size();
+      sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img, PHONE_STARS, true); size();
       if (home) sceneRef.current.setText(0); else setLoaded(true);
       t0 = performance.now() - (rm || home ? OH_END * 1000 : 0);
       attach();
