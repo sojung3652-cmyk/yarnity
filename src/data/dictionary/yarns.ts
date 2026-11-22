@@ -55,19 +55,19 @@ export const YARNS: Yarn[] = [
     caution: "고리 때문에 코가 잘 보이지 않고 바늘이 고리에 걸리기 쉬워 첫 작품에는 어렵습니다. 끝이 둥근 바늘을 쓰고, 코 수를 자주 셉니다. 한 번 뜬 것을 풀기도 어렵습니다.",
   },
   {
-    id: "silk", name: "실크", nameEn: "Silk", group: "animal", short: "은은한 광택, 매끄러움", seasons: ["spring", "autumn"],
+    id: "silk", image: "/dictionary/yarns/silk.jpg", name: "실크", nameEn: "Silk", group: "animal", short: "은은한 광택, 매끄러움", seasons: ["spring", "autumn"],
     traits: { warmth: 3, stretch: 1, softness: 5, care: 1, price: 5 },
     about: "누에고치에서 뽑은 단백질 섬유입니다. 은은한 광택이 있고 매끄러우며, 편물이 부드럽게 흘러내리듯 떨어집니다. 가볍지만 생각보다 따뜻해서 숄이나 여름 카디건, 울과 섞은 실로 많이 씁니다.",
     caution: "탄력이 거의 없어 편물이 길이 방향으로 늘어나기 쉽습니다. 미끄러워 실 끝이 잘 풀리니 길게 숨기고, 찬물에 중성세제로 손세탁한 뒤 그늘에 눕혀 말립니다.",
   },
   {
-    id: "cashmere", name: "캐시미어", nameEn: "Cashmere", group: "animal", short: "가장 부드럽고 가벼운 털", seasons: ["autumn", "winter"],
+    id: "cashmere", image: "/dictionary/yarns/cashmere.jpg", name: "캐시미어", nameEn: "Cashmere", group: "animal", short: "가장 부드럽고 가벼운 털", seasons: ["autumn", "winter"],
     traits: { warmth: 5, stretch: 3, softness: 5, care: 1, price: 5 },
     about: "캐시미어 염소의 가는 속털로 만든 실입니다. 울보다 훨씬 가늘고 부드러워 맨살에 닿아도 따갑지 않고, 가볍고 따뜻합니다. 목도리, 모자, 장갑처럼 피부에 직접 닿는 작은 작품에 잘 어울립니다.",
     caution: "값이 비싸고 마찰에 약해 보풀이 잘 생깁니다. 울처럼 뜨거운 물과 비비기에 줄어들 수 있으니 찬물에 살살 손세탁하고 눕혀 말립니다.",
   },
   {
-    id: "nylon", name: "나일론", nameEn: "Nylon", group: "synthetic", short: "질기고 닳지 않음", seasons: ["spring", "summer", "autumn", "winter"],
+    id: "nylon", image: "/dictionary/yarns/nylon.jpg", name: "나일론", nameEn: "Nylon", group: "synthetic", short: "질기고 닳지 않음", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 2, stretch: 4, softness: 3, care: 5, price: 2 },
     about: "아주 질기고 잘 닳지 않는 합성 섬유입니다. 단독으로보다는 울에 20~25%쯤 섞어 양말실로 많이 쓰고, 신축성이 좋아 모양이 잘 돌아옵니다. 광택 있는 리본사나 끈실로도 만들어집니다.",
     caution: "열에 약해 다리미를 직접 대면 녹을 수 있습니다. 땀을 잘 흡수하지 못해 100% 나일론 옷은 덥고 답답할 수 있습니다.",
