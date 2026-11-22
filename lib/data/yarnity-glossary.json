@@ -1920,11 +1920,12 @@
       "category": "abbr",
       "name": "사슬 공간",
       "aliases": [
-        "사슬 구멍"
+        "사슬 구멍",
+        "sp"
       ],
       "en": {
-        "us": "sp / ch-sp (chain space)",
-        "uk": "sp / ch-sp"
+        "us": "ch-sp (chain space)",
+        "uk": "ch-sp"
       },
       "ja": null,
       "symbol": null,

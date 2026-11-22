@@ -80,7 +80,7 @@ body:has(.gl){background:#F8EEEE}
 .gl-step-img{display:block;width:92px;height:70px;border-radius:10px;object-fit:cover}
 .gl-step-img.is-empty{background:repeating-linear-gradient(135deg,#EFE8E6 0 8px,#E9E1DF 8px 16px)}
 .gl-mistake{margin:0;padding:6px 8px;font-size:14px;line-height:1.75}
-.gl-related{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.gl-related{display:flex;flex-wrap:wrap;gap:8px}
 .gl-chip{display:inline-flex;align-items:center;min-height:40px;padding:0 10px;font-size:13.5px;cursor:pointer;filter:drop-shadow(-1px 1.5px 1.5px rgba(90,62,44,.1))}
 .gl-chip:hover{font-weight:600}
 
@@ -365,3 +365,4 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
 .gl-wiki-h-note{margin:0;font-size:11.5px;color:var(--ink2)}
 .gl-wiki-h-text{margin:0;font-size:13px;line-height:1.7;color:var(--ink)}
 .gl-wiki-hist li>button{margin-left:-12px}
+.gl-sym-letter.is-abbr{letter-spacing:-.02em;white-space:nowrap}

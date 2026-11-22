@@ -1,6 +1,6 @@
 // A term's chart symbol, drawn as on a crochet chart (the same shapes the app's own charts use for ch, sc, sl,
 // inc and the ring: lib/stitchSymbols.ts; the rest in that hand). A term without one shows the first letter
-// of its name.
+// of its name; a 도안 약어 term shows its US abbreviation (Kim), sized to fit the patch.
 import { SYM_PATH } from "@/lib/stitchSymbols";
 import type { GlossTerm } from "@/lib/glossary";
 
@@ -28,6 +28,10 @@ const PATH: Record<string, { d: string; fill?: boolean }> = {
 
 export function GlossSymbol({ term, size }: { term: GlossTerm; size: number }) {
   const p = term.symbol ? PATH[term.symbol] : null;
+  if (!p && term.category === "abbr" && term.en.us) {
+    const a = term.en.us.split(" (")[0].replaceAll(" / ", "/");
+    return <span className="gl-sym-letter is-abbr" style={{ fontSize: Math.max(11, Math.round(size * Math.min(0.34, 0.95 / a.length))) }} aria-hidden="true" lang="en">{a}</span>;
+  }
   if (!p) return <span className="gl-sym-letter" style={{ fontSize: Math.round(size * 0.36) }} aria-hidden="true">{term.name.slice(0, 1)}</span>;
   return (
     <svg className="gl-sym" width={size * 0.56} height={size * 0.56} viewBox="-0.6 -0.6 1.2 1.2" aria-hidden="true">
