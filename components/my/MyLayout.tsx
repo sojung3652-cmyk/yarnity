@@ -24,7 +24,7 @@ export const MY_MENU = [
   { href: "/my", label: "나의 도안집", short: "나의 도안집" },
   { href: "/my/gallery", label: "갤러리", short: "갤러리" },
   { href: "/my/wish", label: "위시 보관함", short: "위시" },
-  { href: "/my/profile", label: "나의 프로필", short: "프로필" },
+  { href: "/my/profile", label: "프로필 설정", short: "프로필" },
 ] as const;
 
 /** a picture kept in IndexedDB, as an object URL while it is shown */
@@ -85,7 +85,7 @@ export function MyLayout({ children }: { children: ReactNode }) {
     <main className={"my my-m mf" + (path === "/my/profile" ? " is-profile" : "")} id="view-my">
       <GoldDefs />
       <MobileTopBar back={() => router.push("/")} center={<h1 className="mm-head-title"><span className="title-tag">마이페이지</span></h1>} />
-      <Link href="/my/profile" className="my-m-me" aria-label="나의 프로필로">
+      <Link href="/my/profile" className="my-m-me" aria-label="프로필 설정으로">
         <Avatar size={64} />
         <span><b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주세요"}</b>{sub && <small>{sub}</small>}</span>
       </Link>
@@ -104,7 +104,7 @@ export function MyLayout({ children }: { children: ReactNode }) {
       <div className="my-bg" aria-hidden="true" />
       <div className="my-grid">
         <aside className="my-left">
-          <Link href="/my/profile" className="my-me" aria-label="나의 프로필로">
+          <Link href="/my/profile" className="my-me" aria-label="프로필 설정으로">
             <Avatar size={112} />
             <b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주세요"}</b>
             {sub && <small>{sub}</small>}

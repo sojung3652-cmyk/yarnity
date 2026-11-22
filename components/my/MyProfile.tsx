@@ -60,7 +60,7 @@ export function MyProfile() {
   const sum = pending ? backupSummary(pending) : null;
   return (
     <>
-      <MyHead title="나의 프로필" />
+      <MyHead title="프로필 설정" />
       <div className="my-prof">
         <section className="my-prof-main" aria-label="프로필">
           <div className="my-prof-top">
