@@ -261,3 +261,8 @@
   body .mfh{justify-content:center}
   body .mfh .mfh-actions{margin-top:clamp(18px,4dvh,40px)}
 }
+
+/* app home buttons in English, in the NavBar's letters (Kim): Cormorant Garamond 600, a little tracking */
+@media (max-width:999px){
+  body .mfh .mfh-en b{font:600 17px/1.2 var(--font-cormorant),"Cormorant Garamond",Georgia,serif;letter-spacing:.04em;color:#3A322D}
+}

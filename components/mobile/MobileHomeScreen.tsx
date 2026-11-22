@@ -4,7 +4,6 @@
 // 이어서 뜨기 (a dusty-rose band) when a work is on the hook -> its 따라 뜨기; 나의 도안집 (n권); AI와 상의
 // (a gold embroidered star) -> the existing AI sheet; 뜨개 용어집.
 import { useRouter } from "next/navigation";
-import { TERMS } from "@/lib/glossary";
 import { useEffect, useMemo } from "react";
 import { useApp } from "@/components/AppProvider";
 import { BookCover, GoldDefs, ProgressBar, whereOf } from "@/components/BookCover";
@@ -38,13 +37,13 @@ export function MobileHomeScreen() {
       </header>
 
       <div className="mfh-actions">
-      {/* two by two (Kim): 도안 만들기 | 마이페이지, then 뜨개 사전 | Yarni와 상의 */}
+      {/* two by two (Kim): New Pattern | My Page, then Handbook | Yarni - in English and the NavBar's letters, as the NavBar */}
       <nav className="mfh-foot mfh-top" aria-label="만들기">
         <button type="button" className="mf-patch is-yellow mfh-make" onClick={start}>
-          <span className="mfh-two"><b>도안 만들기</b></span>
+          <span className="mfh-two mfh-en" lang="en"><b>New Pattern</b></span>
         </button>
         <button type="button" className="mf-patch is-pink" onClick={() => router.push("/my")}>
-          <span className="mfh-two"><b>마이페이지</b></span>
+          <span className="mfh-two mfh-en" lang="en"><b>My Page</b></span>
         </button>
       </nav>
 
@@ -63,11 +62,11 @@ export function MobileHomeScreen() {
 
       <nav className="mfh-foot" aria-label="더 보기">
         <button type="button" className="mf-patch is-green" onClick={() => router.push("/glossary")}>
-          <span className="mfh-two"><b>뜨개 사전</b><small>{TERMS.length}개 용어</small></span>
+          <span className="mfh-two mfh-en" lang="en"><b>Handbook</b></span>
         </button>
         <button type="button" className="mf-patch is-cream mfh-ai" onClick={() => setChat(c => ({ ...c, open: true }))}>
           <img className="mfh-star" src="/mobile/diary/star.webp" alt="" />
-          <span className="mfh-two"><b>Yarni와 상의</b></span>
+          <span className="mfh-two mfh-en" lang="en"><b>Yarni</b></span>
         </button>
       </nav>
       </div>
