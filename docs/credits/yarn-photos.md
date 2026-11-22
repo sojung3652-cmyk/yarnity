@@ -1,6 +1,6 @@
 # 실 도감 사진 출처
 
-뜨개 사전 · 실 도감(`src/data/dictionary/yarns.ts`)의 사진. 모두 Unsplash에서 받았고, [Unsplash License](https://unsplash.com/license)가 적용돼요. 무료이고, 상업적 이용이 가능하고, 출처 표기 의무가 없어요. 유료인 Unsplash+ 사진은 쓰지 않았어요.
+뜨개 사전 · 실 도감(`src/data/dictionary/yarns.ts`)의 사진. "Kim이 직접 찍은 사진"이라고 적힌 것 말고는 모두 Unsplash에서 받았고, [Unsplash License](https://unsplash.com/license)가 적용돼요. 무료이고, 상업적 이용이 가능하고, 출처 표기 의무가 없어요. 유료인 Unsplash+ 사진은 쓰지 않았어요.
 
 파일은 `public/dictionary/yarns/`에 있고, 2026-11-22에 받았어요. 모두 정사각 600px JPEG예요.
 
