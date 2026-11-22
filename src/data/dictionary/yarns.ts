@@ -91,13 +91,13 @@ export const YARNS: Yarn[] = [
     caution: "털 때문에 코가 잘 보이지 않아 처음 뜨는 사람에게는 어렵습니다. 단수링을 자주 걸고, 한 번 뜬 것을 풀면 털이 엉키니 천천히 풉니다.",
   },
   {
-    id: "mink", name: "밍크사", nameEn: "Faux mink yarn", group: "synthetic", short: "털이 길고 보드라움", seasons: ["autumn", "winter"],
+    id: "mink", image: "/dictionary/yarns/mink.jpg", name: "밍크사", nameEn: "Faux mink yarn", group: "synthetic", short: "털이 길고 보드라움", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 2, softness: 5, care: 3, price: 2 },
     about: "아크릴이나 폴리에스터로 밍크 털처럼 보드랍게 만든 실입니다. 털이 길고 풍성해 단순한 짧은뜨기만으로도 포근한 편물이 되어 목도리, 모자, 인형, 쿠션에 많이 씁니다.",
     caution: "털이 날리고 코가 거의 보이지 않아 코 수를 세기 어렵습니다. 뜨는 동안 털이 많이 날리니 옷에 붙지 않게 하고, 세탁망에 넣어 약하게 빱니다.",
   },
   {
-    id: "chenille", name: "셔닐", nameEn: "Chenille", group: "special", short: "벨벳처럼 도톰하고 부드러움", seasons: ["autumn", "winter"],
+    id: "chenille", image: "/dictionary/yarns/chenille.jpg", name: "셔닐", nameEn: "Chenille", group: "special", short: "벨벳처럼 도톰하고 부드러움", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 2, softness: 5, care: 3, price: 2 },
     about: "가는 심 실에 짧은 털을 촘촘히 박아 벨벳처럼 만든 실입니다. 도톰하고 부드러워 담요, 인형, 아기 이불처럼 포근해야 하는 작품에 잘 어울립니다. '벨벳사'라고도 부릅니다.",
     caution: "코를 너무 느슨하게 뜨면 털 실이 빠져나와 고리가 생기기 쉽습니다(웜잉). 조금 촘촘하게 뜨고, 실 끝은 매듭을 지어 단단히 정리합니다.",
@@ -115,7 +115,7 @@ export const YARNS: Yarn[] = [
     caution: "꺾이면 자국이 남고, 종이 라피아는 물에 약합니다. 물세탁보다는 마른 솔로 털어 관리하고, 찌그러지면 스팀을 살짝 쐬어 모양을 잡습니다.",
   },
   {
-    id: "merino", name: "메리노 울", nameEn: "Merino wool", group: "animal", short: "가늘고 부드러운 울", seasons: ["autumn", "winter"],
+    id: "merino", image: "/dictionary/yarns/merino.jpg", name: "메리노 울", nameEn: "Merino wool", group: "animal", short: "가늘고 부드러운 울", seasons: ["autumn", "winter"],
     traits: { warmth: 5, stretch: 4, softness: 4, care: 2, price: 4 },
     about: "메리노 양의 털로 만든 울입니다. 털 한 올이 아주 가늘어 일반 울보다 훨씬 부드럽고 덜 따가워 목도리나 아기 옷처럼 피부에 닿는 작품에 많이 씁니다. 탄력이 좋아 코가 고르게 나옵니다.",
     caution: "울이라 뜨거운 물과 마찰에 줄어듭니다. 'Superwash' 표시가 없으면 찬물에 손세탁하고 눕혀 말립니다. 보풀이 생기기 쉬우니 보풀 제거기로 가볍게 정리합니다.",

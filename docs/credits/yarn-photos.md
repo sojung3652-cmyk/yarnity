@@ -18,5 +18,8 @@
 | nylon.jpg | 나일론 | https://unsplash.com/photos/q2rwcbQEUQ4 (편물 부분만 확대해 자르고 오른쪽으로 90° 돌림) |
 | polyester.jpg | 폴리에스터 | https://unsplash.com/photos/-5gx3fOCkb8 |
 | nalgae.jpg | 날개사 | Kim이 직접 찍은 사진 |
+| merino.jpg | 메리노 울 | https://unsplash.com/photos/Jsoc9j82ErY (스웨터 몸판만 확대해 자름) |
+| mink.jpg | 밍크사 | https://unsplash.com/photos/VGAj7fxL_ao (재킷의 털 부분만 크게 확대해 자름) |
+| chenille.jpg | 셔닐 | https://unsplash.com/photos/tzZU01BLJ4o |
 
 사진은 그 실과 질감이 비슷한 편물을 가까이 찍은 것이에요. 사진 설명에 실의 소재가 적혀 있지 않아서, 실제로 그 소재로 뜬 편물이라는 보장은 없어요.
