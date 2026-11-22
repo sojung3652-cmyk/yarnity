@@ -143,5 +143,7 @@
 /* 완성 도안 보기 on screen (Kim: too white): the sheet on the glossary list's grained cream paper; printing keeps
    it white (the print rules come first and set their own background) */
 @media screen and (min-width:768px){
-  .ps-main .ps-sheet{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E") 0 0 / 160px 160px,#FCF9F3}
+  /* ...lighter, and its gold lines in warm grey (Kim: easier to read) */
+  .ps-main{--gold-l:#D8D0C8;--ps-rule:#D8D0C8;--ps-hair:rgba(142,131,121,.2)}
+  .ps-main .ps-sheet{box-shadow:-5px 8px 22px -12px rgba(70,56,40,.24),0 0 0 1px rgba(142,131,121,.22);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.15'/%3E%3C/svg%3E") 0 0 / 160px 160px,#FEFCF8}
 }
