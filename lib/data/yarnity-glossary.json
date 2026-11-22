@@ -2421,14 +2421,15 @@
     {
       "id": "second_sock",
       "category": "community",
-      "name": "세컨드 삭 증후군",
+      "name": "Second Sock Syndrome",
       "aliases": [
-        "두 번째 양말 증후군",
-        "SSS"
+        "SSS",
+        "세컨드 삭 증후군",
+        "두 번째 양말 증후군"
       ],
       "en": {
-        "us": "Second Sock Syndrome",
-        "uk": "Second Sock Syndrome"
+        "us": "SSS · Second Sock Syndrome",
+        "uk": "SSS · Second Sock Syndrome"
       },
       "ja": null,
       "symbol": null,
@@ -2437,36 +2438,14 @@
       "steps": [],
       "mistake": null,
       "related": [
-        "startitis",
-        "ufo"
-      ],
-      "verified": "2+",
-      "sources": [],
-      "note": null
-    },
-    {
-      "id": "startitis",
-      "category": "community",
-      "name": "시작병",
-      "aliases": [
-        "스타티티스"
-      ],
-      "en": {
-        "us": "startitis",
-        "uk": "startitis"
-      },
-      "ja": null,
-      "symbol": null,
-      "summary": "하던 작품은 그대로 두고 새 작품만 자꾸 시작하고 싶어지는 병이에요. 새 실과 새 도안을 보면 특히 심해져요.",
-      "difficulty": 1,
-      "steps": [],
-      "mistake": null,
-      "related": [
         "ufo",
         "wip"
       ],
       "verified": "2+",
-      "sources": [],
+      "sources": [
+        "knitpro_slang",
+        "rosygreen_slang"
+      ],
       "note": null
     },
     {
@@ -2477,8 +2456,8 @@
         "미완성작"
       ],
       "en": {
-        "us": "UFO (UnFinished Object)",
-        "uk": "UFO (UnFinished Object)"
+        "us": "UnFinished Object",
+        "uk": "UnFinished Object"
       },
       "ja": null,
       "symbol": null,
@@ -2491,7 +2470,10 @@
         "second_sock"
       ],
       "verified": "2+",
-      "sources": [],
+      "sources": [
+        "knitpro_slang",
+        "rosygreen_slang"
+      ],
       "note": null
     },
     {
@@ -2502,8 +2484,8 @@
         "진행 중 작품"
       ],
       "en": {
-        "us": "WIP (Work In Progress)",
-        "uk": "WIP (Work In Progress)"
+        "us": "Work In Progress",
+        "uk": "Work In Progress"
       },
       "ja": null,
       "symbol": null,
@@ -2512,23 +2494,27 @@
       "steps": [],
       "mistake": null,
       "related": [
-        "ufo",
-        "startitis"
+        "ufo"
       ],
       "verified": "2+",
-      "sources": [],
+      "sources": [
+        "knitpro_slang",
+        "rosygreen_slang"
+      ],
       "note": null
     },
     {
       "id": "stash",
       "category": "community",
-      "name": "실 스태시",
+      "name": "Stash",
       "aliases": [
+        "스태시",
+        "실 스태시",
         "쟁여둔 실"
       ],
       "en": {
-        "us": "stash",
-        "uk": "stash"
+        "us": null,
+        "uk": null
       },
       "ja": null,
       "symbol": null,
@@ -2540,17 +2526,22 @@
         "sable"
       ],
       "verified": "2+",
-      "sources": [],
+      "sources": [
+        "knitpro_slang",
+        "gathered_terms"
+      ],
       "note": null
     },
     {
       "id": "sable",
       "category": "community",
       "name": "SABLE",
-      "aliases": [],
+      "aliases": [
+        "세이블"
+      ],
       "en": {
-        "us": "SABLE (Stash Acquisition Beyond Life Expectancy)",
-        "uk": "SABLE (Stash Acquisition Beyond Life Expectancy)"
+        "us": "Stash Acquisition Beyond Life Expectancy",
+        "uk": "Stash Acquisition Beyond Life Expectancy"
       },
       "ja": null,
       "symbol": null,
@@ -2562,19 +2553,23 @@
         "stash"
       ],
       "verified": "2+",
-      "sources": [],
+      "sources": [
+        "knitpro_slang",
+        "gathered_terms"
+      ],
       "note": null
     },
     {
       "id": "tink",
       "category": "community",
-      "name": "팅크",
+      "name": "Tink",
       "aliases": [
+        "팅크",
         "한 코씩 풀기"
       ],
       "en": {
-        "us": "tink (knit backwards)",
-        "uk": "tink (knit backwards)"
+        "us": "knit을 거꾸로 쓴 말",
+        "uk": "knit을 거꾸로 쓴 말"
       },
       "ja": null,
       "symbol": null,
@@ -2586,17 +2581,22 @@
         "frog"
       ],
       "verified": "2+",
-      "sources": [],
+      "sources": [
+        "knitpro_slang",
+        "gathered_terms"
+      ],
       "note": null
     },
     {
       "id": "yarn_barf",
       "category": "community",
-      "name": "실 토하기",
-      "aliases": [],
+      "name": "Yarn Barf",
+      "aliases": [
+        "실 토하기"
+      ],
       "en": {
-        "us": "yarn barf",
-        "uk": "yarn barf"
+        "us": null,
+        "uk": null
       },
       "ja": null,
       "symbol": null,
@@ -2608,19 +2608,23 @@
         "ball"
       ],
       "verified": "2+",
-      "sources": [],
+      "sources": [
+        "knitpro_slang",
+        "gathered_terms"
+      ],
       "note": null
     },
     {
       "id": "sweater_curse",
       "category": "community",
-      "name": "남자친구 스웨터 저주",
+      "name": "Sweater Curse",
       "aliases": [
-        "스웨터의 저주"
+        "스웨터의 저주",
+        "남자친구 스웨터 저주"
       ],
       "en": {
-        "us": "sweater curse",
-        "uk": "sweater curse"
+        "us": null,
+        "uk": null
       },
       "ja": null,
       "symbol": null,
@@ -2630,7 +2634,9 @@
       "mistake": null,
       "related": [],
       "verified": "2+",
-      "sources": [],
+      "sources": [
+        "wiki_sweater_curse"
+      ],
       "note": null
     },
     {
@@ -2638,11 +2644,13 @@
       "category": "community",
       "name": "KAL · CAL",
       "aliases": [
-        "함께 뜨기"
+        "함께 뜨기",
+        "KAL",
+        "CAL"
       ],
       "en": {
-        "us": "KAL / CAL (knit-along / crochet-along)",
-        "uk": "KAL / CAL (knit-along / crochet-along)"
+        "us": "Knit-Along · Crochet-Along",
+        "uk": "Knit-Along · Crochet-Along"
       },
       "ja": null,
       "symbol": null,
@@ -2652,49 +2660,10 @@
       "mistake": null,
       "related": [],
       "verified": "2+",
-      "sources": [],
-      "note": null
-    },
-    {
-      "id": "ttulini",
-      "category": "community",
-      "name": "뜨린이",
-      "aliases": [],
-      "en": {
-        "us": null,
-        "uk": null
-      },
-      "ja": null,
-      "symbol": null,
-      "summary": "뜨개와 어린이를 합친 말로, 뜨개를 막 시작한 초보를 귀엽게 부르는 말이에요.",
-      "difficulty": 1,
-      "steps": [],
-      "mistake": null,
-      "related": [],
-      "verified": "2+",
-      "sources": [],
-      "note": null
-    },
-    {
-      "id": "ttutaegi",
-      "category": "community",
-      "name": "뜨태기",
-      "aliases": [],
-      "en": {
-        "us": null,
-        "uk": null
-      },
-      "ja": null,
-      "symbol": null,
-      "summary": "뜨개와 권태기를 합친 말로, 바늘을 잡기 싫어지는 시기예요. 보통 새 실을 사면 낫는다고들 해요.",
-      "difficulty": 1,
-      "steps": [],
-      "mistake": null,
-      "related": [
-        "stash"
+      "sources": [
+        "rosygreen_slang",
+        "yarncom_kal"
       ],
-      "verified": "2+",
-      "sources": [],
       "note": null
     }
   ],
@@ -2712,7 +2681,12 @@
     "moon": "https://stibee.com/api/v1.0/emails/share/cR6fj2jT03F0C0XLFDi43Vcd0SZHmh4",
     "gwangsu": "https://maily.so/trendaword/posts/g1o4gdy6ove",
     "tulip": "https://artbeads.com/tulip-crochet-hook-size-5-0-3-00mm",
-    "gmarket": "https://item.gmarket.co.kr/Item?goodscode=657774301"
+    "gmarket": "https://item.gmarket.co.kr/Item?goodscode=657774301",
+    "knitpro_slang": "https://www.knitpro.eu/blog/knitters-slang/en",
+    "rosygreen_slang": "https://rosygreenwool.com/en/blogs/knitting-blog/secretlanguage",
+    "gathered_terms": "https://www.gathered.how/knitting-and-crochet/knitting/knitting-terms-explained/",
+    "wiki_sweater_curse": "https://en.wikipedia.org/wiki/Sweater_curse",
+    "yarncom_kal": "https://www.yarn.com/pages/knit-alongs-and-crochet-alongs"
   },
   "notes": {
     "verified": "2+ = 두 곳 이상 확인, 1 = 한 곳에서만 확인, conflict = 출처마다 이름이 다름 (note 참고)",

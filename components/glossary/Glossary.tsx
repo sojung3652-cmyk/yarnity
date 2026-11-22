@@ -116,6 +116,8 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
           <p className="gl-d-cat">{categoryOf(term).name}</p>
           <h2 id={`glt-${term.id}`}>{term.name}</h2>
           <p className="gl-d-line">{line(term)}</p>
+          {/* 뜨개인의 언어 have no US/UK patch, so an abbreviation's full form (or an English word's origin) goes here (Kim) */}
+          {term.category === "community" && term.en.us && <p className="gl-d-alias">원래 말 · <span lang="en">{term.en.us}</span></p>}
           {term.aliases.length > 0 && <p className="gl-d-alias">다른 이름 · {term.aliases.join(", ")}</p>}
         </div>
       </header>
