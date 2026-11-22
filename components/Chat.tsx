@@ -7,16 +7,16 @@ import { YARN_KO, type Weight } from "@/lib/pattern";
 import type { Draft } from "@/lib/types";
 
 const ERR: Record<string, string> = {
-  not_configured: "Yarni 대화를 지금 쓸 수 없어요. 왼쪽 칸만으로도 만들 수 있어요.",
-  not_granted: "Yarni 사용이 허용되지 않았어요. 왼쪽 칸만으로도 만들 수 있어요.",
-  rate_limited: "잠시 뒤에 다시 보내 주세요.",
-  image_rejected: "이 사진은 읽을 수 없어요. 다른 사진으로 해 볼까요?",
-  invalid_json: "답을 정리하지 못했어요. 한 번만 다시 보내 주세요.",
-  refused: "그 요청은 도와드리기 어려워요.",
+  not_configured: "Yarni 대화를 지금 쓸 수 없습니다. 왼쪽 칸만으로도 만들 수 있습니다.",
+  not_granted: "Yarni 사용이 허용되지 않았습니다. 왼쪽 칸만으로도 만들 수 있습니다.",
+  rate_limited: "잠시 뒤에 다시 보내 주십시오.",
+  image_rejected: "이 사진은 읽을 수 없습니다. 다른 사진으로 해 보시겠습니까?",
+  invalid_json: "답을 정리하지 못했습니다. 한 번만 다시 보내 주십시오.",
+  refused: "그 요청은 도와드리기 어렵습니다.",
 };
 // errors after which the chat is switched off and the form-only flow remains (prototype offChat)
 const FATAL = ["not_configured", "not_granted"];
-const PLACEHOLDER = "만들고 싶은 작품을 말해 주세요";
+const PLACEHOLDER = "만들고 싶은 작품을 말해 주십시오";
 
 let availabilityRequested = false;
 let msgId = 1;
@@ -73,18 +73,18 @@ export function Chat({ draft, applySet }: { draft: Draft; applySet: (s: unknown)
       const out = res as ChatReply;
       const applied = applySet(out.set);
       turns.current.push({ role: "assistant", content: JSON.stringify(out) });
-      setChat(c => ({ ...c, chips: out.chips || [], msgs: [...c.msgs.filter(m => m.id !== thinkId), { id: nextId(), kind: "ai", text: String(out.reply || "알겠어요."), applied }] }));
+      setChat(c => ({ ...c, chips: out.chips || [], msgs: [...c.msgs.filter(m => m.id !== thinkId), { id: nextId(), kind: "ai", text: String(out.reply || "알겠습니다."), applied }] }));
     } catch (e) {
       turns.current.pop();
       const code = e instanceof ChatError ? e.code : "";
-      setChat(c => ({ ...c, msgs: [...c.msgs.filter(m => m.id !== thinkId), { id: nextId(), kind: "note", text: ERR[code] || "연결이 잠깐 끊겼어요. 다시 보내 주세요." }] }));
+      setChat(c => ({ ...c, msgs: [...c.msgs.filter(m => m.id !== thinkId), { id: nextId(), kind: "note", text: ERR[code] || "연결이 잠깐 끊겼습니다. 다시 보내 주십시오." }] }));
       if (FATAL.includes(code)) offChat();
     } finally { setBusy(false); }
   }
 
   return (
     <section className="card chat" aria-label="Yarni와 모양 정하기">
-      <div className="chat-head"><h2>Yarni와 모양 정하기</h2><span className="small muted" id="chatStatus">{chat.off ? "왼쪽 칸으로 만들 수 있어요" : ""}</span></div>
+      <div className="chat-head"><h2>Yarni와 모양 정하기</h2><span className="small muted" id="chatStatus">{chat.off ? "왼쪽 칸으로 만들 수 있습니다" : ""}</span></div>
       <div className="msgs" id="msgs" aria-live="polite" ref={msgsRef}>
         {chat.msgs.map((m: ChatMsg) => (
           <div key={m.id} className={"msg " + m.kind}>
@@ -107,7 +107,7 @@ export function Chat({ draft, applySet }: { draft: Draft; applySet: (s: unknown)
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" /><circle cx="9" cy="11" r="2" /><path d="M21 16l-5-5-8 8" /></svg>
         </label>
         <label htmlFor="chatInput" className="sr">메시지</label>
-        <input id="chatInput" ref={inputRef} className="txt" placeholder={pending ? "사진을 붙였어요. 무엇을 만들고 싶나요?" : PLACEHOLDER} autoComplete="off" value={input} onChange={e => setInput(e.target.value)} />
+        <input id="chatInput" ref={inputRef} className="txt" placeholder={pending ? "사진을 붙였습니다. 무엇을 만들고 싶습니까?" : PLACEHOLDER} autoComplete="off" value={input} onChange={e => setInput(e.target.value)} />
         <button className="icon-btn fill" id="sendBtn" type="submit" aria-label="보내기" disabled={busy}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
         </button>

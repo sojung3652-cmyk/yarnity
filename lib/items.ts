@@ -43,7 +43,7 @@ export const ITEMS: Item[] = [
   { id: "placemat", name: "테이블 매트", group: "납작한 것", kind: "flat-round", shapes: ["oval", "rect"], defaults: { shape: "oval", a: 40, b: 30 }, range: { a: [25, 60], b: [20, 45] },
     desc: "접시 아래 까는 식탁 매트", level: "보통", time: "반나절", method: "가운데 사슬에서 바깥으로" },
   { id: "rug", name: "러그", group: "납작한 것", kind: "flat-round", shapes: ["circle", "oval"], defaults: { shape: "circle", a: 60 }, ovalDefault: { a: 90, b: 60 }, range: { a: [40, 120], b: [30, 90] },
-    desc: "바닥에 까는 작은 러그", level: "보통", time: "주말 이틀", method: "바닥만 크게", note: "굵은 실을 추천해요." },
+    desc: "바닥에 까는 작은 러그", level: "보통", time: "주말 이틀", method: "바닥만 크게", note: "굵은 실을 추천합니다." },
   // ---- 담는 것 (base-body, no handle) ----
   { id: "basket", name: "바구니", group: "담는 것", kind: "base-body", shapes: ["circle", "oval", "rect"], defaults: { shape: "circle", a: 18, b: 12, h: 12, handle: "none" }, range: { a: [10, 35], b: [8, 30], h: [5, 30] },
     desc: "자잘한 물건을 담는 바구니", level: "보통", time: "하루", method: "바닥 → 몸통" },
@@ -75,7 +75,7 @@ export const ITEMS: Item[] = [
   { id: "blanket", name: "담요", group: "그 밖에", kind: "flat-rows", defaults: { a: 80, b: 100 }, range: { a: [50, 150], b: [60, 200] },
     desc: "무릎에 덮는 담요", level: "보통", time: "한 달", method: "사슬 → 왕복뜨기" },
   { id: "beanie", name: "비니", group: "그 밖에", kind: "base-body", shapes: ["circle"], beta: true, defaults: { shape: "circle", a: 0, h: 0, handle: "none", circ: 56, depth: 20 }, range: { circ: [44, 62], depth: [15, 26] },
-    desc: "정수리부터 둥글게 뜨는 모자", level: "보통", time: "주말 하루", method: "정수리(원형) → 몸통", note: "베타: 정수리가 평평하게 나올 수 있어요." },
+    desc: "정수리부터 둥글게 뜨는 모자", level: "보통", time: "주말 하루", method: "정수리(원형) → 몸통", note: "베타: 정수리가 평평하게 나올 수 있습니다." },
 ];
 
 /** Handle lengths offered for bags (cm): carried in the hand, on the shoulder, across the body. */

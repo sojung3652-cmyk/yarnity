@@ -26,7 +26,7 @@ const STEP_NAME = ["", "이름", "품목", "실과 크기", "확인"];
 export function progressOf(p: Project) {
   const pp = plan(p), total = pp.rows.length, cur = Math.min(p.current || 0, total);
   const r = pp.rows[Math.min(cur, total - 1)];
-  const where = cur >= total ? "다 떴어요" : r.part === "start" ? "시작 사슬" : /단$/.test(r.label) ? `${PART_KO[r.part]} ${r.label}째` : r.label;
+  const where = cur >= total ? "다 떴습니다" : r.part === "start" ? "시작 사슬" : /단$/.test(r.label) ? `${PART_KO[r.part]} ${r.label}째` : r.label;
   return { total, cur, where, pos: `${Math.min(cur + 1, total)} / ${total}`, pct: total ? cur / total : 0 };
 }
 
@@ -84,15 +84,15 @@ export function FirstPage({ onClose, overlay }: { onClose: () => void; overlay?:
           <p className="m1-cap" lang="en">Intelligent Crochet</p>
           <span className="m1-rule" aria-hidden="true" />
           <p className="m1-tag" lang="en">Your Personal Crochet Pattern Studio</p>
-          <p className="m1-ko">아이디어만 있으면,<br />나만의 뜨개질 도안을 만들 수 있어요.</p>
+          <p className="m1-ko">아이디어만 있으면,<br />나만의 뜨개질 도안을 만들 수 있습니다.</p>
         </header>
         <nav className="m1-acts" aria-label="시작하기">
           <button type="button" className="m-label is-yellow m1-act" aria-expanded={hasDraft ? choose : undefined} onClick={make}>
-            <span className="m-label-in"><span className="m1-act-text"><b>도안 만들기</b><small>실과 크기만 정하면 코 수를 계산해요</small></span><span className="m1-act-end">{choose ? "닫기" : "시작"}</span></span>
+            <span className="m-label-in"><span className="m1-act-text"><b>도안 만들기</b><small>실과 크기만 정하면 코 수를 계산합니다</small></span><span className="m1-act-end">{choose ? "닫기" : "시작"}</span></span>
           </button>
           {choose && (
             <div className="m1-choose" role="group" aria-label="도안 만들기">
-              <button type="button" className="m-label is-apricot m1-sub" onClick={fresh}><span className="m-label-in"><span className="m1-act-text"><b>새 도안 만들기</b><small>처음부터 시작해요</small></span></span></button>
+              <button type="button" className="m-label is-apricot m1-sub" onClick={fresh}><span className="m-label-in"><span className="m1-act-text"><b>새 도안 만들기</b><small>처음부터 시작합니다</small></span></span></button>
               <button type="button" className="m-label is-lilac m1-sub" onClick={() => book.startWizard(step)}><span className="m-label-in"><span className="m1-act-text"><b>이어서 만들기</b><small>{`${draft.name.trim() || "이름 없는 작품"} · ${STEP_NAME[step]}부터`}</small></span></span></button>
             </div>
           )}
@@ -102,7 +102,7 @@ export function FirstPage({ onClose, overlay }: { onClose: () => void; overlay?:
             </button>
           )}
           <Link className="m-label is-rose m1-act" href="/library">
-            <span className="m-label-in"><span className="m1-act-text"><b>나의 도안집</b><small>뜨던 곳부터 이어서</small></span><span className="m1-act-end">{count ? `${count}개` : "아직 없어요"}</span></span>
+            <span className="m-label-in"><span className="m1-act-text"><b>나의 도안집</b><small>뜨던 곳부터 이어서</small></span><span className="m1-act-end">{count ? `${count}개` : "아직 없습니다"}</span></span>
           </Link>
         </nav>
         <div className="m1-orn" aria-hidden="true"><i /><span /><i /></div>

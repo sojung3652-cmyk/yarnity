@@ -140,7 +140,7 @@ export function ImportedViewer({ id }: { id: string }) {
 
   if (!ready) return null;
   if (!p) return (
-    <div className="iv-missing"><p>이 도안을 찾지 못했어요.</p><Link href="/my" className="my-btn is-sub">나의 도안집으로</Link></div>
+    <div className="iv-missing"><p>이 도안을 찾지 못했습니다.</p><Link href="/my" className="my-btn is-sub">나의 도안집으로</Link></div>
   );
   if (!view) return null;
   const pageN = p.pageCount, top = view.markerY * paperH, bh = view.markerH * paperH;
@@ -156,7 +156,7 @@ export function ImportedViewer({ id }: { id: string }) {
       </aside>
 
       <div className="iv-stage" ref={stageRef}>
-        {bad ? <p className="iv-bad">이 쪽을 그리지 못했어요.</p> : (
+        {bad ? <p className="iv-bad">이 쪽을 그리지 못했습니다.</p> : (
           <div className="iv-paper" ref={paperRef} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
             <canvas ref={canvasRef} className="iv-canvas" role="img" aria-label={`${p.title} ${view.page + 1}쪽`} />
             {paperH > 0 && <>
@@ -180,7 +180,7 @@ export function ImportedViewer({ id }: { id: string }) {
             <p className="iv-num" aria-live="polite"><b>{p.row}</b><span>단</span></p>
             <button type="button" className="iv-step" aria-label="한 단 끝" onClick={() => step(1)}>+</button>
           </div>
-          <p className="iv-help">줄 표시가 같이 내려가요 · Space 한 단 끝</p>
+          <p className="iv-help">줄 표시가 같이 내려갑니다 · Space 한 단 끝</p>
         </section>
         <section className="iv-card iv-memo">
           <label htmlFor="ivMemo" className="iv-label">내 메모</label>
@@ -203,15 +203,15 @@ export function ImportedViewer({ id }: { id: string }) {
           <span aria-hidden="true">·</span>
           <button type="button" onClick={() => setAsking(true)}>지우기</button>
         </p>
-        {p.status === "done" && <p className="iv-done-note">완성했어요{p.finishedAt ? ` · ${new Date(p.finishedAt).toLocaleDateString("ko-KR")}` : ""}</p>}
+        {p.status === "done" && <p className="iv-done-note">완성했습니다{p.finishedAt ? ` · ${new Date(p.finishedAt).toLocaleDateString("ko-KR")}` : ""}</p>}
       </aside>
 
       {editing && <MyImport edit={p} onClose={() => setEditing(false)} />}
       {asking && (
         <div className="my-dim" onMouseDown={e => { if (e.target === e.currentTarget) setAsking(false); }}>
           <div className="my-sheet im-ask" role="alertdialog" aria-modal="true" aria-label="도안 지우기">
-            <h2>이 도안을 지울까요?</h2>
-            <p className="my-sheet-text">{p.title} · 되돌릴 수 없어요.</p>
+            <h2>이 도안을 지우시겠습니까?</h2>
+            <p className="my-sheet-text">{p.title} · 되돌릴 수 없습니다.</p>
             <div className="my-sheet-foot">
               <button type="button" className="my-btn is-sub" autoFocus onClick={() => setAsking(false)}>취소</button>
               <button type="button" className="my-btn" onClick={async () => { await removeImported(p.id).catch(() => {}); router.push("/my"); }}>지우기</button>

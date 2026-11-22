@@ -22,8 +22,8 @@ export function CoverPicker({ p, onPick, onClose, first }: { p: Project; onPick:
         <GoldDefs />
         <span className="cpk-grip" aria-hidden="true" />
         <header className="cpk-head">
-          <h2 id="cpkTitle">{first ? "도안이 완성됐어요. 표지를 골라 주세요" : "표지 바꾸기"}</h2>
-          <p>나의 도안집에 이 표지로 꽂혀요. 나중에 바꿀 수 있어요.</p>
+          <h2 id="cpkTitle">{first ? "도안이 완성되었습니다. 표지를 골라 주십시오" : "표지 바꾸기"}</h2>
+          <p>나의 도안집에 이 표지로 꽂힙니다. 나중에 바꿀 수 있습니다.</p>
         </header>
         <div className="cpk-scroll">
           {SETS.map(s => (
@@ -40,8 +40,8 @@ export function CoverPicker({ p, onPick, onClose, first }: { p: Project; onPick:
           ))}
         </div>
         <footer className="cpk-foot">
-          <button type="button" className="cpk-later" onClick={onClose}>{first ? "나중에 고를게요" : "닫기"}</button>
-          <ClothPatch color="yellow" disabled={!sel} onClick={() => sel && onPick(sel)}>이 표지로 할게요</ClothPatch>
+          <button type="button" className="cpk-later" onClick={onClose}>{first ? "나중에 고르겠습니다" : "닫기"}</button>
+          <ClothPatch color="yellow" disabled={!sel} onClick={() => sel && onPick(sel)}>이 표지로 하겠습니다</ClothPatch>
         </footer>
       </section>
     </div>

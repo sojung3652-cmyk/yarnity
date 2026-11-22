@@ -22,12 +22,12 @@ import { GoldX } from "@/components/GoldX";
 const NAMES = ["이름", "품목", "실과 크기", "확인"];
 // per screen [step][sub]: the bar's name, the question, the foot button
 const SCREEN: Record<string, { name: string; q?: ReactNode; next: string }> = {
-  "1-0": { name: "이름", q: <>이 작품의 이름을<br />지어 주세요</>, next: "다음 · 품목 고르기" },
-  "2-0": { name: "품목", q: "무엇을 뜰까요?", next: "" },
-  "3-0": { name: "실", q: "어떤 실로 뜰까요?", next: "다음 · 바늘과 크기" },
-  "3-1": { name: "바늘과 크기", q: "어떤 바늘로, 어떤 크기로 뜰까요?", next: "다음 · 준비물 확인" },
-  "4-0": { name: "준비물 확인", q: "준비물을 확인해요", next: "다음 · 미리 보기" },
-  "4-1": { name: "미리 보기", q: "이렇게 완성돼요", next: "" },
+  "1-0": { name: "이름", q: <>이 작품의 이름을<br />지어 주십시오</>, next: "다음 · 품목 고르기" },
+  "2-0": { name: "품목", q: "무엇을 뜨시겠습니까?", next: "" },
+  "3-0": { name: "실", q: "어떤 실로 뜨시겠습니까?", next: "다음 · 바늘과 크기" },
+  "3-1": { name: "바늘과 크기", q: "어떤 바늘로, 어떤 크기로 뜨시겠습니까?", next: "다음 · 준비물 확인" },
+  "4-0": { name: "준비물 확인", q: "준비물을 확인합니다", next: "다음 · 미리 보기" },
+  "4-1": { name: "미리 보기", q: "이렇게 완성됩니다", next: "" },
 };
 /** 코스터로 / 가방으로 / 숄로: 로 after a vowel or ㄹ, 으로 after other final consonants */
 const ro = (w: string) => { const c = w.charCodeAt(w.length - 1) - 0xac00; const jong = c >= 0 && c < 11172 ? c % 28 : 0; return w + (jong === 0 || jong === 8 ? "로" : "으로"); };
@@ -80,7 +80,7 @@ export function MobileFlowWizard() {
     : step === 2 ? v.left
     : step === 3 ? (sub === 0 ? v.left : <>{v.left}{v.right}</>)
     : sub === 0 ? v.left : v.right;
-  const nextText = step === 2 ? (picked ? `${ro(item.name)} 할게요 · 다음` : "품목을 골라 주세요") : sc.next;
+  const nextText = step === 2 ? (picked ? `${ro(item.name)} 하겠습니다 · 다음` : "품목을 골라 주십시오") : sc.next;
   const blocked = step === 2 ? !picked : last && s.blocked && step === 4;
 
   return (
@@ -134,8 +134,8 @@ export function MobileFlowWizard() {
               <div><dt>뜨는 순서</dt><dd>{item.method.split("→").map(x => x.trim()).filter(Boolean).join(" → ")}</dd></div>
             </dl>
             {item.note && <p className="mfw-note">{item.note}</p>}
-            <button type="button" className="mf-label is-yellow mfw-next" onClick={() => { setIntro(false); next(); }}><span className="mf-label-in">이걸로 할게요 · 다음</span></button>
-            <button type="button" className="mfw-other" onClick={() => setIntro(false)}>다른 것 볼게요</button>
+            <button type="button" className="mf-label is-yellow mfw-next" onClick={() => { setIntro(false); next(); }}><span className="mf-label-in">이걸로 하겠습니다 · 다음</span></button>
+            <button type="button" className="mfw-other" onClick={() => setIntro(false)}>다른 것 보겠습니다</button>
           </section>
         </div>
       )}

@@ -12,7 +12,7 @@ export function CopyLot({ lot, className = "" }: { lot: string; className?: stri
     catch { const t = document.createElement("textarea"); t.value = lot; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
     setDone(true); setTimeout(() => setDone(false), 1600);
   };
-  return <button type="button" className={"lot-copy " + className} onClick={copy} aria-label={`LOT ${lot} 복사`}>{done ? "복사했어요" : "복사"}</button>;
+  return <button type="button" className={"lot-copy " + className} onClick={copy} aria-label={`LOT ${lot} 복사`}>{done ? "복사했습니다" : "복사"}</button>;
 }
 
 export function YarnInfo({ p }: { p: Project }) {

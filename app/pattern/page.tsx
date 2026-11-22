@@ -110,8 +110,8 @@ export function PatternScreen() {
             <h2 className="ps-box-title">게이지</h2>
             <p className="ps-gauge"><b>{fmt(pp.g.h * 10)}</b><span>mm</span></p>
             <p className="ps-small">한 코 높이 · {pp.g.measured ? "직접 잰 값" : "예상 값"}</p>
-            <p className="ps-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산해요." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드려요."}</p>
-            <p className="ps-small ps-rule"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 떠요." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세워요."} 짧은뜨기의 기둥사슬은 코 수에 세지 않아요.</p>
+            <p className="ps-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산합니다." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드립니다."}</p>
+            <p className="ps-small ps-rule"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 뜹니다." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세웁니다."} 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다.</p>
           </div>
         </section>
 
@@ -130,8 +130,8 @@ export function PatternScreen() {
                         <td><GlossText text={r.how} /><small>{r.why}</small></td>
                         <td className="ps-n">{r.n}<span>코</span></td>
                       </tr>
-                      {r.part === "bottom" && r.no === 3 && <tr className="ps-note"><td colSpan={3}><span>※</span>여기서 한 번 지름을 재면 남은 단을 다시 계산해요.</td></tr>}
-                      {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <tr className="ps-note"><td colSpan={3}><span>※</span>5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드려요.</td></tr>}
+                      {r.part === "bottom" && r.no === 3 && <tr className="ps-note"><td colSpan={3}><span>※</span>여기서 한 번 지름을 재면 남은 단을 다시 계산합니다.</td></tr>}
+                      {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <tr className="ps-note"><td colSpan={3}><span>※</span>5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드립니다.</td></tr>}
                     </Fragment>
                   ))}
                 </tbody>

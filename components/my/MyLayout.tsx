@@ -87,7 +87,7 @@ export function MyLayout({ children }: { children: ReactNode }) {
       <MobileTopBar back={() => router.push("/")} center={<h1 className="mm-head-title"><span className="title-tag">마이페이지</span></h1>} />
       <Link href="/my/profile" className="my-m-me" aria-label="프로필 설정으로">
         <Avatar size={64} />
-        <span><b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주세요"}</b>{sub && <small>{sub}</small>}</span>
+        <span><b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주십시오"}</b>{sub && <small>{sub}</small>}</span>
       </Link>
       <nav className="my-m-tabs" aria-label="마이페이지">
         {MY_MENU.map(it => {
@@ -106,7 +106,7 @@ export function MyLayout({ children }: { children: ReactNode }) {
         <aside className="my-left">
           <Link href="/my/profile" className="my-me" aria-label="프로필 설정으로">
             <Avatar size={112} />
-            <b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주세요"}</b>
+            <b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주십시오"}</b>
             {sub && <small>{sub}</small>}
           </Link>
           <nav className="my-menu" aria-label="My Page">

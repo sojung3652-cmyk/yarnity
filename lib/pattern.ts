@@ -125,11 +125,11 @@ export function plan(p: PlanInput): Plan {
       : last;
     let prevN = last;
     for (let i = 0; i < bodyRows; i++) {
-      if (top === last) { rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라가요" : `${last}코 그대로`, inc: 0 } as Row); continue; }
+      if (top === last) { rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라갑니다" : `${last}코 그대로`, inc: 0 } as Row); continue; }
       // widening body: the extra stitches spread evenly over the rows (round 1 of the body stays straight)
       const n = i === 0 ? last : Math.round(last + (top - last) * i / (bodyRows - 1)), inc = n - prevN;
       rows.push({ part: "body", n, how: inc ? `짧은뜨기 ${n}코 (늘림 ${inc}코를 고르게 나눠서)` : `늘림 없이 짧은뜨기 ${n}코`,
-        why: i === 0 ? "여기서부터 위로 올라가요" : inc ? `${prevN} + 늘림 ${inc} = ${n} · 위로 갈수록 넓어져요` : `${n}코 그대로`, inc } as Row);
+        why: i === 0 ? "여기서부터 위로 올라갑니다" : inc ? `${prevN} + 늘림 ${inc} = ${n} · 위로 갈수록 넓어집니다` : `${n}코 그대로`, inc } as Row);
       prevN = n;
     }
     const rimN = prevN;

@@ -34,7 +34,7 @@ export function MyProfile() {
     try {
       const blob = await makeBackup(), d = new Date(), a = document.createElement("a");
       // only when it is so (Kim): the 가져온 도안's PDFs make the file big - said once, after it is made
-      if (blob.size > 20 * 1024 * 1024) setBigNote(`가져온 도안이 들어 있어 파일이 커요 (약 ${Math.round(blob.size / 1024 / 1024)}MB).`);
+      if (blob.size > 20 * 1024 * 1024) setBigNote(`가져온 도안이 들어 있어 파일이 큽니다 (약 ${Math.round(blob.size / 1024 / 1024)}MB).`);
       a.href = URL.createObjectURL(blob); a.download = `yarnity-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}.json`;
       a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     } finally { setBusy(""); }
@@ -66,7 +66,7 @@ export function MyProfile() {
           <div className="my-prof-top">
             <Avatar size={76} />
             <div className="my-prof-who">
-              <b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주세요"}</b>
+              <b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주십시오"}</b>
               <button type="button" className="my-textbtn" onClick={() => pic.current?.click()}>프로필 사진 바꾸기</button>
               {prof.avatar && <button type="button" className="my-textbtn is-quiet" onClick={() => { removePhoto(prof.avatar!).catch(() => {}); saveProfile({ ...prof, avatar: undefined }); }}>사진 빼기</button>}
               <input ref={pic} type="file" accept="image/*" hidden onChange={e => setPic(e.target.files?.[0])} />
@@ -79,7 +79,7 @@ export function MyProfile() {
             {rows.map(r => (
               <div key={r.k}>
                 <dt>{r.k}{r.note && <small>{r.note}</small>}</dt>
-                <dd>{edit ? r.field(edit, setEdit) : r.v ? r.v : <span className="is-empty">아직 없어요</span>}</dd>
+                <dd>{edit ? r.field(edit, setEdit) : r.v ? r.v : <span className="is-empty">아직 없습니다</span>}</dd>
               </div>
             ))}
           </dl>
@@ -87,24 +87,24 @@ export function MyProfile() {
         <aside className="my-prof-side">
           <section className="my-data" aria-labelledby="myData">
             <h2 id="myData" className="my-h2">내 데이터</h2>
-            <p>작품, 사진, 위시는 이 브라우저에만 있어요. 다른 기기로 옮기려면 파일로 내보내세요.</p>
+            <p>작품, 사진, 위시는 이 브라우저에만 있습니다. 다른 기기로 옮기려면 파일로 내보내십시오.</p>
             <div className="my-data-btns">
               <button type="button" className="my-btn" disabled={!!busy} onClick={exportAll}>{busy === "export" ? "만드는 중" : "내보내기"}</button>
               <button type="button" className="my-btn is-sub" disabled={!!busy} onClick={() => fileIn.current?.click()}>가져오기</button>
               <input ref={fileIn} type="file" accept="application/json,.json" hidden onChange={e => pick(e.target.files?.[0])} />
             </div>
-            {bad && <p className="my-hint">Yarnity에서 내보낸 파일이 아니에요.</p>}
+            {bad && <p className="my-hint">Yarnity에서 내보낸 파일이 아닙니다.</p>}
             {bigNote && <p className="my-hint" role="status">{bigNote}</p>}
           </section>
-          <p className="my-login">로그인 · 준비 중 — 나중에 로그인하면 여러 기기에서 같이 쓸 수 있어요.</p>
+          <p className="my-login">로그인 · 준비 중 — 나중에 로그인하면 여러 기기에서 같이 쓸 수 있습니다.</p>
         </aside>
       </div>
       {pending && sum && (
         <div className="my-dim" onMouseDown={e => { if (e.target === e.currentTarget && !busy) setPending(null); }}>
           <div className="my-sheet" role="alertdialog" aria-modal="true" aria-label="가져오기 확인">
-            <h2>이 파일로 바꿀까요?</h2>
-            <p className="my-sheet-text">{new Date(sum.at).toLocaleString("ko-KR")}에 내보낸 파일이에요. 작품 {sum.works}개{sum.imported ? `, 가져온 도안 ${sum.imported}권` : ""}, 사진 {sum.photos}장, 위시 {sum.wishes}개가 들어 있어요.</p>
-            <p className="my-sheet-text is-warn">지금 이 브라우저에 있는 작품, 사진, 위시, 프로필은 모두 이 파일의 내용으로 바뀌어요. 되돌릴 수 없어요.</p>
+            <h2>이 파일로 바꾸시겠습니까?</h2>
+            <p className="my-sheet-text">{new Date(sum.at).toLocaleString("ko-KR")}에 내보낸 파일입니다. 작품 {sum.works}개{sum.imported ? `, 가져온 도안 ${sum.imported}권` : ""}, 사진 {sum.photos}장, 위시 {sum.wishes}개가 들어 있습니다.</p>
+            <p className="my-sheet-text is-warn">지금 이 브라우저에 있는 작품, 사진, 위시, 프로필은 모두 이 파일의 내용으로 바뀝니다. 되돌릴 수 없습니다.</p>
             <div className="my-sheet-foot">
               <button type="button" className="my-btn is-sub" autoFocus disabled={!!busy} onClick={() => setPending(null)}>취소</button>
               <button type="button" className="my-btn" disabled={!!busy} onClick={restore}>{busy === "import" ? "바꾸는 중" : "바꾸기"}</button>

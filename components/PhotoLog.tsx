@@ -29,7 +29,7 @@ export function PhotoLog({ projectId, name, onClose, onChange }: { projectId: st
     if (!files?.length) return;
     setBusy(true); setErr("");
     try { for (const f of Array.from(files)) if (f.type.startsWith("image/")) await addPhoto(projectId, f); }
-    catch { setErr("사진을 저장하지 못했어요. 브라우저 저장 공간이 부족할 수 있어요."); }
+    catch { setErr("사진을 저장하지 못했습니다. 브라우저 저장 공간이 부족할 수 있습니다."); }
     setBusy(false); await load(); onChange();
   };
   const remove = async (id: string) => { await removePhoto(id); setAsk(null); setBig(null); await load(); onChange(); };
@@ -47,7 +47,7 @@ export function PhotoLog({ projectId, name, onClose, onChange }: { projectId: st
             <figcaption>
               <span>{when(big.at)}</span>
               {ask === big.id
-                ? <span className="pl-ask">이 사진을 지울까요? <button type="button" onClick={() => setAsk(null)}>취소</button><button type="button" className="danger" onClick={() => remove(big.id)}>지우기</button></span>
+                ? <span className="pl-ask">이 사진을 지우시겠습니까? <button type="button" onClick={() => setAsk(null)}>취소</button><button type="button" className="danger" onClick={() => remove(big.id)}>지우기</button></span>
                 : <span><button type="button" onClick={() => setAsk(big.id)}>지우기</button><button type="button" onClick={() => setBig(null)}>목록으로</button></span>}
             </figcaption>
           </figure>
@@ -64,8 +64,8 @@ export function PhotoLog({ projectId, name, onClose, onChange }: { projectId: st
                   <li key={p.id}><button type="button" onClick={() => setBig(p)}>{urls[p.id] && <img src={urls[p.id]} alt="" />}<span>{when(p.at)}</span></button></li>
                 ))}
               </ul>
-            ) : <p className="pl-none">아직 사진이 없어요. 뜨는 중간이나 완성한 모습을 남겨 보세요.</p>}
-            <p className="pl-note">사진은 이 브라우저에만 저장돼요.</p>
+            ) : <p className="pl-none">아직 사진이 없습니다. 뜨는 중간이나 완성한 모습을 남겨 보십시오.</p>}
+            <p className="pl-note">사진은 이 브라우저에만 저장됩니다.</p>
           </>
         )}
       </div>

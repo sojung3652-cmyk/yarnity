@@ -78,8 +78,8 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
   const [moreMats, setMoreMats] = useState(false);
   const mode = draft.yarnMode ?? (draft.yarnMm ? "mm" : "level");
   const mm = parseNum(mmRaw);
-  const mmErr = !mmRaw.trim() ? "실 굵기를 적거나 '잘 모르겠어요'를 눌러 주세요." : !Number.isFinite(mm) ? "숫자로 적어 주세요 (예: 3.2)."
-    : mm < YARN_MM_RANGE[0] || mm > YARN_MM_RANGE[1] ? `${YARN_MM_RANGE[0]}~${YARN_MM_RANGE[1]}mm 사이로 적어 주세요.` : "";
+  const mmErr = !mmRaw.trim() ? "실 굵기를 적거나 '잘 모르겠습니다'를 눌러 주십시오." : !Number.isFinite(mm) ? "숫자로 적어 주십시오 (예: 3.2)."
+    : mm < YARN_MM_RANGE[0] || mm > YARN_MM_RANGE[1] ? `${YARN_MM_RANGE[0]}~${YARN_MM_RANGE[1]}mm 사이로 적어 주십시오.` : "";
   const showErr = !!mmErr && (tried || mmRaw.trim() !== ""); // a wrong value shows at once; an empty one only when moving on
   const setMm = (raw: string) => {
     setMmRaw(raw); const v = parseNum(raw);
@@ -103,8 +103,8 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
           <div className="nb-mm">
             <input id="yMm" className="nb-input nb-short" inputMode="decimal" autoComplete="off" aria-labelledby="yMmLbl" aria-invalid={showErr} aria-describedby={showErr ? "yMmErr" : undefined} value={mmRaw} onChange={e => setMm(e.target.value)} placeholder="예: 3.2" />
             <span className="nb-unit">mm</span>
-            {!mmErr && <span className="nb-hint">{YARN_KO[weightFromMm(Math.round(mm * 10) / 10)]}으로 계산해요</span>}
-            <button type="button" className="nb-link" onClick={() => patch({ yarnMode: "level" })}>잘 모르겠어요</button>
+            {!mmErr && <span className="nb-hint">{YARN_KO[weightFromMm(Math.round(mm * 10) / 10)]}으로 계산합니다</span>}
+            <button type="button" className="nb-link" onClick={() => patch({ yarnMode: "level" })}>잘 모르겠습니다</button>
           </div>
         ) : (
           <div className="nb-mm">
@@ -112,7 +112,7 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
             <button type="button" className="nb-link" onClick={() => { patch({ yarnMode: "mm" }); setMm(mmRaw); }}>mm로 적기</button>
           </div>
         )}
-        {showErr && mode === "mm" ? <p className="nb-err" id="yMmErr">{mmErr}</p> : <p className="nb-help">실 라벨에 없으면 자로 실 가닥의 폭을 재 보세요.</p>}
+        {showErr && mode === "mm" ? <p className="nb-err" id="yMmErr">{mmErr}</p> : <p className="nb-help">실 라벨에 없으면 자로 실 가닥의 폭을 재 보십시오.</p>}
       </div>
 
       {/* the yarn colours (one row per yarn, with its colour number and LOT) */}
@@ -159,8 +159,8 @@ function HookField({ draft, patch, tried }: { draft: Draft; patch: Patch; tried:
   const [custom, setCustom] = useState(!chip && !!draft.hook);
   const [raw, setRaw] = useState(!chip && draft.hookMm ? String(draft.hookMm) : "");
   const v = parseNum(raw);
-  const err = !custom ? (!draft.hook ? "코바늘 굵기를 골라 주세요." : "") : !raw.trim() ? "바늘 굵기를 mm로 적어 주세요." : !Number.isFinite(v) ? "숫자로 적어 주세요 (예: 1.25)."
-    : v < HOOK_MM_RANGE[0] || v > HOOK_MM_RANGE[1] ? `${HOOK_MM_RANGE[0]}~${HOOK_MM_RANGE[1]}mm 사이로 적어 주세요.` : "";
+  const err = !custom ? (!draft.hook ? "코바늘 굵기를 골라 주십시오." : "") : !raw.trim() ? "바늘 굵기를 mm로 적어 주십시오." : !Number.isFinite(v) ? "숫자로 적어 주십시오 (예: 1.25)."
+    : v < HOOK_MM_RANGE[0] || v > HOOK_MM_RANGE[1] ? `${HOOK_MM_RANGE[0]}~${HOOK_MM_RANGE[1]}mm 사이로 적어 주십시오.` : "";
   const showErr = !!err && (tried || (custom && raw.trim() !== ""));
   const setMm = (s: string) => {
     setRaw(s); const n = parseNum(s);
@@ -178,8 +178,8 @@ function HookField({ draft, patch, tried }: { draft: Draft; patch: Patch; tried:
         {custom && <><label htmlFor="hMm" className="sr">코바늘 굵기 mm</label>
           <input id="hMm" className="nb-input nb-short" inputMode="decimal" autoComplete="off" autoFocus aria-invalid={showErr} aria-describedby={showErr ? "hErr" : undefined} value={raw} onChange={e => setMm(e.target.value)} placeholder="예: 1.25" /><span className="nb-unit">mm</span></>}
       </div>
-      {showErr ? <p className="nb-err" id="hErr">{err}</p> : <p className="nb-help">바늘에 적힌 mm를 기준으로 해요.</p>}
-      {mis && <p className="nb-warn" role="status">{mis === "thin" ? "이 실에는 바늘이 가늘어요. 편물이 빳빳해질 수 있어요." : "이 실에는 바늘이 굵어요. 편물이 성글어질 수 있어요."}</p>}
+      {showErr ? <p className="nb-err" id="hErr">{err}</p> : <p className="nb-help">바늘에 적힌 mm를 기준으로 합니다.</p>}
+      {mis && <p className="nb-warn" role="status">{mis === "thin" ? "이 실에는 바늘이 가늡니다. 편물이 빳빳해질 수 있습니다." : "이 실에는 바늘이 굵습니다. 편물이 성글어질 수 있습니다."}</p>}
     </div>
   );
 }
@@ -232,7 +232,7 @@ function ColorEditor({ c, i, onChange }: { c: YarnColor; i: number; onChange: (c
         <div className="nb-mini"><label htmlFor={id("lot")}>LOT 번호</label>
           <input id={id("lot")} className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: A2417-03" value={c.lot ?? ""} onChange={e => onChange({ ...c, lot: e.target.value })} onBlur={e => onChange({ ...c, lot: clean(e.target.value) })} /></div>
       </div>
-      <p className="nb-help">LOT(염색 로트)는 같은 색 실을 더 살 때 필요해요. 실 라벨에 적혀 있어요.</p>
+      <p className="nb-help">LOT(염색 로트)는 같은 색 실을 더 살 때 필요합니다. 실 라벨에 적혀 있습니다.</p>
     </>
   );
 }
@@ -287,9 +287,9 @@ export function SuppliesPage({ draft, item, pp, stitchMm, measureNote }: { draft
         <p className="nb-sup-use-num">약 <b>{use.g}g</b></p>
         <p className="nb-sup-use-sub">{use.perColor ? `색마다 약 ${Math.ceil(use.g / Math.max(1, colors.length))}g · ` : ""}길이로는 약 {use.m}m</p>
         {use.skeins != null && <p className="nb-sup-use-sub">{label}으로 <b>{use.skeins}타래</b>{draft.skeins ? ` · 가지고 있는 ${draft.skeins}타래` : ""}</p>}
-        {use.short && <p className="nb-warn" role="status">가지고 있는 실이 조금 모자랄 수 있어요. 같은 LOT로 한 타래 더 준비해 두세요.</p>}
-        {use.labelOdd && <p className="nb-warn" role="status">적어 주신 라벨 정보({draft.skeinG}g · {draft.skeinM}m)는 실 한 타래로 보기 어려워서 빼고 계산했어요. 무게와 길이 칸이 바뀌지 않았는지 확인해 주세요.</p>}
-        <p className="nb-help">도안의 코 수로 어림한 양이에요 (여유 10% 포함). 무게는 {basisText} 기준 100g에 약 {use.per100}m로 계산했어요.{use.basis !== "label" ? " 실 라벨의 무게와 길이를 적으면 더 정확해지고 타래 수도 알려 드려요." : ""}</p>
+        {use.short && <p className="nb-warn" role="status">가지고 있는 실이 조금 모자랄 수 있습니다. 같은 LOT로 한 타래 더 준비해 두십시오.</p>}
+        {use.labelOdd && <p className="nb-warn" role="status">적어 주신 라벨 정보({draft.skeinG}g · {draft.skeinM}m)는 실 한 타래로 보기 어려워서 빼고 계산했습니다. 무게와 길이 칸이 바뀌지 않았는지 확인해 주십시오.</p>}
+        <p className="nb-help">도안의 코 수로 어림한 양입니다 (여유 10% 포함). 무게는 {basisText} 기준 100g에 약 {use.per100}m로 계산했습니다.{use.basis !== "label" ? " 실 라벨의 무게와 길이를 적으면 더 정확해지고 타래 수도 알려 드립니다." : ""}</p>
       </div>
 
       <p className="nb-sup-stitch">한 코 크기 약 <b>{fmt(stitchMm)}mm</b></p>

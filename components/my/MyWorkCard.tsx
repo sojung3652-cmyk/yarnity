@@ -80,7 +80,7 @@ export function ImportedHookCard({ p }: { p: Imported }) {
           <div className="my-hook-text">
             <p className="my-hook-small">{p.kind === "pdf" ? `PDF · ${p.pageCount}쪽` : `종이 · 사진 ${p.pageCount}장`}</p>
             <h3>{p.title}</h3>
-            <p className="my-hook-where">{p.row > 0 ? `${p.row}단까지 떴어요` : "시작 전"}</p>
+            <p className="my-hook-where">{p.row > 0 ? `${p.row}단까지 떴습니다` : "시작 전"}</p>
             {p.yarn && <p className="my-hook-small">{p.yarn}</p>}
           </div>
         </div>

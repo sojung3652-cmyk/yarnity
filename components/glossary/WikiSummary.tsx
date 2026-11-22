@@ -13,7 +13,7 @@ const when = (iso: string) => {
   if (m < 1) return "방금"; if (m < 60) return `${Math.floor(m)}분 전`; if (m < 1440) return `${Math.floor(m / 60)}시간 전`;
   return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
 };
-const ERR: Record<string, string> = { busy: "지금 고치는 사람이 많아요. 잠시 뒤에 다시 저장해 주세요.", short: "설명을 두 글자 이상 적어 주세요.", off: "저장하지 못했어요. 잠시 뒤에 다시 해 주세요." };
+const ERR: Record<string, string> = { busy: "지금 고치는 사람이 많습니다. 잠시 뒤에 다시 저장해 주십시오.", short: "설명을 두 글자 이상 적어 주십시오.", off: "저장하지 못했습니다. 잠시 뒤에 다시 해 주십시오." };
 
 export function WikiSummary({ term }: { term: GlossTerm }) {
   const wiki = useWiki(), cur = wiki.latest[term.id];
@@ -51,8 +51,8 @@ export function WikiSummary({ term }: { term: GlossTerm }) {
       {edit && (
         <form className="gl-wiki-form" onSubmit={e => { e.preventDefault(); const t = text.trim(); if (t !== shown.trim()) save(t, { note: note.trim() || undefined }); else setEdit(false); }}>
           <label><span>설명</span><textarea rows={4} maxLength={600} value={text} onChange={e => setText(e.target.value)} autoFocus /></label>
-          <label><span>무엇을 고쳤나요</span><input maxLength={80} value={note} onChange={e => setNote(e.target.value)} /></label>
-          <p className="gl-wiki-who">{author()}(으)로 남아요</p>
+          <label><span>무엇을 고쳤습니까</span><input maxLength={80} value={note} onChange={e => setNote(e.target.value)} /></label>
+          <p className="gl-wiki-who">{author()}(으)로 남습니다</p>
           {err && <p className="gl-wiki-err" role="alert">{err}</p>}
           <div className="gl-wiki-btns">
             <button type="button" onClick={() => setEdit(false)}>취소</button>
@@ -63,7 +63,7 @@ export function WikiSummary({ term }: { term: GlossTerm }) {
       {histOpen && !edit && (
         <ol className="gl-wiki-hist" aria-label="수정 기록">
           {hist === null ? <li className="is-quiet">불러오는 중</li>
-            : !hist.length ? <li className="is-quiet">아직 고친 사람이 없어요</li>
+            : !hist.length ? <li className="is-quiet">아직 고친 사람이 없습니다</li>
             : hist.map((h, i) => (
               <li key={h.id}>
                 <p className="gl-wiki-h-head"><b>{h.author}</b><span>{when(h.created_at)}</span>{i === 0 && <em>지금 판</em>}</p>

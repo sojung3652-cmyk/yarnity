@@ -125,7 +125,7 @@ export function KnowhowScreen() {
           ))}
           {!list.length && <li className="dict-soon">준비 중</li>}
         </ol>
-        {cur ? <KnowhowArticle key={cur.id} k={cur} n={list.indexOf(cur) + 1} next={next} onNext={() => next && setSel(next.id)} onAsk={() => ask(`'${cur.title}'에 대해 더 알려 주세요.`)} /> : <div />}
+        {cur ? <KnowhowArticle key={cur.id} k={cur} n={list.indexOf(cur) + 1} next={next} onNext={() => next && setSel(next.id)} onAsk={() => ask(`'${cur.title}'에 대해 더 알려 주십시오.`)} /> : <div />}
       </div>
     </>
   );
@@ -246,7 +246,7 @@ export function TroubleScreen() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
         <input type="search" value={q} placeholder="질문 찾기" onChange={e => setQ(e.target.value)} />
       </label>
-      {shown.length === 0 && <p className="dict-none">&lsquo;{q.trim()}&rsquo;에 맞는 질문이 없어요. Yarni에게 물어보세요.</p>}
+      {shown.length === 0 && <p className="dict-none">&lsquo;{q.trim()}&rsquo;에 맞는 질문이 없습니다. Yarni에게 물어보십시오.</p>}
       <ul className="dict-faq">
         {shown.map(t => (
           <li key={t.id}>
@@ -262,8 +262,8 @@ export function TroubleScreen() {
           <p className="my-memo-kick">FAQ · {craftTags(open.craft).join(" · ")}</p>
           <h2>{open.title}</h2>
           <div className="dict-yarn-cols">
-            <div><Lace>왜 그럴까요</Lace>{open.why ? <p className="dict-body">{open.why}</p> : <Soon />}</div>
-            <div><Lace>이렇게 해 보세요</Lace>{open.fixes?.length ? <ol className="dict-fixes">{open.fixes.map(x => <li key={x}>{x}</li>)}</ol> : <Soon />}</div>
+            <div><Lace>왜 그렇습니까</Lace>{open.why ? <p className="dict-body">{open.why}</p> : <Soon />}</div>
+            <div><Lace>이렇게 해 보십시오</Lace>{open.fixes?.length ? <ol className="dict-fixes">{open.fixes.map(x => <li key={x}>{x}</li>)}</ol> : <Soon />}</div>
           </div>
           {/* the 용어집 terms behind this answer (Kim) */}
           {open.related?.length ? (
@@ -271,7 +271,7 @@ export function TroubleScreen() {
               {open.related.map(id => termById(id)).filter(Boolean).map(t => <Link key={t!.id} href={`/glossary/terms/${t!.id}`} className="dict-faq-term">{t!.name}</Link>)}
             </div>
           ) : null}
-          <p className="dict-foot"><button type="button" onClick={() => ask(`편물이 '${open.title}' 같아요. 사진을 보여 줄게요.`)}>Yarni에게 내 편물 사진 보여주기 →</button></p>
+          <p className="dict-foot"><button type="button" onClick={() => ask(`편물이 '${open.title}' 같습니다. 사진을 보여 드리겠습니다.`)}>Yarni에게 내 편물 사진 보여주기 →</button></p>
         </DictPop>
       )}
     </>
@@ -342,7 +342,7 @@ function GroupedSheet({ t }: { t: DictTable }) {
         </label>}
       </div>
       {groups[gi].label.includes("(") && <p className="dict-sheet-note">{groups[gi].label.match(/\((.*)\)/)![1]}</p>}
-      {found && found.length === 0 ? <p className="dict-none">{groups[gi].label.replace(/\s*\(.*\)$/, "")}에는 &lsquo;{q.trim()}&rsquo;에 맞는 굵기가 없어요.</p>
+      {found && found.length === 0 ? <p className="dict-none">{groups[gi].label.replace(/\s*\(.*\)$/, "")}에는 &lsquo;{q.trim()}&rsquo;에 맞는 굵기가 없습니다.</p>
         : <Sheet cols={t.cols!} rows={found ?? rows} num={t.num} />}
       {t.foot && <p className="dict-sheet-note is-foot">{t.foot}</p>}
     </>

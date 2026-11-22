@@ -36,19 +36,19 @@ import "@/components/ai/ai.css";
 import { GoldX } from "@/components/GoldX";
 
 const ERR: Record<string, string> = {
-  not_configured: "Yarni 상담은 곧 열려요. 그동안 책의 칸만으로도 끝까지 만들 수 있어요.",
-  not_granted: "Yarni 상담을 쓸 수 없는 상태예요. 책의 칸만으로도 끝까지 만들 수 있어요.",
-  rate_limited: "잠시 뒤에 다시 보내 주세요.",
-  image_rejected: "이 사진은 읽을 수 없어요. 다른 사진으로 해 볼까요?",
-  invalid_json: "답을 정리하지 못했어요. 한 번만 다시 보내 주세요.",
-  refused: "그 요청은 도와드리기 어려워요.",
-  offline: "인터넷 연결을 확인해 주세요.",
-  stopped: "답을 멈췄어요.",
+  not_configured: "Yarni 상담은 곧 열립니다. 그동안 책의 칸만으로도 끝까지 만들 수 있습니다.",
+  not_granted: "Yarni 상담을 쓸 수 없는 상태입니다. 책의 칸만으로도 끝까지 만들 수 있습니다.",
+  rate_limited: "잠시 뒤에 다시 보내 주십시오.",
+  image_rejected: "이 사진은 읽을 수 없습니다. 다른 사진으로 해 보시겠습니까?",
+  invalid_json: "답을 정리하지 못했습니다. 한 번만 다시 보내 주십시오.",
+  refused: "그 요청은 도와드리기 어렵습니다.",
+  offline: "인터넷 연결을 확인해 주십시오.",
+  stopped: "답을 멈췄습니다.",
 };
-const FALLBACK = "연결이 잠깐 끊겼어요. 다시 보내 주세요.";
+const FALLBACK = "연결이 잠깐 끊겼습니다. 다시 보내 주십시오.";
 const FATAL = ["not_configured", "not_granted"];
 const STEP_KO = ["메뉴", "이름", "품목", "실과 크기", "확인"];
-const STARTERS = ["여름에 들 작은 가방", "가진 실로 뭘 뜰까요?", "사진 올리고 비슷하게 뜨기"];
+const STARTERS = ["여름에 들 작은 가방", "가진 실로 무엇을 뜰 수 있습니까?", "사진 올리고 비슷하게 뜨기"];
 // opened inside 도안 만들기: the starters are that step's questions
 const STEP_CHIPS: Record<number, string[]> = {
   1: ["선물할 작품 이름 지어 줘", "짧고 예쁜 이름 추천"],
@@ -297,7 +297,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
         chats.push(id, { role: "note", text: ERR.stopped, err: "stopped", retry: true, at: Date.now() });
       } else {
         const r = res.reply;
-        chats.push(id, { role: "assistant", text: r.reply || "알겠어요.", turn: res.raw, at: Date.now(),
+        chats.push(id, { role: "assistant", text: r.reply || "알겠습니다.", turn: res.raw, at: Date.now(),
           ...(res.stopped ? { stopped: true } : { chips: r.chips.slice(0, 4), proposal: proposalFrom(r.set, base) ?? undefined }) });
         if (r.title && !c.titled) chats.patch(id, { title: r.title, titled: true });
       }
@@ -440,7 +440,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
             <input ref={searchRef} type="search" value={q} placeholder="대화 찾기" onChange={e => setQ(e.target.value)} />
           </label>
           <div className="aic-rows">
-            {groups.length === 0 && <p className="aic-empty">{q ? "찾는 대화가 없어요" : arch ? "보관한 대화가 없어요" : "아직 대화가 없어요"}</p>}
+            {groups.length === 0 && <p className="aic-empty">{q ? "찾는 대화가 없습니다" : arch ? "보관한 대화가 없습니다" : "아직 대화가 없습니다"}</p>}
             {groups.map(([g, cs]) => (
               <div key={g}>
                 <h3 className="aic-day">{g}</h3>
@@ -494,7 +494,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
           </div>
         )}
         <label htmlFor="aiInput" className="sr">메시지</label>
-        <textarea id="aiInput" ref={inputRef} rows={1} value={input} placeholder="무엇이든 물어보세요" onChange={e => setInput(e.target.value)}
+        <textarea id="aiInput" ref={inputRef} rows={1} value={input} placeholder="무엇이든 물어보십시오" onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (!phone && e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(input); } }} />
         <div className="aic-box-row">
           {chat.images && (
@@ -536,22 +536,22 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
                 </div>
                 <div className="aic-acts aic-me-acts">
                   <button type="button" disabled={!!busy} onClick={() => { setMsgActs(null); setEditing({ i, text: x.text }); }}>{Ic.pen}<span>수정</span></button>
-                  <button type="button" onClick={() => { copy(`m${i}`, x.text); setMsgActs(null); }}>{Ic.copy}<span>{copied === `m${i}` ? "복사했어요" : "복사"}</span></button>
+                  <button type="button" onClick={() => { copy(`m${i}`, x.text); setMsgActs(null); }}>{Ic.copy}<span>{copied === `m${i}` ? "복사했습니다" : "복사"}</span></button>
                 </div>
               </div>
             )
           ) : x.role === "note" ? (
-            <p className="aic-notice">{x.err && x.err !== "stopped" ? "답을 받지 못했어요 · " : ""}{x.text}
+            <p className="aic-notice">{x.err && x.err !== "stopped" ? "답을 받지 못했습니다 · " : ""}{x.text}
               {x.retry && i === conv.msgs.length - 1 && <button type="button" disabled={!!busy} onClick={() => again(i)}>다시 시도</button>}</p>
           ) : (
             <div className="aic-ai">
               <Star />
               <div className="aic-ai-body">
                 <Markdown text={x.text} />
-                {x.stopped && <p className="aic-stopped">여기서 멈췄어요</p>}
+                {x.stopped && <p className="aic-stopped">여기서 멈췄습니다</p>}
                 {x.proposal && <ProposalCard lines={diffLines(work ?? draft, x.proposal)} done={x.done} onApply={() => apply(i, x)} onKeep={() => chats.setMsg(conv.id, i, { done: "kept" })} />}
                 <div className="aic-acts aic-ai-acts">
-                  <button type="button" onClick={() => copy(`a${i}`, x.text)}>{Ic.copy}<span>{copied === `a${i}` ? "복사했어요" : "복사"}</span></button>
+                  <button type="button" onClick={() => copy(`a${i}`, x.text)}>{Ic.copy}<span>{copied === `a${i}` ? "복사했습니다" : "복사"}</span></button>
                   {i === lastAi && i === conv.msgs.length - 1 && <button type="button" disabled={!!busy || chat.off} onClick={() => again(i)}>{Ic.again}<span>다시 답하기</span></button>}
                 </div>
                 {i === lastAi && !busy && !!x.chips?.length && <div className="aic-chips">{x.chips.map(t => <button key={t} type="button" disabled={chat.off} onClick={() => send(t)}>{t}</button>)}</div>}
@@ -580,12 +580,12 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
         <Star size={40} />
         {[0, 1, 2].map(i => <svg key={i} className={"aic-wink w" + i} viewBox="0 0 10 10"><path d="M5 0 5.9 4.1 10 5 5.9 5.9 5 10 4.1 5.9 0 5 4.1 4.1Z" /></svg>)}
       </span>
-      <h2>오늘은 무엇을 떠 볼까요?</h2>
+      <h2>오늘은 무엇을 떠 보시겠습니까?</h2>
       {composer}
       <div className="aic-starters">
         {starters.map(t => <button key={t} type="button" disabled={!!busy || chat.off || !chat.checked} onClick={() => (t.startsWith("사진") ? (setInput(t + " "), inputRef.current?.focus()) : send(t))}>{t}</button>)}
       </div>
-      <p className="aic-note">코 수와 단 수는 Yarni가 아니라 앱의 공식이 계산해요.</p>
+      <p className="aic-note">코 수와 단 수는 Yarni가 아니라 앱의 공식이 계산합니다.</p>
     </div>
   );
   const offNote = chat.off && <p className="aic-notice">{ERR.not_configured}</p>;
@@ -631,12 +631,12 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
       {conv && (
         <div className="aic-foot">
           {far && <button type="button" className="aic-down" aria-label="맨 아래로" onClick={toBottom}>{Ic.down}</button>}
-          {!online && <p className="aic-offline" role="status">인터넷 연결을 확인해 주세요</p>}
+          {!online && <p className="aic-offline" role="status">인터넷 연결을 확인해 주십시오</p>}
           <div className="aic-col">{composer}</div>
-          {sideBar && <p className="aic-note aic-foot-note">코 수와 단 수는 Yarni가 아니라 앱의 공식이 계산해요.</p>}
+          {sideBar && <p className="aic-note aic-foot-note">코 수와 단 수는 Yarni가 아니라 앱의 공식이 계산합니다.</p>}
         </div>
       )}
-      {!conv && !online && <p className="aic-offline is-float" role="status">인터넷 연결을 확인해 주세요</p>}
+      {!conv && !online && <p className="aic-offline is-float" role="status">인터넷 연결을 확인해 주십시오</p>}
     </section>
   );
 
@@ -656,8 +656,8 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
     <div className="aic-dim aic-menu-dim" onClick={() => setLinking(null)}>
       <div className="aic-menu aic-link" role="dialog" aria-modal="true" aria-label="작품에 연결" onClick={e => e.stopPropagation()}>
         <span className="aic-grip" aria-hidden="true" />
-        <p className="aic-menu-title">어떤 작품에 대한 대화인가요?</p>
-        {projects.length === 0 && <p className="aic-empty">아직 작품이 없어요</p>}
+        <p className="aic-menu-title">어떤 작품에 대한 대화입니까?</p>
+        {projects.length === 0 && <p className="aic-empty">아직 작품이 없습니다</p>}
         {projects.map(p => <button key={p.id} type="button" aria-pressed={linkConv.projectId === p.id} onClick={() => { chats.patch(linkConv.id, { projectId: p.id }); setLinking(null); }}><b>{p.name}</b><span>{workTag(p)}</span></button>)}
         {linkConv.projectId && <button type="button" onClick={() => { chats.patch(linkConv.id, { projectId: null }); setLinking(null); }}><b>연결 풀기</b></button>}
       </div>
@@ -666,7 +666,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   const confirm = askDel && (
     <div className="aic-dim aic-ask-dim" onClick={() => setAskDel(null)}>
       <div className="aic-ask" role="alertdialog" aria-modal="true" aria-labelledby="aicAsk" onClick={e => e.stopPropagation()}>
-        <p id="aicAsk">이 대화를 삭제할까요? 되돌릴 수 없어요.</p>
+        <p id="aicAsk">이 대화를 삭제하시겠습니까? 되돌릴 수 없습니다.</p>
         <div><button type="button" autoFocus onClick={() => setAskDel(null)}>취소</button><button type="button" className="danger" onClick={() => del(askDel)}>삭제</button></div>
       </div>
     </div>
@@ -732,11 +732,11 @@ function ProposalCard({ lines, done, onApply, onKeep }: { lines: { k: string; fr
     <div className="aic-prop">
       <p className="aic-prop-kick">제안 · 도안에 반영</p>
       <ul>{lines.map((l, i) => <li key={i}>{l.k && <span>{l.k} </span>}{l.from && <><s>{l.from}</s> → </>}<b>{l.to}</b></li>)}</ul>
-      <p className="aic-prop-note">코 수는 앱의 공식이 다시 계산해요.</p>
-      {done ? <p className="aic-prop-done">{done === "applied" ? "✓ 도안에 반영했어요" : "그대로 두었어요"}</p> : (
+      <p className="aic-prop-note">코 수는 앱의 공식이 다시 계산합니다.</p>
+      {done ? <p className="aic-prop-done">{done === "applied" ? "✓ 도안에 반영했습니다" : "그대로 두었습니다"}</p> : (
         <div className="aic-prop-btns">
           <ClothPatch color="yellow" small onClick={onApply}>이 값으로 바꾸기</ClothPatch>
-          <ClothPatch color="cream" small onClick={onKeep}>그대로 둘게요</ClothPatch>
+          <ClothPatch color="cream" small onClick={onKeep}>그대로 두겠습니다</ClothPatch>
         </div>
       )}
     </div>

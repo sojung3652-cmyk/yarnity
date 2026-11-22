@@ -49,7 +49,7 @@ export function TitlePage({ name, onName, onEnter, progress }: { name: string; o
     <div className="tp">
       <div className="tp-progress">{progress}</div>
       <div className="tp-name">
-        <p className="tp-ask">이 작품의 이름을 지어 주세요</p>
+        <p className="tp-ask">이 작품의 이름을 지어 주십시오</p>
         <div className="tp-label">
           <span className="tp-label-top" lang="en" aria-hidden="true">handmade</span>
           <label htmlFor="nbName" className="sr">작품 이름</label>
@@ -59,7 +59,7 @@ export function TitlePage({ name, onName, onEnter, progress }: { name: string; o
             onKeyDown={e => { if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); onEnter(); } }} />
           <span className="tp-label-bottom" lang="en" aria-hidden="true">with love · yarnity</span>
         </div>
-        <p className="nb-help">비워 두면 &lsquo;이름 없는 작품&rsquo;으로 저장돼요.</p>
+        <p className="nb-help">비워 두면 &lsquo;이름 없는 작품&rsquo;으로 저장됩니다.</p>
       </div>
     </div>
   );

@@ -52,7 +52,7 @@ function WorkMemo({ it, shots, onAdd, onRemove, onDelete }: { it: Item; shots: S
           </ul>
         )}
       </> : (
-        <div className="my-memo-empty"><span>완성 사진을 남겨 보세요<button type="button" className="my-btn" onClick={onAdd}>+ 사진 올리기</button></span></div>
+        <div className="my-memo-empty"><span>완성 사진을 남겨 보십시오<button type="button" className="my-btn" onClick={onAdd}>+ 사진 올리기</button></span></div>
       )}
       <div className="my-memo-btns">
         {cur && <button type="button" className="my-btn" onClick={onAdd}>+ 사진 올리기</button>}
@@ -179,7 +179,7 @@ export function MyGallery() {
         </div>
         {cur ? <WorkMemo key={cur.key} it={cur} shots={shots[cur.key] ?? []} onAdd={() => file.current?.click()}
             onRemove={async id => { await removePhoto(id).catch(() => {}); load(items); }} onDelete={cur.entry ? () => deleteEntry(cur) : undefined} />
-          : <article className="my-memo"><p className="my-memo-text">완성한 작품이 생기면 여기에 모여요. 다른 곳에서 뜬 작품은 왼쪽의 &lsquo;직접 기록하기&rsquo;로 남길 수 있어요.</p></article>}
+          : <article className="my-memo"><p className="my-memo-text">완성한 작품이 생기면 여기에 모입니다. 다른 곳에서 뜬 작품은 왼쪽의 &lsquo;직접 기록하기&rsquo;로 남길 수 있습니다.</p></article>}
       </div>
       {recording && <RecordForm onClose={() => setRecording(false)} onSaved={id => setSel(galleryPhotoKey(id))} />}
     </>

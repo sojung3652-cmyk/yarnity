@@ -60,7 +60,7 @@ function Search({ s }: { s: ListState }) {
 
 function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null; onPick: (t: GlossTerm) => void }) {
   const line = useTermLine();
-  if (!s.sections.length) return <p className="gl-none">{s.q ? "찾는 용어가 없어요" : "이 칸에는 아직 용어가 없어요"}</p>;
+  if (!s.sections.length) return <p className="gl-none">{s.q ? "찾는 용어가 없습니다" : "이 칸에는 아직 용어가 없습니다"}</p>;
   return (
     <>
       {s.sections.map(({ c, terms }) => (
@@ -183,7 +183,7 @@ export function GlossaryScreen({ id, inDict = false }: { id?: string; inDict?: b
     if (id) return (
       <main className="gl gl-phone gl-phone-term">
         <MobileTopBar back={back} center={<h1 className="gl-bar-title">뜨개 사전</h1>} />
-        {term ? <TermDetail term={term} onGo={t => router.push(`/glossary/${t.id}`)} /> : <p className="gl-none">이 용어를 찾지 못했어요</p>}
+        {term ? <TermDetail term={term} onGo={t => router.push(`/glossary/${t.id}`)} /> : <p className="gl-none">이 용어를 찾지 못했습니다</p>}
       </main>
     );
     return (
@@ -225,7 +225,7 @@ export function GlossaryScreen({ id, inDict = false }: { id?: string; inDict?: b
         {/* wide screens (Kim): the term comes up from below like a memo slip; nothing chosen, no panel at all */}
         <div key={term ? term.id : "none"} className={"gl-col-panel" + (term ? " is-memo" : " is-empty")} ref={panel}>
           {term ? <TermDetail term={term} onGo={pick} /> : (
-            <div className="gl-panel-empty"><p>왼쪽 목록에서 용어를 고르면<br />여기에 뜨는 방법이 나와요.</p></div>
+            <div className="gl-panel-empty"><p>왼쪽 목록에서 용어를 고르면<br />여기에 뜨는 방법이 나옵니다.</p></div>
           )}
         </div>
       </div>

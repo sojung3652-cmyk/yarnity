@@ -97,7 +97,7 @@ export function MobileMine({ embedded = false }: { embedded?: boolean } = {}) {
       {!ready ? null : !projects.length && !undo ? (
         <section className="mm-empty">
           <div className="mm-shelf" aria-hidden="true" />
-          <p>아직 도안이 없어요</p>
+          <p>아직 도안이 없습니다</p>
           <button type="button" className="mm-new is-big" onClick={newDraft}><span>+ 새 도안 만들기</span></button>
         </section>
       ) : (
@@ -172,8 +172,8 @@ export function MobileMine({ embedded = false }: { embedded?: boolean } = {}) {
                 </div>
               ))}
             </div>
-          ) : <p className="mm-none">{q ? "찾는 작품이 없어요" : "이 칸에는 아직 작품이 없어요"}</p>}
-          <p className="mm-note">작품과 사진은 이 브라우저에만 저장돼요.</p>
+          ) : <p className="mm-none">{q ? "찾는 작품이 없습니다" : "이 칸에는 아직 작품이 없습니다"}</p>}
+          <p className="mm-note">작품과 사진은 이 브라우저에만 저장됩니다.</p>
         </>
       )}
 
@@ -181,7 +181,7 @@ export function MobileMine({ embedded = false }: { embedded?: boolean } = {}) {
       {photoFor && <PhotoLog projectId={photoFor} name={projects.find(x => x.id === photoFor)?.name ?? ""} onClose={() => setPhotoFor(null)} onChange={() => {}} />}
       {undo && (
         <div className="mm-undo" role="status">
-          <span>지웠어요</span>
+          <span>지웠습니다</span>
           <button type="button" onClick={() => { restoreProjects(undo); setUndo(null); if (timer.current) clearTimeout(timer.current); }}>되돌리기</button>
         </div>
       )}
@@ -251,7 +251,7 @@ function Sheet({ p, onClose, act }: { p: Project; onClose: () => void; act: (a: 
             ? <button type="button" className="mm-label is-cream mm-again" onClick={() => act("again")}><span>다시 뜨기</span></button>
             : <LaceButton variant="lavender" width="fill" className="mm-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}
           {asking && (
-            <p className="mm-ask">이 작품을 지울까요? <button type="button" onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete")}>지우기</button></p>
+            <p className="mm-ask">이 작품을 지우시겠습니까? <button type="button" onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete")}>지우기</button></p>
           )}
         </div>
       </div>

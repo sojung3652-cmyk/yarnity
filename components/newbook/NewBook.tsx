@@ -57,8 +57,8 @@ export function engineInput(d: Draft): PlanInput {
 /** A number in cm typed into a box: kept as typed, passed on only when valid (else null). */
 function CmInput({ label, value, range, onValue, autoFocus }: { label: string; value: number | null | undefined; range: [number, number]; onValue: (v: number | null) => void; autoFocus?: boolean }) {
   const [raw, setRaw] = useState(value != null ? String(value) : "");
-  const v = Number(raw.trim()), err = !raw.trim() ? "숫자를 적어 주세요." : !Number.isFinite(v) || v <= 0 ? "0보다 큰 숫자를 적어 주세요."
-    : v < range[0] || v > range[1] ? `${range[0]}~${range[1]}cm 사이로 적어 주세요.` : "";
+  const v = Number(raw.trim()), err = !raw.trim() ? "숫자를 적어 주십시오." : !Number.isFinite(v) || v <= 0 ? "0보다 큰 숫자를 적어 주십시오."
+    : v < range[0] || v > range[1] ? `${range[0]}~${range[1]}cm 사이로 적어 주십시오.` : "";
   return (
     <Field label={label} error={err || undefined}>
       {(id, eb) => <span className="nb-mm"><input id={id} className="nb-input nb-short" inputMode="decimal" autoComplete="off" autoFocus={autoFocus} aria-invalid={!!err} aria-describedby={eb} value={raw}
@@ -189,9 +189,9 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     const e: Partial<Record<FieldKey, string>> = {};
     for (const f of fields) {
       const raw = nums[f.key].trim(), v = Number(raw);
-      if (!raw) e[f.key] = "숫자를 적어 주세요.";
-      else if (!Number.isFinite(v) || v <= 0) e[f.key] = "0보다 큰 숫자를 적어 주세요.";
-      else if (v < f.min || v > f.max) e[f.key] = `${f.min}~${f.max}cm 사이로 적어 주세요.`;
+      if (!raw) e[f.key] = "숫자를 적어 주십시오.";
+      else if (!Number.isFinite(v) || v <= 0) e[f.key] = "0보다 큰 숫자를 적어 주십시오.";
+      else if (v < f.min || v > f.max) e[f.key] = `${f.min}~${f.max}cm 사이로 적어 주십시오.`;
     }
     return e;
   }, [nums, fields]);
@@ -272,7 +272,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, left: null, right: null };
 
 
-  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇인가요?", 2: "무엇을 뜰까요?", 3: "어떤 실로, 어떤 크기로 뜰까요?", 4: "준비물을 확인해요" };
+  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
   const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
 
   const progress = (
@@ -300,7 +300,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   } else if (step === 2) {
     left = (
       <div className="nb-folds nb-groups">
-        {tried && !picked && <p className="nb-err" role="alert">뜨고 싶은 것을 하나 골라 주세요.</p>}
+        {tried && !picked && <p className="nb-err" role="alert">뜨고 싶은 것을 하나 골라 주십시오.</p>}
         {GROUPS.map(gname => (
           <Fold key={gname} label={gname} value={picked && item.group === gname ? item.name : ""} open={groupOpen === gname} onToggle={() => toggleGroup(gname)}>
             <Radios kind="item" label={gname} value={picked && item.group === gname ? item.id : ("" as ItemId)} onPick={pickItem}
@@ -316,7 +316,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     if (phone) phoneBody = (
       <>
         <div className="mw-groups">
-          {tried && !picked && <p className="nb-err" role="alert">뜨고 싶은 것을 하나 골라 주세요.</p>}
+          {tried && !picked && <p className="nb-err" role="alert">뜨고 싶은 것을 하나 골라 주십시오.</p>}
           {GROUPS.map(gname => (
             <Fold key={gname} label={gname} value={picked && item.group === gname ? item.name : ""} open={groupOpen === gname} onToggle={() => toggleGroup(gname)}>
               <Radios label={gname} value={picked && item.group === gname ? item.id : ("" as ItemId)} onPick={pickItem}
@@ -357,8 +357,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     ) : (
       <div className="sh-empty">
         <span className="sh-empty-tag" aria-hidden="true"><span className="sh-hole" /></span>
-        <p>왼쪽에서 뜨고 싶은 것을 골라 보세요.</p>
-        <p className="nb-help">고르면 여기에 소개가 나와요.</p>
+        <p>왼쪽에서 뜨고 싶은 것을 골라 보십시오.</p>
+        <p className="nb-help">고르면 여기에 소개가 나옵니다.</p>
       </div>
     );
   } else {
@@ -408,7 +408,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
                   else patch({ handle: "short", handleCm: Number(v) });
                 }} options={[...HANDLE_PRESETS.map(([n, v]): [string, ReactNode] => [String(v), `${n} ${v}cm`]), ["own", "직접 입력"], ["none", "없음"]]} />
                 {handlePick === "own" && <div className="nb-sub"><CmInput label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} autoFocus={ownHandle} onValue={v => patch({ handle: "short", handleCm: v ?? 0 })} /></div>}
-                <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm예요.</p>
+                <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다.</p>
               </Fold>
             )}
           </div>
@@ -429,8 +429,8 @@ export function useNewBook(inBook?: WizStep): NewBookView {
           {input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (flapRows ? ` · 덮개 ${flapRows}단` : "") + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
         </p>
         <p className="nb-help">{input.object === "rows" || input.object === "tube"
-          ? "코 수는 공식으로 계산해요. 5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 내 손에 맞게 고쳐 드려요."
-          : "코 수는 공식으로 계산해요. 3단을 뜬 뒤 지름을 재면 내 손에 맞게 다시 계산해 드려요."}</p>
+          ? "코 수는 공식으로 계산합니다. 5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 내 손에 맞게 고쳐 드립니다."
+          : "코 수는 공식으로 계산합니다. 3단을 뜬 뒤 지름을 재면 내 손에 맞게 다시 계산해 드립니다."}</p>
       </div>
     );
     if (step === 3) {
@@ -438,7 +438,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
       right = <section className="nb-sec" aria-labelledby="secSize"><h2 className="nb-sec-title" id="secSize">모양과 크기</h2><AskAiLine which="size" />{sizePage}</section>;
     } else {
       left = <SuppliesPage draft={draft} item={item} pp={pp} stitchMm={g.h * 10}
-        measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춰요." : "3단을 뜬 뒤 재서 정확하게 맞춰요."} />;
+        measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 재서 정확하게 맞춥니다."} />;
       right = previewPage;
     }
     if (phone) phoneBody = <>{left}<div className="mw-split" aria-hidden="true" />{right}</>;

@@ -28,13 +28,13 @@ function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
     const lines: [string, number, number][] = [[`바닥 ${p.shape === "circle" ? "지름 " + p.a : "폭 " + p.b}cm까지`, pp.bottomRounds, q.bottomRounds]];
     if (p.object === "bag") lines.push([`몸통 ${p.h}cm까지`, pp.bodyRows, q.bodyRows]);
     preview = <>
-      <p className="small muted" style={{ marginBottom: 8 }}>{`${diff === 0 ? "예상과 같아요" : `예상보다 ${Math.abs(diff)}% ${diff > 0 ? "커요" : "작아요"}`} · 한 코 ${fmt(hN * 10)}mm`}</p>
+      <p className="small muted" style={{ marginBottom: 8 }}>{`${diff === 0 ? "예상과 같습니다" : `예상보다 ${Math.abs(diff)}% ${diff > 0 ? "큽니다" : "작습니다"}`} · 한 코 ${fmt(hN * 10)}mm`}</p>
       <div className="compare">{lines.map(([k, a, b]) => <Fragment key={k}><span>{k}</span><s>{a}단</s><span className="muted">→</span><span>{b}단</span></Fragment>)}</div>
     </>;
   }
   return (
     <div className="measure">
-      <b>{p.shape === "circle" ? "지름" : "짧은 쪽 폭"}을 재 주세요</b>
+      <b>{p.shape === "circle" ? "지름" : "짧은 쪽 폭"}을 재 주십시오</b>
       <span className="small muted">예상 {fmt(exp)}cm</span>
       <div className="m-row">
         <label htmlFor="mVal" className="sr">잰 길이 cm</label>
@@ -58,15 +58,15 @@ function MeasureRows({ p, onApply }: { p: Project; onApply: (h: number, w: numbe
   if (w > 0 && h > 0) {
     const q = plan({ ...p, measuredH: h / 5, measuredW: w / n }), off = Math.round((w / target - 1) * 100);
     preview = <>
-      <p className="small muted" style={{ marginBottom: 8 }}>{`${tube ? "둘레" : "폭"} ${off === 0 ? "계획과 같아요" : `계획보다 ${Math.abs(off)}% ${off > 0 ? "넓어요" : "좁아요"}`} · 한 코 ${fmt((h / 5) * 10)}mm 높이`}</p>
+      <p className="small muted" style={{ marginBottom: 8 }}>{`${tube ? "둘레" : "폭"} ${off === 0 ? "계획과 같습니다" : `계획보다 ${Math.abs(off)}% ${off > 0 ? "넓습니다" : "좁습니다"}`} · 한 코 ${fmt((h / 5) * 10)}mm 높이`}</p>
       <div className="compare"><span>{`${tube ? "높이" : "길이"} ${tube ? p.h : p.b}cm까지`}</span><s>{pp.bodyRows}단</s><span className="muted">→</span><span>{q.bodyRows}단</span></div>
-      {Math.abs(off) >= 10 && <p className="flag" style={{ marginTop: 8 }}>{tube ? "둘레" : "폭"}가 10% 넘게 달라요. 바늘이나 실을 바꿔서 다시 시작하는 걸 추천해요.</p>}
+      {Math.abs(off) >= 10 && <p className="flag" style={{ marginTop: 8 }}>{tube ? "둘레" : "폭"}가 10% 넘게 다릅니다. 바늘이나 실을 바꿔서 다시 시작하는 걸 추천합니다.</p>}
     </>;
   }
   return (
     <div className="measure">
-      <b>5단을 떴어요. {tube ? "둘레" : "폭"}와 5단 높이를 재 주세요</b>
-      <span className="small muted">{`예상 ${tube ? "둘레" : "폭"} ${fmt(n * pp.g.w)}cm · 5단 높이 ${fmt(5 * pp.g.h)}cm (코 수 ${n}코는 그대로 둬요)`}</span>
+      <b>5단을 떴습니다. {tube ? "둘레" : "폭"}와 5단 높이를 재 주십시오</b>
+      <span className="small muted">{`예상 ${tube ? "둘레" : "폭"} ${fmt(n * pp.g.w)}cm · 5단 높이 ${fmt(5 * pp.g.h)}cm (코 수 ${n}코는 그대로 둡니다)`}</span>
       <div className="m-row">
         <label htmlFor="mW" className="sr">{tube ? "둘레" : "폭"} cm</label>
         <input id="mW" className="txt" type="number" inputMode="decimal" step={0.1} min={1} value={wv} onChange={e => setW(e.target.value)} /><span className="muted">cm</span>
@@ -95,15 +95,15 @@ function PhoneMeasure({ p, onApply, onLater }: { p: Project; onApply: (h: number
   const pp = plan(p), exp = 6 * pp.g.h, [val, setVal] = useState(fmt(exp)), v = +val;
   return (
     <div className="mst-measure">
-      <p className="mst-measure-title">3단 끝! 지름을 재 볼까요?</p>
-      <p className="mst-measure-text">지금까지 뜬 바닥의 지름을 재면, 남은 단을 내 손에 맞게 다시 계산해요.</p>
+      <p className="mst-measure-title">3단 끝! 지름을 재 보시겠습니까?</p>
+      <p className="mst-measure-text">지금까지 뜬 바닥의 지름을 재면, 남은 단을 내 손에 맞게 다시 계산합니다.</p>
       <div className="mst-measure-row">
         <label className="sr" htmlFor="mstVal">잰 지름 cm</label>
         <input id="mstVal" type="number" inputMode="decimal" step={0.1} min={1} max={20} value={val} onChange={e => setVal(e.target.value)} />
         <span>cm</span>
         <button type="button" className="mst-yellow" onClick={() => { if (v > 0) onApply(v / 6); }}><span>다시 계산</span></button>
       </div>
-      <p className="mst-measure-foot">예상은 약 {fmt(exp)}cm예요 · <button type="button" onClick={onLater}>나중에 잴게요</button></p>
+      <p className="mst-measure-foot">예상은 약 {fmt(exp)}cm입니다 · <button type="button" onClick={onLater}>나중에 재겠습니다</button></p>
     </div>
   );
 }
@@ -162,7 +162,7 @@ export function TrackScreen() {
   // phones: leaving 따라 뜨기 says where it was saved, on the next screen (MoreSheet SavedToast)
   const savedAt = useRef("");
   useEffect(() => { savedAt.current = pp && current > 0 ? pp.rows[Math.min(current, total) - 1].label : ""; }, [pp, current, total]);
-  useEffect(() => () => { if (m && savedAt.current) try { sessionStorage.setItem(SAVED_KEY, `${savedAt.current}까지 저장했어요`); } catch {} }, [m]);
+  useEffect(() => () => { if (m && savedAt.current) try { sessionStorage.setItem(SAVED_KEY, `${savedAt.current}까지 저장했습니다`); } catch {} }, [m]);
   // phones: the chart in full screen
   useEffect(() => { if (bigChart && p && pp && bigRef.current) drawTrack(bigRef.current, { ...p, current }, pp); }, [bigChart, bigZoom, p, pp, current]);
   const peek = useCallback((d: number) => setView(v => clamp((v ?? Math.min(current, total - 1)) + d, 0, Math.max(0, total - 1))), [current, total]);
@@ -198,12 +198,12 @@ export function TrackScreen() {
 
   const done = current >= total, r = pp.rows[Math.min(current, total - 1)];
   const nx = pp.rows[current + 1];
-  const flag = !done && r.part === "rounds" && r.no === 1 ? "고리로 둥글게 이어 떠요. 단마다 첫 코에 빼뜨기로 닫아요."
-    : !done && r.part === "rows" && r.no === 2 ? "단 끝마다 사슬 1코를 세우고 뒤집어요."
-    : !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? (pp.rows.some(x => x.part === "body" && x.inc) ? "여기부터 위로. 단마다 늘림 수만큼 고르게 늘려요." : "여기부터 늘림 없이 위로.")
-    : !done && r.part === "flap" && r.label === "덮개 1" ? "뒤판 가운데에서 시작해 왕복으로 떠요."
-    : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리해요."
-    : !done && (r as Row & { turn?: number }).turn && !pp.rows.slice(0, r.idx).some(x => (x as Row & { turn?: number }).turn) ? (p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어서 떠요. 짧은뜨기의 기둥사슬은 코 수에 세지 않아요." : "기둥사슬은 앞 단을 빼뜨기로 닫은 바로 그 자리 위에 세워요. 짧은뜨기의 기둥사슬은 코 수에 세지 않아요.") : "";
+  const flag = !done && r.part === "rounds" && r.no === 1 ? "고리로 둥글게 이어 뜹니다. 단마다 첫 코에 빼뜨기로 닫습니다."
+    : !done && r.part === "rows" && r.no === 2 ? "단 끝마다 사슬 1코를 세우고 뒤집습니다."
+    : !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? (pp.rows.some(x => x.part === "body" && x.inc) ? "여기부터 위로. 단마다 늘림 수만큼 고르게 늘립니다." : "여기부터 늘림 없이 위로.")
+    : !done && r.part === "flap" && r.label === "덮개 1" ? "뒤판 가운데에서 시작해 왕복으로 뜹니다."
+    : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리합니다."
+    : !done && (r as Row & { turn?: number }).turn && !pp.rows.slice(0, r.idx).some(x => (x as Row & { turn?: number }).turn) ? (p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어서 뜹니다. 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다." : "기둥사슬은 앞 단을 빼뜨기로 닫은 바로 그 자리 위에 세웁니다. 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다.") : "";
   const flat = p.object === "rows" || p.object === "tube";
   const showMeasure = !flat && current === 3 && !p.measuredH && pp.bottomRounds > 3;
   const showMeasureRows = flat && current === 6 && !p.measuredH && pp.bodyRows > 5; // start chain + 5 rows done
@@ -241,7 +241,7 @@ export function TrackScreen() {
             <button type="button" onClick={() => peek(1)} disabled={v >= total - 1}>다음 단 ›</button>
           </div>
           {done && !other ? (
-            <><p className="mst-row">완성</p><p className="mst-how">마지막 단까지 다 떴어요.</p></>
+            <><p className="mst-row">완성</p><p className="mst-how">마지막 단까지 다 떴습니다.</p></>
           ) : (
             <>
               <div className="mst-top"><span className="mst-row">{vr.label}</span><span className="mst-count">{fromN != null && <small>{fromN}→</small>}<b>{vr.n}</b> 코</span></div>
@@ -254,12 +254,12 @@ export function TrackScreen() {
         {measuring ? (
           showMeasure
             ? <PhoneMeasure key={p.id} p={p} onApply={h => updateProject(p.id, { measuredH: h })} onLater={() => setMeasureLater(true)} />
-            : <div className="mst-measure"><p className="mst-measure-title">5단까지 떴어요! 폭과 높이를 재 볼까요?</p><MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} />
-                <p className="mst-measure-foot"><button type="button" onClick={() => setMeasureLater(true)}>나중에 잴게요</button></p></div>
+            : <div className="mst-measure"><p className="mst-measure-title">5단까지 떴습니다! 폭과 높이를 재 보시겠습니까?</p><MeasureRows key={p.id} p={p} onApply={(h, w) => updateProject(p.id, { measuredH: h, measuredW: w })} />
+                <p className="mst-measure-foot"><button type="button" onClick={() => setMeasureLater(true)}>나중에 재겠습니다</button></p></div>
         ) : (
           <section className="mst-chart" aria-label="코 도안">
             <div className="mst-chart-pic"><canvas ref={cvRef} role="img" aria-label="코 도안" /></div>
-            <div><p className="mst-chart-title">코 도안</p><p className="mst-chart-text">진하게 보이는 줄이 지금 뜨는 단이에요.</p>
+            <div><p className="mst-chart-title">코 도안</p><p className="mst-chart-text">진하게 보이는 줄이 지금 뜨는 단입니다.</p>
               <button type="button" className="mst-link" onClick={() => setBigChart(true)}>크게 보기</button></div>
           </section>
         )}
@@ -270,7 +270,7 @@ export function TrackScreen() {
             <div className="ms-go">
               {/* the slim lavender lace: 한 단 끝 alone on its satin (two lines crowded it, Kim); the next row under it */}
               <LaceButton variant="lavender" width="fill" disabled={done} onClick={() => step(1)}>한 단 끝</LaceButton>
-              <p className="ms-go-sub">{done ? "다 떴어요" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</p>
+              <p className="ms-go-sub">{done ? "다 떴습니다" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</p>
             </div>
             {/* Yarni right beside 한 단 끝 (Kim): the AI badge patch, the lace shorter by its width */}
             <StitchButton icon={null} patch="/brand/ai_badge.webp" label="Yarni" aria-label="Yarni와 상의하기" onClick={() => setChat(c => ({ ...c, open: true }))} />
@@ -286,11 +286,11 @@ export function TrackScreen() {
           </div>
         )}
         {more && (
-          <MoreSheet title="나가도 지금 단까지 저장돼요" onClose={() => setMore(false)} items={[
+          <MoreSheet title="나가도 지금 단까지 저장됩니다" onClose={() => setMore(false)} items={[
             { key: "sheet", icon: "sheet", label: "도안 전체 보기", onClick: () => router.push("/pattern") },
-            { key: "again", icon: "again", label: "처음 단부터 다시", danger: true, confirm: "지금까지 뜬 단을 지우고 1단부터 다시 할까요?", onClick: () => { setMore(false); updateProject(p.id, { current: 0, status: "knitting", pausedAt: null }); } },
+            { key: "again", icon: "again", label: "처음 단부터 다시", danger: true, confirm: "지금까지 뜬 단을 지우고 1단부터 다시 하시겠습니까?", onClick: () => { setMore(false); updateProject(p.id, { current: 0, status: "knitting", pausedAt: null }); } },
             // the work itself, from where it is being knitted (Kim: there was no delete for it here)
-            { key: "delete", icon: "trash", label: "이 작품 지우기", danger: true, confirm: "이 작품과 뜬 기록을 지울까요? 되돌릴 수 없어요.", onClick: () => { setMore(false); removeProjects([p.id]); router.push("/mine"); } },
+            { key: "delete", icon: "trash", label: "이 작품 지우기", danger: true, confirm: "이 작품과 뜬 기록을 지우시겠습니까? 되돌릴 수 없습니다.", onClick: () => { setMore(false); removeProjects([p.id]); router.push("/mine"); } },
           ]} />
         )}
       </main>
@@ -333,14 +333,14 @@ export function TrackScreen() {
             <div className={"tk-card" + (other ? " is-other" : "")}>
               <div className="tk-peek">
                 <button type="button" onClick={() => peek(-1)} disabled={v <= 0}>‹ 이전 단</button>
-                <span className="tk-peek-state" aria-live="polite">{other ? (v < current ? "지난 단 · 다 떴어요" : "앞으로 뜰 단") : done ? "" : "지금 뜨는 단"}
+                <span className="tk-peek-state" aria-live="polite">{other ? (v < current ? "지난 단 · 다 떴습니다" : "앞으로 뜰 단") : done ? "" : "지금 뜨는 단"}
                   {other && <button type="button" className="tk-peek-back" onClick={() => setView(null)}>지금 단으로</button>}</span>
                 <button type="button" onClick={() => peek(1)} disabled={v >= total - 1}>다음 단 ›</button>
               </div>
               {done && !other ? (
                 <>
                   <p className="tk-row">완성</p>
-                  <p className="tk-how" id="trHow">마지막 단까지 다 떴어요.</p>
+                  <p className="tk-how" id="trHow">마지막 단까지 다 떴습니다.</p>
                   <p className="tk-done-links"><Link href="/pattern">도안 다시 보기</Link><Link href="/mine">사진 남기기 (나의 도안집)</Link></p>
                 </>
               ) : (
@@ -367,7 +367,7 @@ export function TrackScreen() {
             {/* the keys as a small paper note taped under the ribbon (Kim: the key caps felt too digital) */}
             <p className="tk-keys">
               <span className="tk-keys-tape" aria-hidden="true" />
-              <b>스페이스</b>로 한 단 끝, <b>백스페이스</b>로 되돌리고, <b>← →</b>로 이전·다음 단을 넘겨 봐요.
+              <b>스페이스</b>로 한 단 끝, <b>백스페이스</b>로 되돌리고, <b>← →</b>로 이전·다음 단을 넘겨 봅니다.
             </p>
 
             {/* the rows around this one */}

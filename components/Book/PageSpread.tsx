@@ -37,7 +37,7 @@ function Brand({ phone }: { phone?: boolean }) {
       <p className="pg-cap">Intelligent Crochet</p>
       <span className="pg-rule" aria-hidden="true" />
       <p className="pg-tag" lang="en">Your Personal Crochet Pattern Studio</p>
-      <p className="pg-ko">아이디어만 있으면,<br />나만의 뜨개질 도안을 만들 수 있어요.</p>
+      <p className="pg-ko">아이디어만 있으면,<br />나만의 뜨개질 도안을 만들 수 있습니다.</p>
     </>
   );
 }
@@ -79,7 +79,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
       {/* two text links divided by hairlines (whole row = one link) */}
       <nav className="pg-actions" aria-label="시작하기">
         <button type="button" className="pg-link pg-link-lav" aria-expanded={choose} aria-controls="pgChoose" onClick={e => { e.stopPropagation(); setChoose(c => !c); }}>
-          <span className="pg-link-text"><span className="pg-link-title">도안 만들기</span><span className="pg-link-desc">실과 크기만 정하면 코 수를 계산해요</span></span>
+          <span className="pg-link-text"><span className="pg-link-title">도안 만들기</span><span className="pg-link-desc">실과 크기만 정하면 코 수를 계산합니다</span></span>
           <span className="pg-link-end">{choose ? "닫기" : "시작하기"}</span>
         </button>
         {/* the choice, as two smaller labels under it. Each goes straight to its step (startWizard): a bare
@@ -87,17 +87,17 @@ export function RightPage({ onClose }: { onClose: () => void }) {
         {choose && (
           <div className="pg-choose" id="pgChoose" role="group" aria-label="도안 만들기">
             <button type="button" className="pg-link pg-link-sub pg-link-apricot" onClick={e => { e.stopPropagation(); startNew(); }}>
-              <span className="pg-link-text"><span className="pg-link-title">새 도안 만들기</span><span className="pg-link-desc">처음부터 시작해요</span></span>
+              <span className="pg-link-text"><span className="pg-link-title">새 도안 만들기</span><span className="pg-link-desc">처음부터 시작합니다</span></span>
             </button>
             <button type="button" className="pg-link pg-link-sub pg-link-lilac" disabled={!hasDraft} onClick={e => { e.stopPropagation(); book.startWizard(saved); }}>
               <span className="pg-link-text"><span className="pg-link-title">이어서 만들기</span>
-                <span className="pg-link-desc">{hasDraft ? `${draft.name.trim() || "이름 없는 작품"} · ${STEP_NAME[saved]}부터` : "이어서 만들 도안이 없어요"}</span></span>
+                <span className="pg-link-desc">{hasDraft ? `${draft.name.trim() || "이름 없는 작품"} · ${STEP_NAME[saved]}부터` : "이어서 만들 도안이 없습니다"}</span></span>
             </button>
           </div>
         )}
         <Link className="pg-link pg-link-rose" href="/mine">
           <span className="pg-link-text"><span className="pg-link-title">나의 도안집</span><span className="pg-link-desc">뜨던 곳부터 이어서</span></span>
-          <span className="pg-link-end">{workCount ? `${workCount}개` : "아직 없어요"}</span>
+          <span className="pg-link-end">{workCount ? `${workCount}개` : "아직 없습니다"}</span>
         </Link>
         {/* 뜨개 용어집 in pastel green (Kim) */}
         <Link className="pg-link pg-link-sage" href="/glossary">

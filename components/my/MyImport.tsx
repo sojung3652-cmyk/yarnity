@@ -31,10 +31,10 @@ export function MyImport({ onClose, edit }: { onClose: () => void; edit?: Import
 
   const takePdf = async (f: File) => {
     setNote("");
-    if (f.size > MAX_PDF) { setNote("PDF는 30MB까지 가져올 수 있어요."); return; }
+    if (f.size > MAX_PDF) { setNote("PDF는 30MB까지 가져올 수 있습니다."); return; }
     setKind("pdf"); setPdf(f); setPdfInfo(null); setBusy(true);
     try { const r = await readPdf(f); setPdfInfo({ pages: r.pageCount, cover: r.cover }); }
-    catch { setPdf(null); setNote("이 PDF를 열지 못했어요."); }
+    catch { setPdf(null); setNote("이 PDF를 열지 못했습니다."); }
     setBusy(false);
   };
   const takePics = (files: File[]) => {
@@ -43,7 +43,7 @@ export function MyImport({ onClose, edit }: { onClose: () => void; edit?: Import
     setKind("photo");
     setPics(cur => {
       const room = MAX_PHOTOS - cur.length;
-      if (ok.length > room) setNote(`사진은 ${MAX_PHOTOS}장까지예요.`);
+      if (ok.length > room) setNote(`사진은 ${MAX_PHOTOS}장까지입니다.`);
       return [...cur, ...ok.slice(0, Math.max(0, room)).map(f => ({ key: Math.random().toString(36).slice(2), file: f, url: URL.createObjectURL(f) }))];
     });
   };
@@ -68,7 +68,7 @@ export function MyImport({ onClose, edit }: { onClose: () => void; edit?: Import
       }
       onClose();
     } catch (e) {
-      setNote(e instanceof SaveError && e.message === "quota" ? "이 브라우저의 저장 공간이 부족해요." : "저장하지 못했어요. 다시 해 주세요.");
+      setNote(e instanceof SaveError && e.message === "quota" ? "이 브라우저의 저장 공간이 부족합니다." : "저장하지 못했습니다. 다시 해 주십시오.");
       setBusy(false);
     }
   };
@@ -112,7 +112,7 @@ export function MyImport({ onClose, edit }: { onClose: () => void; edit?: Import
                 ))}
                 {pics.length < MAX_PHOTOS && <li><button type="button" className="im-add" onClick={() => picIn.current?.click()}><span aria-hidden="true">+</span>사진 추가</button></li>}
               </ol>
-              {pics.length > 1 && <p className="im-hint">끌어서 쪽 순서를 바꿀 수 있어요. 첫 장이 표지가 돼요.</p>}
+              {pics.length > 1 && <p className="im-hint">끌어서 쪽 순서를 바꿀 수 있습니다. 첫 장이 표지가 됩니다.</p>}
             </div>
           ) : (
             <button type="button" className="im-box im-pick" onClick={() => picIn.current?.click()}><CamIcon /><span>사진 고르기</span></button>

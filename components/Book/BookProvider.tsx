@@ -266,8 +266,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
       {leaving && (
         <div className="leave-bg" onClick={() => setLeaving(null)}>
           <div className="leave" role="alertdialog" aria-modal="true" aria-labelledby="leaveT" aria-describedby="leaveD" onClick={e => e.stopPropagation()}>
-            <h2 id="leaveT">만들던 도안을 저장할까요?</h2>
-            <p id="leaveD">저장해 두면 메뉴의 &lsquo;이어서 만들기&rsquo;로 지금 단계부터 다시 이어 갈 수 있어요.</p>
+            <h2 id="leaveT">만들던 도안을 저장하시겠습니까?</h2>
+            <p id="leaveD">저장해 두면 메뉴의 &lsquo;이어서 만들기&rsquo;로 지금 단계부터 다시 이어 갈 수 있습니다.</p>
             <div className="leave-btns">
               <button type="button" className="btn btn-primary" autoFocus onClick={() => leave(true)}>저장하고 나가기</button>
               <button type="button" className="btn btn-line" onClick={() => leave(false)}>저장하지 않고 나가기</button>

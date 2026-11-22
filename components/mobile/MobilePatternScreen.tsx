@@ -104,8 +104,8 @@ export function MobilePatternScreen() {
                         <span className="msp-how"><GlossText text={r.how} />{r.why && <small>{r.why}</small>}</span>
                         <span className="msp-n">{r.n}<i>코</i></span>
                       </div>
-                      {r.part === "bottom" && r.no === 3 && <p className="msp-note">3단을 뜬 뒤 한 번 지름을 재면, 남은 단을 내 손에 맞게 다시 계산해요.</p>}
-                      {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <p className="msp-note">5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드려요.</p>}
+                      {r.part === "bottom" && r.no === 3 && <p className="msp-note">3단을 뜬 뒤 한 번 지름을 재면, 남은 단을 내 손에 맞게 다시 계산합니다.</p>}
+                      {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <p className="msp-note">5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드립니다.</p>}
                     </li>
                   ))}
                 </ol>
@@ -128,8 +128,8 @@ export function MobilePatternScreen() {
           </dl>
           <h2 className="msp-h">게이지</h2>
           <p className="msp-gauge">한 코 높이 <b>{fmt(pp.g.h * 10)}</b> mm · {pp.g.measured ? "직접 잰 값" : "예상 값"}</p>
-          <p className="msp-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산해요." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드려요."}</p>
-          <p className="msp-tip"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 떠요." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세워요."} 짧은뜨기의 기둥사슬은 코 수에 세지 않아요.</p>
+          <p className="msp-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산합니다." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드립니다."}</p>
+          <p className="msp-tip"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 뜹니다." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세웁니다."} 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다.</p>
         </section>
       )}
       </div>
@@ -141,7 +141,7 @@ export function MobilePatternScreen() {
           <div className="ms-go">
             {/* just 이어서 (Kim): where it starts is the line under it */}
             <LaceButton variant="lavender" width="fill" onClick={go}>{started ? "이어서" : cur >= total ? "뜨기 기록 보기" : "뜨기 시작"}</LaceButton>
-            <p className="ms-go-sub">{started ? `${pp.rows[cur].label}부터` : "1단부터"} · 화면이 꺼지지 않아요</p>
+            <p className="ms-go-sub">{started ? `${pp.rows[cur].label}부터` : "1단부터"} · 화면이 꺼지지 않습니다</p>
           </div>
           {/* Yarni right beside it (Kim), as on 따라 뜨기; the floating badge stays off this screen */}
           <StitchButton icon={null} patch="/brand/ai_badge.webp" label="Yarni" aria-label="Yarni와 상의하기" onClick={() => setChat(c => ({ ...c, open: true }))} />
@@ -151,9 +151,9 @@ export function MobilePatternScreen() {
       {picking && (!p.cover || p.coverAuto) && <CoverPicker first p={p} onPick={id => { updateProject(p.id, { cover: id, coverAuto: false }); setPicking(false); }} onClose={() => setPicking(false)} />}
       {more && (
         <MoreSheet title={p.name} onClose={() => setMore(false)} items={[
-          { key: "edit", icon: "pen", label: "고치기", sub: "마법사로 돌아가요", onClick: () => { setMore(false); book.editHere(p.id); } },
+          { key: "edit", icon: "pen", label: "고치기", sub: "마법사로 돌아갑니다", onClick: () => { setMore(false); book.editHere(p.id); } },
           { key: "rename", icon: "tag", label: "이름 바꾸기", onClick: () => { setMore(false); setName(p.name); setRenaming(true); } },
-          { key: "delete", icon: "trash", label: "지우기", danger: true, confirm: "이 작품을 지울까요? 되돌릴 수 없어요.", onClick: () => { setMore(false); removeProjects([p.id]); router.push("/mine"); } },
+          { key: "delete", icon: "trash", label: "지우기", danger: true, confirm: "이 작품을 지우시겠습니까? 되돌릴 수 없습니다.", onClick: () => { setMore(false); removeProjects([p.id]); router.push("/mine"); } },
         ]} />
       )}
     </main>

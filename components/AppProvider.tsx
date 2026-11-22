@@ -44,8 +44,8 @@ export interface Removed { items: { p: Project; at: number }[]; active: string |
 const Ctx = createContext<AppCtx | null>(null);
 
 const INITIAL_CHAT: ChatState = {
-  msgs: [{ id: 0, kind: "ai", text: "무엇을 만들고 싶은지, 어떤 실이 있는지 편하게 말해 주세요. 작품이나 실 라벨 사진도 괜찮아요." }],
-  chips: ["여름에 들 작은 가방", "선물할 코스터", "가진 실로 뭘 뜰까요?"],
+  msgs: [{ id: 0, kind: "ai", text: "무엇을 만들고 싶은지, 어떤 실이 있는지 편하게 말해 주십시오. 작품이나 실 라벨 사진도 괜찮습니다." }],
+  chips: ["여름에 들 작은 가방", "선물할 코스터", "가진 실로 무엇을 뜰 수 있습니까?"],
   off: false,
   images: false,
   checked: false,

@@ -121,7 +121,7 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
             : <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}
         </div>
         {asking && (
-          <p className="bk-ask" role="alert">이 작품을 지울까요? <span>6초 안에는 되돌릴 수 있어요.</span>
+          <p className="bk-ask" role="alert">이 작품을 지우시겠습니까? <span>6초 안에는 되돌릴 수 있습니다.</span>
             <button type="button" autoFocus onClick={() => setAsking(false)}>취소</button><button type="button" className="danger" onClick={() => act("delete-now")}>지우기</button></p>
         )}
         {picking && <CoverPicker p={p} onPick={id => { act("cover", id); setPicking(false); }} onClose={() => setPicking(false)} />}
@@ -215,7 +215,7 @@ export function MineList({ query, onNew, onImport }: { query?: string; onNew?: (
     <section className="bk-empty">
       <div className="bk-shelf" aria-hidden="true" />
       {/* the book is called from the opening's Start and the nav's 새 도안 only (Kim) */}
-      <p>아직 도안이 없어요 · 위의 &lsquo;새 도안&rsquo;으로 시작해요</p>
+      <p>아직 도안이 없습니다 · 위의 &lsquo;새 도안&rsquo;으로 시작합니다</p>
     </section>
   );
   return (
@@ -255,7 +255,7 @@ export function MineList({ query, onNew, onImport }: { query?: string; onNew?: (
         </div>
         {askMany && (
           <div className="mine-ask" role="alertdialog" aria-label="여러 작품 지우기">
-            <p>고른 작품 {picked.length}개를 지울까요? <span>되돌릴 수 없어요.</span></p>
+            <p>고른 작품 {picked.length}개를 지우시겠습니까? <span>되돌릴 수 없습니다.</span></p>
             <button type="button" className="mc-text" autoFocus onClick={() => setAskMany(false)}>취소</button>
             <button type="button" className="mc-text danger" onClick={() => { delPicked(); setPicked([]); setPicking(false); setAskMany(false); }}>지우기</button>
           </div>
@@ -314,13 +314,13 @@ export function MineList({ query, onNew, onImport }: { query?: string; onNew?: (
             </ul>
             <div className="bk-shelf" aria-hidden="true" />
           </div>
-        )) : <p className="mine-none">찾는 작품이 없어요</p>}
+        )) : <p className="mine-none">찾는 작품이 없습니다</p>}
       </div>
       {openP && <Detail p={openP} onClose={() => setOpen(null)} act={act(openP)} photos={photoN[openP.id]} />}
       {photoFor && <PhotoLog projectId={photoFor} name={projects.find(x => x.id === photoFor)?.name ?? ""} onClose={() => setPhotoFor(null)} onChange={loadPhotos} />}
       {undo && (
         <div className="mine-undo" role="status">
-          <span>{undo.n > 1 ? `${undo.n}개를 지웠어요` : "지웠어요"}</span>
+          <span>{undo.n > 1 ? `${undo.n}개를 지웠습니다` : "지웠습니다"}</span>
           <button type="button" onClick={() => { restoreProjects(undo.r); setUndo(null); if (timer.current) clearTimeout(timer.current); }}>되돌리기</button>
         </div>
       )}

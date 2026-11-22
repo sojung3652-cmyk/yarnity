@@ -86,7 +86,7 @@ function WishForm({ kind, wish, onClose }: { kind: "link" | "photo" | "memo"; wi
           <span className="my-field-row"><input type="url" inputMode="url" placeholder="https://" value={url} onChange={e => { setUrl(e.target.value); setReading(""); }} onBlur={() => { if (url.trim() && !reading && !title) read(); }} />
             <button type="button" className="my-btn is-sub" onClick={read} disabled={reading === "busy"}>{reading === "busy" ? "읽는 중" : "읽어 오기"}</button></span>
         </label>
-        {reading === "fail" && <p className="my-hint">이 주소에서 정보를 읽지 못했어요. 아래에 직접 적어 주세요.</p>}
+        {reading === "fail" && <p className="my-hint">이 주소에서 정보를 읽지 못했습니다. 아래에 직접 적어 주십시오.</p>}
         {image && /* eslint-disable-next-line @next/next/no-img-element */ <img className="my-form-pic" src={image} alt="" onError={() => setImage("")} />}
         <label className="my-field"><span>상품명</span><input value={title} onChange={e => setTitle(e.target.value)} /></label>
         <div className="my-field-2">

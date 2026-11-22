@@ -41,7 +41,7 @@ export function WorkMore({ p }: { p: Project }) {
           )}
           {mode === "delete" && (
             <div className="wmore-ask" role="alert">
-              <p>이 작품을 지울까요? 되돌릴 수 없어요.</p>
+              <p>이 작품을 지우시겠습니까? 되돌릴 수 없습니다.</p>
               <button type="button" onClick={() => setMode("menu")}>취소</button>
               <button type="button" className="danger" onClick={() => { setOpen(false); removeProjects([p.id]); router.push("/mine"); }}>지우기</button>
             </div>
