@@ -105,7 +105,7 @@ export function MyLayout({ children }: { children: ReactNode }) {
       <div className="my-grid">
         <aside className="my-left">
           <Link href="/my/profile" className="my-me" aria-label="나의 프로필로">
-            <Avatar size={96} />
+            <Avatar size={112} />
             <b className={prof.nickname ? "" : "is-empty"}>{prof.nickname || "닉네임을 정해 주세요"}</b>
             {sub && <small>{sub}</small>}
           </Link>
