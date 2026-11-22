@@ -23,9 +23,9 @@
 | chenille.jpg | 셔닐 | https://unsplash.com/photos/tzZU01BLJ4o |
 | angora.jpg | 앙고라 | https://unsplash.com/photos/5VMlj33cc4A (카디건 소매만 크게 확대해 자름) |
 | tweed.jpg | 트위드사 | https://unsplash.com/photos/lY0MpDoh2BA |
-| bamboo.jpg | 대나무 | https://unsplash.com/photos/2tZ2JD25as0 (니트 탑의 배 부분만 확대해 자름) |
+| bamboo.jpg | 대나무 | https://unsplash.com/photos/OQrZQ80eNM4 |
 | jute.jpg | 황마 | https://unsplash.com/photos/hh2ulVuYbcw |
-| fabric.jpg | 패브릭얀 | https://unsplash.com/photos/SVclj-GzwxU |
+| fabric.jpg | 패브릭얀 | https://unsplash.com/photos/neCu4YrL5F4 |
 | raffia.jpg | 라피아 | https://unsplash.com/photos/THJU51SiY6s (짠 부분만 확대해 자름) |
 | tencel.jpg | 텐셀 | https://unsplash.com/photos/JDwEVCVyBWs (니트 탑의 등판만 확대해 자름) |
 | hemp.jpg | 헴프 | https://unsplash.com/photos/ieppoqQTIto (가방 편물만 확대해 자름) |
