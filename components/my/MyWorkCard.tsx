@@ -13,6 +13,8 @@ import { ITEM, itemIdOf } from "@/lib/items";
 import { statusOf } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
+import type { Imported } from "@/lib/imported";
+import { ImportedCover } from "./ImportedCover";
 
 export function HookCard({ p }: { p: Project }) {
   const { setActive, updateProject } = useApp(), router = useRouter(), book = useBook();
@@ -59,6 +61,32 @@ export function HookCard({ p }: { p: Project }) {
         <div className="my-hook-btns">
           <ClothPatch color="cream" small onClick={view}>도안 보기</ClothPatch>
           <ClothPatch color="lavender" small onClick={resume}>{w.cur > 0 ? "이어서 뜨기 →" : "뜨기 시작 →"}</ClothPatch>
+        </div>
+      </article>
+    </section>
+  );
+}
+
+/** the same card for a 가져온 도안 (Kim): its first page, PDF / 종이, the title, the 단, yarn · hook; 도안 보기 and
+ *  이어서 뜨기 both open its follow-along page */
+export function ImportedHookCard({ p }: { p: Imported }) {
+  const router = useRouter(), go = () => router.push(`/my/imported/${p.id}`);
+  return (
+    <section className="my-latest" aria-labelledby="myLatest">
+      <p className="my-recent" id="myLatest">가장 최근에 뜬 작품</p>
+      <article className="my-hook">
+        <div className="my-hook-in">
+          <span className="my-hook-cover"><ImportedCover p={p} w={74} /></span>
+          <div className="my-hook-text">
+            <p className="my-hook-small">{p.kind === "pdf" ? `PDF · ${p.pageCount}쪽` : `종이 · 사진 ${p.pageCount}장`}</p>
+            <h3>{p.title}</h3>
+            <p className="my-hook-where">{p.row > 0 ? `${p.row}단까지 떴어요` : "시작 전"}</p>
+            {p.yarn && <p className="my-hook-small">{p.yarn}</p>}
+          </div>
+        </div>
+        <div className="my-hook-btns">
+          <ClothPatch color="cream" small onClick={go}>도안 보기</ClothPatch>
+          <ClothPatch color="lavender" small onClick={go}>{p.row > 0 ? "이어서 뜨기 →" : "뜨기 시작 →"}</ClothPatch>
         </div>
       </article>
     </section>

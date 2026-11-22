@@ -1,0 +1,77 @@
+/* 가져온 도안 (web, Kim; mockups S_B shelf, S_C import, S_D follow-along). Ivory #F6F0E4, Noto Serif KR (Cormorant
+   Garamond for the Latin trims only), the shadow always to the lower left, the see-through dusty rose as the one
+   accent, cloth label buttons. */
+
+/* ---- the cover on the shelf: the Yarnity book's box (3 : 4), the page inset as the diary pictures' book bodies */
+.im-cover{position:relative;display:block;width:100%;aspect-ratio:3 / 4}
+.im-cover-page{position:absolute;left:4%;right:4%;top:2.25%;bottom:3.94%;overflow:hidden;border-radius:2px;background:#FFFDF8;
+  box-shadow:0 0 0 1px rgba(142,131,121,.14),-5px 7px 12px -5px rgba(70,48,34,.32),-1px 2px 3px -1px rgba(70,48,34,.12);transition:transform .2s ease,box-shadow .2s ease}
+.im-cover-page img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
+.im-cover.is-photo .im-cover-page{background:#D9CBB4}
+.bk-book:hover .im-cover-page,.bk-book:focus-visible .im-cover-page{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(142,131,121,.14),-7px 10px 16px -5px rgba(70,48,34,.38)}
+/* the cloth tag: ivory, a dashed running stitch inside, the shadow to the lower left */
+.im-tag{position:absolute;top:calc(2.25% + 8px);right:calc(4% - 2px);padding:3px 10px 2px;border-radius:1px;background:#FBF6EC;
+  outline:1px dashed rgba(150,120,80,.55);outline-offset:-3px;box-shadow:-1.5px 2px 2.5px rgba(70,48,34,.18);
+  font:600 12px/1.2 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.06em;color:#5A4A3E}
+.im-tag:lang(ko){font:600 11px/1.3 "Noto Serif KR",serif;letter-spacing:0}
+
+/* ---- the dashed + 새 도안 slot: 만들기 · 가져오기 under its word, a small menu beside it */
+.my .my-newslot small{font:400 11px/1.3 "Noto Serif KR",serif;color:#8C807A}
+.my .bk-books li.my-newwrap{position:relative}
+.my .bk-books li.my-newwrap>.my-pop{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;min-width:110px;z-index:40}
+.my .bk-books li.my-newwrap>.my-pop button{padding:8px 12px;border:0;background:none;text-align:left;font-size:13px;color:#3F3532;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.im-cover-page{transition:none}}
+
+/* ---- 도안 가져오기 (S_C): the wish dialog's ruled memo paper, wider, its title plain at the left with a thin ✕ */
+.my-sheet.im-sheet{width:min(640px,100%);padding:26px 40px 26px;animation:my-memo-up .4s cubic-bezier(.22,1,.36,1) both}
+.my-sheet.im-sheet.is-over{box-shadow:0 0 0 2px rgba(201,160,80,.6),-12px 18px 36px -16px rgba(50,35,25,.45)}
+.im-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 18px}
+.im-head h2{margin:0;font:700 18px/1.3 "Noto Serif KR",serif;color:#2F2824}
+.im-x{display:grid;place-items:center;width:32px;height:32px;margin-right:-6px;padding:0;border:0;background:none;color:#6A605F;cursor:pointer}
+.im-x svg{width:16px;height:16px}
+.im-x:hover{color:#2F2824}
+.im-choice{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.im-choice button{display:flex;align-items:center;gap:16px;min-height:88px;padding:14px 18px;border:1px dashed rgba(142,131,121,.6);border-radius:4px;background:rgba(255,254,250,.7);
+  text-align:left;font:inherit;color:#3A322D;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+.im-choice button:hover{background:rgba(224,170,174,.16)}
+.im-choice button.is-on{border:1px solid #C9A050;background:rgba(224,170,174,.28)}
+.im-choice b{display:block;font:700 15px/1.4 "Noto Serif KR",serif}
+.im-choice small{display:block;margin-top:4px;font-size:12px;line-height:1.45;color:#6A605F}
+.im-ico{flex:none;display:grid;place-items:center;width:44px;color:#8C807A}
+.im-ico svg{width:40px;height:40px}
+.im-choice button:focus-visible,.im-add:focus-visible,.im-del:focus-visible,.im-x:focus-visible,.im-link:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
+.im-files{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 0;padding:0;list-style:none}
+.im-pics li{position:relative;cursor:grab}
+.im-pics li:active{cursor:grabbing}
+.im-thumb{position:relative;display:block;width:86px;height:110px;overflow:hidden;border-radius:2px;background:#D9CBB4;
+  box-shadow:0 0 0 1px rgba(142,131,121,.18),-3px 4px 7px -3px rgba(70,48,34,.35)}
+.im-thumb img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.im-thumb i{position:absolute;left:5px;bottom:5px;padding:1px 6px;border-radius:99px;background:rgba(255,253,248,.92);font:normal 500 11px/1.4 "Noto Serif KR",serif;color:#4A3D38}
+.im-del{position:absolute;top:-7px;right:-7px;display:grid;place-items:center;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#FBF6EC;
+  box-shadow:0 0 0 1px rgba(142,131,121,.3),-1px 2px 3px rgba(70,48,34,.2);color:#6A605F;cursor:pointer;opacity:0;transition:opacity .15s ease}
+.im-del svg{width:11px;height:11px}
+.im-pics li:hover .im-del,.im-del:focus-visible{opacity:1}
+.im-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:86px;height:110px;padding:0;border:1px dashed rgba(142,131,121,.6);border-radius:2px;
+  background:rgba(255,254,250,.45);font:400 12px/1.3 "Noto Serif KR",serif;color:#8C807A;cursor:pointer}
+.im-add span{font-size:16px;line-height:1}
+.im-add:hover{background:rgba(224,170,174,.16);color:#3A322D}
+.im-add.is-wide{flex-direction:row;gap:8px;width:100%;height:72px;font-size:13px}
+.im-pdf{display:flex;align-items:center;gap:16px;width:100%}
+.im-pdf-text{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.im-pdf-text b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 14px/1.4 "Noto Serif KR",serif;color:#3A322D}
+.im-pdf-text small{font-size:12px;color:#6A605F}
+.im-link{padding:4px 2px;border:0;background:none;font:500 12px "Noto Serif KR",serif;color:#6A605F;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.im-hint{margin:10px 0 0;font-size:12px;line-height:1.5;color:#6A605F}
+.im-fields{margin-top:22px}
+.im-fields label{display:grid;grid-template-columns:90px minmax(0,1fr);align-items:end;gap:0;min-height:43px}
+.im-fields label>span{padding-bottom:6px;font:500 13px "Noto Serif KR",serif;color:#5E554E}
+.im-fields input{box-sizing:border-box;width:100%;height:32px;padding:0 0 4px;border:0;border-bottom:1px solid rgba(110,96,86,.55);border-radius:0;background:transparent;
+  font:400 14px "Noto Serif KR",serif;color:#2F2824;outline:0}
+.im-fields input::placeholder{color:#A89C94}
+.im-fields input:focus{border-bottom-color:#8E6F3E}
+.im-note{margin:12px 0 0;font-size:12.5px;color:#8A3F3F}
+.im-sheet .my-sheet-foot{margin-top:24px}
+@media (prefers-reduced-motion:reduce){.my-sheet.im-sheet{animation:none}.im-choice button,.im-del{transition:none}}
+.my-sheet.im-sheet .im-head h2{display:block;width:auto;aspect-ratio:auto;margin:0;padding:0;background:none;filter:none;white-space:normal}
+
+.my-sheet.im-sheet .im-fields input:focus,.my-sheet.im-sheet .im-fields input:focus-visible{outline:none;box-shadow:none;border-radius:0}

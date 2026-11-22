@@ -22,7 +22,8 @@ type Filter = "all" | WishKind;
 const KIND_KO: Record<WishKind, string> = { link: "링크", photo: "사진", memo: "메모" };
 
 /** a dialog over the page: Esc and the dim close it, focus starts inside */
-function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+/** also the 가져오기 dialog's (MyImport, Kim): `className` for its own layout, `head` in place of the lace title */
+export function Sheet({ title, onClose, children, className, head }: { title: string; onClose: () => void; children: ReactNode; className?: string; head?: ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     box.current?.querySelector<HTMLElement>("input,textarea,button")?.focus();
@@ -31,8 +32,8 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
   }, [onClose]);
   return (
     <div className="my-dim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div ref={box} className="my-sheet" role="dialog" aria-modal="true" aria-label={title}>
-        <h2>{title}</h2>{children}
+      <div ref={box} className={"my-sheet" + (className ? " " + className : "")} role="dialog" aria-modal="true" aria-label={title}>
+        {head ?? <h2>{title}</h2>}{children}
       </div>
     </div>
   );

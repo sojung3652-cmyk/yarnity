@@ -11,6 +11,8 @@ import { addPhoto, photosOf, removePhoto, type Photo } from "@/lib/photos";
 import { readLog } from "@/lib/knitLog";
 import { galleryPhotoKey, newGalleryId, saveGallery, useGallery, type GalleryEntry } from "@/lib/gallery";
 import { statusOf } from "@/lib/status";
+import { importedPhotoKey, useImported, type Imported } from "@/lib/imported";
+import { ImportedCover } from "./ImportedCover";
 import type { Project } from "@/lib/types";
 import { MyHead } from "./MyLayout";
 
@@ -18,7 +20,8 @@ const fmtDay = (ms: number) => { const d = new Date(ms); return `${d.getMonth() 
 type Shot = { photo: Photo; url: string };
 type Shots = Record<string, Shot[]>;
 /** a work in the gallery: one of the user's patterns, finished, or a record written in by hand */
-type Item = { key: string; name: string; doneAt: number; project?: Project; entry?: GalleryEntry };
+/** (가져온 도안 too, Kim: a finished one is in the gallery on the day it was finished) */
+type Item = { key: string; name: string; doneAt: number; project?: Project; entry?: GalleryEntry; imported?: Imported };
 const Chev = () => <svg className="my-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
@@ -107,12 +110,13 @@ function RecordForm({ onClose, onSaved }: { onClose: () => void; onSaved: (id: s
 }
 
 export function MyGallery() {
-  const { ready, projects } = useApp(), entries = useGallery();
+  const { ready, projects } = useApp(), entries = useGallery(), imp = useImported();
   const [log] = useState(readLog);
   const items = useMemo<Item[]>(() => [
     ...projects.filter(p => statusOf(p) === "done").map(p => ({ key: p.id, name: p.name, doneAt: log.doneAt[p.id] ?? p.updatedAt ?? p.created, project: p })),
+    ...imp.list.filter(p => p.status === "done").map(p => ({ key: importedPhotoKey(p.id), name: p.title, doneAt: log.doneAt[importedPhotoKey(p.id)] ?? p.finishedAt ?? p.updatedAt, imported: p })),
     ...entries.map(e => ({ key: galleryPhotoKey(e.id), name: e.name, doneAt: e.doneAt, entry: e })),
-  ].sort((a, b) => b.doneAt - a.doneAt), [projects, entries, log]);
+  ].sort((a, b) => b.doneAt - a.doneAt), [projects, entries, log, imp.list]);
 
   // the photos, as object URLs while the page is open
   const [shots, setShots] = useState<Shots>({});
@@ -160,7 +164,7 @@ export function MyGallery() {
                     <button type="button" className={"my-row" + (on ? " is-on" : "")} aria-current={on ? "true" : undefined} onClick={() => setSel(it.key)}>
                       <span className="my-row-pic">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        {s[0] ? <img src={s[0].url} alt="" /> : it.project ? <BookCover p={it.project} w={38} /> : <span className="my-row-mark" aria-hidden="true">✿</span>}
+                        {s[0] ? <img src={s[0].url} alt="" /> : it.project ? <BookCover p={it.project} w={38} /> : it.imported ? <ImportedCover p={it.imported} w={38} /> : <span className="my-row-mark" aria-hidden="true">✿</span>}
                       </span>
                       <span className="my-row-text"><b>{it.name}</b><span>{fmtDay(it.doneAt)}{s.length ? ` · 사진 ${s.length}장` : " · 사진 없음"}</span></span>
                       <Chev />

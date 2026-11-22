@@ -14,6 +14,7 @@ import { photoById } from "@/lib/photos";
 import { useProfile } from "@/lib/profile";
 import { statusOf } from "@/lib/status";
 import { useWishes } from "@/lib/wish";
+import { useImported } from "@/lib/imported";
 import { MobileTopBar } from "@/components/mobile/MobileTopBar";
 import "./myPage.css";
 import "./myPageMobile.css";
@@ -65,11 +66,12 @@ export function MyHead({ title, line, children }: { title: string; line?: ReactN
 
 export function MyLayout({ children }: { children: ReactNode }) {
   const m = useMobile(), router = useRouter(), path = usePathname();
-  const { projects } = useApp(), prof = useProfile(), wishes = useWishes();
+  const { projects } = useApp(), prof = useProfile(), wishes = useWishes(), imp = useImported();
   const counts = useMemo(() => {
     const st = projects.map(statusOf);
-    return [projects.length, st.filter(s => s === "done").length, wishes.length, null] as (number | null)[];
-  }, [projects, wishes]);
+    // 나의 도안집 counts the 가져온 도안 too; 갤러리 the finished ones of both
+    return [projects.length + imp.list.length, st.filter(s => s === "done").length + imp.list.filter(p => p.status === "done").length, wishes.length, null] as (number | null)[];
+  }, [projects, wishes, imp.list]);
   const sub = prof.craft; // what the user mostly knits (Kim: no 경력)
   if (m === null || m === undefined) return <main id="view-my" />;
   if (m) return (

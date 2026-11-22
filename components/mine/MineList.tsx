@@ -20,9 +20,19 @@ import { ITEM, itemIdOf } from "@/lib/items";
 import { STATUS_KO, statusOf, type Status } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
+import { importedLine, removeImported, useImported, type Imported } from "@/lib/imported";
+import { ImportedCover } from "@/components/my/ImportedCover";
 import "@/app/mine/mine.css";
 
-type Filter = "all" | Status;
+// 가져온 도안 (Kim): Yarnity's patterns and the imported ones on the same shelves; tabs 전체 / Yarnity 도안 /
+// 가져온 도안 / 뜨는 중 / 완성 (an imported one not started counts as 뜨는 중, as a Yarnity one does)
+type Filter = "all" | "yarnity" | "imported" | "knitting" | "done";
+const FILTER_KO: Record<Filter, string> = { all: "전체", yarnity: "Yarnity 도안", imported: "가져온 도안", knitting: "뜨는 중", done: "완성" };
+type Book = { y: Project; i?: undefined } | { i: Imported; y?: undefined };
+const bookName = (b: Book) => (b.y ? b.y.name : b.i!.title);
+const bookTime = (b: Book) => (b.y ? b.y.updatedAt ?? b.y.created : b.i!.updatedAt);
+const bookMade = (b: Book) => (b.y ? b.y.created : b.i!.createdAt);
+const bookStatus = (b: Book): Status => (b.y ? statusOf(b.y) : b.i!.status === "done" ? "done" : "knitting");
 type Sort = "recent" | "created" | "name";
 const SORT_KO: Record<Sort, string> = { recent: "최근에 뜬 순", created: "만든 순", name: "이름순" };
 
@@ -122,7 +132,8 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
 /** the shelves of 나의 도안집 (web): on My Page since the NavBar went to Home · New Pattern · Glossary · My Page */
 /** `query`: the search box lives in My Page's header (its own box hides); `onNew`: a dashed + 새 도안 slot ends
  *  the shelves (Kim) */
-export function MineList({ query, onNew }: { query?: string; onNew?: () => void } = {}) {
+/** `onImport`: the new slot offers 만들기 · 가져오기 (Kim) */
+export function MineList({ query, onNew, onImport }: { query?: string; onNew?: () => void; onImport?: () => void } = {}) {
   const { ready, projects, setActive, updateProject, addProject, removeProjects, restoreProjects } = useApp();
   const router = useRouter(), book = useBook();
   const [ownQ, setQ] = useState(""), q = query ?? ownQ, [filter, setFilter] = useState<Filter>("all"), [sort, setSort] = useState<Sort>("recent");
@@ -144,14 +155,35 @@ export function MineList({ query, onNew }: { query?: string; onNew?: () => void 
   // photos of works deleted for good (no undo pending) are dropped
   useEffect(() => { if (ready && !undo) dropOrphans(projects.map(p => p.id)).catch(() => {}); }, [ready, undo, projects]);
 
-  const counts = useMemo(() => { const c = { all: projects.length, knitting: 0, paused: 0, done: 0 }; projects.forEach(p => c[statusOf(p)]++); return c; }, [projects]);
+  const imp = useImported();
+  const books = useMemo<Book[]>(() => [...projects.map(y => ({ y })), ...imp.list.map(i => ({ i }))], [projects, imp.list]);
+  const counts = useMemo(() => {
+    const c: Record<Filter, number> = { all: books.length, yarnity: projects.length, imported: imp.list.length, knitting: 0, done: 0 };
+    books.forEach(b => { const st = bookStatus(b); if (st === "knitting") c.knitting++; else if (st === "done") c.done++; });
+    return c;
+  }, [books, projects.length, imp.list.length]);
   const shown = useMemo(() => {
     const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    const list = projects.filter(p => (filter === "all" || statusOf(p) === filter) && words.every(w => haystack(p).includes(w)));
-    return [...list].sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "ko") : sort === "created" ? b.created - a.created : (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created));
-  }, [projects, q, filter, sort]);
+    const hay = (b: Book) => (b.y ? haystack(b.y) : [b.i!.title, b.i!.yarn, b.i!.memo].join(" ").toLowerCase());
+    const pass = (b: Book) => filter === "all" ? true : filter === "yarnity" ? !!b.y : filter === "imported" ? !!b.i : bookStatus(b) === filter;
+    const list = books.filter(b => pass(b) && words.every(w => hay(b).includes(w)));
+    return [...list].sort((a, b) => sort === "name" ? bookName(a).localeCompare(bookName(b), "ko") : sort === "created" ? bookMade(b) - bookMade(a) : bookTime(b) - bookTime(a));
+  }, [books, q, filter, sort]);
   // the dashed + 새 도안 slot (null) after the last book
-  const shelves = useMemo(() => { const all: (Project | null)[] = onNew && !q.trim() ? [...shown, null] : shown, out: (Project | null)[][] = []; for (let i = 0; i < all.length; i += cols) out.push(all.slice(i, i + cols)); return out; }, [shown, cols, onNew, q]);
+  const shelves = useMemo(() => { const all: (Book | null)[] = onNew && !q.trim() ? [...shown, null] : shown, out: (Book | null)[][] = []; for (let i = 0; i < all.length; i += cols) out.push(all.slice(i, i + cols)); return out; }, [shown, cols, onNew, q]);
+  const [newMenu, setNewMenu] = useState(false);
+  useEffect(() => {
+    if (!newMenu) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setNewMenu(false); };
+    const off = (e: MouseEvent) => { if (!(e.target as Element).closest?.(".my-newwrap")) setNewMenu(false); };
+    document.addEventListener("keydown", esc); document.addEventListener("mousedown", off);
+    return () => { document.removeEventListener("keydown", esc); document.removeEventListener("mousedown", off); };
+  }, [newMenu]);
+  const delPicked = () => {
+    const ys = picked.filter(id => projects.some(p => p.id === id)), is = picked.filter(id => imp.list.some(p => p.id === id));
+    if (ys.length) removed(removeProjects(ys));
+    is.forEach(id => removeImported(id).catch(() => {}));
+  };
 
   const removed = (r: Removed) => {
     if (timer.current) clearTimeout(timer.current);
@@ -177,8 +209,8 @@ export function MineList({ query, onNew }: { query?: string; onNew?: () => void 
   };
   const openP = open ? projects.find(x => x.id === open) ?? null : null;
 
-  if (!ready) return null;
-  if (!projects.length && !undo) return (
+  if (!ready || !imp.ready) return null;
+  if (!books.length && !undo && !onNew) return (
     <section className="bk-empty">
       <div className="bk-shelf" aria-hidden="true" />
       {/* the book is called from the opening's Start and the nav's 새 도안 only (Kim) */}
@@ -199,8 +231,8 @@ export function MineList({ query, onNew }: { query?: string; onNew?: () => void 
         {/* a small search box with a magnifier (Kim: the long underlined field was too big) */}
         <div className="mine-row">
           <div className="mine-tabs" role="tablist" aria-label="상태로 거르기">
-            {(["all", "knitting", "paused", "done"] as Filter[]).map(f => (
-              <button key={f} type="button" role="tab" aria-selected={filter === f} className="mine-tab" onClick={() => setFilter(f)}>{f === "all" ? "전체" : STATUS_KO[f]} <span>{counts[f]}</span></button>
+            {(Object.keys(FILTER_KO) as Filter[]).map(f => (
+              <button key={f} type="button" role="tab" aria-selected={filter === f} className="mine-tab" onClick={() => setFilter(f)}>{FILTER_KO[f]} <span>{counts[f]}</span></button>
             ))}
           </div>
           <div className="mine-right">
@@ -224,7 +256,7 @@ export function MineList({ query, onNew }: { query?: string; onNew?: () => void 
           <div className="mine-ask" role="alertdialog" aria-label="여러 작품 지우기">
             <p>고른 작품 {picked.length}개를 지울까요? <span>되돌릴 수 없어요.</span></p>
             <button type="button" className="mc-text" autoFocus onClick={() => setAskMany(false)}>취소</button>
-            <button type="button" className="mc-text danger" onClick={() => { removed(removeProjects(picked)); setPicked([]); setPicking(false); setAskMany(false); }}>지우기</button>
+            <button type="button" className="mc-text danger" onClick={() => { delPicked(); setPicked([]); setPicking(false); setAskMany(false); }}>지우기</button>
           </div>
         )}
       </div>
@@ -232,8 +264,34 @@ export function MineList({ query, onNew }: { query?: string; onNew?: () => void 
         {shelves.length ? shelves.map((row, i) => (
           <div key={i} className="bk-row">
             <ul className="bk-books">
-              {row.map(p => {
-                if (!p) return <li key="new"><button type="button" className="my-newslot" onClick={onNew}><span aria-hidden="true">+</span>새 도안</button></li>;
+              {row.map(b => {
+                if (!b) return (
+                  <li key="new" className="my-newwrap">
+                    {onImport
+                      ? <button type="button" className="my-newslot" aria-haspopup="menu" aria-expanded={newMenu} onClick={() => setNewMenu(v => !v)}><span aria-hidden="true">+</span>새 도안<small>만들기 · 가져오기</small></button>
+                      : <button type="button" className="my-newslot" onClick={onNew}><span aria-hidden="true">+</span>새 도안</button>}
+                    {newMenu && (
+                      <div className="my-pop" role="menu">
+                        <button type="button" role="menuitem" onClick={() => { setNewMenu(false); onNew?.(); }}>만들기</button>
+                        <button type="button" role="menuitem" onClick={() => { setNewMenu(false); onImport?.(); }}>가져오기</button>
+                      </div>
+                    )}
+                  </li>
+                );
+                if (b.i) {
+                  const ip = b.i, on = picked.includes(ip.id);
+                  return (
+                    <li key={ip.id}>
+                      <button type="button" className={"bk-book" + (on ? " is-picked" : "")} aria-pressed={picking ? on : undefined}
+                        onClick={() => (picking ? setPicked(x => (x.includes(ip.id) ? x.filter(i => i !== ip.id) : [...x, ip.id])) : router.push(`/my/imported/${ip.id}`))}>
+                        <span className="bk-cover-wrap"><ImportedCover p={ip} />{picking && <span className="bk-check" aria-hidden="true">{on ? "✓" : ""}</span>}</span>
+                        <span className="bk-name">{ip.title}</span>
+                        <span className="bk-where">{importedLine(ip)}</span>
+                      </button>
+                    </li>
+                  );
+                }
+                const p = b.y!;
                 const w = whereOf(p), on = picked.includes(p.id);
                 return (
                   <li key={p.id}>
