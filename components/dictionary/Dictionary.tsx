@@ -10,7 +10,7 @@ import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
 import { MyHead } from "@/components/my/MyLayout";
-import { TERMS } from "@/lib/glossary";
+import { TERMS, termById } from "@/lib/glossary";
 import { KNOWHOW, KNOWHOW_TOPICS, knowhowOf } from "@/src/data/dictionary/knowhow";
 import { YARNS, YARN_GROUPS } from "@/src/data/dictionary/yarns";
 import { TROUBLES } from "@/src/data/dictionary/trouble";
@@ -233,12 +233,20 @@ const crafted = (c: Craft, want: "crochet" | "knit") => c === want || c === "bot
 /** the questions in two columns (Kim: no long lists); the answer in a wide pop-up - why on the left, what to try on the right */
 export function TroubleScreen() {
   const [f, setF] = useState<"all" | "crochet" | "knit">("all"), [open, setOpen] = useState<Trouble | null>(null);
-  const shown = TROUBLES.filter(t => f === "all" || crafted(t.craft, f));
+  // a search over the question, its cause, the answer and the related terms (Kim)
+  const [q, setQ] = useState("");
+  const norm = (x: string) => x.replace(/s+/g, "").toLowerCase();
+  const shown = TROUBLES.filter(t => (f === "all" || crafted(t.craft, f)) && (!q.trim() || norm([t.title, t.cause, t.why ?? "", ...(t.fixes ?? []), ...(t.related ?? []).map(id => termById(id)?.name ?? "")].join(" ")).includes(norm(q))));
   const ask = useAskYarni();
   return (
     <>
       <MyHead title="FAQ" />
       <Filters label="거르기" value={f} onPick={setF} groups={[[{ id: "all", label: "전체", n: TROUBLES.length }, { id: "crochet", label: "코바늘" }, { id: "knit", label: "대바늘" }]]} />
+      <label className="dict-find is-faq"><span className="sr">질문 찾기</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+        <input type="search" value={q} placeholder="질문 찾기" onChange={e => setQ(e.target.value)} />
+      </label>
+      {shown.length === 0 && <p className="dict-none">&lsquo;{q.trim()}&rsquo;에 맞는 질문이 없어요. Yarni에게 물어보세요.</p>}
       <ul className="dict-faq">
         {shown.map(t => (
           <li key={t.id}>
@@ -257,6 +265,12 @@ export function TroubleScreen() {
             <div><Lace>왜 그럴까요</Lace>{open.why ? <p className="dict-body">{open.why}</p> : <Soon />}</div>
             <div><Lace>이렇게 해 보세요</Lace>{open.fixes?.length ? <ol className="dict-fixes">{open.fixes.map(x => <li key={x}>{x}</li>)}</ol> : <Soon />}</div>
           </div>
+          {/* the 용어집 terms behind this answer (Kim) */}
+          {open.related?.length ? (
+            <div className="dict-faq-rel"><span>관련 용어</span>
+              {open.related.map(id => termById(id)).filter(Boolean).map(t => <Link key={t!.id} href={`/glossary/terms/${t!.id}`} className="dict-faq-term">{t!.name}</Link>)}
+            </div>
+          ) : null}
           <p className="dict-foot"><button type="button" onClick={() => ask(`편물이 '${open.title}' 같아요. 사진을 보여 줄게요.`)}>Yarni에게 내 편물 사진 보여주기 →</button></p>
         </DictPop>
       )}

@@ -54,12 +54,14 @@ export interface Trouble {
   title: string;
   craft: Craft;
   cause: string;
-  /** the gold-thread drawing on its card (DictArt) */
-  illustration: string;
+  /** the gold-thread drawing (DictArt; not shown in FAQ) */
+  illustration?: string;
   /** three drawings side by side in the pop-up, the one that is this trouble marked */
   compare?: { art: string; label: string; note: string; on?: boolean }[];
   why?: string;
   fixes?: string[];
+  /** 용어집 terms to open from the answer (lib/data/yarnity-glossary.json ids) */
+  related?: string[];
 }
 
 /** 한눈에 보는 표 */

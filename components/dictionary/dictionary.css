@@ -234,3 +234,18 @@
 .dict-yarn-photo img{width:100%;height:100%;object-fit:cover;display:block}
 @media (max-width:1180px){.dict-yarn-cols.has-photo{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}.dict-yarn-photo{grid-column:1 / -1;width:180px}}
 .dict-filters-name{margin:0 2px 0 4px;font:600 13px/1 "Noto Serif KR",serif;color:#8C807A}
+/* FAQ search and the related 용어집 terms (Kim) */
+.dict-find.is-faq{width:min(460px,100%);margin:0 0 22px}
+.dict-faq-rel{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:26px 0 0}
+.dict-faq-rel > span{margin-right:4px;font:600 13px/1 "Noto Serif KR",serif;color:#8C807A}
+.dict-faq-term{display:inline-flex;align-items:center;height:34px;padding:0 18px;background:url(/brand/label_title.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1px 2px 2px rgba(90,62,44,.14));font:600 13px/1 "Noto Serif KR",serif;color:#5B4F49;text-decoration:none}
+.dict-faq-term:hover{color:#7A4E52}
+.dict-faq-term:focus-visible{outline:2px solid #C9A050;outline-offset:3px}
+
+/* Kim: the search fields quiet - no white box, a hairline under small grey text, the gold line only when typing in it (Handbook web) */
+.dict .dict-find,.dict.my .gl-search{height:34px;padding:0 2px;gap:8px;border-radius:0;background:none;box-shadow:none;border-bottom:1px solid rgba(142,131,121,.32)}
+.dict .dict-find:focus-within,.dict.my .gl-search:focus-within{box-shadow:none;border-bottom-color:#C9A050}
+.dict .dict-find svg,.dict.my .gl-search svg{width:14px;height:14px;color:#A99A92}
+.dict .dict-find input,.dict.my .gl-search input{font:13px/1 "Noto Serif KR",serif;color:#5B4F49}
+.dict .dict-find input::placeholder,.dict.my .gl-search input::placeholder{color:#B8ADA6}
+.dict .dict-find.is-faq{width:min(320px,100%)}
