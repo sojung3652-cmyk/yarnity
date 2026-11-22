@@ -63,7 +63,7 @@ export function PhoneOpening({ onDone }: { onDone: () => void }) {
     setPhase("rise");
     requestAnimationFrame(() => requestAnimationFrame(() => { st.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`; }));
     setTimeout(() => { document.body.classList.remove("m-intro-rise"); setPhase("out"); }, 780);
-    setTimeout(onDone, 930);
+    setTimeout(onDone, 1000);
     setTimeout(() => document.body.classList.remove("m-intro-cards"), 1100);
   };
 

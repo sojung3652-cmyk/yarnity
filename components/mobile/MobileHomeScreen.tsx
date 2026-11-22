@@ -33,7 +33,6 @@ export function MobileHomeScreen() {
       </div>
       <header className="mfh-brand">
         <h1 className="mfh-logo"><span className="sr">Yarnity</span><SparkleLogo className="mfh-foil" /></h1>
-        <p className="mfh-cap" lang="en">Intelligent Crochet</p>
       </header>
 
       <div className="mfh-actions">

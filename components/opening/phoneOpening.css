@@ -13,10 +13,12 @@
 .pho.is-rising .pho-bg,.pho.is-rising .pho-sv{opacity:0;transition:opacity .45s ease}
 .pho.is-rising .pho-start{display:none}
 .pho.is-out{opacity:0;pointer-events:none}
-.pho.is-rising.is-out,.pho.is-out:not(.is-rising){transition:opacity .15s ease}
+.pho.is-rising.is-out,.pho.is-out:not(.is-rising){transition:opacity .2s ease}
 /* the home under it: its own medallion and logo wait (the rising ones stand in); its menu cards come up one by one,
    as the web's NavBar comes down */
 body.m-intro-rise .mfh-lace,body.m-intro-rise .mfh-brand{opacity:0}
+/* the handover: the home's medallion and logo come in over 0.2s as the opening's fade out (no flash) */
+body .mfh .mfh-lace,body .mfh .mfh-brand{transition:opacity .2s ease}
 body.m-intro-cards .mfh-actions>*{animation:m-intro-card .55s cubic-bezier(.22,1,.36,1) both}
 body.m-intro-cards .mfh-actions>*:nth-child(1){animation-delay:.2s}
 body.m-intro-cards .mfh-actions>*:nth-child(2){animation-delay:.28s}
