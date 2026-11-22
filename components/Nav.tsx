@@ -34,7 +34,7 @@ export function Nav() {
     // Home · My Page · Glossary · New Pattern (Kim)
     { label: "Home", on: atHome, go: () => router.push("/") },
     { label: "My Page", on: mine, go: () => router.push("/my") },
-    { label: "Glossary", on: gloss, go: () => router.push("/glossary") },
+    { label: "Handbook", on: gloss, go: () => router.push("/glossary") },
     { label: "New Pattern", on: false, go: book.newPattern },
   ];
   const links = (cls: string) => items.map(it => (
