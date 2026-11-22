@@ -17,8 +17,6 @@
 /* the home under it: its own medallion and logo wait (the rising ones stand in); its menu cards come up one by one,
    as the web's NavBar comes down */
 body.m-intro-rise .mfh-lace,body.m-intro-rise .mfh-brand{opacity:0}
-/* the handover: the home's medallion and logo come in over 0.2s as the opening's fade out (no flash) */
-body .mfh .mfh-lace,body .mfh .mfh-brand{transition:opacity .2s ease}
 body.m-intro-cards .mfh-actions>*{animation:m-intro-card .55s cubic-bezier(.22,1,.36,1) both}
 body.m-intro-cards .mfh-actions>*:nth-child(1){animation-delay:.2s}
 body.m-intro-cards .mfh-actions>*:nth-child(2){animation-delay:.28s}

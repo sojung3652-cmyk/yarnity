@@ -14,7 +14,7 @@ export const OPENING_SEEN = "yarnity.opening.seen";
 export function PhoneOpening({ onDone }: { onDone: () => void }) {
   const root = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), sv = useRef<HTMLCanvasElement>(null), btn = useRef<HTMLButtonElement>(null);
   const sceneRef = useRef<ReturnType<typeof makeOpeningHomeScene> | null>(null), fadeFrom = useRef(0);
-  const [loaded, setLoaded] = useState(false), [shown, setShown] = useState(false), [phase, setPhase] = useState<"" | "rise" | "out">("");
+  const [loaded, setLoaded] = useState(false), [shown, setShown] = useState(false), [phase, setPhase] = useState<"" | "rise" | "landed" | "out">("");
 
   useEffect(() => {
     try { sessionStorage.setItem(OPENING_SEEN, "1"); } catch {}
@@ -62,13 +62,15 @@ export function PhoneOpening({ onDone }: { onDone: () => void }) {
     document.body.classList.add("m-intro-rise", "m-intro-cards");
     setPhase("rise");
     requestAnimationFrame(() => requestAnimationFrame(() => { st.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`; }));
-    setTimeout(() => { document.body.classList.remove("m-intro-rise"); setPhase("out"); }, 780);
-    setTimeout(onDone, 1000);
+    // landed: the home's own medallion and logo switch on at once under the (identical, aligned) risen ones, then the
+    // overlay fades - it stays "rising" so the linen and its twinkles never come back (that was the flash)
+    setTimeout(() => { document.body.classList.remove("m-intro-rise"); setPhase("landed"); }, 820);
+    setTimeout(onDone, 1080);
     setTimeout(() => document.body.classList.remove("m-intro-cards"), 1100);
   };
 
   return (
-    <div ref={root} className={"pho" + (loaded ? " is-on" : "") + (phase === "rise" ? " is-rising" : "") + (phase === "out" ? " is-out" : "")}>
+    <div ref={root} className={"pho" + (loaded ? " is-on" : "") + (phase === "rise" || phase === "landed" ? " is-rising" : "") + (phase === "out" || phase === "landed" ? " is-out" : "")}>
       <div className="pho-bg" aria-hidden="true" />
       <canvas ref={sv} className="pho-sv" aria-hidden="true" />
       <div ref={stage} className="pho-stage">
