@@ -119,7 +119,7 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
           {term.aliases.length > 0 && <p className="gl-d-alias">다른 이름 · {term.aliases.join(", ")}</p>}
         </div>
       </header>
-      {/* 커뮤니티 표현 have no 난이도 or US/UK name, so no facts patch for them (Kim) */}
+      {/* 뜨개인의 언어 (커뮤니티 표현) have no 난이도 or US/UK name, so no facts patch for them (Kim) */}
       {term.category !== "community" && (
         <dl className="gl-patch gl-facts" style={patch("ivory")}>
           <div><dt>난이도</dt><dd>{DIFFICULTY[term.difficulty] || "—"}</dd></div>

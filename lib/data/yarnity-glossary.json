@@ -40,7 +40,7 @@
     },
     {
       "id": "community",
-      "name": "커뮤니티 표현",
+      "name": "뜨개인의 언어",
       "color": "sand",
       "order": 7
     },
@@ -2413,6 +2413,285 @@
       "related": [
         "co_bo",
         "tapestry"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "second_sock",
+      "category": "community",
+      "name": "세컨드 삭 증후군",
+      "aliases": [
+        "두 번째 양말 증후군",
+        "SSS"
+      ],
+      "en": {
+        "us": "Second Sock Syndrome",
+        "uk": "Second Sock Syndrome"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "양말 한 짝을 다 뜨고 나면 똑같은 걸 또 뜰 의욕이 사라져 나머지 한 짝을 영영 못 뜨는 현상이에요. 장갑이나 소매에도 똑같이 찾아와서, 두 짝을 동시에 뜨는 방법(two-at-a-time)이 처방으로 쓰여요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "startitis",
+        "ufo"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "startitis",
+      "category": "community",
+      "name": "시작병",
+      "aliases": [
+        "스타티티스"
+      ],
+      "en": {
+        "us": "startitis",
+        "uk": "startitis"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "하던 작품은 그대로 두고 새 작품만 자꾸 시작하고 싶어지는 병이에요. 새 실과 새 도안을 보면 특히 심해져요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "ufo",
+        "wip"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "ufo",
+      "category": "community",
+      "name": "UFO",
+      "aliases": [
+        "미완성작"
+      ],
+      "en": {
+        "us": "UFO (UnFinished Object)",
+        "uk": "UFO (UnFinished Object)"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "뜨다가 멈춰서 서랍 속에 잠들어 있는 미완성 작품이에요. 정체를 알 수 없는 비행 물체처럼 언제 다시 나타날지 아무도 몰라요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "wip",
+        "second_sock"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "wip",
+      "category": "community",
+      "name": "WIP",
+      "aliases": [
+        "진행 중 작품"
+      ],
+      "en": {
+        "us": "WIP (Work In Progress)",
+        "uk": "WIP (Work In Progress)"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "지금 뜨고 있는 작품이에요. 한 사람이 WIP를 몇 개씩 동시에 들고 있는 건 흔한 일이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "ufo",
+        "startitis"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "stash",
+      "category": "community",
+      "name": "실 스태시",
+      "aliases": [
+        "쟁여둔 실"
+      ],
+      "en": {
+        "us": "stash",
+        "uk": "stash"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "당장 쓸 계획 없이 사 모아 둔 실 더미예요. 세일과 예쁜 색 앞에서 조금씩 불어나요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "sable"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "sable",
+      "category": "community",
+      "name": "SABLE",
+      "aliases": [],
+      "en": {
+        "us": "SABLE (Stash Acquisition Beyond Life Expectancy)",
+        "uk": "SABLE (Stash Acquisition Beyond Life Expectancy)"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "평생 떠도 다 못 쓸 만큼 실을 모아 버린 상태를 이르는 농담이에요. 실 스태시의 최종 단계라고들 해요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "stash"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "tink",
+      "category": "community",
+      "name": "팅크",
+      "aliases": [
+        "한 코씩 풀기"
+      ],
+      "en": {
+        "us": "tink (knit backwards)",
+        "uk": "tink (knit backwards)"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "knit을 거꾸로 쓴 말로, 뜬 코를 한 코씩 되돌려 푸는 거예요. 몇 코만 틀렸을 때 바늘에서 빼지 않고 조심스럽게 풀어요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "frog"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "yarn_barf",
+      "category": "community",
+      "name": "실 토하기",
+      "aliases": [],
+      "en": {
+        "us": "yarn barf",
+        "uk": "yarn barf"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "실뭉치 가운데에서 실 끝을 꺼내려다 엉킨 실 덩어리가 한꺼번에 왈칵 쏟아져 나오는 거예요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "ball"
+      ],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "sweater_curse",
+      "category": "community",
+      "name": "남자친구 스웨터 저주",
+      "aliases": [
+        "스웨터의 저주"
+      ],
+      "en": {
+        "us": "sweater curse",
+        "uk": "sweater curse"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "연인에게 스웨터를 떠 주면 완성 전후로 헤어진다는 뜨개인들 사이의 오래된 농담이에요. 그래서 커플 사이에는 목도리부터 뜨라는 말도 있어요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "kal",
+      "category": "community",
+      "name": "KAL · CAL",
+      "aliases": [
+        "함께 뜨기"
+      ],
+      "en": {
+        "us": "KAL / CAL (knit-along / crochet-along)",
+        "uk": "KAL / CAL (knit-along / crochet-along)"
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "같은 도안을 여러 사람이 정해진 기간에 함께 뜨며 진행 상황을 나누는 모임이에요. 대바늘은 KAL, 코바늘은 CAL이라고 해요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "ttulini",
+      "category": "community",
+      "name": "뜨린이",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "뜨개와 어린이를 합친 말로, 뜨개를 막 시작한 초보를 귀엽게 부르는 말이에요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [],
+      "verified": "2+",
+      "sources": [],
+      "note": null
+    },
+    {
+      "id": "ttutaegi",
+      "category": "community",
+      "name": "뜨태기",
+      "aliases": [],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "뜨개와 권태기를 합친 말로, 바늘을 잡기 싫어지는 시기예요. 보통 새 실을 사면 낫는다고들 해요.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "stash"
       ],
       "verified": "2+",
       "sources": [],
