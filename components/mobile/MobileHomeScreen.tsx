@@ -5,7 +5,7 @@
 // (a gold embroidered star) -> the existing AI sheet; 뜨개 용어집.
 import { useRouter } from "next/navigation";
 import { TERMS } from "@/lib/glossary";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useApp } from "@/components/AppProvider";
 import { BookCover, GoldDefs, ProgressBar, whereOf } from "@/components/BookCover";
 import { SparkleLogo } from "@/components/SparkleLogo";
@@ -22,6 +22,9 @@ export function MobileHomeScreen() {
     .sort((a, b) => (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created))[0] ?? null, [projects]);
   const w = hook ? whereOf(hook) : null;
   const resume = () => { if (!hook) return; setActive(hook.id); router.push("/track"); };
+  // the opening's card rise (body.m-intro-cards, PhoneOpening) stays on while this home is shown: taking it off
+  // there would hand the cards back their own arrival animation, which then plays a second time (the flash)
+  useEffect(() => () => document.body.classList.remove("m-intro-cards"), []);
 
   return (
     <main id="view-m-home" className={"mf mfh" + (ready && hook ? " has-resume" : "")}>

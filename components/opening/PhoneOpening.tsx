@@ -66,7 +66,6 @@ export function PhoneOpening({ onDone }: { onDone: () => void }) {
     // overlay fades - it stays "rising" so the linen and its twinkles never come back (that was the flash)
     setTimeout(() => { document.body.classList.remove("m-intro-rise"); setPhase("landed"); }, 820);
     setTimeout(onDone, 1080);
-    setTimeout(() => document.body.classList.remove("m-intro-cards"), 1100);
   };
 
   return (
