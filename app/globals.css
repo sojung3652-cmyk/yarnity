@@ -239,7 +239,7 @@ body:has(#view-new .book-stage-space){overflow:hidden}
 body:has(#view-new .book-stage-space) .wrap > footer{display:none}
 .nav{position:relative;z-index:5}
 /* "만들던 도안을 저장할까요?" (BookProvider): a small paper card over a dimmed desk */
-.leave-bg{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(58,46,41,.28)}
+.leave-bg{position:fixed;inset:0;z-index:140;display:grid;place-items:center;padding:16px;background:rgba(58,46,41,.28)}
 .leave{width:min(100%,380px);box-sizing:border-box;padding:28px 28px 18px;border-radius:6px;background:#FBF3EA;color:#4A3D38;font-family:"Noto Serif KR",serif;text-align:center;
   box-shadow:0 20px 50px -20px rgba(50,35,25,.5),0 0 0 1px rgba(222,186,193,.6)}
 .leave h2{margin:0 0 10px;font-size:18px;font-weight:600}

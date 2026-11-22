@@ -62,3 +62,5 @@
 .ynav{z-index:65}
 .ynav.is-home{z-index:130}
 body:has(.ynav) .hero-desk.is-overlay{top:56px;height:auto;bottom:0}
+/* above the home's scene (.oh, z 120), which stays under the book raised from it; the bar (is-home, 130) over both */
+.hero-desk.is-overlay{z-index:125}

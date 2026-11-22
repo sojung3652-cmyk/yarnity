@@ -24,7 +24,8 @@ export function Nav() {
     return () => { document.removeEventListener("mousedown", off); document.removeEventListener("keydown", key); };
   }, [open]);
 
-  const atHome = path === "/";
+  // the book raised from the home (Start, New Pattern) floats over it: the bar stays the home's (fixed on top)
+  const atHome = path === "/" || book.fromOpening;
   // after the opening the NavBar is always there (Kim) - also while the book is up (it rises under it)
   if (m !== false || path === "/ai" || path.startsWith("/ai/") || (atHome && !hs.home)) return null;
 
