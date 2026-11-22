@@ -601,3 +601,8 @@
   html body,html body:has(.gl){background:transparent!important}
   html body::before{content:"";position:fixed;inset:0;z-index:-1;background:url(/mobile/bg_stars.webp) center / cover no-repeat;pointer-events:none}
 }
+/* the app's inner screens on the plain warm ivory #F6F0E4 as the web's (Kim) - the home keeps its starry linen */
+@media (max-width:767.98px){
+  html:not(:has(#view-m-home)){background:#F6F0E4}
+  html body:not(:has(#view-m-home))::before{background:#F6F0E4}
+}

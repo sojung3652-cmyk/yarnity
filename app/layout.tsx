@@ -7,7 +7,7 @@ import { Nav } from "@/components/Nav";
 import { GlossaryFloat } from "@/components/glossary/GlossaryFloat";
 import { AiHost } from "@/components/newbook/AiPanel";
 import { AiBadge } from "@/components/AiBadge";
-import { FoilLogo } from "@/components/FoilLogo";
+import { SparkleLogo } from "@/components/SparkleLogo";
 import { BookProvider } from "@/components/Book/BookProvider";
 import { Hero } from "@/components/home/Hero";
 import { MobileChrome } from "@/components/mobile/MobileChrome";
@@ -39,7 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Hero />
               <Nav />
               {children}
-              <footer><FoilLogo className="foot-foil" /></footer>
+              {/* the site's foot (Kim): the glinting wordmark, larger, INTELLIGENT CROCHET under it */}
+              <footer><SparkleLogo className="foot-logo" /><p className="foot-cap" lang="en">Intelligent Crochet</p></footer>
             </div>
             {/* phones (767px and narrower): the bottom bar and the AI sheet */}
             <MobileChrome />
