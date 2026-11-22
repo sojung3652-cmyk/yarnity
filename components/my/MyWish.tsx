@@ -1,13 +1,13 @@
 "use client";
 // My Page · 위시 보관함 (/my/wish, Kim): shop links, pictures of things to knit or yarn to buy, notes - cards of
-// 나의 도안집's look (Kim): tabs with counts (전체 · 링크 · 편물 · 실 · 메모), the wishes on shelves like books (a
+// 나의 도안집's look (Kim): tabs with counts (전체 · 링크 · 사진 · 메모; a memo's #해시태그 filter too), the wishes on shelves like books (a
 // picture as the cover, a note as its paper), a dashed + 위시 담기 slot at the end; one opens on the ruled memo
 // slip over the page (바로가기, 고치기, 지우기). A link reads its page's title,
 // picture and price (app/api/link-preview) and whatever it cannot read is typed in.
 // Kept in this browser (lib/wish.ts; pictures in IndexedDB).
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { addPhoto, removePhoto } from "@/lib/photos";
-import { newWishId, saveWishes, useWishes, type Wish, type WishKind } from "@/lib/wish";
+import { newWishId, saveWishes, tagsOf, TAG_RE, useWishes, type Wish, type WishKind } from "@/lib/wish";
 import { MyHead, usePhotoUrl } from "./MyLayout";
 import "@/app/mine/mine.css"; // 나의 도안집's tabs and shelves
 
@@ -18,9 +18,8 @@ export const WishIcon = {
   photo: <svg {...I} aria-hidden="true"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.5-2h6l1.5 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z" /><circle cx="12" cy="13" r="3.2" /></svg>,
   memo: <svg {...I} aria-hidden="true"><path d="M15.5 4.5l4 4L9 19H5v-4z" /><path d="M13.5 6.5l4 4" /></svg>,
 };
-type Filter = "all" | "link" | "knit" | "yarn" | "memo";
-const FILTERS: { id: Filter; label: string }[] = [{ id: "all", label: "전체" }, { id: "link", label: "링크" }, { id: "knit", label: "편물" }, { id: "yarn", label: "실" }, { id: "memo", label: "메모" }];
-const KIND_KO: Record<WishKind, string> = { link: "링크", knit: "뜨고 싶은 편물", yarn: "갖고 싶은 실", memo: "메모" };
+type Filter = "all" | WishKind;
+const KIND_KO: Record<WishKind, string> = { link: "링크", photo: "사진", memo: "메모" };
 
 /** a dialog over the page: Esc and the dim close it, focus starts inside */
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
@@ -45,7 +44,7 @@ function WishForm({ kind, wish, onClose }: { kind: "link" | "photo" | "memo"; wi
   const [url, setUrl] = useState(wish?.url ?? ""), [title, setTitle] = useState(wish?.title ?? ""), [shop, setShop] = useState(wish?.shop ?? "");
   const [price, setPrice] = useState(wish?.price ?? ""), [image, setImage] = useState(wish?.image ?? "");
   const [reading, setReading] = useState<"" | "busy" | "fail" | "ok">("");
-  const [ptype, setPtype] = useState<"knit" | "yarn">(wish?.kind === "yarn" ? "yarn" : "knit"), [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   const oldPic = usePhotoUrl(wish?.photo);
@@ -72,7 +71,7 @@ function WishForm({ kind, wish, onClose }: { kind: "link" | "photo" | "memo"; wi
     else if (kind === "photo") {
       let photo = wish?.photo;
       if (file) { try { const p = await addPhoto("wish:" + id, file, 1600); if (photo) removePhoto(photo).catch(() => {}); photo = p.id; } catch { setSaving(false); return; } }
-      w = { id, kind: ptype, title: title.trim(), photo, at };
+      w = { id, kind: "photo", title: title.trim(), photo, at };
     } else w = { id, kind: "memo", title: "", text: text.trim(), tone, at };
     saveWishes(wish ? all.map(x => (x.id === id ? w : x)) : [w, ...all]);
     onClose();
@@ -94,9 +93,6 @@ function WishForm({ kind, wish, onClose }: { kind: "link" | "photo" | "memo"; wi
         </div>
       </>}
       {kind === "photo" && <>
-        <div className="my-seg" role="radiogroup" aria-label="종류">
-          {(["knit", "yarn"] as const).map(k => <button key={k} type="button" role="radio" aria-checked={ptype === k} className={ptype === k ? "is-on" : ""} onClick={() => setPtype(k)}>{KIND_KO[k]}</button>)}
-        </div>
         <label className="my-drop">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {preview || oldPic ? <img src={preview ?? oldPic ?? ""} alt="" /> : <span>{WishIcon.photo}사진 고르기</span>}
@@ -118,8 +114,20 @@ function WishForm({ kind, wish, onClose }: { kind: "link" | "photo" | "memo"; wi
   );
 }
 
-const memoTitle = (w: Wish) => (w.text ?? "").split("\n")[0].slice(0, 40);
-const TAB_KO: Record<Filter, string> = { all: "전체", link: "링크", knit: "편물", yarn: "실", memo: "메모" };
+// the shelf name: the first line without its #해시태그 (they show as tags)
+const memoTitle = (w: Wish) => { const l = (w.text ?? "").split("\n")[0]; return (l.replace(TAG_RE, "").replace(/\s+/g, " ").trim() || l).slice(0, 40); };
+const TAB_KO: Record<Filter, string> = { all: "전체", link: "링크", photo: "사진", memo: "메모" };
+
+/** a memo's words with its #해시태그 as buttons (they filter the shelf) */
+function TaggedText({ text, onTag }: { text: string; onTag: (t: string) => void }) {
+  const out: ReactNode[] = []; let last = 0;
+  for (const m of text.matchAll(TAG_RE)) {
+    const i = m.index ?? 0; if (i > last) out.push(text.slice(last, i));
+    out.push(<button key={i} type="button" className="my-tag" onClick={() => onTag(m[1])}>#{m[1]}</button>); last = i + m[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return <>{out}</>;
+}
 
 /** items per shelf from the shelves' width, as 나의 도안집 */
 function useColumns() {
@@ -150,7 +158,7 @@ function WishBook({ w, onOpen }: { w: Wish; onOpen: () => void }) {
 }
 
 /** a wish opened: the memo slip over the page (Esc and the dim close it) */
-function WishMemo({ w, onEdit, onClose }: { w: Wish; onEdit: () => void; onClose: () => void }) {
+function WishMemo({ w, onEdit, onClose, onTag }: { w: Wish; onEdit: () => void; onClose: () => void; onTag: (t: string) => void }) {
   const all = useWishes(), pic = usePhotoUrl(w.photo), [ask, setAsk] = useState(false);
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -167,7 +175,7 @@ function WishMemo({ w, onEdit, onClose }: { w: Wish; onEdit: () => void; onClose
         {w.price && <p className="my-memo-sub">{w.price}</p>}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {src && <img className="my-memo-pic" src={src} alt="" referrerPolicy="no-referrer" onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />}
-        {w.kind === "memo" && <p className="my-memo-text">{w.text}</p>}
+        {w.kind === "memo" && <p className="my-memo-text"><TaggedText text={w.text ?? ""} onTag={onTag} /></p>}
         <div className="my-memo-btns">
           {w.kind === "link" && <a className="my-btn" href={w.url} target="_blank" rel="noopener noreferrer">바로가기 →</a>}
           <button type="button" className="my-btn is-sub" onClick={onEdit}>고치기</button>
@@ -184,8 +192,15 @@ export function MyWish() {
   const wishes = useWishes(), [filter, setFilter] = useState<Filter>("all");
   const [form, setForm] = useState<{ kind: "link" | "photo" | "memo"; wish?: Wish } | null>(null);
   const [open, setOpen] = useState<string | null>(null), [adding, setAdding] = useState(false);
-  const counts = useMemo(() => { const c: Record<Filter, number> = { all: wishes.length, link: 0, knit: 0, yarn: 0, memo: 0 }; wishes.forEach(w => c[w.kind]++); return c; }, [wishes]);
-  const shown = useMemo(() => (filter === "all" ? wishes : wishes.filter(w => w.kind === filter)), [wishes, filter]);
+  const [tag, setTag] = useState<string | null>(null);
+  const counts = useMemo(() => { const c: Record<Filter, number> = { all: wishes.length, link: 0, photo: 0, memo: 0 }; wishes.forEach(w => c[w.kind]++); return c; }, [wishes]);
+  // every memo's hashtags, the most used first
+  const tags = useMemo(() => {
+    const n = new Map<string, number>(); wishes.forEach(w => { if (w.kind === "memo") tagsOf(w.text).forEach(t => n.set(t, (n.get(t) ?? 0) + 1)); });
+    return [...n.entries()].sort((a, b) => b[1] - a[1]).map(e => e[0]);
+  }, [wishes]);
+  const shown = useMemo(() => wishes.filter(w => (filter === "all" || w.kind === filter) && (!tag || (w.kind === "memo" && tagsOf(w.text).includes(tag)))), [wishes, filter, tag]);
+  useEffect(() => { if (tag && !tags.includes(tag)) setTag(null); }, [tag, tags]);
   const [shelvesRef, cols] = useColumns();
   // the dashed + 위시 담기 slot (null) after the last one, as 나의 도안집's + 새 도안
   const shelves = useMemo(() => { const all: (Wish | null)[] = [...shown, null], out: (Wish | null)[][] = []; for (let i = 0; i < all.length; i += cols) out.push(all.slice(i, i + cols)); return out; }, [shown, cols]);
@@ -208,6 +223,11 @@ export function MyWish() {
               {(Object.keys(TAB_KO) as Filter[]).map(f => <button key={f} type="button" role="tab" aria-selected={filter === f} className="mine-tab" onClick={() => setFilter(f)}>{TAB_KO[f]} <span>{counts[f]}</span></button>)}
             </div>
           </div>
+          {tags.length > 0 && (
+            <div className="my-tags" role="group" aria-label="해시태그로 거르기">
+              {tags.map(t => <button key={t} type="button" className={"my-tag" + (tag === t ? " is-on" : "")} aria-pressed={tag === t} onClick={() => setTag(tag === t ? null : t)}>#{t}</button>)}
+            </div>
+          )}
         </div>
         <div ref={shelvesRef} className="bk-shelves" style={{ "--cols": cols } as React.CSSProperties}>
           {shelves.map((row, i) => (
@@ -231,7 +251,7 @@ export function MyWish() {
           ))}
         </div>
       </div>
-      {openW && <WishMemo key={openW.id} w={openW} onClose={() => setOpen(null)} onEdit={() => { setOpen(null); setForm({ kind: openW.kind === "link" ? "link" : openW.kind === "memo" ? "memo" : "photo", wish: openW }); }} />}
+      {openW && <WishMemo key={openW.id} w={openW} onTag={t => { setOpen(null); setTag(t); }} onClose={() => setOpen(null)} onEdit={() => { setOpen(null); setForm({ kind: openW.kind === "link" ? "link" : openW.kind === "memo" ? "memo" : "photo", wish: openW }); }} />}
       {form && <WishForm key={form.wish?.id ?? form.kind} kind={form.kind} wish={form.wish} onClose={() => setForm(null)} />}
     </>
   );

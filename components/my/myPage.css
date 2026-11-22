@@ -422,3 +422,12 @@
   box-shadow:0 0 0 1px rgba(142,131,121,.22),-6px 10px 20px -10px rgba(70,56,40,.35);outline:1px dashed rgba(176,141,87,.45);outline-offset:-4px}
 .my-pop button{border-radius:3px;font-family:"Noto Serif KR",serif}
 .my-pop button:hover{background:rgba(224,170,174,.16)}
+/* 위시 · a memo's #해시태그 (Kim): small see-through dusty-rose tags - a row under the tabs filters the shelf (one at
+   a time; again to let go), and in an opened memo they are the same tags */
+.my-tags{display:flex;flex-wrap:wrap;gap:6px 8px;margin:12px 0 2px}
+.my-tag{display:inline-flex;align-items:center;min-height:26px;padding:0 10px;border:0;border-radius:99px;background:rgba(224,170,174,.16);
+  font:500 12px/1 "Noto Serif KR",serif;color:#7A5A5C;cursor:pointer;transition:background .15s ease}
+.my-tag:hover{background:rgba(224,170,174,.28)}
+.my-tag.is-on{background:rgba(224,170,174,.28);color:#4B3436;font-weight:700}
+.my-tag:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
+.my-memo-text .my-tag{min-height:0;padding:1px 6px;margin:0 1px;font-size:inherit;line-height:1.5;vertical-align:baseline}
