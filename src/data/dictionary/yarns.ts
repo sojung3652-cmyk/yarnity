@@ -181,12 +181,7 @@ export const YARNS: Yarn[] = [
     about: "실 자체에 고리가 미리 만들어져 있는 아주 굵은 실입니다. 고리를 다른 고리 사이로 끼워 넣기만 하면 되어 바늘이 필요 없고, 짧은 시간에 담요나 쿠션을 만들 수 있어 아이와 함께 뜨기에도 좋습니다.",
     caution: "무늬를 다양하게 넣기 어렵고, 편물이 두꺼워 무겁습니다. 고리를 하나 빠뜨리면 구멍이 생기니 줄마다 고리 수를 확인합니다.",
   },
-  {
-    id: "gradient", image: "/dictionary/yarns/gradient.jpg", name: "단염사", nameEn: "Gradient / self-striping yarn", group: "special", short: "저절로 색이 바뀌는 실", seasons: ["spring", "summer", "autumn", "winter"],
-    traits: { warmth: 3, stretch: 3, softness: 3, care: 3, price: 3 },
-    about: "한 타래 안에서 색이 조금씩 바뀌도록 염색한 실입니다. 따로 실을 바꾸지 않아도 뜨는 대로 그라데이션이나 줄무늬가 생겨, 목도리, 숄, 양말, 담요에 많이 씁니다.",
-    caution: "같은 실이라도 타래마다 색이 시작하는 위치가 달라, 두 짝을 똑같이 맞추려면 색이 시작되는 지점을 찾아 같은 자리에서 시작합니다.",
-  },
+
   {
     id: "tweed", image: "/dictionary/yarns/tweed.jpg", name: "트위드사", nameEn: "Tweed yarn", group: "special", short: "알록달록한 점이 박힌 울", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 3, softness: 2, care: 2, price: 3 },
