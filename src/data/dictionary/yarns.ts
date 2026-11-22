@@ -79,7 +79,7 @@ export const YARNS: Yarn[] = [
     caution: "열에 약해 높은 온도의 다리미나 건조기는 피합니다. 정전기가 잘 생기고, 땀을 흡수하지 못해 옷으로 입으면 덥게 느껴질 수 있습니다.",
   },
   {
-    id: "bamboo", name: "대나무", nameEn: "Bamboo (viscose)", group: "plant", short: "시원하고 실크처럼 매끄러움", seasons: ["spring", "summer"],
+    id: "bamboo", image: "/dictionary/yarns/bamboo.jpg", name: "대나무", nameEn: "Bamboo (viscose)", group: "plant", short: "시원하고 실크처럼 매끄러움", seasons: ["spring", "summer"],
     traits: { warmth: 1, stretch: 1, softness: 5, care: 3, price: 3 },
     about: "대나무 펄프를 녹여 다시 뽑은 재생 섬유(비스코스, 레이온)입니다. 매끄럽고 시원하며 실크처럼 은은한 광택이 있어 여름 상의, 아기 옷, 숄에 잘 어울립니다. 면과 섞은 실도 많습니다.",
     caution: "물에 젖으면 약해지고 무거워져 편물이 늘어나기 쉽습니다. 비틀어 짜지 말고 눌러 물기를 뺀 뒤 눕혀 말립니다.",
@@ -139,7 +139,7 @@ export const YARNS: Yarn[] = [
     caution: "신축성이 없어 손에 힘이 많이 들어갑니다. 처음에는 뻣뻣하니 뜨고 나서 물에 적셔 블로킹하면 코가 가지런해집니다.",
   },
   {
-    id: "jute", name: "황마", nameEn: "Jute", group: "plant", short: "거칠고 자연스러운 끈", seasons: ["spring", "summer"],
+    id: "jute", image: "/dictionary/yarns/jute.jpg", name: "황마", nameEn: "Jute", group: "plant", short: "거칠고 자연스러운 끈", seasons: ["spring", "summer"],
     traits: { warmth: 1, stretch: 1, softness: 1, care: 2, price: 1 },
     about: "황마 줄기에서 얻은 거칠고 빳빳한 자연 섬유로, 마대나 노끈으로 익숙한 실입니다. 형태가 잘 잡혀 바구니, 러그, 화분 커버처럼 자연스러운 느낌의 소품에 씁니다.",
     caution: "섬유 가루가 날리고 손이 거칠어질 수 있습니다. 물에 약해 곰팡이가 생기기 쉬우니 젖지 않게 두고, 더러워지면 마른 솔로 털어 냅니다.",
