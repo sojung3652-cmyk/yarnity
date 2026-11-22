@@ -140,16 +140,11 @@ export const YARNS: Yarn[] = [
     caution: "잘 미끄러지고 꼬이기 쉬우니 실타래를 풀어 가며 천천히 뜹니다. 필름이 접히면 자국이 남고 열에 약해 다림질과 건조기를 피하고, 손으로 가볍게 닦아 관리합니다. 실 끝은 매듭 대신 여러 번 엮어 숨깁니다.",
   },
 
-  {
-    id: "loop", image: "/dictionary/yarns/loop.jpg", name: "루프얀", nameEn: "Loop yarn", group: "special", short: "바늘 없이 손으로 뜨는 실", seasons: ["autumn", "winter"],
-    traits: { warmth: 4, stretch: 2, softness: 4, care: 3, price: 2 },
-    about: "실 자체에 고리가 미리 만들어져 있는 아주 굵은 실입니다. 고리를 다른 고리 사이로 끼워 넣기만 하면 되어 바늘이 필요 없고, 짧은 시간에 담요나 쿠션을 만들 수 있어 아이와 함께 뜨기에도 좋습니다.",
-    caution: "무늬를 다양하게 넣기 어렵고, 편물이 두꺼워 무겁습니다. 고리를 하나 빠뜨리면 구멍이 생기니 줄마다 고리 수를 확인합니다.",
-  },
+
 
   {
-    // Kim: 트위드사 -> 모헤어 루프얀 (no photo yet: the striped empty square)
-    id: "mohair-loop", name: "모헤어 루프얀", nameEn: "Mohair loop yarn", group: "special", short: "고리가 보송한 모헤어 실", seasons: ["autumn", "winter"],
+    // Kim: 트위드사 -> 모헤어 루프얀
+    id: "mohair-loop", image: "/dictionary/yarns/mohair-loop.jpg", name: "모헤어 루프얀", nameEn: "Mohair loop yarn", group: "special", short: "고리가 보송한 모헤어 실", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 3, softness: 4, care: 2, price: 4 },
     about: "모헤어를 작은 고리(루프)가 생기도록 꼬아 만든 실로, 고리 위로 모헤어의 긴 잔털이 피어올라 편물이 구름처럼 보송합니다. 굵은 바늘로 성글게 떠도 빈틈이 잘 메워져 가볍고 따뜻한 스웨터, 카디건, 목도리에 많이 씁니다.",
     caution: "고리와 잔털 때문에 코가 잘 보이지 않고, 한 번 뜬 것을 풀면 털이 엉켜 잘 풀리지 않습니다. 모헤어라 뜨거운 물과 마찰에 줄어드니 찬물에 손세탁하고 눕혀서 말립니다.",

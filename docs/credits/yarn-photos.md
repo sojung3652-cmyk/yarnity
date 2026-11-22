@@ -24,8 +24,8 @@
 | jute.jpg | 황마 | Kim이 ChatGPT로 만든 이미지 |
 | fabric.jpg | 패브릭얀 | Kim이 ChatGPT로 만든 이미지 |
 | raffia.jpg | 라피아 | Kim이 ChatGPT로 만든 이미지 |
+| mohair-loop.jpg | 모헤어 루프얀 | Kim이 ChatGPT로 만든 이미지 |
 | tencel.jpg | 텐셀 | Kim이 ChatGPT로 만든 이미지 |
-| loop.jpg | 루프얀 | https://unsplash.com/photos/-yHaS_K1xgw |
 | metal.jpg | 메탈사 | Kim이 ChatGPT로 만든 이미지 |
 
 사진은 그 실과 질감이 비슷한 편물을 가까이 찍은 것이에요. 사진 설명에 실의 소재가 적혀 있지 않아서, 실제로 그 소재로 뜬 편물이라는 보장은 없어요.
