@@ -169,6 +169,10 @@
 .dict-none{margin:18px 0;padding:22px;border-radius:12px;background:#FFFDF8;text-align:center;font-size:14px;color:#8C807A}
 .dict-sheet-note.is-foot{margin:16px 2px 0;line-height:1.7}
 /* 뜨개 상식 photos (Kim): one under the summary, or one beside a section, on rounded paper */
-.dict-photo{display:block;width:100%;max-width:520px;aspect-ratio:3/2;object-fit:cover;border-radius:12px;box-shadow:0 2px 10px rgba(90,62,44,.10);margin:6px 0 22px}
-.dict-sec.has-photo .dict-photo{max-width:320px;aspect-ratio:4/3;margin:0 0 12px}
-.dict-photo.is-lead{aspect-ratio:auto;max-width:460px}
+.dict-artphoto{display:block;width:100%;max-width:520px;aspect-ratio:3/2;object-fit:cover;border-radius:12px;box-shadow:0 2px 10px rgba(90,62,44,.10);margin:6px 0 22px}
+.dict-sec.has-photo .dict-artphoto{max-width:320px;aspect-ratio:4/3;margin:0 0 12px}
+.dict-artphoto.is-lead{aspect-ratio:auto;max-width:460px}
+/* 실 도감 cards (Kim): every card the same size - the square photo, then one line of name, one of short (cut with …) and the season tags on one line */
+.dict-yarn .dict-card-text{flex:1;gap:4px;padding:16px 16px 18px}
+.dict-yarn b,.dict-yarn small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dict-yarn .dict-tags{flex-wrap:nowrap;overflow:hidden;margin-top:auto;padding-top:10px}
