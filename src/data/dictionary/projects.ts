@@ -2,7 +2,7 @@
 import type { ProjectGuide } from "./types";
 
 export const PROJECTS: ProjectGuide[] = [
-  { id: "bag", name: "가방", craft: "crochet", level: "보통", yarns: "면 · 코드사 · 라피아", tip: "촘촘히, 실 권장보다 가는 바늘", icon: "bag", hook: "실 권장보다 0.5mm 가는 코바늘",
+  { id: "bag", name: "가방", craft: "crochet", level: "보통", yarns: "면 · 패브릭얀 · 라피아", tip: "촘촘히, 실 권장보다 가는 바늘", icon: "bag", hook: "실 권장보다 0.5mm 가는 코바늘",
     more: "가방은 물건의 무게를 버텨야 하므로 코가 벌어지지 않게 촘촘히 뜹니다. 바닥을 타원이나 사각으로 먼저 뜨고, 늘림 없이 옆면을 올립니다. 손잡이는 짧은뜨기를 여러 단 겹쳐 뜨거나 가죽·나무 손잡이를 달면 늘어나지 않습니다. 안감을 대면 모양이 더 잘 유지됩니다." },
   { id: "scarf", name: "목도리", craft: "knit", level: "쉬움", yarns: "울 · 알파카 · 모헤어", tip: "고무뜨기 · 가터뜨기", icon: "scarf", hook: "실 권장 굵기 그대로, 4.5~6mm 막대바늘",
     more: "목도리는 앞뒤가 모두 보이므로 양면이 같은 가터뜨기나 고무뜨기가 잘 어울립니다. 메리야스뜨기는 가장자리가 말리니 양 끝 몇 코를 가터뜨기로 둡니다. 길이는 키의 절반에서 몸통 둘레 정도(150~180cm)가 무난합니다." },
