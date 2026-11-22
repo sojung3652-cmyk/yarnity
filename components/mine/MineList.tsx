@@ -27,7 +27,7 @@ import "@/app/mine/mine.css";
 // 가져온 도안 (Kim): Yarnity's patterns and the imported ones on the same shelves; tabs 전체 / Yarnity 도안 /
 // 가져온 도안 / 뜨는 중 / 완성 (an imported one not started counts as 뜨는 중, as a Yarnity one does)
 type Filter = "all" | "yarnity" | "imported" | "knitting" | "done";
-const FILTER_KO: Record<Filter, string> = { all: "전체", yarnity: "Yarnity 도안", imported: "가져온 도안", knitting: "뜨는 중", done: "완성" };
+const FILTER_KO: Record<Filter, string> = { all: "전체", yarnity: "내 도안", imported: "가져온 도안", knitting: "뜨는 중", done: "완성" };
 type Book = { y: Project; i?: undefined } | { i: Imported; y?: undefined };
 const bookName = (b: Book) => (b.y ? b.y.name : b.i!.title);
 const bookTime = (b: Book) => (b.y ? b.y.updatedAt ?? b.y.created : b.i!.updatedAt);
@@ -114,7 +114,7 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
         <div className="bk-pop-btns">
           {/* Girl's Diary (components/diary): two cloth patches and the lavender lace tag */}
           <ClothPatch color="cream" href="/pattern" onClick={() => act("view")}>도안 보기</ClothPatch>
-          <ClothPatch color="pink" onClick={() => act("photos")}>사진 기록{photos ? ` ${photos}` : ""}</ClothPatch>
+          <ClothPatch color="lavender" onClick={() => act("photos")}>{/* the pink cloth (Kim; "pink" draws the blue one) */}사진 기록{photos ? ` ${photos}` : ""}</ClothPatch>
           {w.done
             ? <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("again")}>다시 뜨기</LaceButton>
             : <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}

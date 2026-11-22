@@ -73,43 +73,33 @@ export function MyImport({ onClose, edit }: { onClose: () => void; edit?: Import
     }
   };
 
-  const head = (
-    <header className="im-head">
-      <h2>{edit ? "도안 정보 고치기" : "도안 가져오기"}</h2>
-      <button type="button" className="im-x" aria-label="닫기" onClick={onClose}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg></button>
-    </header>
-  );
+  // laid out as the other dialogs (Kim: 위시 담기, 직접 기록하기): the title on the slim ivory lace, the kind as cloth
+  // patches, the file in a dashed box, the fields labelled above on stitched cream paper strips
   return (
-    <Sheet title={edit ? "도안 정보 고치기" : "도안 가져오기"} onClose={onClose} className={"im-sheet" + (over ? " is-over" : "")} head={head}>
+    <Sheet title={edit ? "도안 정보 고치기" : "도안 가져오기"} onClose={onClose} className={"im-sheet" + (over ? " is-over" : "")}>
       <div className="im-body" onDragOver={e => { if (!edit && e.dataTransfer.types.includes("Files")) { e.preventDefault(); setOver(true); } }} onDragLeave={() => setOver(false)} onDrop={dropFiles}>
         {!edit && <>
-          <div className="im-choice" role="radiogroup" aria-label="가져올 것">
-            <button type="button" role="radio" aria-checked={kind === "pdf"} className={kind === "pdf" ? "is-on" : ""} onClick={() => { setKind("pdf"); if (!pdf) pdfIn.current?.click(); }}>
-              <span className="im-ico"><PdfIcon /></span><span><b>PDF 파일</b><small>산 도안, 받은 도안 파일</small></span>
-            </button>
-            <button type="button" role="radio" aria-checked={kind === "photo"} className={kind === "photo" ? "is-on" : ""} onClick={() => { setKind("photo"); if (!pics.length) picIn.current?.click(); }}>
-              <span className="im-ico"><CamIcon /></span><span><b>종이 도안 사진</b><small>책 · 프린트를 찍어서, 여러 장</small></span>
-            </button>
+          <div className="my-seg im-seg" role="radiogroup" aria-label="가져올 것">
+            <button type="button" role="radio" aria-checked={kind === "pdf"} className={kind === "pdf" ? "is-on" : ""} onClick={() => setKind("pdf")}>PDF 파일</button>
+            <button type="button" role="radio" aria-checked={kind === "photo"} className={kind === "photo" ? "is-on" : ""} onClick={() => setKind("photo")}>종이 도안 사진</button>
           </div>
           <input ref={pdfIn} type="file" accept="application/pdf,.pdf" hidden onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) takePdf(f); }} />
           <input ref={picIn} type="file" accept="image/*" multiple hidden onChange={e => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; takePics(fs); }} />
 
           {kind === "pdf" ? (
-            <div className="im-files">
-              {pdf ? (
-                <div className="im-pdf">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <span className="im-thumb">{pdfCover ? <img src={pdfCover} alt="" /> : null}<i>1쪽</i></span>
-                  <span className="im-pdf-text"><b>{pdf.name}</b><small>{pdfInfo ? `${pdfInfo.pages}쪽` : "읽는 중"}</small></span>
-                  <button type="button" className="im-link" onClick={() => pdfIn.current?.click()}>다른 파일</button>
-                </div>
-              ) : (
-                <button type="button" className="im-add is-wide" onClick={() => pdfIn.current?.click()}><span aria-hidden="true">+</span>PDF 고르기</button>
-              )}
-            </div>
-          ) : (
-            <>
-              <ol className="im-files im-pics">
+            pdf ? (
+              <div className="im-box im-pdf">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <span className="im-thumb">{pdfCover ? <img src={pdfCover} alt="" /> : null}<i>1쪽</i></span>
+                <span className="im-pdf-text"><b>{pdf.name}</b><small>{pdfInfo ? `${pdfInfo.pages}쪽` : "읽는 중"}</small></span>
+                <button type="button" className="im-link" onClick={() => pdfIn.current?.click()}>다른 파일</button>
+              </div>
+            ) : (
+              <button type="button" className="im-box im-pick" onClick={() => pdfIn.current?.click()}><PdfIcon /><span>PDF 고르기</span></button>
+            )
+          ) : pics.length ? (
+            <div className="im-box">
+              <ol className="im-pics">
                 {pics.map((p, i) => (
                   <li key={p.key} draggable onDragStart={e => { drag.current = i; e.dataTransfer.effectAllowed = "move"; }}
                     onDragOver={e => { if (drag.current !== null) { e.preventDefault(); e.stopPropagation(); } }}
@@ -123,15 +113,15 @@ export function MyImport({ onClose, edit }: { onClose: () => void; edit?: Import
                 {pics.length < MAX_PHOTOS && <li><button type="button" className="im-add" onClick={() => picIn.current?.click()}><span aria-hidden="true">+</span>사진 추가</button></li>}
               </ol>
               {pics.length > 1 && <p className="im-hint">끌어서 쪽 순서를 바꿀 수 있어요. 첫 장이 표지가 돼요.</p>}
-            </>
+            </div>
+          ) : (
+            <button type="button" className="im-box im-pick" onClick={() => picIn.current?.click()}><CamIcon /><span>사진 고르기</span></button>
           )}
         </>}
 
-        <div className="im-fields">
-          <label><span>제목</span><input value={title} maxLength={40} onChange={e => setTitle(e.target.value)} /></label>
-          <label><span>실 · 바늘</span><input value={yarn} maxLength={80} placeholder="선택 · 예: 아크릴 수세미실, 3.5mm" onChange={e => setYarn(e.target.value)} /></label>
-          <label><span>메모</span><input value={memo} maxLength={200} placeholder="선택" onChange={e => setMemo(e.target.value)} /></label>
-        </div>
+        <label className="my-field"><span>제목</span><input value={title} maxLength={40} onChange={e => setTitle(e.target.value)} /></label>
+        <label className="my-field"><span>실 · 바늘</span><input value={yarn} maxLength={80} placeholder="선택 · 예: 아크릴 수세미실, 3.5mm" onChange={e => setYarn(e.target.value)} /></label>
+        <label className="my-field"><span>메모</span><textarea rows={2} value={memo} maxLength={200} placeholder="선택" onChange={e => setMemo(e.target.value)} /></label>
         {note && <p className="im-note" role="alert">{note}</p>}
         <div className="my-sheet-foot">
           <button type="button" className="my-btn is-sub" onClick={onClose}>취소</button>
