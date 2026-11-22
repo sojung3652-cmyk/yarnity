@@ -422,10 +422,6 @@ body:has(.hero-desk.is-overlay) .wrap > footer{display:none}
    뜨개 사전, 도안 보기, 따라 뜨기; the home (the opening) and the book keep theirs, phones keep theirs */
 @media (min-width:768px){
   html body:has(.my),html body:has(.gl-wide),html body:has(.ps-main),html body:has(.tk-main){background:#F6F0E4}
-  /* the book raised over an inner page goes to /new (새 도안, 도안 고치기): that page's ivory stays under it, so only the
-     book rises (Kim: the starry linen showed up behind it as if the backdrop came up with the book); raised from the
-     home, the home's linen stays (BookProvider sets data-book-from) */
-  html body[data-book-from="page"]{background:#F6F0E4}
   html body:has(.my) .my-bg{display:none}
   html body .ps-main::before{background:none}
 }

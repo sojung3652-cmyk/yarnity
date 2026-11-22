@@ -92,18 +92,26 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const menuNext = useRef(false), menuTo = useRef("/");
   const [sinking, setSinking] = useState(false);
   const [origin, setOrigin] = useState<string | null>(null);
-  // the page the book was raised from keeps its backdrop under it (Kim: only the book rises, whatever the background):
-  // /new has none of its own, so it takes the ivory of an inner page (globals.css body[data-book-from="page"]);
-  // raised from the home, the home's starry linen stays
-  useEffect(() => {
-    const from = path === "/new" && origin && origin.split("?")[0] !== "/" ? "page" : null;
-    if (from) document.body.dataset.bookFrom = from; else delete document.body.dataset.bookFrom;
-  }, [path, origin]);
+  // Wide screens (Kim: "책만 올려" - only the book rises, whatever page is under it): raising the book over a page
+  // changes the address alone (window.history.pushState: usePathname / useSearchParams follow, the page rendered
+  // stays), so the page it was raised from is under the book the whole time - no /new page swapped in, no backdrop
+  // shown for an instant when it closes. `realPage`: the page actually rendered; `softTo`: an address changed that way.
+  const realPage = useRef(path), softTo = useRef<string | null>(null);
+  const soft = useCallback((url: string, replace = false) => {
+    softTo.current = url.split("?")[0];
+    if (replace) window.history.replaceState(null, "", url); else window.history.pushState(null, "", url);
+  }, []);
+  /** to `url`: by address only while the page under the book is not /new itself (wide screens), else a real navigation */
+  const go = useCallback((url: string, replace = false) => {
+    if (!isPhone() && realPage.current !== "/new") soft(url, replace);
+    else if (replace) router.replace(url, { scroll: false }); else router.push(url, { scroll: false });
+  }, [router, soft]);
 
   // address -> state, during render (not in an effect) so the book sees the new view and `instant`
   // in the same commit. Coming back to / from the wizard lands on the open menu; from anywhere else
   // (or on first load) the book is closed. Arriving from a page without the book snaps, no motion.
   if (seenPath !== path) {
+    if (softTo.current === path) softTo.current = null; else realPage.current = path; // a real navigation renders `path`
     // phones (< 768px): 도안집, 도안 and 따라 뜨기 are pages of the open book too (components/mobile/bookPages.ts)
     const phone = isPhone();
     const bookPage = (p: string | null) => p === "/" || p === "/new" || (phone && !!bookPageOf(p));
@@ -143,8 +151,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     const sp = new URLSearchParams(location.search);
     if (parseStep(sp.get("step"))) return; // StepSync has not reported yet
     sp.set("step", String(sp.get("edit") ? 3 : savedStep()));
-    router.replace(`/new?${sp}`, { scroll: false });
-  }, [path, urlStep, router]);
+    go(`/new?${sp}`, true);
+  }, [path, urlStep, go]);
 
   const view: BookView = path === "/" ? (homeOpen || overlay ? "home" : "closed") : path === "/new" ? "wizard" : overlay ? "home" : "hidden";
   const step: WizStep = urlStep ?? 1;
@@ -154,9 +162,9 @@ export function BookProvider({ children }: { children: ReactNode }) {
   // remembered: closing or finishing sinks the book and brings you back). Phones keep their own ways below.
   const raise = useCallback(() => {
     setInstant(false);
-    if (path === "/new") { const sp = new URLSearchParams(location.search); sp.delete("edit"); sp.set("step", "1"); router.push(`/new?${sp}`, { scroll: false }); return; }
-    setOrigin(path + location.search); router.push("/new?step=1", { scroll: false });
-  }, [path, router]);
+    if (path === "/new") { const sp = new URLSearchParams(location.search); sp.delete("edit"); sp.set("step", "1"); go(`/new?${sp}`); return; }
+    setOrigin(path + location.search); go("/new?step=1");
+  }, [path, go]);
   // wide screens, on the opening: the book rises from the bottom onto its first spread (the menu: 도안 만들기,
   // 이어서 뜨기 ...), floating over the opening, which draws back under it (Kim)
   const rise = useCallback(() => {
@@ -170,11 +178,11 @@ export function BookProvider({ children }: { children: ReactNode }) {
     setInstant(false); setHomeOpen(false);
     if (overlay) { setOverlay(false); if (!isPhone()) setOrigin(null); return; } // opened over a page: just put the book away
     // the wizard entered from a page (새 도안 -> 도안 만들기, 도안 고치기) goes back to that page
-    if (path === "/new" && origin) { const o = origin; if (isPhone()) setOrigin(null); router.push(o, { scroll: false }); return; } // wide screens: the path change forgets it, so the book stays floating (sunk) until that page is there
+    if (path === "/new" && origin) { const o = origin; if (isPhone()) setOrigin(null); if (!isPhone() && realPage.current === o.split("?")[0]) soft(o); else router.push(o, { scroll: false }); return; } // the page under the book is that page: the address goes back, nothing reloads // wide screens: the path change forgets it, so the book stays floating (sunk) until that page is there
     if (path === "/new") { setClosing(true); router.push("/", { scroll: false }); }
     // phones: 도안집, 도안 and 따라 뜨기 are pages of the open book too; closing it goes to the desk, closed
     else if (isPhone() && bookPageOf(path)) { setClosing(true); router.push("/", { scroll: false }); }
-  }, [path, router, overlay, origin]);
+  }, [path, router, overlay, origin, soft]);
   // a floating book sinks back down first (0.7s, Hero .is-sinking), then it goes; otherwise it closes now
   const doClose = useCallback(() => {
     if (sinking) return;
@@ -186,8 +194,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     setTimeout(() => { finishClose(); if (stays) setSinking(false); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700);
   }, [floating, sinking, finishClose, overlay]);
   const editHere = useCallback((id: string) => {
-    setInstant(false); setOrigin(path + location.search); router.push(`/new?edit=${encodeURIComponent(id)}`, { scroll: false });
-  }, [path, router]);
+    setInstant(false); setOrigin(path + location.search); go(`/new?edit=${encodeURIComponent(id)}`);
+  }, [path, go]);
   const openHere = useCallback(() => {
     if (!isPhone()) { rise(); return; }
     if (path === "/" || path === "/new") { setInstant(false); setHomeOpen(true); if (path === "/new") router.push("/", { scroll: false }); return; }
@@ -198,8 +206,9 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const doHome = useCallback(() => {
     setInstant(false);
     if (isPhone()) { router.push("/", { scroll: false }); return; }
-    menuNext.current = true; router.push(menuTo.current, { scroll: false });
-  }, [router]);
+    menuNext.current = true;
+    if (realPage.current === menuTo.current.split("?")[0]) soft(menuTo.current); else router.push(menuTo.current, { scroll: false });
+  }, [router, soft]);
 
   // Leaving a new pattern half made (a name typed, or past step 1) asks first: keep it for
   // "이어서 만들기", or throw it away. The draft is saved on every change, so "저장" just leaves; "저장하지
@@ -220,12 +229,12 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const startWizard = useCallback((step?: WizStep) => {
     setInstant(false);
     if (path !== "/" && path !== "/new") setOrigin(path + location.search);
-    router.push(`/new?step=${step ?? savedStep()}`, { scroll: false });
-  }, [router, path]);
+    go(`/new?step=${step ?? savedStep()}`);
+  }, [go, path]);
   const goStep = useCallback((s: WizStep) => {
     const sp = new URLSearchParams(location.search); sp.set("step", String(s));
-    router.push(`/new?${sp}`, { scroll: false });
-  }, [router]);
+    go(`/new?${sp}`);
+  }, [go]);
   // wide screens: "← 메뉴" turns back to the menu spread when the wizard was raised from the opening; raised over
   // another page (새 도안), there is no menu there - the book is put away (it sinks to that page)
   // "← 메뉴": the book turns back to its menu spread, wherever the wizard was raised from (Kim: from 새 도안 too)
