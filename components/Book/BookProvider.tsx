@@ -92,6 +92,13 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const menuNext = useRef(false), menuTo = useRef("/");
   const [sinking, setSinking] = useState(false);
   const [origin, setOrigin] = useState<string | null>(null);
+  // the page the book was raised from keeps its backdrop under it (Kim: only the book rises, whatever the background):
+  // /new has none of its own, so it takes the ivory of an inner page (globals.css body[data-book-from="page"]);
+  // raised from the home, the home's starry linen stays
+  useEffect(() => {
+    const from = path === "/new" && origin && origin.split("?")[0] !== "/" ? "page" : null;
+    if (from) document.body.dataset.bookFrom = from; else delete document.body.dataset.bookFrom;
+  }, [path, origin]);
 
   // address -> state, during render (not in an effect) so the book sees the new view and `instant`
   // in the same commit. Coming back to / from the wizard lands on the open menu; from anywhere else
