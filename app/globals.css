@@ -428,4 +428,4 @@ body:has(.hero-desk.is-overlay) .wrap > footer{display:none}
 /* the web's foot (Kim): the glinting wordmark (SparkleLogo, as the nav had) a size up, INTELLIGENT CROCHET under it */
 .wrap>footer{display:flex;flex-direction:column;align-items:center}
 .foot-logo{width:150px}
-.foot-cap{margin:8px 0 0;padding-left:.3em;font:600 11px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.3em;text-transform:uppercase;color:#8A7258}
+.foot-cap{margin:7px 0 0;padding-left:.3em;font:600 9px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.3em;text-transform:uppercase;color:#8A7258}

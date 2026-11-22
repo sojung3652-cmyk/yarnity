@@ -2,7 +2,7 @@
    1200px with 20px, plus the page's 32px: the content 1096px wide and centred, 52px from a side when narrower); the starry linen under an ivory veil.
    Left 230px (profile + a plain menu, sticky, no box) | 56px | right 1fr. Cards: the stitched ivory cloth label.
    Every shadow falls to the lower left. Nothing under 11px. Below 1000px the left becomes a row of tabs on top. */
-body:has(.my) .wrap > footer{display:none} /* the site footer only: dialogs have their own <footer> */
+/* the site footer shows here too: the glinting wordmark under every inner page (Kim) */
 /* inside the site's .wrap like the glossary (the linen is fixed behind, so the page needs no full-width box) */
 .my{position:relative;min-height:calc(100svh - 56px);box-sizing:border-box;padding:28px 32px 80px;color:#443B3B}
 .my-bg{position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(247,242,232,.62),rgba(247,242,232,.62)),url(/opening-web/bg.jpg) center/cover}
