@@ -121,7 +121,7 @@ export const YARNS: Yarn[] = [
     caution: "울이라 뜨거운 물과 마찰에 줄어듭니다. 'Superwash' 표시가 없으면 찬물에 손세탁하고 눕혀 말립니다. 보풀이 생기기 쉬우니 보풀 제거기로 가볍게 정리합니다.",
   },
   {
-    id: "angora", name: "앙고라", nameEn: "Angora", group: "animal", short: "토끼털, 가볍고 아주 포근함", seasons: ["winter"],
+    id: "angora", image: "/dictionary/yarns/angora.jpg", name: "앙고라", nameEn: "Angora", group: "animal", short: "토끼털, 가볍고 아주 포근함", seasons: ["winter"],
     traits: { warmth: 5, stretch: 2, softness: 5, care: 1, price: 5 },
     about: "앙고라 토끼의 털로 만든 실입니다. 털이 아주 가늘고 속이 비어 있어 가볍고 무척 따뜻하며, 겉에 보송한 털이 피어오릅니다. 보통 울이나 나일론과 섞어 씁니다. 앙고라 염소의 털은 '모헤어'라고 부르니 헷갈리지 않게 합니다.",
     caution: "털이 잘 빠지고 날립니다. 마찰과 뜨거운 물에 쉽게 펠팅되니 찬물에 살짝 눌러 빨고, 보관할 때는 접어서 서랍에 넣습니다.",
