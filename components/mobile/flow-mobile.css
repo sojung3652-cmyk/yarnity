@@ -242,16 +242,17 @@
 }
 
 /* the home's medallion and logo in the opening scene's own proportions (Kim: Start shrinks the scene a little and
-   pushes it up onto them): --mh the medallion's height - the logo 0.93 x mh wide, its centre 0.753 x mh under the
+   pushes it up onto them): --mh the medallion's height - the logo 1.0745 x mh wide, its centre 0.753 x mh under the
    medallion's (as openingHomeScene.ts's portrait layout); at most ~88% of the opening's medallion, so it always
    gets a little smaller; room left for the cards (--mfh-rest) */
 @media (max-width:767.98px){
   body .mfh{--mfh-rest:285px;--mh:min(calc((100dvh - var(--mfh-rest)) / 1.417),76vw,43dvh)}
   body .mfh.has-resume{--mfh-rest:385px}
   body .mfh .mfh-lace{height:var(--mh);width:auto}
-  body .mfh .mfh-brand{margin-top:calc(var(--mh) * .089)}
+  body .mfh .mfh-brand{margin-top:calc(var(--mh) * .0965)}
   body .mfh .mfh-logo{width:auto}
-  body .mfh .mfh-foil{width:calc(var(--mh) * .929);height:auto}
+  /* the glinting logo (SparkleLogo, the same picture as the scene's logo): 1.0745 x mh as drawn in the scene */
+  body .mfh .mfh-foil{width:calc(var(--mh) * 1.0745);height:auto}
   /* the medallion and the logo stay together (no share of the spare room between them); the spare room goes above
      the medallion and under the cards */
   body .mfh{justify-content:center}
