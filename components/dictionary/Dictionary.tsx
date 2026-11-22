@@ -7,7 +7,7 @@
 // frame is not used there).
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
 import { MyHead } from "@/components/my/MyLayout";
 import { TERMS } from "@/lib/glossary";
@@ -56,8 +56,8 @@ export function DictLayout({ children }: { children: ReactNode }) {
 
 // ---------------------------------------------------------------- shared pieces
 
-const LACE = { ["--gl" as string]: "url(/glossary/lace_ivory.webp)" } as CSSProperties;
-const Lace = ({ children }: { children: ReactNode }) => <h3 className="gl-lace dict-lace" style={LACE}><span>{children}</span></h3>;
+/** a subhead on a plain cloth label (Kim: not the lace) - its colour from a muted pastel set, one after another */
+const Lace = ({ children }: { children: ReactNode }) => <h3 className="dict-label"><span>{children}</span></h3>;
 const Soon = () => <p className="dict-soon">준비 중</p>;
 /** a text with **bold** runs */
 const Rich = ({ text }: { text: string }) => <>{text.split(/(\*\*[^*]+\*\*)/).map((t, i) => (t.startsWith("**") ? <b key={i}>{t.slice(2, -2)}</b> : <Fragment key={i}>{t}</Fragment>))}</>;
