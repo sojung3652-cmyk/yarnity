@@ -119,11 +119,14 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
           {term.aliases.length > 0 && <p className="gl-d-alias">다른 이름 · {term.aliases.join(", ")}</p>}
         </div>
       </header>
-      <dl className="gl-patch gl-facts" style={patch("ivory")}>
-        <div><dt>난이도</dt><dd>{DIFFICULTY[term.difficulty] || "—"}</dd></div>
-        <div><dt>미국식</dt><dd lang="en">{term.en.us ?? "—"}</dd></div>
-        <div><dt>영국식</dt><dd lang="en">{term.en.uk ?? "—"}</dd></div>
-      </dl>
+      {/* 커뮤니티 표현 have no 난이도 or US/UK name, so no facts patch for them (Kim) */}
+      {term.category !== "community" && (
+        <dl className="gl-patch gl-facts" style={patch("ivory")}>
+          <div><dt>난이도</dt><dd>{DIFFICULTY[term.difficulty] || "—"}</dd></div>
+          <div><dt>미국식</dt><dd lang="en">{term.en.us ?? "—"}</dd></div>
+          <div><dt>영국식</dt><dd lang="en">{term.en.uk ?? "—"}</dd></div>
+        </dl>
+      )}
       {/* 커뮤니티 표현: everyone writes the 설명 together (Kim; WikiSummary) */}
       {term.category === "community" ? <WikiSummary key={term.id} term={term} /> : <p className="gl-summary">{term.summary}</p>}
       {term.note && <p className="gl-note">{term.note}</p>}
