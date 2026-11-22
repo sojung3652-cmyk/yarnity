@@ -4,7 +4,7 @@
 // away onto the home. Moving between screens inside the app never shows it again (it is mounted once).
 // Wide screens keep their own start (the book); this is phones only (Hero renders it for phones).
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { OPENING_SEEN, PhoneOpening } from "@/components/opening/PhoneOpening";
 
 // decided once per page load: the opening marks itself seen as it starts, so a remount must not ask again
@@ -19,6 +19,10 @@ export function MobileSplash() {
     }
     return decided;
   });
+  // once the opening's medallion and logo stay on as the home's (kept), leaving the home takes them away; back on the
+  // home, the home's own glinting logo shows
+  const kept = useRef<string | null>(null);
+  useEffect(() => { if (kept.current !== null && path !== kept.current) { decided = false; setOn(false); } }, [path]);
   if (!on) return null;
-  return <PhoneOpening onDone={() => { decided = false; setOn(false); if (path !== "/") router.push("/"); }} />;
+  return <PhoneOpening onKept={() => { kept.current = path; }} onDone={() => { decided = false; setOn(false); if (path !== "/") router.push("/"); }} />;
 }

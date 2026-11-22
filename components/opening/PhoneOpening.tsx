@@ -11,10 +11,10 @@ import "./phoneOpening.css";
 
 export const OPENING_SEEN = "yarnity.opening.seen";
 
-export function PhoneOpening({ onDone }: { onDone: () => void }) {
+export function PhoneOpening({ onDone, onKept }: { onDone: () => void; onKept?: () => void }) {
   const root = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), sv = useRef<HTMLCanvasElement>(null), btn = useRef<HTMLButtonElement>(null);
-  const sceneRef = useRef<ReturnType<typeof makeOpeningHomeScene> | null>(null), fadeFrom = useRef(0);
-  const [loaded, setLoaded] = useState(false), [shown, setShown] = useState(false), [phase, setPhase] = useState<"" | "rise" | "landed" | "out">("");
+  const sceneRef = useRef<ReturnType<typeof makeOpeningHomeScene> | null>(null), fadeFrom = useRef(0), placed = useRef(false);
+  const [loaded, setLoaded] = useState(false), [shown, setShown] = useState(false), [phase, setPhase] = useState<"" | "rise" | "kept" | "out">("");
 
   useEffect(() => {
     try { sessionStorage.setItem(OPENING_SEEN, "1"); } catch {}
@@ -27,6 +27,7 @@ export function PhoneOpening({ onDone }: { onDone: () => void }) {
       const sc = sceneRef.current; if (!sc) return;
       const rc = r.getBoundingClientRect(), z = sc.size(rc.width, rc.height, window.devicePixelRatio || 1);
       b.style.left = z.start.left + "px"; b.style.top = z.start.top + "px"; b.style.width = z.start.width + "px"; b.style.height = z.start.height + "px";
+      if (placed.current) place();
     };
     const tick = (now: number) => {
       const sc = sceneRef.current; if (!alive || !sc) return;
@@ -40,36 +41,45 @@ export function PhoneOpening({ onDone }: { onDone: () => void }) {
     const vis = () => { if (document.visibilityState === "visible" && sceneRef.current) { cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); } };
     document.addEventListener("visibilitychange", vis);
     const ro = new ResizeObserver(size); ro.observe(r);
+    // risen: the home's lace may still change (the resume card appears, the page scrolls) - follow it
+    const lace = document.querySelector<HTMLElement>(".mfh-lace"); if (lace) ro.observe(lace);
+    const onScroll = () => { if (placed.current) place(); };
+    window.addEventListener("scroll", onScroll, { passive: true });
     Promise.all((Object.keys(OH_SRC) as (keyof typeof OH_SRC)[]).map(load)).then(() => {
       if (!alive || !cv.current || !sv.current) return;
       sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img); size(); setLoaded(true);
       t0 = performance.now() - (rm ? OH_END * 1000 : 0);
       raf = requestAnimationFrame(tick);
     });
-    return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); document.removeEventListener("visibilitychange", vis); };
+    return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener("scroll", onScroll); document.removeEventListener("visibilitychange", vis); document.body.classList.remove("m-intro-rise"); };
   }, []);
+
+  // the medallion lands on the home's: same centre, same height (the logo comes along at the same scale)
+  const place = () => {
+    const sc = sceneRef.current, st = stage.current, lace = document.querySelector<HTMLElement>(".mfh-lace");
+    if (!sc || !st || !lace) return false;
+    const m = sc.geom().med, lr = lace.getBoundingClientRect(), k = lr.height / m.h;
+    const dx = lr.left + lr.width / 2 - m.cx * k, dy = lr.top + lr.height / 2 - m.cy * k;
+    st.style.transformOrigin = "0 0"; st.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
+    return true;
+  };
 
   const go = () => {
     if (phase) return;
     const sc = sceneRef.current, st = stage.current, lace = document.querySelector<HTMLElement>(".mfh-lace");
     const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (rm || !sc || !st || !lace) { setPhase("out"); setTimeout(onDone, rm ? 0 : 700); return; }
-    // the medallion lands on the home's: same centre, same height (the logo comes along at the same scale)
-    const m = sc.geom().med, lr = lace.getBoundingClientRect(), k = lr.height / m.h;
-    const dx = lr.left + lr.width / 2 - m.cx * k, dy = lr.top + lr.height / 2 - m.cy * k;
-    st.style.transformOrigin = "0 0";
     fadeFrom.current = performance.now();
     document.body.classList.add("m-intro-rise", "m-intro-cards");
     setPhase("rise");
-    requestAnimationFrame(() => requestAnimationFrame(() => { st.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`; }));
-    // landed: the home's own medallion and logo switch on at once under the (identical, aligned) risen ones, then the
-    // overlay fades - it stays "rising" so the linen and its twinkles never come back (that was the flash)
-    setTimeout(() => { document.body.classList.remove("m-intro-rise"); setPhase("landed"); }, 820);
-    setTimeout(onDone, 1080);
+    requestAnimationFrame(() => requestAnimationFrame(() => { place(); placed.current = true; }));
+    // no handover (Kim): the risen medallion and logo stay as the home's - still glinting - and the home's own stay
+    // hidden; the overlay lets taps through. Leaving the home takes it away (MobileSplash).
+    setTimeout(() => { setPhase("kept"); onKept?.(); }, 800);
   };
 
   return (
-    <div ref={root} className={"pho" + (loaded ? " is-on" : "") + (phase === "rise" || phase === "landed" ? " is-rising" : "") + (phase === "out" || phase === "landed" ? " is-out" : "")}>
+    <div ref={root} className={"pho" + (loaded ? " is-on" : "") + (phase === "rise" || phase === "kept" ? " is-rising" : "") + (phase === "kept" ? " is-kept" : "") + (phase === "out" ? " is-out" : "")}>
       <div className="pho-bg" aria-hidden="true" />
       <canvas ref={sv} className="pho-sv" aria-hidden="true" />
       <div ref={stage} className="pho-stage">

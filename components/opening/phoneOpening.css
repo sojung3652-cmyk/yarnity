@@ -13,6 +13,10 @@
 .pho.is-rising .pho-bg,.pho.is-rising .pho-sv{opacity:0;transition:opacity .45s ease}
 .pho.is-rising .pho-start{display:none}
 .pho.is-out{opacity:0;pointer-events:none}
+/* kept (Kim): the risen medallion and logo stay as the home's own, glinting; taps go through to the home, and the
+   sheets the home opens (AI, ...) come over it */
+.pho.is-kept{pointer-events:none;z-index:5}
+.pho.is-kept .pho-stage{transition:none}
 .pho.is-rising.is-out,.pho.is-out:not(.is-rising){transition:opacity .2s ease}
 /* the home under it: its own medallion and logo wait (the rising ones stand in); its menu cards come up one by one,
    as the web's NavBar comes down */
