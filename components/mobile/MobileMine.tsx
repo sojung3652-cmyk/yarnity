@@ -35,7 +35,8 @@ const I = { fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLineca
 const where = whereOf;
 const Cover = BookCover, Bar = ProgressBar;
 
-export function MobileMine() {
+/** `embedded`: inside the app's 마이페이지 (MyLayout), which has the bar and the title */
+export function MobileMine({ embedded = false }: { embedded?: boolean } = {}) {
   const { ready, projects, setActive, updateProject, addProject, removeProjects, restoreProjects } = useApp();
   const router = useRouter(), book = useBook(), newDraft = useNewDraft();
   const [more, setMore] = useState(false);
@@ -81,14 +82,16 @@ export function MobileMine() {
   const openP = open ? projects.find(x => x.id === open) ?? null : null;
   const hw = hook ? where(hook) : null;
 
+  const Wrap = embedded ? "div" : "main";
   return (
-    <main id="view-mine" className="mm">
+    <Wrap id={embedded ? undefined : "view-mine"} className={"mm" + (embedded ? " is-embedded" : "")}>
       <GoldDefs />
-      {/* the top (Kim): ‹ · the My Patterns wordmark in the middle of the bar · ··· (처음으로, 새 도안 만들기) */}
-      <MobileTopBar back={() => router.push("/")}
+      {/* the top (Kim): ‹ · the My Patterns wordmark in the middle of the bar · ··· (처음으로, 새 도안 만들기); in
+          마이페이지 the frame has the bar */}
+      {!embedded && <MobileTopBar back={() => router.push("/")}
         // eslint-disable-next-line @next/next/no-img-element
         center={<h1 className="mm-head-title"><span className="title-tag">나의 도안집</span></h1>}
-        right={<MoreButton onClick={() => setMore(true)} />} />
+        right={<MoreButton onClick={() => setMore(true)} />} />}
       {more && <MoreSheet title={`나의 도안집 · ${projects.length}권`} skip={["mine"]} items={[]} onClose={() => setMore(false)} />}
 
       {!ready ? null : !projects.length && !undo ? (
@@ -182,7 +185,7 @@ export function MobileMine() {
           <button type="button" onClick={() => { restoreProjects(undo); setUndo(null); if (timer.current) clearTimeout(timer.current); }}>되돌리기</button>
         </div>
       )}
-    </main>
+    </Wrap>
   );
 }
 

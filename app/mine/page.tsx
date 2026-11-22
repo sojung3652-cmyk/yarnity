@@ -4,11 +4,10 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useMobile } from "@/components/mobile/useMobile";
-import { MobileMine } from "@/components/mobile/MobileMine";
 
 export default function MinePage() {
   const m = useMobile(), router = useRouter();
-  useEffect(() => { if (m === false) router.replace("/my"); }, [m, router]); // My Page's 나의 도안집 (Kim)
-  if (m) return <MobileMine />;
+  // 나의 도안집 is My Page's first screen on both (Kim: the app's 마이페이지 too)
+  useEffect(() => { if (m !== null && m !== undefined) router.replace("/my"); }, [m, router]);
   return <main id="view-mine" />;
 }

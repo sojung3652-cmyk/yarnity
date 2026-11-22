@@ -38,13 +38,13 @@ export function MobileHomeScreen() {
       </header>
 
       <div className="mfh-actions">
-      {/* two by two (Kim): 도안 만들기 | 나의 도안집, then AI와 상의 | 용어집 (pastel green) */}
+      {/* two by two (Kim): 도안 만들기 | 마이페이지, then 뜨개 사전 | Yarni와 상의 */}
       <nav className="mfh-foot mfh-top" aria-label="만들기">
         <button type="button" className="mf-patch is-yellow mfh-make" onClick={start}>
           <span className="mfh-two"><b>도안 만들기</b></span>
         </button>
-        <button type="button" className="mf-patch is-pink" onClick={() => router.push("/mine")}>
-          <span className="mfh-two"><b>나의 도안집</b><small>{ready ? `${projects.length}권` : " "}</small></span>
+        <button type="button" className="mf-patch is-pink" onClick={() => router.push("/my")}>
+          <span className="mfh-two"><b>마이페이지</b></span>
         </button>
       </nav>
 
@@ -62,12 +62,12 @@ export function MobileHomeScreen() {
       )}
 
       <nav className="mfh-foot" aria-label="더 보기">
+        <button type="button" className="mf-patch is-green" onClick={() => router.push("/glossary")}>
+          <span className="mfh-two"><b>뜨개 사전</b><small>{TERMS.length}개 용어</small></span>
+        </button>
         <button type="button" className="mf-patch is-cream mfh-ai" onClick={() => setChat(c => ({ ...c, open: true }))}>
           <img className="mfh-star" src="/mobile/diary/star.webp" alt="" />
           <span className="mfh-two"><b>Yarni와 상의</b></span>
-        </button>
-        <button type="button" className="mf-patch is-green" onClick={() => router.push("/glossary")}>
-          <span className="mfh-two"><b>뜨개 사전</b><small>{TERMS.length}개 용어</small></span>
         </button>
       </nav>
       </div>

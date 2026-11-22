@@ -40,7 +40,8 @@
 .mine-logo{display:block;width:auto;height:64px}
 
 /* ---- the books on the shelves (768px and up; phones have their own screen, mine-mobile.css) ---- */
-@media (min-width:768px){
+/* every width (the app's 마이페이지 · 위시 uses the web's shelf too, Kim; no phone screen else has these classes) */
+@media all{
   /* the cover (components/BookCover.tsx), at the web's size */
   .mine .mm-cover{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;width:100%;aspect-ratio:3 / 4;padding:26px 16px 18px 24px;
     border-radius:2px 5px 5px 2px;background:linear-gradient(var(--tint),var(--tint)),url(/mobile/linen_ivory.png) 0 0/140px,#EFE6D8;
