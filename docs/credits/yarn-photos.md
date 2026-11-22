@@ -29,7 +29,7 @@
 | raffia.jpg | 라피아 | https://unsplash.com/photos/9wtQ-IXSy_g (가방 편물만 확대해 자름) |
 | tencel.jpg | 텐셀 | https://unsplash.com/photos/JDwEVCVyBWs (니트 탑의 등판만 확대해 자름) |
 | hemp.jpg | 헴프 | https://unsplash.com/photos/ieppoqQTIto (가방 편물만 확대해 자름) |
-| poodle.jpg | 푸들사 | https://unsplash.com/photos/VdP7rIGWTLs |
+| poodle.jpg | 푸들사 | Kim이 직접 찍은 사진 |
 | gradient.jpg | 단염사 | https://unsplash.com/photos/DLazlyj8sYA |
 | loop.jpg | 루프얀 | https://unsplash.com/photos/-yHaS_K1xgw |
 | scrubber.jpg | 수세미실 | https://unsplash.com/photos/zNmBA5eSwp0 (벽에 걸린 수세미만 크게 확대해 자름) |
