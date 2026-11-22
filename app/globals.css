@@ -418,3 +418,10 @@ footer{animation:foot-in .4s ease 1.2s backwards}
 @keyframes foot-in{from{opacity:0}}
 /* the footer logo stays out of the way while the book is up (it showed for an instant as the page under it emptied) */
 body:has(.hero-desk.is-overlay) .wrap > footer{display:none}
+/* a plain warm ivory #F6F0E4 behind the web's inner pages instead of the starry linen (Kim, to try) - My Page,
+   뜨개 사전, 도안 보기, 따라 뜨기; the home (the opening) and the book keep theirs, phones keep theirs */
+@media (min-width:768px){
+  html body:has(.my),html body:has(.gl-wide),html body:has(.ps-main),html body:has(.tk-main){background:#F6F0E4}
+  html body:has(.my) .my-bg{display:none}
+  html body .ps-main::before{background:none}
+}
