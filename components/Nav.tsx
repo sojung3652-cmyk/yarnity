@@ -3,11 +3,11 @@
 // shadow under it. Three columns: Home · New Pattern · Glossary · My Page in the middle (Cormorant 600, 15px) between
 // two empty ones, so the menu sits exactly in the centre (no logo: Kim).
 // Shown on the home (it slides down after Start, or is just there when you come back to it), My Page, the glossary,
-// 도안 보기 and 따라 뜨기. Not during the opening, not in the book (the 3D book and 도안 만들기), not on /ai, never on
+// 도안 보기, 따라 뜨기 and over the raised book (Kim: always, once past the opening). Not during the opening, not on /ai, never on
 // phones (the app has its own bars). Narrower than 1000px: tighter and 14px; narrower than 760px: ☰, an ivory panel.
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useBook, wizardInBook } from "./Book/BookProvider";
+import { useBook } from "./Book/BookProvider";
 import { useMobile } from "./mobile/useMobile";
 import { useHomeState } from "@/lib/homeState";
 import "./nav.css";
@@ -25,8 +25,8 @@ export function Nav() {
   }, [open]);
 
   const atHome = path === "/";
-  const inBook = path === "/new" && wizardInBook(book);
-  if (m !== false || path === "/ai" || path.startsWith("/ai/") || inBook || book.floating || (atHome && !hs.home)) return null;
+  // after the opening the NavBar is always there (Kim) - also while the book is up (it rises under it)
+  if (m !== false || path === "/ai" || path.startsWith("/ai/") || (atHome && !hs.home)) return null;
 
   const mine = path === "/my" || path.startsWith("/my/") || path === "/mine" || path === "/library", gloss = path === "/glossary" || path.startsWith("/glossary/");
   const items: { label: string; on: boolean; go: () => void }[] = [

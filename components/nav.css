@@ -58,3 +58,7 @@
 .wmore-ask button+button{margin-left:6px}
 /* room under the NavBar on 나의 도안집 (its title is gone) */
 @media (min-width:768px){ html body .mine-head{margin-top:22px} }
+/* the NavBar stays over the raised book (Kim): above its stage, which starts under the bar so the book is not covered */
+.ynav{z-index:65}
+.ynav.is-home{z-index:130}
+body:has(.ynav) .hero-desk.is-overlay{top:56px;height:auto;bottom:0}
