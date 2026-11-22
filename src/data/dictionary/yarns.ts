@@ -75,7 +75,7 @@ export const YARNS: Yarn[] = [
   {
     id: "polyester", image: "/dictionary/yarns/polyester.jpg", name: "폴리에스터", nameEn: "Polyester", group: "synthetic", short: "가볍고 형태가 잘 유지됨", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 2, stretch: 2, softness: 3, care: 5, price: 1 },
-    about: "가장 흔한 합성 섬유로 가볍고 질기며 구김이 잘 가지 않습니다. 물을 머금지 않아 빨리 마르고, 형태가 잘 유지되어 가방실, 수세미실, 반짝이는 펄사 등 여러 실의 재료가 됩니다. 재활용 페트병으로 만든 폴리에스터 실도 있습니다.",
+    about: "가장 흔한 합성 섬유로 가볍고 질기며 구김이 잘 가지 않습니다. 물을 머금지 않아 빨리 마르고, 형태가 잘 유지되어 가방실, 수세미실 등 여러 실의 재료가 됩니다. 재활용 페트병으로 만든 폴리에스터 실도 있습니다.",
     caution: "열에 약해 높은 온도의 다리미나 건조기는 피합니다. 정전기가 잘 생기고, 땀을 흡수하지 못해 옷으로 입으면 덥게 느껴질 수 있습니다.",
   },
   {
@@ -144,12 +144,7 @@ export const YARNS: Yarn[] = [
     about: "황마 줄기에서 얻은 거칠고 빳빳한 자연 섬유로, 마대나 노끈으로 익숙한 실입니다. 형태가 잘 잡혀 바구니, 러그, 화분 커버처럼 자연스러운 느낌의 소품에 씁니다.",
     caution: "섬유 가루가 날리고 손이 거칠어질 수 있습니다. 물에 약해 곰팡이가 생기기 쉬우니 젖지 않게 두고, 더러워지면 마른 솔로 털어 냅니다.",
   },
-  {
-    id: "hanji", name: "한지사", nameEn: "Hanji paper yarn", group: "plant", short: "종이를 꼬아 만든 시원한 실", seasons: ["summer"],
-    traits: { warmth: 1, stretch: 1, softness: 2, care: 2, price: 3 },
-    about: "닥나무 한지를 가늘게 잘라 꼬아 만든 실입니다. 가볍고 통기가 좋아 시원하며, 빳빳하게 형태가 잡혀 여름 모자, 가방, 바구니에 잘 어울립니다.",
-    caution: "꺾이면 자국이 남고 손에 힘이 들어갑니다. 세탁은 미지근한 물에 살짝 손세탁하거나 젖은 수건으로 닦아 내고, 그늘에서 모양을 잡아 말립니다.",
-  },
+
   {
     id: "poodle", image: "/dictionary/yarns/poodle.jpg", name: "푸들사", nameEn: "Poodle yarn", group: "special", short: "푸들 털처럼 곱슬곱슬", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 2, softness: 4, care: 3, price: 2 },
@@ -162,12 +157,7 @@ export const YARNS: Yarn[] = [
     about: "아크릴로 만든 수세미 전용 실입니다. 아크릴 섬유가 기름때를 잘 잡아 세제를 적게 써도 설거지가 잘 되고, 물이 금방 빠져 빨리 마릅니다. 색이 다양하고 값이 싸서 첫 작품으로 많이 뜹니다.",
     caution: "열에 약해 뜨거운 물에 삶으면 줄거나 뻣뻣해집니다. 쓰고 나서 물기를 짜 잘 말리고, 낡으면 새로 뜹니다.",
   },
-  {
-    id: "metallic", name: "펄사", nameEn: "Metallic yarn", group: "special", short: "반짝이는 금속 느낌", seasons: ["spring", "summer", "autumn", "winter"],
-    traits: { warmth: 1, stretch: 1, softness: 1, care: 3, price: 2 },
-    about: "얇은 금속 느낌의 필름(주로 폴리에스터)을 꼬아 넣어 반짝이는 실입니다. 단독으로 쓰기보다 다른 실과 한 가닥 겹쳐 뜨면 은은한 반짝임이 더해져 파티 소품, 가방 장식, 크리스마스 장식에 잘 어울립니다.",
-    caution: "까슬까슬해 맨살에 닿으면 따가울 수 있습니다. 열에 약하니 다리미를 직접 대지 않고, 실이 미끄러워 실 끝을 단단히 정리합니다.",
-  },
+
   {
     id: "metal", image: "/dictionary/yarns/metal.jpg", name: "메탈사", nameEn: "Metallic tape yarn", group: "special", short: "통째로 반짝이는 테이프 실", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 1, stretch: 1, softness: 1, care: 2, price: 3 },
