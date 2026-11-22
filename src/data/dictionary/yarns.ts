@@ -97,7 +97,7 @@ export const YARNS: Yarn[] = [
     caution: "털이 날리고 코가 거의 보이지 않아 코 수를 세기 어렵습니다. 뜨는 동안 털이 많이 날리니 옷에 붙지 않게 하고, 세탁망에 넣어 약하게 빱니다.",
   },
   {
-    id: "chenille", image: "/dictionary/yarns/chenille.jpg", name: "셔닐", nameEn: "Chenille", group: "special", short: "벨벳처럼 도톰하고 부드러움", seasons: ["autumn", "winter"],
+    id: "chenille", image: "/dictionary/yarns/chenille.jpg", name: "셔닐 · 벨벳사", nameEn: "Chenille", group: "special", short: "벨벳처럼 도톰하고 부드러움", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 2, softness: 5, care: 3, price: 2 },
     about: "가는 심 실에 짧은 털을 촘촘히 박아 벨벳처럼 만든 실입니다. 도톰하고 부드러워 담요, 인형, 아기 이불처럼 포근해야 하는 작품에 잘 어울립니다. '벨벳사'라고도 부릅니다.",
     caution: "코를 너무 느슨하게 뜨면 털 실이 빠져나와 고리가 생기기 쉽습니다(웜잉). 조금 촘촘하게 뜨고, 실 끝은 매듭을 지어 단단히 정리합니다.",
