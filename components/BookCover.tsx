@@ -9,7 +9,7 @@ import { ITEM, itemIdOf } from "@/lib/items";
 import { PART_KO, plan } from "@/lib/pattern";
 import { STATUS_KO, statusOf } from "@/lib/status";
 import type { Project } from "@/lib/types";
-import { coverOf, coverSrc } from "@/lib/covers";
+import { COVER_AR_MAX, coverOf, coverSrc } from "@/lib/covers";
 import "@/components/diary/diary.css";
 
 /** where a work is, in words: "바닥 3 / 42단 · 다음 4단", "42단 · 아직 시작 전", "완성 · 42단" */
@@ -48,7 +48,9 @@ export function BookCover({ p, w }: { p: Project; w?: number }) {
     const ems = [...p.name].reduce((n, c) => n + (/[ㄱ-힝]/.test(c) ? 1 : c === " " ? 0.35 : 0.58), 0) || 1;
     const fs = Math.min(15, 86 / ems);
     return (
-      <span className={"mm-cover is-diary" + (dc.dark ? " is-dark" : "")} style={{ width: w }} aria-hidden="true">
+      // every cover the same height (Kim: a line on the shelf matters more than the width): the widest picture
+      // fills the given width, a narrower one is narrower by its own proportions
+      <span className={"mm-cover is-diary" + (dc.dark ? " is-dark" : "")} style={{ width: w ? Math.round(w * dc.ar / COVER_AR_MAX) : `${(dc.ar / COVER_AR_MAX) * 100}%` }} aria-hidden="true">
         <img className="dc-img" src={coverSrc(dc.id)} alt="" />
         <span className={"mm-tag" + (going ? " is-going" : "")}>{tagOf(p)}</span>
         <span className="dc-plate" style={{ left: `${l}%`, top: `${t}%`, width: `${pw}%`, height: `${ph}%` }}>

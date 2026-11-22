@@ -399,16 +399,17 @@
 @media (max-width:999.98px){.my-left{margin-top:20px}}
 
 /* ---- pop-ups on paper and labels (Kim) ----
-   the dialogs (직접 기록하기, 위시 담기·고치기, 가져오기) on the ruled memo paper, their title on the ivory cloth
-   label, the fields as cream paper strips with a stitched edge; the little menus (링크·사진·메모, ···) on the
+   the dialogs (직접 기록하기, 위시 담기·고치기, 가져오기) on the ruled memo paper, their title on the slim ivory
+   lace, the fields as cream paper strips with a stitched edge; the little menus (링크·사진·메모, ···) on the
    grained cream paper with a running stitch inside */
 .my-sheet{border-radius:6px;padding:26px 28px 22px;
   background:repeating-linear-gradient(to bottom,transparent 0 33px,rgba(176,141,87,.12) 33px 34px) local,#FBF7EF;
   box-shadow:0 0 0 1px rgba(142,131,121,.16),-12px 18px 36px -16px rgba(50,35,25,.45),-2px 3px 6px -3px rgba(60,42,34,.12)}
-.my-sheet h2{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:168px;aspect-ratio:480 / 197;margin:0 0 18px -4px;padding:0 18px;
-  background:url(/brand/label_title.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1.5px 2.5px 2px rgba(90,62,44,.16));
+/* (the dialogs' titles on the slim ivory lace, Kim) */
+.my-sheet h2{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:210px;aspect-ratio:900 / 264;margin:0 0 18px -6px;padding:0 24px;
+  background:url(/glossary/lace_ivory.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1.5px 2.5px 2px rgba(90,62,44,.16));
   font:700 14.5px/1.2 "Noto Serif KR",serif;color:#3A322D;white-space:nowrap}
-.my-sheet[role="alertdialog"] h2{width:auto;min-width:200px;padding:0 22px}
+.my-sheet[role="alertdialog"] h2{width:230px}
 .my-sheet .my-field>span:first-child{font:600 12.5px "Noto Serif KR",serif;color:#5E554E}
 .my-sheet .my-field input,.my-sheet .my-field textarea{border-radius:4px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E") 0 0 / 160px 160px,#FCF9F3;
   box-shadow:inset 0 0 0 1px rgba(142,131,121,.3),inset 0 0 0 4px #FCF9F3,inset 0 0 0 5px rgba(176,141,87,.0);font-family:"Noto Serif KR",serif;
