@@ -1,15 +1,15 @@
 # 실 도감 사진 출처
 
-뜨개 사전 · 실 도감(`src/data/dictionary/yarns.ts`)의 사진. "Kim이 직접 찍은 사진"이라고 적힌 것 말고는 모두 Unsplash에서 받았고, [Unsplash License](https://unsplash.com/license)가 적용돼요. 무료이고, 상업적 이용이 가능하고, 출처 표기 의무가 없어요. 유료인 Unsplash+ 사진은 쓰지 않았어요.
+뜨개 사전 · 실 도감(`src/data/dictionary/yarns.ts`)의 사진. "Kim이 직접 찍은 사진", "Kim이 준 사진", "Kim이 ChatGPT로 만든 이미지"라고 적힌 것 말고는 모두 Unsplash에서 받았고, [Unsplash License](https://unsplash.com/license)가 적용돼요. 무료이고, 상업적 이용이 가능하고, 출처 표기 의무가 없어요. 유료인 Unsplash+ 사진은 쓰지 않았어요.
 
 파일은 `public/dictionary/yarns/`에 있고, 2026-11-22에 받았어요. 모두 정사각 600px JPEG예요.
 
 | 파일 | 실 | Unsplash 사진 |
 |---|---|---|
-| wool.jpg | 울 | https://unsplash.com/photos/ikp7hwRJ_M |
+| wool.jpg | 울 | Kim이 ChatGPT로 만든 이미지 |
 | mohair.jpg | 모헤어 | https://unsplash.com/photos/ssOH9fik3O0 (편물 부분만 확대해 자름) |
-| alpaca.jpg | 알파카 | https://unsplash.com/photos/BEvyoJYYSj0 (실볼 부분만 확대해 자름) |
-| cotton.jpg | 면 | https://unsplash.com/photos/jZSL_Dt4Fes |
+| alpaca.jpg | 알파카 | Kim이 ChatGPT로 만든 이미지 |
+| cotton.jpg | 면 | Kim이 ChatGPT로 만든 이미지 |
 | linen.jpg | 린넨 | https://unsplash.com/photos/YouWp12gBCQ |
 | acrylic.jpg | 아크릴 | Kim이 직접 찍은 사진 |
 | boucle.jpg | 부클레 | https://unsplash.com/photos/0EpEN-1bU_8 |
@@ -20,8 +20,8 @@
 | nalgae.jpg | 날개사 | Kim이 직접 찍은 사진 |
 | merino.jpg | 메리노 울 | https://unsplash.com/photos/Jsoc9j82ErY (스웨터 몸판만 확대해 자름) |
 | mink.jpg | 밍크사 | Kim이 직접 찍은 사진 |
-| chenille.jpg | 셔닐 · 벨벳사 | Kim이 준 사진 |
-| angora.jpg | 앙고라 | https://unsplash.com/photos/5VMlj33cc4A (카디건 소매만 크게 확대해 자름) |
+| chenille.jpg | 셔닐 · 벨벳사 | Kim이 ChatGPT로 만든 이미지 |
+| angora.jpg | 앙고라 | Kim이 ChatGPT로 만든 이미지 |
 | tweed.jpg | 트위드사 | https://unsplash.com/photos/lY0MpDoh2BA |
 | bamboo.jpg | 대나무 | https://unsplash.com/photos/OQrZQ80eNM4 |
 | jute.jpg | 황마 | https://unsplash.com/photos/hh2ulVuYbcw |
@@ -35,3 +35,5 @@
 | metal.jpg | 메탈사 | Kim이 직접 찍은 사진 |
 
 사진은 그 실과 질감이 비슷한 편물을 가까이 찍은 것이에요. 사진 설명에 실의 소재가 적혀 있지 않아서, 실제로 그 소재로 뜬 편물이라는 보장은 없어요.
+
+ChatGPT로 만든 이미지는 OpenAI 이용약관에 따라 결과물의 권리가 만든 사람(Kim)에게 있고 상업적으로 쓸 수 있어요. 다만 AI가 만든 그림이라 실제 그 소재의 실을 찍은 사진은 아니에요.
