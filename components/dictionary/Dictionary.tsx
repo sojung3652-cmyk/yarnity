@@ -105,8 +105,10 @@ function useAskYarni() {
 // ---------------------------------------------------------------- 1) 뜨개 상식
 
 export function KnowhowScreen() {
-  const [topic, setTopic] = useState(KNOWHOW_TOPICS[0].id);
-  const list = useMemo(() => knowhowOf(topic), [topic]);
+  // 전체 first (Kim: with only the five topics it looked like five articles), each chip with its count
+  const [topic, setTopic] = useState<"all" | (typeof KNOWHOW_TOPICS)[number]["id"]>("all");
+  const list = useMemo(() => (topic === "all" ? KNOWHOW_TOPICS.flatMap(t => knowhowOf(t.id)) : knowhowOf(topic)), [topic]);
+  const chips = useMemo(() => [{ id: "all" as const, label: "전체", n: KNOWHOW.length }, ...KNOWHOW_TOPICS.map(t => ({ ...t, n: knowhowOf(t.id).length }))], []);
   const [sel, setSel] = useState<string | null>(null);
   const cur = list.find(k => k.id === sel) ?? list[0] ?? null;
   const ask = useAskYarni();
@@ -114,7 +116,7 @@ export function KnowhowScreen() {
   return (
     <>
       <MyHead title="뜨개 상식" />
-      <Filters label="주제" groups={[KNOWHOW_TOPICS]} value={topic} onPick={t => { setTopic(t); setSel(null); }} />
+      <Filters label="주제" groups={[chips]} value={topic} onPick={t => { setTopic(t); setSel(null); }} />
       <div className="dict-know">
         <ol className="dict-toc">
           {list.map((k, i) => (
@@ -295,7 +297,9 @@ function Sheet({ cols, rows, num }: { cols: string[]; rows: string[][]; num?: nu
       <table className="dict-table is-big">
         <thead><tr>{cols.map((c, j) => <th key={c} scope="col" className={num?.includes(j) ? "is-num" : undefined}>{c}</th>)}</tr></thead>
         <tbody>
-          {rows.map((r, i) => (
+          {rows.map((r, i) => r.length === 1 && r[0].startsWith("#") ? (
+            <tr key={i} className="dict-group"><th colSpan={cols.length} scope="rowgroup">{r[0].slice(1)}</th></tr>
+          ) : (
             <tr key={i}>
               {r.map((c, j) => <td key={j} className={(num?.includes(j) ? "is-num" : "") + (c === "-" ? " is-none" : "") + (c.startsWith("@") ? " is-icon" : "") || undefined}>{c.startsWith("@") ? <CareIcon name={c.slice(1)} className="dict-care" /> : c === "-" ? "–" : c}</td>)}
             </tr>

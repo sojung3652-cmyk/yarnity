@@ -169,6 +169,12 @@ export const YARNS: Yarn[] = [
     caution: "까슬까슬해 맨살에 닿으면 따가울 수 있습니다. 열에 약하니 다리미를 직접 대지 않고, 실이 미끄러워 실 끝을 단단히 정리합니다.",
   },
   {
+    id: "metal", name: "메탈사", nameEn: "Metallic tape yarn", group: "special", short: "통째로 반짝이는 테이프 실", seasons: ["spring", "summer", "autumn", "winter"],
+    traits: { warmth: 1, stretch: 1, softness: 1, care: 2, price: 3 },
+    about: "금속 광택 필름을 납작한 테이프나 가는 끈 모양으로 만든 실로, 다른 실에 섞지 않고 이 실만으로 뜹니다. 편물 전체가 금속처럼 빛나 요즘 미니 가방, 파우치, 버킷햇, 여름 탑에 많이 쓰입니다. 짧은뜨기로 촘촘히 뜨면 모양이 단단하게 잡힙니다.",
+    caution: "잘 미끄러지고 꼬이기 쉬우니 실타래를 풀어 가며 천천히 뜹니다. 필름이 접히면 자국이 남고 열에 약해 다림질과 건조기를 피하고, 손으로 가볍게 닦아 관리합니다. 실 끝은 매듭 대신 여러 번 엮어 숨깁니다.",
+  },
+  {
     id: "ribbon", name: "리본사", nameEn: "Ribbon yarn", group: "special", short: "납작한 리본 모양", seasons: ["spring", "summer"],
     traits: { warmth: 1, stretch: 2, softness: 3, care: 3, price: 3 },
     about: "리본처럼 납작하고 넓은 실입니다. 레이온, 나일론, 면 등으로 만들어지며, 뜨면 광택 있는 독특한 결이 나와 여름 가방, 여름 상의, 액세서리에 잘 어울립니다.",

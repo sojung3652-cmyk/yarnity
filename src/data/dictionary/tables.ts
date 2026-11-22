@@ -2,7 +2,6 @@
 // - 바늘 호수: Lovecrafts / Craft Yarn Council (mm · US · UK), ronique.jp (かぎ針 2/0~5/0호), a Japanese 棒針 chart
 //   (0호 2.1mm, 0.3mm a step). Brands differ a little: mm is the one to trust.
 // - 실 굵기: Craft Yarn Council Standard Yarn Weight System (0 Lace ~ 7 Jumbo), gauge over 10cm.
-// - 용어: Lovecrafts, Petals to Picots, iLikeCrochet (US -> UK one step up).
 // - 사이즈: Craft Yarn Council Standard Body Measurements (머리 · 가슴), 발 길이는 한국 신발 치수(mm) 기준의 범위.
 // - 세탁 기호: ISO 3758 (wash tub, bleach triangle, drying square, iron, professional-care circle).
 import type { DictTable } from "./types";
@@ -30,21 +29,25 @@ export const TABLES: DictTable[] = [
     ],
   },
   {
-    id: "body-sizes", title: "사이즈 표", short: "머리 둘레 · 발 길이 · 가슴 둘레",
-    cols: ["대상", "치수 (cm)"], num: [1], foot: "모자는 머리 둘레보다 5~10%, 양말은 발 둘레보다 10% 작게 뜹니다. 잴 수 있다면 직접 잰 치수가 가장 정확합니다.",
+    id: "body-sizes", title: "평균 사이즈 표", short: "머리 둘레 · 발 길이 · 가슴 둘레",
+    cols: ["대상", "치수 (cm)"], num: [1], foot: "모자는 머리 둘레보다 5~10%, 양말은 발 둘레보다 10% 작게 뜹니다. 평균이므로, 잴 수 있다면 직접 잰 치수가 가장 정확합니다.",
+    // a row "#…" is a subhead (아기 / 어린이 / 어른 …) across the table
     groups: [
       { label: "머리 둘레", rows: [
-        ["신생아", "33~36"], ["0~6개월", "36~43"], ["6~12개월", "41~48"], ["1~3세", "46~51"],
-        ["3~10세", "48~52"], ["청소년 · 머리가 작은 어른", "51~56"], ["어른 여성", "53~56"], ["어른 남성", "56~59"],
+        ["#아기"], ["신생아", "33~36"], ["0~6개월", "36~43"], ["6~12개월", "41~48"],
+        ["#어린이"], ["1~3세", "46~51"], ["3~10세", "48~52"],
+        ["#어른"], ["청소년 · 머리가 작은 어른", "51~56"], ["여성", "53~56"], ["남성", "56~59"],
       ] },
       { label: "발 길이", rows: [
-        ["0~6개월", "9~10"], ["6~12개월", "11~12"], ["1~3세", "13~15"], ["3~5세", "16~17"],
-        ["6~9세", "18~21"], ["10~12세", "21~23"], ["어른 여성", "22~25"], ["어른 남성", "25~28"],
+        ["#아기"], ["0~6개월", "9~10"], ["6~12개월", "11~12"],
+        ["#어린이"], ["1~3세", "13~15"], ["3~5세", "16~17"], ["6~9세", "18~21"], ["10~12세", "21~23"],
+        ["#어른"], ["여성", "22~25"], ["남성", "25~28"],
       ] },
       { label: "가슴 둘레", rows: [
-        ["0~6개월", "41~43"], ["6~12개월", "47"], ["1~2세", "50~53"], ["4세", "58"], ["6세", "64"], ["8세", "66"], ["10세", "71"], ["12세", "76"],
-        ["어른 여성 S", "81~86"], ["어른 여성 M", "91~97"], ["어른 여성 L", "102~107"], ["어른 여성 XL", "112~117"],
-        ["어른 남성 S", "86~91"], ["어른 남성 M", "97~102"], ["어른 남성 L", "107~112"], ["어른 남성 XL", "117~122"],
+        ["#아기"], ["0~6개월", "41~43"], ["6~12개월", "47"], ["1~2세", "50~53"],
+        ["#어린이"], ["4세", "58"], ["6세", "64"], ["8세", "66"], ["10세", "71"], ["12세", "76"],
+        ["#어른 여성"], ["S", "81~86"], ["M", "91~97"], ["L", "102~107"], ["XL", "112~117"],
+        ["#어른 남성"], ["S", "86~91"], ["M", "97~102"], ["L", "107~112"], ["XL", "117~122"],
       ] },
     ],
   },
@@ -76,22 +79,6 @@ export const TABLES: DictTable[] = [
       ["5", "Bulky", "Chunky", "12~15코", "5.5~8mm", "6.5~9mm"],
       ["6", "Super Bulky", "Super Chunky, Roving", "7~11코", "8~12.75mm", "9~15mm"],
       ["7", "Jumbo", "Jumbo, Roving", "6코 이하", "12.75mm 이상", "15mm 이상"],
-    ],
-  },
-  {
-    id: "us-uk", title: "미국식 · 영국식 용어", short: "같은 이름, 다른 코",
-    cols: ["한국어", "미국식 (US)", "영국식 (UK)"],
-    rows: [
-      ["빼뜨기", "slip stitch (sl st)", "slip stitch (ss)"],
-      ["짧은뜨기", "single crochet (sc)", "double crochet (dc)"],
-      ["긴뜨기", "half double crochet (hdc)", "half treble (htr)"],
-      ["한길긴뜨기", "double crochet (dc)", "treble (tr)"],
-      ["두길긴뜨기", "treble (tr)", "double treble (dtr)"],
-      ["세길긴뜨기", "double treble (dtr)", "triple treble (ttr)"],
-      ["코 막음 (대바늘)", "bind off", "cast off"],
-      ["메리야스뜨기 (대바늘)", "stockinette stitch", "stocking stitch"],
-      ["게이지", "gauge", "tension"],
-      ["바늘 비우기", "yarn over (yo)", "yarn forward / yarn round needle"],
     ],
   },
 ];
