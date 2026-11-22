@@ -7,14 +7,20 @@ export interface Photo { id: string; projectId: string; at: number; blob: Blob }
 
 const DB = "yarnity", STORE = "photos", MAX = 1280;
 
-function open(): Promise<IDBDatabase> {
+/** the one Yarnity database: v1 "photos"; v2 adds "importedPatterns" (가져온 도안, lib/imported.ts, web) */
+export function openDb(): Promise<IDBDatabase> {
   return new Promise((res, rej) => {
-    const r = indexedDB.open(DB, 1);
-    r.onupgradeneeded = () => { const s = r.result.createObjectStore(STORE, { keyPath: "id" }); s.createIndex("project", "projectId"); };
+    const r = indexedDB.open(DB, 2);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      if (!db.objectStoreNames.contains(STORE)) { const s = db.createObjectStore(STORE, { keyPath: "id" }); s.createIndex("project", "projectId"); }
+      if (!db.objectStoreNames.contains("importedPatterns")) db.createObjectStore("importedPatterns", { keyPath: "id" });
+    };
     r.onsuccess = () => res(r.result);
     r.onerror = () => rej(r.error);
   });
 }
+const open = openDb;
 async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T> | void): Promise<T | undefined> {
   const db = await open();
   return new Promise((res, rej) => {

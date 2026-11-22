@@ -27,12 +27,14 @@ export function MyProfile() {
   };
 
   // 내 데이터
-  const [busy, setBusy] = useState(""), [pending, setPending] = useState<Backup | null>(null), [bad, setBad] = useState(false);
+  const [busy, setBusy] = useState(""), [pending, setPending] = useState<Backup | null>(null), [bad, setBad] = useState(false), [bigNote, setBigNote] = useState("");
   const fileIn = useRef<HTMLInputElement>(null);
   const exportAll = async () => {
-    setBusy("export");
+    setBusy("export"); setBigNote("");
     try {
       const blob = await makeBackup(), d = new Date(), a = document.createElement("a");
+      // only when it is so (Kim): the 가져온 도안's PDFs make the file big - said once, after it is made
+      if (blob.size > 20 * 1024 * 1024) setBigNote(`가져온 도안이 들어 있어 파일이 커요 (약 ${Math.round(blob.size / 1024 / 1024)}MB).`);
       a.href = URL.createObjectURL(blob); a.download = `yarnity-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}.json`;
       a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     } finally { setBusy(""); }
@@ -92,6 +94,7 @@ export function MyProfile() {
               <input ref={fileIn} type="file" accept="application/json,.json" hidden onChange={e => pick(e.target.files?.[0])} />
             </div>
             {bad && <p className="my-hint">Yarnity에서 내보낸 파일이 아니에요.</p>}
+            {bigNote && <p className="my-hint" role="status">{bigNote}</p>}
           </section>
           <p className="my-login">로그인 · 준비 중 — 나중에 로그인하면 여러 기기에서 같이 쓸 수 있어요.</p>
         </aside>
@@ -100,7 +103,7 @@ export function MyProfile() {
         <div className="my-dim" onMouseDown={e => { if (e.target === e.currentTarget && !busy) setPending(null); }}>
           <div className="my-sheet" role="alertdialog" aria-modal="true" aria-label="가져오기 확인">
             <h2>이 파일로 바꿀까요?</h2>
-            <p className="my-sheet-text">{new Date(sum.at).toLocaleString("ko-KR")}에 내보낸 파일이에요. 작품 {sum.works}개, 사진 {sum.photos}장, 위시 {sum.wishes}개가 들어 있어요.</p>
+            <p className="my-sheet-text">{new Date(sum.at).toLocaleString("ko-KR")}에 내보낸 파일이에요. 작품 {sum.works}개{sum.imported ? `, 가져온 도안 ${sum.imported}권` : ""}, 사진 {sum.photos}장, 위시 {sum.wishes}개가 들어 있어요.</p>
             <p className="my-sheet-text is-warn">지금 이 브라우저에 있는 작품, 사진, 위시, 프로필은 모두 이 파일의 내용으로 바뀌어요. 되돌릴 수 없어요.</p>
             <div className="my-sheet-foot">
               <button type="button" className="my-btn is-sub" autoFocus disabled={!!busy} onClick={() => setPending(null)}>취소</button>
