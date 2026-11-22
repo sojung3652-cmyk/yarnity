@@ -10,6 +10,7 @@ import { addPhoto, removePhoto } from "@/lib/photos";
 import { newWishId, saveWishes, tagsOf, TAG_RE, useWishes, type Wish, type WishKind } from "@/lib/wish";
 import { MyHead, usePhotoUrl } from "./MyLayout";
 import "@/app/mine/mine.css"; // 나의 도안집's tabs and shelves
+import { GoldX } from "@/components/GoldX";
 
 const I = { width: 15, height: 15, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 // small line icons in place of emoji (the UI has none)
@@ -170,7 +171,7 @@ function WishMemo({ w, onEdit, onClose, onTag }: { w: Wish; onEdit: () => void; 
   return (
     <div className="my-dim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <article className="my-memo my-memo-pop" role="dialog" aria-modal="true" aria-label="위시">
-        <button type="button" className="my-pop-x" aria-label="닫기" autoFocus onClick={onClose}>✕</button>
+        <button type="button" className="my-pop-x" aria-label="닫기" autoFocus onClick={onClose}><GoldX /></button>
         <p className="my-memo-kick">{w.kind === "link" ? WishIcon.link : w.kind === "memo" ? WishIcon.memo : WishIcon.photo}<span>{w.kind === "link" ? `링크${w.shop ? ` · ${w.shop}` : ""}` : KIND_KO[w.kind]}</span></p>
         {w.kind !== "memo" && <h2>{w.title}</h2>}
         {w.price && <p className="my-memo-sub">{w.price}</p>}

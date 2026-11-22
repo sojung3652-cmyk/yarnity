@@ -33,6 +33,7 @@ import { store } from "@/lib/store";
 import type { Draft, Project } from "@/lib/types";
 import { hookMmOf, yarnWeightText } from "@/lib/yarn";
 import "@/components/ai/ai.css";
+import { GoldX } from "@/components/GoldX";
 
 const ERR: Record<string, string> = {
   not_configured: "Yarni 상담은 곧 열려요. 그동안 책의 칸만으로도 끝까지 만들 수 있어요.",
@@ -417,7 +418,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
           : <b className="aic-side-name">Yarni와 상의</b>}
         {sideBar
           ? <button type="button" className="aic-icon" aria-label={folded ? "목록 펴기" : "목록 접기"} title={folded ? "목록 펴기" : "목록 접기"} aria-expanded={!folded} onClick={() => fold(folded)}>{folded ? Ic.unfold : Ic.fold}</button>
-          : <button type="button" className="aic-icon" aria-label="목록 닫기" onClick={() => setDrawer(false)}>{Ic.x}</button>}
+          : <button type="button" className="aic-icon" aria-label="목록 닫기" onClick={() => setDrawer(false)}><GoldX /></button>}
       </div>
       {folded ? (
         <div className="aic-side-icons">
@@ -613,7 +614,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
             {titleEl}
             <span className="aic-bar-end">
               <button type="button" className="aic-icon" aria-label="새 대화" title="새 대화" onClick={() => go(null)}>{Ic.pen}</button>
-              <button type="button" className="aic-icon" aria-label="닫기" title="닫기" onClick={close}>{Ic.x}</button>
+              <button type="button" className="aic-icon" aria-label="닫기" title="닫기" onClick={close}><GoldX /></button>
             </span>
           </>
         ) : (

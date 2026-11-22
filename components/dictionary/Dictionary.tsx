@@ -20,6 +20,7 @@ import { CareIcon } from "./DictArt";
 import "@/components/my/myPage.css";
 import "@/components/glossary/glossary.css";
 import "./dictionary.css";
+import { GoldX } from "@/components/GoldX";
 
 export const DICT_MENU = [
   { href: "/glossary", label: "뜨개 상식", n: KNOWHOW.length },
@@ -88,7 +89,7 @@ function DictPop({ label, onClose, children, wide, cls }: { label: string; onClo
   return (
     <div className="my-dim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <article className={"my-memo my-memo-pop dict-pop" + (wide ? " is-wide" : "") + (cls ? " " + cls : "")} role="dialog" aria-modal="true" aria-label={label}>
-        <button type="button" className="my-pop-x" aria-label="닫기" autoFocus onClick={onClose}>✕</button>
+        <button type="button" className="my-pop-x" aria-label="닫기" autoFocus onClick={onClose}><GoldX /></button>
         {children}
       </article>
     </div>

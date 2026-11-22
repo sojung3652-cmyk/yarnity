@@ -17,6 +17,7 @@ import { yarnStepOk } from "@/components/newbook/YarnStep";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { LaceButton } from "@/components/diary/Diary";
 import { setSheet, useSheet } from "./sheetStore";
+import { GoldX } from "@/components/GoldX";
 
 const NAMES = ["이름", "품목", "실과 크기", "확인"];
 // per screen [step][sub]: the bar's name, the question, the foot button
@@ -89,8 +90,7 @@ export function MobileFlowWizard() {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" /></svg>
         </button>
         <p className="mfw-where"><b>{step}</b> / 4 · {sc.name}</p>
-        <button type="button" className="mfw-icon" aria-label="나가기" onClick={book.close}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" /></svg>
+        <button type="button" className="mfw-icon" aria-label="나가기" onClick={book.close}><GoldX />
         </button>
       </header>
       <ol className="mfw-prog" aria-label={`진행 단계: ${step} / 4 · ${NAMES[step - 1]}`}>

@@ -429,3 +429,6 @@ body:has(.hero-desk.is-overlay) .wrap > footer{display:none}
 .wrap>footer{display:flex;flex-direction:column;align-items:center}
 .foot-logo{width:150px}
 .foot-cap{margin:7px 0 0;padding-left:.3em;font:600 9px/1 var(--font-cormorant),"Cormorant Garamond",serif;letter-spacing:.3em;text-transform:uppercase;color:#8A7258}
+
+/* the metal X (components/GoldX) on every close button, app and web (Kim): one default size; the book ribbons size theirs */
+.gold-x{display:block;width:18px;height:18px;margin:auto;flex:none}

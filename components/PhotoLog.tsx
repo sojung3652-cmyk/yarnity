@@ -4,6 +4,7 @@
 // removed (asked in place). Photos live in this browser only (lib/photos.ts).
 import { useEffect, useRef, useState } from "react";
 import { addPhoto, photosOf, removePhoto, type Photo } from "@/lib/photos";
+import { GoldX } from "@/components/GoldX";
 
 const when = (t: number) => new Date(t).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 
@@ -38,7 +39,7 @@ export function PhotoLog({ projectId, name, onClose, onChange }: { projectId: st
       <div ref={box} className="pl" role="dialog" aria-modal="true" aria-labelledby="plTitle" onClick={e => e.stopPropagation()}>
         <div className="pl-head">
           <h2 id="plTitle">사진 기록<span>{name}</span></h2>
-          <button type="button" className="pl-x" aria-label="닫기" onClick={onClose}>×</button>
+          <button type="button" className="pl-x" aria-label="닫기" onClick={onClose}><GoldX /></button>
         </div>
         {big ? (
           <figure className="pl-big">

@@ -16,6 +16,7 @@ import { useMobile } from "@/components/mobile/useMobile";
 import { MobileTopBar, MoreButton } from "@/components/mobile/MobileTopBar";
 import { MoreSheet, SAVED_KEY } from "@/components/mobile/MoreSheet";
 import { logRow, logTime } from "@/lib/knitLog";
+import { GoldX } from "@/components/GoldX";
 
 function Measure({ p, onApply }: { p: Project; onApply: (h: number) => void }) {
   const pp = plan(p), exp = 6 * pp.g.h;
@@ -280,7 +281,7 @@ export function TrackScreen() {
             <div className="mst-big-bar"><span>코 도안 · {vr.label}</span>
               <button type="button" aria-label="작게" onClick={() => setBigZoom(z => Math.max(1, z - 0.5))}>−</button>
               <button type="button" aria-label="크게" onClick={() => setBigZoom(z => Math.min(3, z + 0.5))}>+</button>
-              <button type="button" aria-label="닫기" onClick={() => { setBigChart(false); setBigZoom(1); }}>✕</button></div>
+              <button type="button" aria-label="닫기" onClick={() => { setBigChart(false); setBigZoom(1); }}><GoldX /></button></div>
             <div className="mst-big-pic"><canvas ref={bigRef} style={{ width: `${bigZoom * 100}%`, aspectRatio: "1" }} /></div>
           </div>
         )}

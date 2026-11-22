@@ -23,6 +23,7 @@ import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { importedLine, removeImported, useImported, type Imported } from "@/lib/imported";
 import { ImportedCover } from "@/components/my/ImportedCover";
 import "@/app/mine/mine.css";
+import { GoldX } from "@/components/GoldX";
 
 // 가져온 도안 (Kim): Yarnity's patterns and the imported ones on the same shelves; tabs 전체 / Yarnity 도안 /
 // 가져온 도안 / 뜨는 중 / 완성 (an imported one not started counts as 뜨는 중, as a Yarnity one does)
@@ -93,7 +94,7 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
             </div>
           )}
         </div>
-        <button type="button" className="bk-x" aria-label="닫기" onClick={onClose}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg></button>
+        <button type="button" className="bk-x" aria-label="닫기" onClick={onClose}><GoldX /></button>
         <div className="bk-pop-top">
           <BookCover p={p} w={170} />
           <div className="bk-pop-text">

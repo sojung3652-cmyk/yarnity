@@ -13,6 +13,7 @@ import { closeGloss, openGloss, useGlossOpen } from "./glossFloat";
 /** the small 용어집 button of a bar (left of ···) */
 export const GlossButton = () => <button type="button" className="gl-open-btn" aria-haspopup="dialog" onClick={openGloss}>뜨개 사전</button>;
 import "./glossary.css";
+import { GoldX } from "@/components/GoldX";
 
 const X = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>;
 const Back = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
@@ -42,7 +43,7 @@ export function GlossaryFloat() {
           ? <button type="button" className="glf-icon" aria-label="목록으로" onClick={() => setTerm(null)}><Back /></button>
           : <span className="glf-icon" aria-hidden="true" />}
         <b className="glf-title">뜨개 사전</b>
-        <button type="button" className="glf-icon" aria-label="닫기" onClick={close}><X /></button>
+        <button type="button" className="glf-icon" aria-label="닫기" onClick={close}><GoldX /></button>
       </header>
       <div className="glf-body" ref={body}>
         {term ? <TermDetail term={term} onGo={t => setTerm(termById(t.id))} /> : <GlossList total={TERMS.length} onPick={setTerm} />}
