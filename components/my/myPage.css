@@ -28,7 +28,7 @@
 .my-menu{display:flex;flex-direction:column;gap:2px;margin-top:26px}
 .my-mi{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:38px;padding:0 12px;border-radius:6px;
   font:500 13px/1.3 "Noto Serif KR",serif;color:#7D7270;text-decoration:none}
-.my-mi:hover{color:#332C2C;background:rgba(246,232,231,.45)}
+.my-mi:hover{color:#332C2C;background:rgba(224,170,174,.16)}
 .my-mi.is-on,.my-mi.is-on:hover{background:none;color:#141010;font-weight:800}
 .my-mi>span{position:relative;padding-left:16px}
 .my-mi.is-on>span::before{content:"";position:absolute;left:0;top:50%;width:10px;height:10px;margin-top:-5px;

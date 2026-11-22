@@ -280,7 +280,7 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
   .gl-wide .gl-tab.gl-patch{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:38px;padding:0 12px;border:0;border-image:none;border-radius:6px;background:none;
     font:500 13px/1.3 "Noto Serif KR",serif;color:#7D7270;text-align:left;cursor:pointer}
   .gl-wide .gl-tab small{font-size:11px;color:#9A8E88}
-  .gl-wide .gl-tab:hover{color:#332C2C;background:rgba(246,232,231,.45)}
+  .gl-wide .gl-tab:hover{color:#332C2C;background:rgba(224,170,174,.16)}
   /* the chosen one (Kim): no box - bolder, darker letters; the rest a shade lighter so it stands apart */
   .gl-wide .gl-tab[aria-selected="true"],.gl-wide .gl-tab[aria-selected="true"]:hover{background:none;filter:none;color:#141010;font-weight:800}
   .gl-wide .gl-tab[aria-selected="true"] small{font-weight:700;color:#141010}
