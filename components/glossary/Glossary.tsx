@@ -162,8 +162,9 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
 
 // ---------------------------------------------------------------- the pages
 
-/** /glossary and /glossary/[id]. `id`: the term shown (a term's page on phones; the panel on wide screens). */
-export function GlossaryScreen({ id }: { id?: string }) {
+/** /glossary and /glossary/[id]. `id`: the term shown (a term's page on phones; the panel on wide screens).
+ *  `inDict` (wide screens): the 용어집 menu of the 뜨개 사전 (components/dictionary) - /glossary/terms[/id], inside its frame */
+export function GlossaryScreen({ id, inDict = false }: { id?: string; inDict?: boolean }) {
   const m = useMobile(), router = useRouter(), s = useList();
   const [sel, setSel] = useState<string | null>(id ?? null);
   const panel = useRef<HTMLDivElement>(null);
@@ -200,15 +201,18 @@ export function GlossaryScreen({ id }: { id?: string }) {
   const pick = (t: GlossTerm) => {
     setSel(t.id);
     // the address follows the panel without leaving the page
-    history.replaceState(null, "", `/glossary/${t.id}`);
+    history.replaceState(null, "", inDict ? `/glossary/terms/${t.id}` : `/glossary/${t.id}`);
     panel.current?.scrollTo({ top: 0 });
   };
+  const Wrap = inDict ? "div" : "main";
   return (
-    <main className="gl gl-wide">
+    <Wrap className="gl gl-wide">
       {/* the heading as on My Page (Kim): 뜨개 사전 (it was 용어집) on the slim ivory lace in the middle, nothing under it */}
       <header className="gl-whead"><h1 className="gl-whead-title">뜨개 사전</h1></header>
-      <div className="gl-cols">
-        <aside className="gl-col-tabs"><Tabs s={s} column /></aside>
+      {/* in the 뜨개 사전 the categories are its filter row, over the list and the term (the room is narrower) */}
+      {inDict && <div className="gl-dict-tabs"><Tabs s={s} /></div>}
+      <div className={"gl-cols" + (inDict ? " is-dict" : "")}>
+        {!inDict && <aside className="gl-col-tabs"><Tabs s={s} column /></aside>}
         <div className="gl-col-list">
           <Search s={s} />
           <div className="gl-list-scroll"><Rows s={s} selected={term?.id ?? null} onPick={pick} /></div>
@@ -220,6 +224,6 @@ export function GlossaryScreen({ id }: { id?: string }) {
           )}
         </div>
       </div>
-    </main>
+    </Wrap>
   );
 }
