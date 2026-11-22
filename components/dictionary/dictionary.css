@@ -223,3 +223,7 @@
 .dict-faq li:nth-child(-n+2){border-top:1px solid rgba(142,131,121,.22)}
 @media (max-width:1000px){.dict-faq{grid-template-columns:1fr}.dict-faq li:nth-child(2){border-top:0}}
 .dict-pop .dict-fixes{margin:0;padding-left:20px}
+/* Kim: the text in pop-ups on the light ivory cloth patch (the glossary's 자주 하는 실수 box) */
+.dict-pop .dict-body,.dict-pop .dict-fixes{box-sizing:border-box;border-style:solid;border-width:10px;border-image:url(/glossary/patch_ivory.webp) 62 fill / 10px stretch;background:none;padding:10px 14px;margin:0 0 4px;font-size:14px;line-height:1.85}
+.dict-pop .dict-fixes{padding-left:34px}
+.dict-pop .dict-fixes li{padding:2px 0;border:0}
