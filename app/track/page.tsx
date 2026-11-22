@@ -301,6 +301,8 @@ export function TrackScreen() {
       <article className="tk-sheet-page" aria-labelledby="trTitle">
         <header className="tk-head">
           <div className="tk-head-l">
+            {/* back to 나의 도안집 (web /my; Kim: there was no way back) */}
+            <Link className="tk-back" href="/my"><span aria-hidden="true">‹</span> 나의 도안집</Link>
             <p className="tk-kicker" lang="en">Yarnity · Knitting{" "}along</p>
             <h1 id="trTitle">{p.name}</h1>
           </div>
