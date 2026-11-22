@@ -338,3 +338,30 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
   .gl-whead-title{width:168px;aspect-ratio:480 / 197;padding:0 18px;background:url(/brand/label_title.webp) center / 100% 100% no-repeat;
     filter:drop-shadow(-1.5px 2.5px 2px rgba(90,62,44,.16))}
 }
+/* 커뮤니티 표현 · the wiki 설명 (WikiSummary, Kim): who wrote it last, 수정 기록 and 고치기 as quiet text buttons (고치기 on
+   the see-through dusty rose); the editor and the history on the ruled memo paper */
+.gl-wiki-bar{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11.5px;color:var(--ink2)}
+.gl-wiki-bar>span{margin-right:auto}
+.gl-wiki button,.gl-wiki-form button{min-height:30px;padding:0 12px;border:0;border-radius:99px;background:none;font:500 12px/1 "Noto Serif KR",serif;color:var(--ink);cursor:pointer}
+.gl-wiki button:hover{background:rgba(224,170,174,.16)}
+.gl-wiki button.is-main{background:rgba(224,170,174,.28);font-weight:700}
+.gl-wiki button:disabled{opacity:.45;cursor:default}
+.gl-wiki button:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
+.gl-wiki-form,.gl-wiki-hist{margin:16px 0 0;padding:14px 16px;border-radius:2px;background:repeating-linear-gradient(#FBF7EF 0 33px,#EADFCF 33px 34px);
+  box-shadow:-2px 3px 8px -3px rgba(90,62,44,.25)}
+.gl-wiki-form label{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:12px;color:var(--ink2)}
+.gl-wiki-form textarea,.gl-wiki-form input{box-sizing:border-box;width:100%;padding:8px 10px;border:1px solid #E2D6C6;border-radius:4px;background:#FFFDF8;
+  font:400 14px/1.7 "Noto Serif KR",serif;color:var(--ink);resize:vertical}
+.gl-wiki-who{margin:0;font-size:11.5px;color:var(--ink2)}
+.gl-wiki-err{margin:8px 0 0;font-size:12px;color:#9A5A5E}
+.gl-wiki-btns{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}
+.gl-wiki-hist{list-style:none;display:flex;flex-direction:column;gap:14px}
+.gl-wiki-hist li{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.gl-wiki-hist li+li{padding-top:12px;border-top:1px dashed #E2D6C6}
+.gl-wiki-hist .is-quiet{font-size:12px;color:var(--ink2)}
+.gl-wiki-h-head{display:flex;gap:8px;align-items:baseline;margin:0;font-size:12px;color:var(--ink2)}
+.gl-wiki-h-head b{color:var(--ink)}
+.gl-wiki-h-head em{font-style:normal;padding:1px 8px;border-radius:99px;background:rgba(224,170,174,.28);color:#7A5A5C;font-size:11px}
+.gl-wiki-h-note{margin:0;font-size:11.5px;color:var(--ink2)}
+.gl-wiki-h-text{margin:0;font-size:13px;line-height:1.7;color:var(--ink)}
+.gl-wiki-hist li>button{margin-left:-12px}

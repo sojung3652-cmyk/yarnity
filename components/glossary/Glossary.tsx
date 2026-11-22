@@ -11,6 +11,7 @@ import { MobileTopBar } from "@/components/mobile/MobileTopBar";
 import { useMobile } from "@/components/mobile/useMobile";
 import { CATEGORIES, DIFFICULTY, TERMS, categoryOf, colorOf, searchTerms, shortLine, termById, type GlossColor, type GlossTerm } from "@/lib/glossary";
 import { GlossSymbol } from "./GlossSymbol";
+import { WikiSummary } from "./WikiSummary";
 import "./glossary.css";
 
 const patch = (c: GlossColor): CSSProperties => ({ ["--gp" as string]: `url(/glossary/patch_${c}.webp)` });
@@ -121,7 +122,8 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
         <div><dt>미국식</dt><dd lang="en">{term.en.us ?? "—"}</dd></div>
         <div><dt>영국식</dt><dd lang="en">{term.en.uk ?? "—"}</dd></div>
       </dl>
-      <p className="gl-summary">{term.summary}</p>
+      {/* 커뮤니티 표현: everyone writes the 설명 together (Kim; WikiSummary) */}
+      {term.category === "community" ? <WikiSummary key={term.id} term={term} /> : <p className="gl-summary">{term.summary}</p>}
       {term.note && <p className="gl-note">{term.note}</p>}
       {term.steps.length > 0 && (
         <section className="gl-block">
