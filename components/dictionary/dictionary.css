@@ -3,17 +3,21 @@
    dusty rose as the one accent; the glossary's ivory lace for the subheads (glossary.css .gl-lace). */
 .dict .my-left{gap:0}
 .dict-me{cursor:default}
-.dict-badge-img{display:block;width:112px;height:auto;filter:drop-shadow(-2px 3px 4px rgba(90,62,44,.14))}
+/* as My Page's avatar: no shadow, the same muted colour (the picture itself), smaller on narrow screens */
+.dict-badge-img{display:block;width:112px;height:auto}
+@media (max-width:999.98px){.dict-me .dict-badge-img{width:48px}}
 .dict .my-menu{margin-top:26px}
 .dict-rule{width:calc(100% - 24px);margin:12px 12px;border:0;border-top:1px solid rgba(142,131,121,.35)}
 /* the screens' titles on the cloth label, at the left as on My Page; the filters under them */
 .dict .my-head{margin-bottom:30px}
 .dict-filters{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 34px}
 .dict-filters-sep{width:1px;height:18px;margin:0 6px;background:rgba(142,131,121,.45)}
-.dict-chip{min-height:30px;padding:0 13px;border:1px solid rgba(142,131,121,.4);border-radius:4px;background:rgba(255,254,250,.6);
-  font:500 13px/1 "Noto Serif KR",serif;color:#5E554E;cursor:pointer;transition:background .15s ease}
-.dict-chip:hover{background:rgba(224,170,174,.16)}
-.dict-chip.is-on{border-color:rgba(160,90,96,.35);background:rgba(224,170,174,.28);color:#2F2824;font-weight:700}
+/* the filters as cloth labels (Kim): the ivory cloth patch of the buttons, the chosen one on the pink cloth */
+.dict-chip,.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch{min-height:0;height:auto;padding:0 6px;border-style:solid;border-width:10px;border-radius:0;
+  border-image-source:url(/mobile/diary/patch_cream.webp);border-image-slice:62 fill;border-image-repeat:stretch;background:none;
+  font:500 13px/1.25 "Noto Serif KR",serif;color:#5E554E;cursor:pointer;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.14));transition:transform .15s ease}
+.dict-chip:hover,.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch:hover{background:none;transform:translateY(-1px);color:#2F2824}
+.dict-chip.is-on,.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch[aria-selected="true"]{border-image-source:url(/mobile/diary/patch_pink.webp);background:none;color:#2F2824;font-weight:700}
 .dict-chip:focus-visible,.dict-card:focus-visible,.dict-toc button:focus-visible,.dict-foot button:focus-visible{outline:2px solid #C9A050;outline-offset:2px}
 
 /* ---- cards (실 도감 · 작품별 가이드 · 막힐 때 · 표) */
@@ -113,15 +117,12 @@
 
 @media (max-width:1180px){.dict-grid.is-4{grid-template-columns:repeat(3,minmax(0,1fr))}.dict-know{grid-template-columns:200px minmax(0,1fr)}}
 @media (max-width:999.98px){.dict-grid.is-4,.dict-grid.is-3{grid-template-columns:repeat(2,minmax(0,1fr))}.dict-know{grid-template-columns:minmax(0,1fr)}}
-@media (prefers-reduced-motion:reduce){.dict-card,.dict-chip{transition:none}.dict-card:hover{transform:none}.dict .my-memo{animation:none}}
+@media (prefers-reduced-motion:reduce){.dict-card,.dict-chip{transition:none}.dict-chip:hover{transform:none}.dict-card:hover{transform:none}.dict .my-memo{animation:none}}
 /* 용어집 inside the frame: the categories as the filter row (the dictionary's chips), then the list | the term */
 .dict .gl-cols.is-dict{grid-template-columns:330px minmax(0,1fr);gap:34px}
 .dict .gl-dict-tabs{margin:0 0 34px}
 .dict .gl-dict-tabs .gl-tabs{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px}
-.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch{display:inline-flex;justify-content:center;gap:5px;width:auto;min-height:30px;padding:0 13px;border:1px solid rgba(142,131,121,.4);border-radius:4px;
-  background:rgba(255,254,250,.6);filter:none;font:500 13px/1 "Noto Serif KR",serif;color:#5E554E}
-.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch:hover{background:rgba(224,170,174,.16)}
-.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch[aria-selected="true"]{border-color:rgba(160,90,96,.35);background:rgba(224,170,174,.28);color:#2F2824;font-weight:700}
+.dict.my .gl-wide .gl-dict-tabs .gl-tab.gl-patch{display:inline-flex;justify-content:center;gap:5px;width:auto}
 .dict.my .gl-wide .gl-dict-tabs .gl-tab>span{padding-left:0}
 .dict.my .gl-wide .gl-dict-tabs .gl-tab>span::before{display:none}
 .dict.my .gl-wide .gl-dict-tabs .gl-tab small{font-size:11px;font-weight:400;color:#8C807A}
