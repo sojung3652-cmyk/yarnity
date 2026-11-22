@@ -11,8 +11,8 @@
 | alpaca.jpg | 알파카 | https://unsplash.com/photos/BEvyoJYYSj0 (실볼 부분만 확대해 자름) |
 | cotton.jpg | 면 | https://unsplash.com/photos/jZSL_Dt4Fes |
 | linen.jpg | 린넨 | https://unsplash.com/photos/YouWp12gBCQ |
-| acrylic.jpg | 아크릴 | https://unsplash.com/photos/vw2Q3WaxTGA |
-| boucle.jpg | 부클레 | https://unsplash.com/photos/UMrnkV01EJQ |
+| acrylic.jpg | 아크릴 | https://unsplash.com/photos/yS5lNFwZB1g (목도리 편물 부분만 확대해 자름) |
+| boucle.jpg | 부클레 | https://unsplash.com/photos/0EpEN-1bU_8 |
 | silk.jpg | 실크 | https://unsplash.com/photos/AIcA7gb8c2A (실 콘 표면만 크게 확대해 자름) |
 | cashmere.jpg | 캐시미어 | https://unsplash.com/photos/brOaC3sxzhI |
 | nylon.jpg | 나일론 | https://unsplash.com/photos/q2rwcbQEUQ4 (편물 부분만 확대해 자름) |
