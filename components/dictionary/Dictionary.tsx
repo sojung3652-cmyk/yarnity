@@ -226,9 +226,9 @@ const crafted = (c: Craft, want: "crochet" | "knit") => c === want || c === "bot
 
 // ---------------------------------------------------------------- 4) FAQ (was 막힐 때; Kim)
 
-/** each trouble as a question you open in place: why, then what to try */
+/** the questions in two columns (Kim: no long lists); the answer in a wide pop-up - why on the left, what to try on the right */
 export function TroubleScreen() {
-  const [f, setF] = useState<"all" | "crochet" | "knit">("all"), [open, setOpen] = useState<string | null>(null);
+  const [f, setF] = useState<"all" | "crochet" | "knit">("all"), [open, setOpen] = useState<Trouble | null>(null);
   const shown = TROUBLES.filter(t => f === "all" || crafted(t.craft, f));
   const ask = useAskYarni();
   return (
@@ -236,28 +236,26 @@ export function TroubleScreen() {
       <MyHead title="FAQ" />
       <Filters label="거르기" value={f} onPick={setF} groups={[[{ id: "all", label: "전체", n: TROUBLES.length }, { id: "crochet", label: "코바늘" }, { id: "knit", label: "대바늘" }]]} />
       <ul className="dict-faq">
-        {shown.map(t => {
-          const on = open === t.id;
-          return (
-            <li key={t.id} className={on ? "is-open" : undefined}>
-              <button type="button" className="dict-faq-q" aria-expanded={on} aria-controls={`faq-${t.id}`} onClick={() => setOpen(on ? null : t.id)}>
-                <span className="dict-faq-mark" aria-hidden="true">Q</span>
-                <span className="dict-faq-text"><b>{t.title}</b><small>{craftTags(t.craft).join(" · ")} · {t.cause}</small></span>
-                <span className="dict-faq-arrow" aria-hidden="true">{on ? "−" : "+"}</span>
-              </button>
-              {on && (
-                <div className="dict-faq-a" id={`faq-${t.id}`}>
-                  <Lace>왜 그럴까요</Lace>
-                  {t.why ? <p className="dict-body">{t.why}</p> : <Soon />}
-                  <Lace>이렇게 해 보세요</Lace>
-                  {t.fixes?.length ? <ol className="dict-fixes">{t.fixes.map(x => <li key={x}>{x}</li>)}</ol> : <Soon />}
-                  <p className="dict-foot"><button type="button" onClick={() => ask(`편물이 '${t.title}' 같아요. 사진을 보여 줄게요.`)}>Yarni에게 내 편물 사진 보여주기 →</button></p>
-                </div>
-              )}
-            </li>
-          );
-        })}
+        {shown.map(t => (
+          <li key={t.id}>
+            <button type="button" className="dict-faq-q" aria-haspopup="dialog" onClick={() => setOpen(t)}>
+              <span className="dict-faq-mark" aria-hidden="true">Q</span>
+              <span className="dict-faq-text"><b>{t.title}</b><small>{craftTags(t.craft).join(" · ")} · {t.cause}</small></span>
+            </button>
+          </li>
+        ))}
       </ul>
+      {open && (
+        <DictPop label={open.title} onClose={() => setOpen(null)} cls="is-yarn">
+          <p className="my-memo-kick">FAQ · {craftTags(open.craft).join(" · ")}</p>
+          <h2>{open.title}</h2>
+          <div className="dict-yarn-cols">
+            <div><Lace>왜 그럴까요</Lace>{open.why ? <p className="dict-body">{open.why}</p> : <Soon />}</div>
+            <div><Lace>이렇게 해 보세요</Lace>{open.fixes?.length ? <ol className="dict-fixes">{open.fixes.map(x => <li key={x}>{x}</li>)}</ol> : <Soon />}</div>
+          </div>
+          <p className="dict-foot"><button type="button" onClick={() => ask(`편물이 '${open.title}' 같아요. 사진을 보여 줄게요.`)}>Yarni에게 내 편물 사진 보여주기 →</button></p>
+        </DictPop>
+      )}
     </>
   );
 }
@@ -266,20 +264,30 @@ export function TroubleScreen() {
 
 /** a table on its sheet of white paper; a cell "@name" is a care-label drawing, "-" a faint dash */
 function Sheet({ cols, rows, num }: { cols: string[]; rows: string[][]; num?: number[] }) {
+  // Kim: no long single tables. Rows under "#" subheads become one small table each (아기 / 어린이 / 어른);
+  // a long table of few columns is cut in two; the small tables sit side by side, each only as wide as it needs
+  const parts: { title?: string; rows: string[][] }[] = [];
+  if (rows.some(r => r.length === 1 && r[0].startsWith("#"))) {
+    for (const r of rows) {
+      if (r.length === 1 && r[0].startsWith("#")) parts.push({ title: r[0].slice(1), rows: [] });
+      else (parts[parts.length - 1] ?? (parts[parts.push({ rows: [] }) - 1])).rows.push(r);
+    }
+  } else if (rows.length > 8 && cols.length <= 4) {
+    const half = Math.ceil(rows.length / 2);
+    parts.push({ rows: rows.slice(0, half) }, { rows: rows.slice(half) });
+  } else parts.push({ rows });
+  const cell = (c: string, j: number) => <td key={j} className={(num?.includes(j) ? "is-num" : "") + (c === "-" ? " is-none" : "") + (c.startsWith("@") ? " is-icon" : "") || undefined}>{c.startsWith("@") ? <CareIcon name={c.slice(1)} className="dict-care" /> : c === "-" ? "–" : c}</td>;
   return (
-    <div className="dict-sheet">
-      <table className="dict-table is-big">
-        <thead><tr>{cols.map((c, j) => <th key={c} scope="col" className={num?.includes(j) ? "is-num" : undefined}>{c}</th>)}</tr></thead>
-        <tbody>
-          {rows.map((r, i) => r.length === 1 && r[0].startsWith("#") ? (
-            <tr key={i} className="dict-group"><th colSpan={cols.length} scope="rowgroup">{r[0].slice(1)}</th></tr>
-          ) : (
-            <tr key={i}>
-              {r.map((c, j) => <td key={j} className={(num?.includes(j) ? "is-num" : "") + (c === "-" ? " is-none" : "") + (c.startsWith("@") ? " is-icon" : "") || undefined}>{c.startsWith("@") ? <CareIcon name={c.slice(1)} className="dict-care" /> : c === "-" ? "–" : c}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className={"dict-sheets" + (parts.length > 1 ? " is-split" : "")}>
+      {parts.map((p, k) => (
+        <div key={k} className="dict-sheet">
+          {p.title && <p className="dict-sheet-title">{p.title}</p>}
+          <table className="dict-table is-big">
+            <thead><tr>{cols.map((c, j) => <th key={c} scope="col" className={num?.includes(j) ? "is-num" : undefined}>{c}</th>)}</tr></thead>
+            <tbody>{p.rows.map((r, i) => <tr key={i}>{r.map(cell)}</tr>)}</tbody>
+          </table>
+        </div>
+      ))}
     </div>
   );
 }

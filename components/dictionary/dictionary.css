@@ -209,3 +209,17 @@
 .dict-tablabel:focus-visible{outline:2px solid #C9A050;outline-offset:3px}
 .dict-tablepage-short{margin:0 0 18px;font-size:13.5px;color:#8C807A}
 @media (prefers-reduced-motion:reduce){.dict-tablabel{transition:none}.dict-tablabel:hover{transform:none}}
+
+/* Kim: tables compact - each only as wide as it needs, label next to its value; split tables side by side */
+.dict-sheets{display:flex;flex-wrap:wrap;align-items:flex-start;gap:22px 26px;margin:22px 0 4px}
+.dict-sheets .dict-sheet{margin:0;width:max-content;max-width:100%}
+.dict-sheets .dict-table{width:auto}
+.dict-sheets .dict-table th,.dict-sheets .dict-table td{padding:9px 18px;white-space:nowrap}
+.dict-sheets .dict-table td:not(.is-num):not(.is-icon){white-space:normal;min-width:110px}
+.dict-sheet-title{margin:0;padding:12px 18px 10px;background:#FBF7EF;font:700 13px/1 "Noto Serif KR",serif;color:#8A6A3E;border-bottom:1px solid rgba(176,141,87,.22)}
+/* FAQ: two columns of questions, no long single list */
+.dict-faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 34px;border-top:0}
+.dict-faq li{border-bottom:1px solid rgba(142,131,121,.22)}
+.dict-faq li:nth-child(-n+2){border-top:1px solid rgba(142,131,121,.22)}
+@media (max-width:1000px){.dict-faq{grid-template-columns:1fr}.dict-faq li:nth-child(2){border-top:0}}
+.dict-pop .dict-fixes{margin:0;padding-left:20px}
