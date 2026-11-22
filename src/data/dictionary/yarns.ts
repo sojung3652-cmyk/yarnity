@@ -157,7 +157,7 @@ export const YARNS: Yarn[] = [
     caution: "고리 때문에 코가 거의 보이지 않아 코 수를 세기 어렵습니다. 단수링을 자주 걸고, 한 번 뜬 것을 풀면 고리가 엉키니 천천히 풉니다.",
   },
   {
-    id: "scrubber", name: "수세미실", nameEn: "Acrylic scrubber yarn", group: "synthetic", short: "세제 없이도 잘 닦임", seasons: ["spring", "summer", "autumn", "winter"],
+    id: "scrubber", image: "/dictionary/yarns/scrubber.jpg", name: "수세미실", nameEn: "Acrylic scrubber yarn", group: "synthetic", short: "세제 없이도 잘 닦임", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 1, stretch: 2, softness: 2, care: 5, price: 1 },
     about: "아크릴로 만든 수세미 전용 실입니다. 아크릴 섬유가 기름때를 잘 잡아 세제를 적게 써도 설거지가 잘 되고, 물이 금방 빠져 빨리 마릅니다. 색이 다양하고 값이 싸서 첫 작품으로 많이 뜹니다.",
     caution: "열에 약해 뜨거운 물에 삶으면 줄거나 뻣뻣해집니다. 쓰고 나서 물기를 짜 잘 말리고, 낡으면 새로 뜹니다.",
