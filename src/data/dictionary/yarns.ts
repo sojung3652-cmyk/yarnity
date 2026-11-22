@@ -69,7 +69,7 @@ export const YARNS: Yarn[] = [
   {
     id: "nylon", image: "/dictionary/yarns/nylon.jpg", name: "나일론", nameEn: "Nylon", group: "synthetic", short: "질기고 닳지 않음", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 2, stretch: 4, softness: 3, care: 5, price: 2 },
-    about: "아주 질기고 잘 닳지 않는 합성 섬유입니다. 단독으로보다는 울에 20~25%쯤 섞어 양말실로 많이 쓰고, 신축성이 좋아 모양이 잘 돌아옵니다. 광택 있는 리본사나 끈실로도 만들어집니다.",
+    about: "아주 질기고 잘 닳지 않는 합성 섬유입니다. 단독으로보다는 울에 20~25%쯤 섞어 양말실로 많이 쓰고, 신축성이 좋아 모양이 잘 돌아옵니다. 광택 있는 끈실로도 만들어집니다.",
     caution: "열에 약해 다리미를 직접 대면 녹을 수 있습니다. 땀을 잘 흡수하지 못해 100% 나일론 옷은 덥고 답답할 수 있습니다.",
   },
   {
@@ -151,7 +151,7 @@ export const YARNS: Yarn[] = [
     caution: "꺾이면 자국이 남고 손에 힘이 들어갑니다. 세탁은 미지근한 물에 살짝 손세탁하거나 젖은 수건으로 닦아 내고, 그늘에서 모양을 잡아 말립니다.",
   },
   {
-    id: "poodle", name: "푸들사", nameEn: "Poodle yarn", group: "special", short: "푸들 털처럼 곱슬곱슬", seasons: ["autumn", "winter"],
+    id: "poodle", image: "/dictionary/yarns/poodle.jpg", name: "푸들사", nameEn: "Poodle yarn", group: "special", short: "푸들 털처럼 곱슬곱슬", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 2, softness: 4, care: 3, price: 2 },
     about: "작은 고리가 촘촘히 뭉쳐 푸들 털처럼 곱슬곱슬한 실입니다. 부클레보다 고리가 더 작고 빽빽해서, 짧은뜨기만 해도 양털 인형 같은 결이 나옵니다. 곰 인형, 모자, 가방, 쿠션에 많이 씁니다.",
     caution: "고리 때문에 코가 거의 보이지 않아 코 수를 세기 어렵습니다. 단수링을 자주 걸고, 한 번 뜬 것을 풀면 고리가 엉키니 천천히 풉니다.",
@@ -174,20 +174,15 @@ export const YARNS: Yarn[] = [
     about: "금속 광택 필름을 납작한 테이프나 가는 끈 모양으로 만든 실로, 다른 실에 섞지 않고 이 실만으로 뜹니다. 편물 전체가 금속처럼 빛나 요즘 미니 가방, 파우치, 버킷햇, 여름 탑에 많이 쓰입니다. 짧은뜨기로 촘촘히 뜨면 모양이 단단하게 잡힙니다.",
     caution: "잘 미끄러지고 꼬이기 쉬우니 실타래를 풀어 가며 천천히 뜹니다. 필름이 접히면 자국이 남고 열에 약해 다림질과 건조기를 피하고, 손으로 가볍게 닦아 관리합니다. 실 끝은 매듭 대신 여러 번 엮어 숨깁니다.",
   },
+
   {
-    id: "ribbon", name: "리본사", nameEn: "Ribbon yarn", group: "special", short: "납작한 리본 모양", seasons: ["spring", "summer"],
-    traits: { warmth: 1, stretch: 2, softness: 3, care: 3, price: 3 },
-    about: "리본처럼 납작하고 넓은 실입니다. 레이온, 나일론, 면 등으로 만들어지며, 뜨면 광택 있는 독특한 결이 나와 여름 가방, 여름 상의, 액세서리에 잘 어울립니다.",
-    caution: "뜨는 동안 실이 꼬이기 쉬우니 가끔 실을 늘어뜨려 꼬임을 풉니다. 미끄러워 코가 늘어나기 쉬우니 조금 가는 바늘로 촘촘하게 뜹니다.",
-  },
-  {
-    id: "loop", name: "루프얀", nameEn: "Loop yarn", group: "special", short: "바늘 없이 손으로 뜨는 실", seasons: ["autumn", "winter"],
+    id: "loop", image: "/dictionary/yarns/loop.jpg", name: "루프얀", nameEn: "Loop yarn", group: "special", short: "바늘 없이 손으로 뜨는 실", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 2, softness: 4, care: 3, price: 2 },
     about: "실 자체에 고리가 미리 만들어져 있는 아주 굵은 실입니다. 고리를 다른 고리 사이로 끼워 넣기만 하면 되어 바늘이 필요 없고, 짧은 시간에 담요나 쿠션을 만들 수 있어 아이와 함께 뜨기에도 좋습니다.",
     caution: "무늬를 다양하게 넣기 어렵고, 편물이 두꺼워 무겁습니다. 고리를 하나 빠뜨리면 구멍이 생기니 줄마다 고리 수를 확인합니다.",
   },
   {
-    id: "gradient", name: "단염사", nameEn: "Gradient / self-striping yarn", group: "special", short: "저절로 색이 바뀌는 실", seasons: ["spring", "summer", "autumn", "winter"],
+    id: "gradient", image: "/dictionary/yarns/gradient.jpg", name: "단염사", nameEn: "Gradient / self-striping yarn", group: "special", short: "저절로 색이 바뀌는 실", seasons: ["spring", "summer", "autumn", "winter"],
     traits: { warmth: 3, stretch: 3, softness: 3, care: 3, price: 3 },
     about: "한 타래 안에서 색이 조금씩 바뀌도록 염색한 실입니다. 따로 실을 바꾸지 않아도 뜨는 대로 그라데이션이나 줄무늬가 생겨, 목도리, 숄, 양말, 담요에 많이 씁니다.",
     caution: "같은 실이라도 타래마다 색이 시작하는 위치가 달라, 두 짝을 똑같이 맞추려면 색이 시작되는 지점을 찾아 같은 자리에서 시작합니다.",

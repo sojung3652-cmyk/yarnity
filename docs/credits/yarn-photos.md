@@ -29,5 +29,8 @@
 | raffia.jpg | 라피아 | https://unsplash.com/photos/9wtQ-IXSy_g (가방 편물만 확대해 자름) |
 | tencel.jpg | 텐셀 | https://unsplash.com/photos/JDwEVCVyBWs (니트 탑의 등판만 확대해 자름) |
 | hemp.jpg | 헴프 | https://unsplash.com/photos/ieppoqQTIto (가방 편물만 확대해 자름) |
+| poodle.jpg | 푸들사 | https://unsplash.com/photos/VdP7rIGWTLs |
+| gradient.jpg | 단염사 | https://unsplash.com/photos/DLazlyj8sYA |
+| loop.jpg | 루프얀 | https://unsplash.com/photos/-yHaS_K1xgw |
 
 사진은 그 실과 질감이 비슷한 편물을 가까이 찍은 것이에요. 사진 설명에 실의 소재가 적혀 있지 않아서, 실제로 그 소재로 뜬 편물이라는 보장은 없어요.
