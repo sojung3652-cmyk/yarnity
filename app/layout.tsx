@@ -35,6 +35,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppProvider>
           {/* the one book (and its stage) lives here, above the pages, so / <-> /new never re-creates it */}
           <BookProvider>
+            {/* lace in the corners and a ribbon at the lower right, held still like the NavBar on every web page but
+                the home (Kim; public/brand/corners, styles in globals.css) */}
+            <div className="corner-orn" aria-hidden="true">
+              {/* eslint-disable @next/next/no-img-element */}
+              <img className="co-tl" src="/brand/corners/top_left_lace.webp" alt="" />
+              <img className="co-tr" src="/brand/corners/top_right_lace.webp" alt="" />
+              <img className="co-bl" src="/brand/corners/bottom_left_lace.webp" alt="" />
+              <img className="co-br" src="/brand/corners/bottom_right_ribbon.webp" alt="" />
+              {/* eslint-enable @next/next/no-img-element */}
+            </div>
             <div className="wrap">
               <Hero />
               <Nav />
