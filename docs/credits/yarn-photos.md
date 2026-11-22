@@ -11,7 +11,7 @@
 | alpaca.jpg | 알파카 | https://unsplash.com/photos/BEvyoJYYSj0 (실볼 부분만 확대해 자름) |
 | cotton.jpg | 면 | https://unsplash.com/photos/jZSL_Dt4Fes |
 | linen.jpg | 린넨 | https://unsplash.com/photos/YouWp12gBCQ |
-| acrylic.jpg | 아크릴 | https://unsplash.com/photos/yS5lNFwZB1g (목도리 편물 부분만 확대해 자름) |
+| acrylic.jpg | 아크릴 | Kim이 직접 찍은 사진 |
 | boucle.jpg | 부클레 | https://unsplash.com/photos/0EpEN-1bU_8 |
 | silk.jpg | 실크 | https://unsplash.com/photos/AIcA7gb8c2A (실 콘 표면만 크게 확대해 자름) |
 | cashmere.jpg | 캐시미어 | https://unsplash.com/photos/brOaC3sxzhI |
@@ -33,5 +33,6 @@
 | gradient.jpg | 단염사 | https://unsplash.com/photos/DLazlyj8sYA |
 | loop.jpg | 루프얀 | https://unsplash.com/photos/-yHaS_K1xgw |
 | scrubber.jpg | 수세미실 | https://unsplash.com/photos/zNmBA5eSwp0 (벽에 걸린 수세미만 크게 확대해 자름) |
+| metal.jpg | 메탈사 | Kim이 직접 찍은 사진 |
 
 사진은 그 실과 질감이 비슷한 편물을 가까이 찍은 것이에요. 사진 설명에 실의 소재가 적혀 있지 않아서, 실제로 그 소재로 뜬 편물이라는 보장은 없어요.
