@@ -7,14 +7,14 @@
 | 파일 | 실 | Unsplash 사진 |
 |---|---|---|
 | wool.jpg | 울 | Kim이 ChatGPT로 만든 이미지 |
-| mohair.jpg | 모헤어 | https://unsplash.com/photos/ssOH9fik3O0 (편물 부분만 확대해 자름) |
+| mohair.jpg | 모헤어 | Kim이 ChatGPT로 만든 이미지 |
 | alpaca.jpg | 알파카 | Kim이 ChatGPT로 만든 이미지 |
 | cotton.jpg | 면 | Kim이 ChatGPT로 만든 이미지 |
-| linen.jpg | 린넨 | https://unsplash.com/photos/YouWp12gBCQ |
-| acrylic.jpg | 아크릴 | Kim이 직접 찍은 사진 |
+| linen.jpg | 린넨 | Kim이 ChatGPT로 만든 이미지 |
+| acrylic.jpg | 아크릴 | Kim이 ChatGPT로 만든 이미지 |
 | boucle.jpg | 부클레 | https://unsplash.com/photos/0EpEN-1bU_8 |
-| silk.jpg | 실크 | https://unsplash.com/photos/AIcA7gb8c2A (실 콘 표면만 크게 확대해 자름) |
-| cashmere.jpg | 캐시미어 | https://unsplash.com/photos/brOaC3sxzhI |
+| silk.jpg | 실크 | Kim이 ChatGPT로 만든 이미지 |
+| cashmere.jpg | 캐시미어 | Kim이 ChatGPT로 만든 이미지 |
 | nylon.jpg | 나일론 | https://unsplash.com/photos/q2rwcbQEUQ4 (편물 부분만 확대해 자르고 오른쪽으로 90° 돌림) |
 | polyester.jpg | 폴리에스터 | https://unsplash.com/photos/-5gx3fOCkb8 |
 | nalgae.jpg | 날개사 | Kim이 직접 찍은 사진 |
