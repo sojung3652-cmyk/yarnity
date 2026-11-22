@@ -193,15 +193,9 @@ export const YARNS: Yarn[] = [
     caution: "같은 실이라도 타래마다 색이 시작하는 위치가 달라, 두 짝을 똑같이 맞추려면 색이 시작되는 지점을 찾아 같은 자리에서 시작합니다.",
   },
   {
-    id: "tweed", name: "트위드사", nameEn: "Tweed yarn", group: "special", short: "알록달록한 점이 박힌 울", seasons: ["autumn", "winter"],
+    id: "tweed", image: "/dictionary/yarns/tweed.jpg", name: "트위드사", nameEn: "Tweed yarn", group: "special", short: "알록달록한 점이 박힌 울", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 3, softness: 2, care: 2, price: 3 },
     about: "울 바탕에 다른 색 섬유 알갱이(넵)가 점점이 박힌 실입니다. 단색으로 떠도 자연스러운 색감이 살아나 빈티지한 스웨터, 모자, 목도리에 잘 어울립니다.",
     caution: "털이 조금 거칠어 맨살에 닿으면 따끔할 수 있습니다. 울이라 뜨거운 물과 마찰에 줄어드니 찬물에 손세탁합니다.",
-  },
-  {
-    id: "sock", name: "양말실", nameEn: "Sock yarn", group: "special", short: "닳지 않게 만든 가는 실", seasons: ["spring", "summer", "autumn", "winter"],
-    traits: { warmth: 4, stretch: 4, softness: 3, care: 4, price: 3 },
-    about: "울에 나일론을 20~25% 섞어 질기게 만든 가는 실(Fingering 굵기)입니다. 발뒤꿈치처럼 많이 닳는 곳도 오래가고, Superwash 처리된 것이 많아 세탁기에 빨 수 있습니다. 양말뿐 아니라 가벼운 숄이나 아기 옷에도 씁니다.",
-    caution: "실이 가늘어 2~3mm의 가는 바늘로 오래 떠야 합니다. 같은 색이라도 로트에 따라 차이가 나니 양말 두 짝 분량을 한 번에 삽니다.",
   },
 ];
