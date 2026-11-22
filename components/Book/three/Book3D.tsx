@@ -752,7 +752,9 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
   // want: the spread the address asks for; shown: the one whose DOM is in the book (they differ during a turn)
   // phones: 도안집, 도안 and 따라 뜨기 keep the book open, as its right page
   const path = usePathname(), page = phone ? bookPageOf(path) : null;
-  const sheet = useSheet(b.step), wizSheet = phone && b.view === "wizard" ? sheet : undefined;
+  // the wizard's sheets: a phone's every step; wide screens split step 3 in two (실 / 바늘과 크기, Kim) and give the
+  // other steps sheet 0, so the order (step * 2 + sheet) runs the same way through all of them
+  const sheet = useSheet(b.step), wizSheet = b.view !== "wizard" ? undefined : phone ? sheet : b.step === 3 ? sheet : 0;
   const want = useMemo<Spread>(() => (page ? { view: "home", step: b.step, page } : { view: b.view, step: b.step, sheet: wizSheet }), [b.view, b.step, page, wizSheet]);
   const [shown, setShown] = useState<Spread>(want);
   const [ready, setReady] = useState(false);
@@ -826,7 +828,7 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
       {createPortal(<LeftPage />, layer.left)}
       {/* phones: the wizard step is the right page itself (components/mobile/MobileBookWizard.tsx) */}
       {createPortal(<>{phone && shown.page ? <MobileBookPages page={shown.page} /> : phone && shown.view === "wizard" ? <MobileBookWizard sheet={shown.sheet} /> : <RightPage onClose={b.close} />}<AiTab variant="menu" /></>, layer.right)}
-      {shown.view === "wizard" && !phone && <WizardSpread step={shown.step} left={layer.flatLeft} right={layer.flatRight} />}
+      {shown.view === "wizard" && !phone && <WizardSpread step={shown.step} sheet={shown.sheet} left={layer.flatLeft} right={layer.flatRight} />}
     </div>
   );
 }

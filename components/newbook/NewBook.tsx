@@ -23,7 +23,7 @@ import { ItemArt } from "./ItemArt";
 import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
 import { GoldX } from "@/components/GoldX";
-import { SuppliesPage, YarnPage, yarnStepOk } from "./YarnStep";
+import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
 import { useMobile } from "@/components/mobile/useMobile";
@@ -31,7 +31,9 @@ import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import { AskAiLine } from "@/components/AskAiLine";
 import { AiTab } from "@/components/AiTab";
 import { LaceButton } from "@/components/diary/Diary";
-import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
+import { useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
+import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
+import { setSheet, useSheet } from "@/components/mobile/sheetStore";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -128,10 +130,14 @@ export interface PhoneStep {
 }
 
 /** `inBook`: the 3D book passes the step whose pages it shows (it lags behind the address during a turn). */
-export function useNewBook(inBook?: WizStep): NewBookView {
+/** `inSheet`: the sheet of step 3 the book shows now (it can lag behind during a page turn) */
+export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const { ready, draft, setDraft, addProject, updateProject, projects, setActive, chat } = useApp();
   const router = useRouter();
   const book = useBook(), step = inBook ?? book.step, phone = useMobile();
+  // wide screens (Kim): step 3 is two spreads, the yarn (sheet 0) then the hook and the size (sheet 1); the
+  // 3D book turns its page between them (Book3D reads the sheet). Phones keep their own sheets.
+  const web = phone === false, liveSheet = useSheet(3), sheet = web && step === 3 ? (inSheet ?? liveSheet) : 0, pos = step * 2 + sheet;
   const [editId, setEditId] = useState<string | null>(null);
   const [nums, setNums] = useState<Record<FieldKey, string>>(numsOf(draft));
   const [dir, setDir] = useState<1 | -1>(1);
@@ -146,7 +152,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     seenApplied.current = chat.applied ?? 0; setNums(numsOf(draft)); setRev(r => r + 1);
   }, [chat.applied, draft]);
   const [ownHandle, setOwnHandle] = useState(false); // handle: "직접 입력" picked (stays custom even on a preset value)
-  const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(step);
+  const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(pos);
   // the saved step when the wizard opened: a draft already past step 2 has its item (older drafts carry no flag)
   const startStep = useRef(store.get<number>(STEP_KEY, 1));
   const formRef = useRef<HTMLFormElement>(null), turn = useRef<Turn | null>(null), pending = useRef<Snapshot | null>(null);
@@ -208,7 +214,9 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials }), [input, draft.color, draft.yarnMm, draft.materials]);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials }), [input, draft.item, draft.color, draft.yarnMm, draft.materials]);
+  // 크게 보기 on the left page (web): the full-screen 3D
+  const big3d = useYarn3D(yarnSrc, pp);
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
@@ -228,9 +236,9 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     book.goStep(s);
   };
   useLayoutEffect(() => {
-    const was = shownStep.current; if (was === step) return;
-    shownStep.current = step;
-    setDir(step > was ? 1 : -1); setTried(false);
+    const was = shownStep.current; if (was === pos) return;
+    shownStep.current = pos;
+    setDir(pos > was ? 1 : -1); setTried(false);
     // the CSS book's form, or the 3D book's two page forms
     const book = formRef.current ?? document.querySelector<HTMLElement>(".book3d"); if (!book) return;
     // focus: the new step's first field (the one that had focus is gone)
@@ -238,7 +246,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     const snap = pending.current; pending.current = null;
     if (!snap || !formRef.current) { requestAnimationFrame(focusFirst); return; }
     turn.current = startTurn(formRef.current, snap, () => { turn.current = null; focusFirst(); });
-  }, [step]);
+  }, [pos]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => turn.current?.finish(), []);
 
   const save = () => {
@@ -263,8 +271,17 @@ export function useNewBook(inBook?: WizStep): NewBookView {
     router.push("/pattern");
   };
   const next = () => {
-    if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"], .mw-form [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
+    // the web's yarn spread: only the thickness has to be right to turn to the hook and the size
+    const ok = web && step === 3 && sheet === 0 ? yarnThickOk(draft) : stepOk;
+    if (!ok) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"], .mw-form [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
+    if (web && step === 3 && sheet === 0) { setSheet(3, 1); return; }
+    if (web && step === 2) setSheet(3, 0);
     if (step < 4) go((step + 1) as Step); else save();
+  };
+  const back = () => {
+    if (web && step === 3 && sheet === 1) { setSheet(3, 0); return; }
+    if (web && step === 4) setSheet(3, 1);
+    go((step - 1) as Step);
   };
 
   const onSubmit = (e: React.FormEvent) => { e.preventDefault(); next(); };
@@ -276,9 +293,14 @@ export function useNewBook(inBook?: WizStep): NewBookView {
   };
   if (!ready) return { ready, formRef, onSubmit, onKeyDown, ribbon: null, threeD: null, left: null, right: null };
 
+  // the web's right page from step 2 on: everything that was on the left page (the 3D is there now)
+  let rightWeb: ReactNode = null;
 
-  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
-  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
+
+  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: web ? (sheet === 0 ? "어떤 실로 뜨시겠습니까?" : "바늘과 크기를 정합니다") : "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
+  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
+  // folios: 1-2 이름, 3-4 품목, 5-6 실, 7-8 바늘과 크기, 9-10 확인 (web); four spreads on the one-page book
+  const folio = web ? (step <= 2 ? step * 2 - 1 : step === 3 ? 5 + sheet * 2 : 9) : step * 2 - 1;
 
   const progress = (
     <ol className="nb-progress" aria-label="진행 단계">
@@ -366,6 +388,7 @@ export function useNewBook(inBook?: WizStep): NewBookView {
         <p className="nb-help">고르면 여기에 소개가 나옵니다.</p>
       </div>
     );
+    rightWeb = <>{left}{picked && <p className="nb-help nb-pickline" key={item.id}>{item.desc} · 난이도 {item.level} · {item.time}</p>}{item.note && picked && <p className="nb-help">{item.note}</p>}</>;
   } else {
     // ③ all the inputs: the yarn and hook (page 5), the shape and size (page 6)
     // ④ the check before the pattern: the supplies with the yarn amount, now that the size is known
@@ -447,6 +470,21 @@ export function useNewBook(inBook?: WizStep): NewBookView {
       right = previewPage;
     }
     if (phone) phoneBody = <>{left}<div className="mw-split" aria-hidden="true" />{right}</>;
+    const counts = (
+      <p className="nb-counts" aria-live="polite">
+        <span>{`${item.name} · ${sizeText}`}</span>
+        {input.object === "rows" && start && <b>{`시작 사슬 ${start.n}코 · 한 단 ${pp.last}코 · ${pp.bodyRows}단`}</b>}
+        {input.object === "tube" && start && <b>{`시작 사슬 ${start.n}코 (고리) · ${pp.bodyRows}단`}</b>}
+        {(input.object === "coaster" || input.object === "bag") && <b>{`바닥 ${pp.bottomRounds}단 · 마지막 단 ${pp.last}코`}</b>}
+        {input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (flapRows ? ` · 덮개 ${flapRows}단` : "") + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
+      </p>
+    );
+    rightWeb = step === 3
+      ? (sheet === 0 ? <YarnPage draft={draft} patch={patch} tried={tried} part="yarn" />
+        : <div className="nb-stack"><YarnPage draft={draft} patch={patch} tried={tried} part="hook" />
+            <section className="nb-sec" aria-labelledby="secSize"><h2 className="nb-sec-title" id="secSize">모양과 크기</h2><AskAiLine which="size" />{sizePage}</section></div>)
+      // 확인: the supplies and the counts; the flat drawing is gone (the 3D on the left shows the shape)
+      : <>{left}{counts}</>;
   }
 
   const phoneNext: Record<Step, string> = { 1: "다음 · 품목 ↑", 2: "다음 · 실과 바늘 ↑", 3: "다음 · 준비물 확인 ↑", 4: "완성 · 최종 도안 보기" };
@@ -470,34 +508,50 @@ export function useNewBook(inBook?: WizStep): NewBookView {
         <span className="nb-ribbon-tip" aria-hidden="true">책 덮기</span>
       </button>
     ),
-    left: (
+    left: web && step > 1 ? (
+      // the web from step 2 (Kim): the left page is the 3D alone; at its foot 이전 and 크게 보기 (the full screen)
+      <section className="nb-page nb-left nb-3dleft" aria-label="3D 미리 보기">
+        <YarnPagePreview source={yarnSrc} plan={pp} />
+        <div className="nb-foot">
+          <ClothLabel side="back" type="button" onClick={back}>← 이전</ClothLabel>
+          {big3d.supported && <ClothLabel side="next" type="button" onClick={big3d.show}>크게 보기</ClothLabel>}
+          <span className="nb-folio">{folio}</span>
+        </div>
+        {big3d.node}
+      </section>
+    ) : (
       <section className="nb-page nb-left" aria-labelledby="nbTitle">
         {step !== 1 && progress}
-        <div key={"l" + step + "-" + rev} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
+        <div key={"l" + pos + "-" + rev} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
           <h1 id="nbTitle" ref={titleRef} tabIndex={-1} className={step === 1 ? "sr" : undefined}>{titles[step]}</h1>
           {step === 2 && <AskAiLine which="item" />}{step === 3 && <AskAiLine which="yarn" />}
           {left}
         </div>
         <div className="nb-foot">
-          {step > 1 ? <ClothLabel side="back" type="button" onClick={() => go((step - 1) as Step)}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" type="button" onClick={book.close}>← 돌아가기</ClothLabel>
+          {step > 1 ? <ClothLabel side="back" type="button" onClick={back}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" type="button" onClick={book.close}>← 돌아가기</ClothLabel>
             : <ClothLabel side="back" type="button" onClick={book.toHome}>← 메뉴</ClothLabel>}
-          <YarnPreviewButton source={yarnSrc} plan={pp} className="nb-3d" />
-          <span className="nb-folio">{step * 2 - 1}</span>
+          <span className="nb-folio">{folio}</span>
         </div>
       </section>
     ),
     right: (
-      <section className="nb-page nb-right" aria-label={step === 4 ? "미리 보기" : step === 3 ? "모양과 크기" : "지금까지"}>
-        <div key={"r" + step + "-" + rev} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>{right}</div>
+      <section className="nb-page nb-right" aria-labelledby={web && step > 1 ? "nbTitle" : undefined} aria-label={web && step > 1 ? undefined : step === 4 ? "미리 보기" : step === 3 ? "모양과 크기" : "지금까지"}>
+        {web && step > 1 && progress}
+        <div key={"r" + pos + "-" + rev} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
+          {web && step > 1 ? <>
+            <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>
+            {step === 2 && <AskAiLine which="item" />}{step === 3 && sheet === 0 && <AskAiLine which="yarn" />}
+            {rightWeb}
+          </> : right}
+        </div>
         <div className="nb-foot">
-          <span className="nb-folio">{step * 2}</span>
+          <span className="nb-folio">{folio + 1}</span>
           {step === 4
-            // the last step: a wide dark ribbon with a gold edge, unlike the small labels of the steps before
             // the last step: the mocha lace tag (Girl's Diary), unlike the small cloth labels of the steps before
             ? <LaceButton variant="mocha" width={360} type="submit" className="nb-final-lace" aria-disabled={blockNext || undefined}>
                 <small>마지막 단계</small>완성 · 최종 도안 보기 →
               </LaceButton>
-            : <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !stepOk)}>{nextLabel[step]}</ClothLabel>}
+            : <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && (web && sheet === 0 ? !yarnThickOk(draft) : !stepOk))}>{nextLabel[step]}</ClothLabel>}
         </div>
       </section>
     ),

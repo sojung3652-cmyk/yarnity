@@ -55,12 +55,19 @@ input[type=range]{width:100%;accent-color:var(--gold)}
     <div class="panel">
       <div id="itemBox" hidden><h2>도안</h2><div class="chips" id="kinds">
         <button class="chip" data-k="coaster" aria-pressed="true">코스터</button>
+        <button class="chip" data-k="square" aria-pressed="false">사각</button>
+        <button class="chip" data-k="oval" aria-pressed="false">타원</button>
+        <button class="chip" data-k="scarf" aria-pressed="false">목도리</button>
+        <button class="chip" data-k="tube" aria-pressed="false">넥워머</button>
         <button class="chip" data-k="bag" aria-pressed="false">손가방</button></div>
-        <div id="bagOpts" hidden><h2 style="margin-top:12px">가방 모양</h2><div class="chips" id="shapes">
+        <div id="craftRow" hidden><h2 style="margin-top:12px">바늘 종류</h2><div class="chips" id="crafts"><button class="chip" data-c="crochet" aria-pressed="true">코바늘</button><button class="chip" data-c="knit" aria-pressed="false">대바늘</button></div></div>
+        <div id="bagOpts" hidden><h2 style="margin-top:12px">바닥</h2><div class="chips" id="bases">
+          <button class="chip" data-base="round" aria-pressed="true">원형</button><button class="chip" data-base="oval" aria-pressed="false">타원</button><button class="chip" data-base="rect" aria-pressed="false">사각</button></div>
+          <h2 style="margin-top:12px">가방 모양</h2><div class="chips" id="shapes">
           <button class="chip" data-s="cyl" aria-pressed="true">원통</button><button class="chip" data-s="tote" aria-pressed="false">위가 넓게</button><button class="chip" data-s="pouch" aria-pressed="false">복주머니</button></div>
           <h2 style="margin-top:12px">끈</h2><div class="chips" id="straps">
           <button class="chip" data-t="none" aria-pressed="true">없음</button><button class="chip" data-t="two" aria-pressed="false">손잡이 2개</button><button class="chip" data-t="long" aria-pressed="false">어깨끈</button></div></div>
-        <label style="margin-top:12px">늘림<input id="s-inc" type="range" min="4" max="8" step="1" value="6"><output id="o-inc">6</output></label>
+        <label id="incRow" style="margin-top:12px">늘림<input id="s-inc" type="range" min="4" max="8" step="1" value="6"><output id="o-inc">6</output></label>
         <p id="verdict" class="verdict"></p>
         <label>실 굵기<input id="s-ymm" type="range" min="1.5" max="6" step="0.5" value="3"><output id="o-ymm">3mm</output></label>
         <label>바늘<input id="s-hmm" type="range" min="2" max="8" step="0.5" value="3"><output id="o-hmm">3mm</output></label>
@@ -101,13 +108,14 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.NoToneMapping;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();
-const cam=new THREE.PerspectiveCamera(32,1,0.1,200);cam.position.set(0,0,17);
-const ctl=new THREE.OrbitControls(cam,cv);ctl.enableDamping=true;ctl.dampingFactor=.08;ctl.enablePan=false;ctl.minDistance=3;ctl.maxDistance=40;
+const cam=new THREE.PerspectiveCamera(32,1,0.1,500);cam.position.set(0,0,17);
+const ctl=new THREE.OrbitControls(cam,cv);ctl.enableDamping=true;ctl.dampingFactor=.08;ctl.enablePan=false;ctl.minDistance=3;ctl.maxDistance=160;
 // 빛은 오른쪽 위에서 → 그림자는 왼쪽 아래
 scene.add(new THREE.HemisphereLight(0xfffaf2,0xd8c4a8,0.78));
 const sun=new THREE.DirectionalLight(0xfff6ea,0.95);sun.position.set(7,9,10);sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);const sc=sun.shadow.camera;sc.left=-10;sc.right=10;sc.top=10;sc.bottom=-10;sc.near=1;sc.far=40;sun.shadow.bias=-0.0006;sun.shadow.radius=4;
 scene.add(sun);
+function setShadow(e){sc.left=-e;sc.right=e;sc.top=e;sc.bottom=-e;sc.far=40+e*3;sun.position.set(7,9,10).multiplyScalar(e/10);sc.updateProjectionMatrix()}
 const fill=new THREE.DirectionalLight(0xf2e9df,0.16);fill.position.set(-8,-2,6);scene.add(fill);
 const back=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.ShadowMaterial({color:0x5a4632,opacity:.2}));back.position.z=-1.1;back.receiveShadow=true;scene.add(back);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.ShadowMaterial({color:0x5a4632,opacity:.2}));ground.rotation.x=-Math.PI/2;ground.position.y=-.3;ground.receiveShadow=true;ground.visible=false;scene.add(ground);
@@ -184,59 +192,126 @@ function strandPath(R){const pts=[];for(let i=0;i<=80;i++){const u=i/80;pts.push
 
 
 // ---------- 도안 → 3D: 코 = 점, 이어진 곳 = 스프링 (단별 코 수만으로 모양을 찾는다)
-const IT={kind:'coaster',inc:6,view:'yarn',data:null,shape:'cyl',strap:'none',ymm:3,hmm:3,stripe:false};const MM=12;
+const IT={craft:'crochet',base:'round',kind:'coaster',inc:6,view:'yarn',data:null,shape:'cyl',strap:'none',ymm:3,hmm:3,stripe:false};const MM=12;
 function makeItem(){
-  const rh=(IT.ymm+IT.hmm)/MM,sw=2*Math.PI*rh/6,counts=[];
-  if(IT.kind==='coaster'){for(let r=1;r<=9;r++)counts.push(IT.inc*r)}
-  else{for(let r=1;r<=7;r++)counts.push(IT.inc*r);let c=IT.inc*7;for(let r=0;r<12;r++){const h3=Math.round(IT.inc/3),h2=Math.round(IT.inc/2);if(IT.shape==='tote'&&r>0)c+=h3;if(IT.shape==='pouch'){if(r>=1&&r<=4)c+=h2;else if(r>=7)c-=h2}counts.push(c)}}
-  const P=[new THREE.Vector3(0,0,0)],start=[],E=[];let rho=0,y=0,A=0;
-  counts.forEach((c,r)=>{start.push(P.length);const cr=c*sw/(2*Math.PI);let amp=0;
-    if(cr<=rho+rh){const dr=Math.max(-rh*.98,cr-rho);y+=Math.sqrt(Math.max(0,rh*rh-dr*dr));rho=Math.max(.05,cr)}
-    else{rho+=rh;const q=c*sw/(2*Math.PI*rho);amp=rho/6*Math.sqrt(Math.max(0,2*(q*q-1)))}
-    for(let i=0;i<c;i++){const th=(i+.5)/c*2*Math.PI;P.push(new THREE.Vector3(Math.cos(th)*rho,y+amp*Math.sin(6*th)+(Math.random()-.5)*.01,Math.sin(th)*rho))}
-    const s0=start[r];
-    for(let i=0;i<c;i++){E.push([s0+i,s0+(i+1)%c,sw,1]);if(c>=6)E.push([s0+i,s0+(i+2)%c,2*cr*Math.sin(2*Math.PI/c),.3])}
-    if(r===0){for(let i=0;i<c;i++)E.push([s0+i,0,Math.max(cr,.2),1])}
-    else{const pc=counts[r-1],ps=start[r-1];for(let i=0;i<c;i++){const f=(i+.5)/c*pc,p=Math.floor(f),fr=f-p-.5,q=fr>=0?p+1:p-1;
-      E.push([s0+i,ps+((p%pc)+pc)%pc,Math.hypot(rh,fr*sw),1]);E.push([s0+i,ps+((q%pc)+pc)%pc,Math.hypot(rh,(1-Math.abs(fr))*sw),.35])}}
-  });
-  return {P,E,counts,start,rh,sw,iter:0,done:false}}
+  const rh=(IT.ymm+IT.hmm)/MM,sw=2*Math.PI*rh/6,rh0=rh,sw0=sw,P=[],E=[],C=[],wk=(IT.ymm*.9+IT.hmm*1.1)/MM,rk=.625*wk,kn=IT.craft==='knit';let knit=null;
+  const V=(x,y,z)=>{P.push(new THREE.Vector3(x,y+(Math.random()-.5)*.01,z));return P.length-1};
+  const dist=(a,b)=>P[a].distanceTo(P[b]);
+  // 한 줄(코스) 안의 이웃 코 연결
+  const ring=(idx,closed,far,step)=>{const c=idx.length;for(let i=0;i<c;i++){
+    if(closed||i+1<c)E.push([idx[i],idx[(i+1)%c],step||sw,1]);
+    if(c>=6&&(closed||i+2<c))E.push([idx[i],idx[(i+2)%c],far!=null?far:dist(idx[i],idx[(i+2)%c]),.3])}};
+  // 아랫단과 연결: 코 수 비율로 (늘림·줄임)
+  const linkFrac=(cur,prev)=>{const c=cur.length,pc=prev.length,bot=[],m=k=>prev[((k%pc)+pc)%pc];
+    for(let i=0;i<c;i++){const f=(i+.5)/c*pc,p=Math.floor(f),fr=f-p-.5,q=fr>=0?p+1:p-1;
+      E.push([cur[i],m(p),Math.hypot(rh,fr*sw),1]);E.push([cur[i],m(q),Math.hypot(rh,(1-Math.abs(fr))*sw),.35]);
+      const fb=(i+1)/c*pc-.5,pb=Math.floor(fb);bot.push([m(pb),m(pb+1),fb-pb])}return bot};
+  // 아랫단과 연결: 가장 가까운 코로 (타원처럼 모양이 정해진 평면)
+  const linkNear=(cur,prev,closedPrev)=>{const pc=prev.length,nb=k=>closedPrev?prev[((k%pc)+pc)%pc]:prev[Math.max(0,Math.min(pc-1,k))];
+    return cur.map(n=>{let b=0,bd=1e9;prev.forEach((m,k)=>{const d=dist(n,m);if(d<bd){bd=d;b=k}});
+      const q1=nb(b+1),q0=nb(b-1),q=dist(n,q1)<dist(n,q0)?q1:q0;E.push([n,prev[b],bd,1]);
+      if(q===prev[b])return [prev[b],n,-.6];const dq=dist(n,q);E.push([n,q,dq,.35]);return [prev[b],q,bd/(bd+dq)]})};
+  // 원형뜨기 (매직링에서 시작)
+  const round=counts=>{const cen=V(0,0,0);let rho=0,y=0,prev=null;
+    counts.forEach(c=>{const cr=c*sw/(2*Math.PI);let amp=0;
+      if(cr<=rho+rh){const dr=Math.max(-rh*.98,cr-rho);y+=Math.sqrt(Math.max(0,rh*rh-dr*dr));rho=Math.max(.05,cr)}
+      else{rho+=rh;const q=c*sw/(2*Math.PI*rho);amp=rho/6*Math.sqrt(Math.max(0,2*(q*q-1)))}
+      const idx=[];for(let i=0;i<c;i++){const th=(i+.5)/c*2*Math.PI;idx.push(V(Math.cos(th)*rho,y+amp*Math.sin(6*th),Math.sin(th)*rho))}
+      ring(idx,true,2*cr*Math.sin(2*Math.PI/c));let bot;
+      if(!prev){idx.forEach(n=>E.push([n,cen,Math.max(cr,.2),1]));bot=idx.map(n=>[cen,n,.25])}else bot=linkFrac(idx,prev);
+      C.push({idx,closed:true,bot});prev=idx});return prev};
+  // 평면뜨기 (왕복): W코 × H단
+  const rows=(W,H,swap,sx,sy)=>{let prev=null;const all=[],first=C.length,sw=sx||sw0,rh=sy||rh0;
+    for(let r=0;r<H;r++){const idx=[];for(let i=0;i<W;i++){const a=(i-(W-1)/2)*sw,b=(r-(H-1)/2)*rh;idx.push(swap?V(b,0,a):V(a,0,b))}
+      ring(idx,false,2*sw,sw);let bot=null;
+      if(prev){for(let i=0;i<W;i++){E.push([idx[i],prev[i],rh,1]);if(i+1<W)E.push([idx[i],prev[i+1],Math.hypot(rh,sw),.35]);if(i>0)E.push([idx[i],prev[i-1],Math.hypot(rh,sw),.35])}
+        bot=idx.map((n,i)=>i<W-1?[prev[i],prev[i+1],.5]:[prev[W-2],prev[W-1],1.5])}
+      C.push({idx,closed:false,bot});all.push(idx);prev=idx}
+    C[first].bot=all[0].map((n,i)=>[all[1][i],n,1.6]);return all};
+  // 타원뜨기: 사슬 n코를 한 바퀴 돌며 뜸
+  const stad=(L,rho,c)=>{const per=2*L+2*Math.PI*rho,q=Math.PI*rho/2,pts=[];
+    for(let i=0;i<c;i++){const s=(i+.5)/c*per;let x,z,a;
+      if(s<q){a=s/rho;x=L/2+rho*Math.cos(a);z=rho*Math.sin(a)}
+      else if(s<q+L){x=L/2-(s-q);z=rho}
+      else if(s<3*q+L){a=Math.PI/2+(s-q-L)/rho;x=-L/2+rho*Math.cos(a);z=rho*Math.sin(a)}
+      else if(s<3*q+2*L){x=-L/2+(s-3*q-L);z=-rho}
+      else{a=-Math.PI/2+(s-3*q-2*L)/rho;x=L/2+rho*Math.cos(a);z=rho*Math.sin(a)}
+      pts.push([x,z])}return pts};
+  const oval=(n,R)=>{const sp=[];for(let i=0;i<n;i++)sp.push(V((i-(n-1)/2)*sw,0,0));ring(sp,false,2*sw);C.push({idx:sp,closed:false,bot:null});
+    let prev=sp,pcl=false;for(let r=1;r<=R;r++){const c=2*(n-1)+6*r,idx=stad((n-1)*sw,r*rh,c).map(([x,z])=>V(x,0,z));
+      ring(idx,true);C.push({idx,closed:true,bot:linkNear(idx,prev,pcl)});prev=idx;pcl=true}return prev};
+  // 통으로 뜨기 (바닥 없음)
+  const tube=(c,n)=>{const rho=c*sw/(2*Math.PI),first=C.length;let prev=null;
+    for(let r=0;r<n;r++){const idx=[];for(let i=0;i<c;i++){const th=(i+.5)/c*2*Math.PI;idx.push(V(Math.cos(th)*rho,r*rh,Math.sin(th)*rho))}
+      ring(idx,true,2*rho*Math.sin(2*Math.PI/c));C.push({idx,closed:true,bot:prev?linkFrac(idx,prev):null});prev=idx}
+    C[first].bot=C[first].idx.map((n,i)=>[C[first+1].idx[i],n,1.6])};
+  // 바닥 가장자리에서 벽 올리기
+  const wall=(base,counts)=>{let prev=base;counts.forEach(c=>{const pc=prev.length;let cx=0,cz=0,mr=0;
+      prev.forEach(n=>{cx+=P[n].x;cz+=P[n].z});cx/=pc;cz/=pc;prev.forEach(n=>mr+=Math.hypot(P[n].x-cx,P[n].z-cz));mr/=pc;
+      const k=c/pc,dr=Math.max(-rh*.98,Math.min(rh*.98,mr*(k-1))),yy=P[prev[0]].y+Math.sqrt(rh*rh-dr*dr),poly=prev.map(n=>[cx+(P[n].x-cx)*k,cz+(P[n].z-cz)*k]),idx=[];
+      for(let i=0;i<c;i++){const f=(i+.5)/c*pc-.5,a=Math.floor(f),t=f-a,A=poly[((a%pc)+pc)%pc],B=poly[(((a+1)%pc)+pc)%pc];idx.push(V(A[0]+(B[0]-A[0])*t,yy,A[1]+(B[1]-A[1])*t))}
+      ring(idx,true);C.push({idx,closed:true,bot:linkFrac(idx,prev)});prev=idx})};
+  // 대바늘 통뜨기
+  const ktube=(c,n)=>{const rho=c*wk/(2*Math.PI);let prev=null;for(let r=0;r<n;r++){const idx=[];for(let i=0;i<c;i++){const th=(i+.5)/c*2*Math.PI;idx.push(V(Math.cos(th)*rho,r*rk,Math.sin(th)*rho))}
+      ring(idx,true,2*rho*Math.sin(2*Math.PI/c),wk);if(prev)idx.forEach((n,i)=>{E.push([n,prev[i],rk,1]);E.push([n,prev[(i+1)%c],Math.hypot(rk,wk),.35])});C.push({idx,closed:true,bot:null});prev=idx}return rho};
+  const perim=all=>{const H=all.length,W=all[0].length,L=[];for(let r=0;r<H;r++)L.push(all[r][W-1]);for(let i=W-2;i>=0;i--)L.push(all[H-1][i]);for(let r=H-2;r>=0;r--)L.push(all[r][0]);for(let i=1;i<W-1;i++)L.push(all[0][i]);
+    const k=Math.floor(H/2);return L.slice(k).concat(L.slice(0,k))};
+  const wc=c0=>{const a=[],h3=Math.round(IT.inc/3),h2=Math.round(IT.inc/2);let c=c0;for(let r=0;r<12;r++){if(IT.shape==='tote'&&r>0)c+=h3;if(IT.shape==='pouch'){if(r>=1&&r<=4)c+=h2;else if(r>=7)c-=h2}a.push(c)}return a};
+  const k=IT.kind,seq=(n)=>Array.from({length:n},(_,r)=>IT.inc*(r+1));
+  if(k==='coaster')round(seq(9));
+  else if(k==='square'){if(kn){rows(20,32,false,wk,rk);knit={type:'flat',W:20,H:32,swap:false}}else rows(18,19)}
+  else if(k==='scarf'){if(kn){rows(16,80,true,wk,rk);knit={type:'flat',W:16,H:80,swap:true}}else rows(14,64,true)}
+  else if(k==='oval')oval(12,7);
+  else if(k==='tube'){if(kn){const rho=ktube(50,22);knit={type:'tube',W:50,H:22,rho}}else tube(48,14)}
+  else if(IT.base==='oval'){const b=oval(9,4);wall(b,wc(b.length))}
+  else if(IT.base==='rect'){const b=perim(rows(15,8));wall(b,wc(b.length))}
+  else round(seq(7).concat(wc(IT.inc*7)));
+  if(knit){knit.wk=wk;knit.rk=rk}
+  return {P,E,C,rh,sw:knit?wk:sw,knit,iter:0,done:false}}
 function relax(D,passes){const d=new THREE.Vector3();
   for(let k=0;k<passes;k++)for(let e=0;e<D.E.length;e++){const ed=D.E[e],a=D.P[ed[0]],b=D.P[ed[1]];d.subVectors(b,a);const len=d.length()||1e-6,c=(len-ed[2])/len*.5*ed[3];a.addScaledVector(d,c);b.addScaledVector(d,-c)}
-  const o=D.P[0].clone();D.P.forEach(p=>{p.x-=o.x;p.z-=o.z});
+  let ox=0,oz=0;D.P.forEach(p=>{ox+=p.x;oz+=p.z});ox/=D.P.length;oz/=D.P.length;D.P.forEach(p=>{p.x-=ox;p.z-=oz});
   let miny=1e9;D.P.forEach(p=>{if(p.y<miny)miny=p.y});D.P.forEach(p=>p.y-=miny)}
 let holo=null;
 function buildHolo(D){const n=D.P.length,pos=new Float32Array(n*3);const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
   const ring=[],vert=[];D.E.forEach(e=>{if(e[3]===1){(e[2]===D.sw?ring:vert).push(e[0],e[1])}});
   const mk=(idx,color,op)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',pg.getAttribute('position'));g.setIndex(idx);return new THREE.LineSegments(g,new THREE.LineBasicMaterial({color,transparent:true,opacity:op}))};
-  const last=D.start[D.start.length-1],hi=[];for(let i=0;i<D.counts[D.counts.length-1];i++)hi.push(last+i,last+(i+1)%D.counts[D.counts.length-1]);
+  const LC=D.C[D.C.length-1],hi=[];for(let i=0;i<LC.idx.length-(LC.closed?0:1);i++)hi.push(LC.idx[i],LC.idx[(i+1)%LC.idx.length]);
   const g=new THREE.Group();g.add(mk(vert,0xb99447,.28),mk(ring,0xb08a3e,.9),mk(hi,0xc0787e,1),new THREE.Points(pg,new THREE.PointsMaterial({color:0xa8823a,size:.11,sizeAttenuation:true})));
   g.userData.pos=pg.getAttribute('position');return g}
 function updateHolo(D){const a=holo.userData.pos;for(let i=0;i<D.P.length;i++)a.setXYZ(i,D.P[i].x,D.P[i].y,D.P[i].z);a.needsUpdate=true}
 function buildItemYarn(D){const R=IT.ymm/2/MM*st.thick*(st.preset==='mohair'?.8:1),geos=[];
-  const mat=yarnMat(R);
-  D.counts.forEach((c,r)=>{const s0=D.start[r],tops=[],saw=[];
-    for(let i=0;i<c;i++){const top=D.P[s0+i];let bot;
-      if(r===0)bot=D.P[0].clone().lerp(top,.25);
-      else{const pc=D.counts[r-1],ps=D.start[r-1],fb=(i+1)/c*pc-.5,pb=Math.floor(fb),t=fb-pb;bot=D.P[ps+((pb%pc)+pc)%pc].clone().lerp(D.P[ps+(((pb+1)%pc)+pc)%pc],t)}
-      tops.push(top.clone());saw.push(top.clone(),bot)}
-    [saw,tops].forEach((arr,ix)=>{if(arr.length<3)return;const cv=new THREE.CatmullRomCurve3(arr,true,'catmullrom',.5),Rr=ix?R*.9:R;
-      const pts=cv.getSpacedPoints(Math.max(24,Math.ceil(cv.getLength()/(Rr*.75))));const g=buildYarn(pts,Rr,{M:10,closed:true,color:IT.stripe&&(Math.floor(r/2)%2)?st.color2:st.color}),m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;group.add(m);meshes.push(m);geos.push(g)})});
-  if(IT.kind==='bag'&&IT.strap!=='none'){const c=D.counts[D.counts.length-1],s0=D.start[D.start.length-1];let ry=0,rr=0;for(let i=0;i<c;i++){const q=D.P[s0+i];ry+=q.y;rr+=Math.hypot(q.x,q.z)}ry/=c;rr/=c;
-    const arcs=IT.strap==='long'?[[0,Math.PI,rr*2.3,0]]:[[Math.PI/2-.62,Math.PI/2+.62,rr*1.25,1],[-Math.PI/2-.62,-Math.PI/2+.62,rr*1.25,-1]];
-    arcs.forEach(([a,b,H,side])=>{const A=new THREE.Vector3(Math.cos(a)*rr,ry,Math.sin(a)*rr),B=new THREE.Vector3(Math.cos(b)*rr,ry,Math.sin(b)*rr),w=new THREE.Vector3().subVectors(B,A).normalize(),nrm=new THREE.Vector3(-w.z,0,w.x);
-      [-1,0,1].forEach(k=>{const pts=[];for(let i=0;i<=40;i++){const t=i/40,q=A.clone().lerp(B,t);q.y+=H*Math.sin(Math.PI*t)-R*1.2*(1-Math.sin(Math.PI*t));q.addScaledVector(nrm,k*R*1.75+side*rr*.12*Math.sin(Math.PI*t));pts.push(q)}
+  const mat=yarnMat(R),lp=b=>D.P[b[0]].clone().lerp(D.P[b[1]],b[2]);
+  if(D.knit)buildKnit(D,R,mat,geos);else D.C.forEach((c,r)=>{const tops=c.idx.map(n=>D.P[n].clone()),saw=[];if(c.bot)c.idx.forEach((n,i)=>saw.push(D.P[n].clone(),lp(c.bot[i])));
+    [saw,tops].forEach((arr,ix)=>{if(arr.length<3)return;const cv=new THREE.CatmullRomCurve3(arr,c.closed,'catmullrom',.5),Rr=ix?R*.9:R;
+      const pts=cv.getSpacedPoints(Math.max(24,Math.ceil(cv.getLength()/(Rr*.75))));const g=buildYarn(pts,Rr,{M:10,closed:c.closed,color:IT.stripe&&(Math.floor(r/2)%2)?st.color2:st.color}),m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;group.add(m);meshes.push(m);geos.push(g)})});
+  if(IT.kind==='bag'&&IT.strap!=='none'){const L=D.C[D.C.length-1].idx,c=L.length;let ry=0,cx=0,cz=0,rr=0;L.forEach(n=>{const q=D.P[n];ry+=q.y;cx+=q.x;cz+=q.z});ry/=c;cx/=c;cz/=c;L.forEach(n=>rr+=Math.hypot(D.P[n].x-cx,D.P[n].z-cz));rr/=c;
+    const at=f=>{const q=D.P[L[((Math.round(f*c-.5)%c)+c)%c]].clone();q.y=ry;return q};
+    const arcs=IT.strap==='long'?[[0,.5,rr*2.3,0]]:[[.15,.35,rr*1.25,1],[.65,.85,rr*1.25,1]];
+    arcs.forEach(([a,b,H,lean])=>{const A=at(a),B=at(b),w=new THREE.Vector3().subVectors(B,A).normalize(),nrm=new THREE.Vector3(-w.z,0,w.x),mid=A.clone().add(B).multiplyScalar(.5);
+      if(nrm.x*(mid.x-cx)+nrm.z*(mid.z-cz)>0)nrm.negate();
+      [-1,0,1].forEach(k=>{const pts=[];for(let i=0;i<=40;i++){const t=i/40,q=A.clone().lerp(B,t);q.y+=H*Math.sin(Math.PI*t)-R*1.2*(1-Math.sin(Math.PI*t));q.addScaledVector(nrm,k*R*1.75+lean*rr*.12*Math.sin(Math.PI*t));pts.push(q)}
         const cv=new THREE.CatmullRomCurve3(pts),g=buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength()/(R*.6))),R,{M:10}),m=new THREE.Mesh(g,mat);m.castShadow=true;group.add(m);meshes.push(m);geos.push(g)})})}
   fz=fuzzLines(geos);if(fz)group.add(fz)}
-function sizeInfo(D){let my=0,mr=0;D.P.forEach(q=>{if(q.y>my)my=q.y;const r=Math.hypot(q.x,q.z);if(r>mr)mr=r});const cm=v=>(v*MM/10).toFixed(1),k=IT.hmm/IT.ymm;
+function buildKnit(D,R,mat,geos){ // 대바늘 메리야스: 한 단 = 고리가 이어진 실 한 줄
+  const K=D.knit,w=K.wk,Hh=1.05*w,a=.22*w,d=R,per=14,q=Math.round(per*.25);
+  for(let j=0;j<K.H;j++){const pts=[],tb=K.type==='tube';
+    for(let i=tb?0:-q;i<(tb?K.W*per:K.W*per+q+1);i++){const u=i/per,ac=w*u+a*Math.sin(4*Math.PI*u),lp=(Hh/2)*Math.cos(2*Math.PI*u),dz=d*Math.cos(4*Math.PI*u);
+      if(tb){const th=ac/K.rho,r=K.rho-dz;pts.push(new THREE.Vector3(Math.cos(th)*r,j*K.rk-lp+Hh/2,Math.sin(th)*r))}
+      else{const al=(j-(K.H-1)/2)*K.rk-lp,x=ac-K.W*w/2,y=d-dz;pts.push(K.swap?new THREE.Vector3(al,y,x):new THREE.Vector3(x,y,al))}}
+    const cv=new THREE.CatmullRomCurve3(pts,tb),g=buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength()/(R*.6))),R,{M:8,closed:tb,color:IT.stripe&&(Math.floor(j/2)%2)?st.color2:st.color}),m=new THREE.Mesh(g,mat);
+    m.castShadow=true;m.receiveShadow=true;group.add(m);meshes.push(m);geos.push(g)}}
+function sizeInfo(D){let my=0,x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;D.P.forEach(q=>{if(q.y>my)my=q.y;x0=Math.min(x0,q.x);x1=Math.max(x1,q.x);z0=Math.min(z0,q.z);z1=Math.max(z1,q.z)});
+  const dx=x1-x0,dz=z1-z0,cm=v=>(v*MM/10).toFixed(1),k=IT.hmm/IT.ymm,rnd=isRound();
   const fit=k<.8?'바늘이 가늘어서 빡빡하고 단단한 편물이 됩니다.':k>1.45?'바늘이 굵어서 성글고 부드러운 편물이 됩니다.':'실과 바늘이 잘 맞습니다.';
-  document.getElementById('sizeinfo').textContent='완성 크기 약 지름 '+cm(mr*2)+'cm'+(my>D.rh*2?' · 높이 '+cm(my)+'cm':'')+' — '+fit;return {my,mr}}
+  document.getElementById('sizeinfo').textContent='완성 크기 약 '+(rnd?'지름 '+cm((dx+dz)/2)+'cm':'가로 '+cm(Math.max(dx,dz))+'cm · 세로 '+cm(Math.min(dx,dz))+'cm')+(my>D.rh*2?' · 높이 '+cm(my)+'cm':'')+' — '+fit;return {my,mr:Math.max(dx,dz)/2}}
+function isRound(){return IT.kind==='coaster'||IT.kind==='tube'||(IT.kind==='bag'&&IT.base==='round')}
 function showItem(){const D=IT.data;meshes.forEach(m=>m.geometry.dispose());meshes=[];while(group.children.length)group.remove(group.children[0]);fz=null;
   if(IT.view==='yarn'&&D.done)buildItemYarn(D);else{holo=buildHolo(D);updateHolo(D);group.add(holo)}}
-function startItem(){document.getElementById('bagOpts').hidden=IT.kind!=='bag';document.getElementById('sizeinfo').textContent='모양을 계산하는 중입니다…';IT.data=makeItem();holo=null;showItem();
+function startItem(){document.getElementById('bagOpts').hidden=IT.kind!=='bag';const ir=IT.kind==='coaster'||(IT.kind==='bag'&&IT.base==='round');document.getElementById('incRow').hidden=!ir;document.getElementById('craftRow').hidden=!(IT.kind==='scarf'||IT.kind==='square'||IT.kind==='tube');document.getElementById('verdict').hidden=!ir;document.getElementById('sizeinfo').textContent='모양을 계산하는 중입니다…';IT.data=makeItem();holo=null;showItem();
   const v=IT.inc<6?'늘림이 부족해서 가장자리가 위로 솟습니다 (컵처럼 말림).':IT.inc>6?'늘림이 많아서 가장자리가 물결칩니다.':'한 단에 6코씩 늘리면 평평하게 떠집니다.';document.getElementById('verdict').textContent='한 단에 '+IT.inc+'코 늘림 — '+v}
 function tickItem(){const D=IT.data;if(!D||D.done)return;relax(D,8);D.iter++;if(holo&&holo.parent)updateHolo(D);
-  if(D.iter>=(matchMedia('(prefers-reduced-motion: reduce)').matches?1:150)){if(D.iter<150)relax(D,900);D.done=true;const z=sizeInfo(D),sh=IT.kind==='bag'?(IT.strap==='two'?z.mr*1.25:IT.strap==='long'?z.mr*2.3:0):0,tot=z.my+sh,ext=Math.max(z.mr*2,tot),dir=cam.position.clone().sub(ctl.target).normalize();ctl.target.set(0,tot/2,0);cam.position.copy(ctl.target).addScaledVector(dir,ext*(st.fur?2.45:2.1)+3);fit();showItem()}}
+  if(D.iter>=(matchMedia('(prefers-reduced-motion: reduce)').matches?1:150)){if(D.iter<150)relax(D,900);D.done=true;const z=sizeInfo(D),sh=IT.kind==='bag'?(IT.strap==='two'?z.mr*1.25:IT.strap==='long'?z.mr*2.3:0):0,tot=z.my+sh,ext=Math.max(z.mr*2,tot),dir=cam.position.clone().sub(ctl.target).normalize();ctl.target.set(0,tot/2,0);cam.position.copy(ctl.target).addScaledVector(dir,ext*(st.fur?2.45:z.my<D.rh*3?1.6:2.1)+3);setShadow(Math.max(10,ext*.8));fit();showItem()}}
 
 // ---------- 장면 다시 그리기
 let meshes=[],fz=null,anim=null;
@@ -252,7 +327,7 @@ function rebuild(){
   group.rotation.set(st.scene==='strand'?0:-.12,0,0);
 }
 function fit(){const k=Math.max(1,1.45/cam.aspect);cam.position.sub(ctl.target).multiplyScalar(k).add(ctl.target);ctl.update()}
-function frameCam(){if(st.scene==='item'){const b=IT.kind==='bag';ctl.target.set(0,b?3.2:0,0);cam.position.set(0,b?9:11,b?21:13.5);fit();return}const d=st.scene==='knit'?17:st.scene==='chain'?15:12;cam.position.set(st.scene==='knit'?2.5:1.5,st.scene==='knit'?1.5:2.5,d);ctl.target.set(0,0,0);fit()}
+function frameCam(){setShadow(10);if(st.scene==='item'){const b=IT.kind==='bag'||IT.kind==='tube';ctl.target.set(0,b?3.2:0,0);cam.position.set(0,b?9:11,b?21:13.5);fit();return}const d=st.scene==='knit'?17:st.scene==='chain'?15:12;cam.position.set(st.scene==='knit'?2.5:1.5,st.scene==='knit'?1.5:2.5,d);ctl.target.set(0,0,0);fit()}
 function playDraw(){ if(st.scene==='item'){startItem();return} if(anim)cancelAnimationFrame(anim);
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   if(fz)fz.visible=false;const totals=meshes.map(m=>m.geometry.index.count),sum=totals.reduce((a,b)=>a+b,0);meshes.forEach(m=>m.geometry.setDrawRange(0,0));
@@ -276,12 +351,12 @@ COLORS.forEach(([name,hex],i)=>{const b=document.createElement('button');b.class
   b.addEventListener('click',()=>{st.color=hex;document.querySelectorAll('#colors .sw').forEach(x=>x.setAttribute('aria-pressed',x===b));rebuild()});$('colors').append(b)});
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{st.scene=b.dataset.scene;document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-pressed',x===b));rebuild();frameCam()}));
 $('play').addEventListener('click',playDraw);
-document.querySelectorAll('#kinds .chip').forEach(b=>b.addEventListener('click',()=>{IT.kind=b.dataset.k;document.querySelectorAll('#kinds .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));startItem();frameCam()}));
+document.querySelectorAll('#kinds .chip').forEach(b=>b.addEventListener('click',()=>{IT.kind=b.dataset.k;IT.craft=IT.kind==='scarf'?'knit':'crochet';document.querySelectorAll('#crafts .chip').forEach(x=>x.setAttribute('aria-pressed',x.dataset.c===IT.craft));document.querySelectorAll('#kinds .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));startItem();frameCam()}));
 document.querySelectorAll('#views .chip').forEach(b=>b.addEventListener('click',()=>{IT.view=b.dataset.v;document.querySelectorAll('#views .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));if(IT.data)showItem()}));
 $('s-inc').addEventListener('input',e=>{IT.inc=+e.target.value;$('o-inc').textContent=IT.inc;startItem()});
 [['s-ymm','ymm','o-ymm'],['s-hmm','hmm','o-hmm']].forEach(([id,k,o])=>$(id).addEventListener('input',e=>{IT[k]=+e.target.value;$(o).textContent=IT[k]+'mm';clearTimeout(rt);rt=setTimeout(()=>{startItem();frameCam()},120)}));
 const pick=(sel,attr,fn)=>document.querySelectorAll(sel+' .chip').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll(sel+' .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));fn(b.dataset[attr])}));
-pick('#shapes','s',v=>{IT.shape=v;startItem()});pick('#straps','t',v=>{IT.strap=v;if(IT.data&&IT.data.done){IT.data.done=false;IT.data.iter=149}});
+pick('#shapes','s',v=>{IT.shape=v;startItem()});pick('#crafts','c',v=>{IT.craft=v;startItem()});pick('#bases','base',v=>{IT.base=v;startItem();frameCam()});pick('#straps','t',v=>{IT.strap=v;if(IT.data&&IT.data.done){IT.data.done=false;IT.data.iter=149}});
 pick('#stripes','b',v=>{IT.stripe=v==='1';$('colors2').hidden=!IT.stripe;if(IT.data&&IT.data.done)showItem()});
 COLORS.forEach(([name,hex],i)=>{const b=document.createElement('button');b.className='sw sw2';b.style.background=hex;b.setAttribute('aria-label','둘째 색 '+name);b.title=name;b.setAttribute('aria-pressed',i===1);
   b.addEventListener('click',()=>{st.color2=hex;document.querySelectorAll('.sw2').forEach(x=>x.setAttribute('aria-pressed',x===b));if(IT.data&&IT.data.done)showItem()});$('colors2').append(b)});

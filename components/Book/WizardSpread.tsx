@@ -17,8 +17,9 @@ import type { WizStep } from "./BookProvider";
 export const REF_W = 642;
 
 /** `step`: the step whose pages are in the book now (during a page turn it can lag behind the address). */
-export function WizardSpread({ step, left, right }: { step: WizStep; left: HTMLElement; right: HTMLElement }) {
-  const v = useNewBook(step);
+/** `sheet`: step 3's spread (실 / 바늘과 크기) the book shows now. */
+export function WizardSpread({ step, sheet, left, right }: { step: WizStep; sheet?: number; left: HTMLElement; right: HTMLElement }) {
+  const v = useNewBook(step, sheet);
   if (!v.ready) return null;
   const form = (side: "l" | "r", children: React.ReactNode) => (
     <form className={"nb-book nb-in3d nb-in3d-" + side} noValidate onSubmit={v.onSubmit} onKeyDown={v.onKeyDown}>{children}</form>

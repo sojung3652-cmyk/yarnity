@@ -60,7 +60,7 @@ export default function YarnPreview({ pattern, onClose }: { pattern: YarnPattern
 
   const pick = (m: YarnMaterial) => { picked.current.mat = m; setMat(m); viewer.current?.setMaterial(m); };
   const show = (v: "yarn" | "holo") => { picked.current.view = v; setView(v); viewer.current?.setView(v); };
-  const size = info ? `지름 약 ${info.diameterCm}cm${info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : ""}` : "";
+  const size = !info ? "" : (info.round ? `지름 약 ${info.widthCm}cm` : `${info.widthCm} × ${info.depthCm}cm`) + (info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : "");
 
   return createPortal(
     <div ref={root} className="y3" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="3D 미리 보기" data-built-ms={builtMs ?? undefined}>

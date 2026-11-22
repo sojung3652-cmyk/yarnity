@@ -24,8 +24,11 @@ const COMMON_MATERIALS = ["코튼", "울", "아크릴", "메리노", "리넨", "
 const MAX_COLORS = 6;
 
 /** Required on this step: yarn thickness (mm in range, or a level picked) and a hook size. */
+/** the yarn thickness alone (the web's step 3 asks it on its own spread, before the hook) */
+export const yarnThickOk = (d: Draft) => d.yarnMode === "level" || (d.yarnMm != null && d.yarnMm >= YARN_MM_RANGE[0] && d.yarnMm <= YARN_MM_RANGE[1]);
+
 export function yarnStepOk(d: Draft) {
-  const yarnOk = d.yarnMode === "level" || (d.yarnMm != null && d.yarnMm >= YARN_MM_RANGE[0] && d.yarnMm <= YARN_MM_RANGE[1]);
+  const yarnOk = yarnThickOk(d);
   const mm = d.hook ? hookMmOf(d) : NaN;
   return yarnOk && mm >= HOOK_MM_RANGE[0] && mm <= HOOK_MM_RANGE[1];
 }
@@ -71,7 +74,8 @@ const Text = ({ id, value, onChange, placeholder, label }: { id: string; value?:
 );
 
 // ---------------------------------------------------------------- left page: yarn thickness, hook, the yarn
-export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; tried: boolean }) {
+/** `part`: the web shows the yarn and the hook on two spreads (Kim); phones keep both together */
+export function YarnPage({ draft, patch, tried, part = "all" }: { draft: Draft; patch: Patch; tried: boolean; part?: "all" | "yarn" | "hook" }) {
   const [open, toggle] = useOneOpen();
   const mats = draft.materials ?? [];
   const [mmRaw, setMmRaw] = useState(draft.yarnMm != null ? String(draft.yarnMm) : "");
@@ -95,7 +99,7 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
   return (
     <div className="nb-stack">
       {/* everything about the yarn in one group: thickness (required), colours, then name / material / label */}
-      <section className="nb-sec" aria-labelledby="secYarn">
+      {part !== "hook" && <section className="nb-sec" aria-labelledby="secYarn">
       <h2 className="nb-sec-title" id="secYarn">실</h2>
       <div className="nb-field nb-field-open">
         <span className="nb-lbl" id="yMmLbl">굵기</span>
@@ -142,13 +146,13 @@ export function YarnPage({ draft, patch, tried }: { draft: Draft; patch: Patch; 
           <div className="nb-mini"><label htmlFor="yMemo">메모</label><input id="yMemo" className="nb-input nb-input-sm nb-wide" maxLength={MAX_TEXT} value={draft.memo ?? ""} onChange={e => patch({ memo: e.target.value })} onBlur={e => patch({ memo: clean(e.target.value) })} /></div>
         </Fold>
       </div>
-      </section>
+      </section>}
 
       {/* the hook, its own group */}
-      <section className="nb-sec" aria-labelledby="secHook">
+      {part !== "yarn" && <section className="nb-sec" aria-labelledby="secHook">
         <h2 className="nb-sec-title" id="secHook">바늘</h2>
         <HookField draft={draft} patch={patch} tried={tried} />
-      </section>
+      </section>}
     </div>
   );
 }
