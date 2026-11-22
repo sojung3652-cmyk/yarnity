@@ -83,4 +83,8 @@ export interface DictTable {
   groups?: { label: string; rows: string[][] }[];
   /** the columns holding numbers (centred) */
   num?: number[];
+  /** a search by 호 · mm · US over the groups (바늘 호수) */
+  sizeSearch?: boolean;
+  /** a line under the table: where the numbers come from, how to use them */
+  foot?: string;
 }

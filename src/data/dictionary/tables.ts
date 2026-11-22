@@ -3,6 +3,7 @@
 //   (0호 2.1mm, 0.3mm a step). Brands differ a little: mm is the one to trust.
 // - 실 굵기: Craft Yarn Council Standard Yarn Weight System (0 Lace ~ 7 Jumbo), gauge over 10cm.
 // - 용어: Lovecrafts, Petals to Picots, iLikeCrochet (US -> UK one step up).
+// - 사이즈: Craft Yarn Council Standard Body Measurements (머리 · 가슴), 발 길이는 한국 신발 치수(mm) 기준의 범위.
 // - 세탁 기호: ISO 3758 (wash tub, bleach triangle, drying square, iron, professional-care circle).
 import type { DictTable } from "./types";
 
@@ -29,8 +30,27 @@ export const TABLES: DictTable[] = [
     ],
   },
   {
+    id: "body-sizes", title: "사이즈 표", short: "머리 둘레 · 발 길이 · 가슴 둘레",
+    cols: ["대상", "치수 (cm)"], num: [1], foot: "모자는 머리 둘레보다 5~10%, 양말은 발 둘레보다 10% 작게 뜹니다. 잴 수 있다면 직접 잰 치수가 가장 정확합니다.",
+    groups: [
+      { label: "머리 둘레", rows: [
+        ["신생아", "33~36"], ["0~6개월", "36~43"], ["6~12개월", "41~48"], ["1~3세", "46~51"],
+        ["3~10세", "48~52"], ["청소년 · 머리가 작은 어른", "51~56"], ["어른 여성", "53~56"], ["어른 남성", "56~59"],
+      ] },
+      { label: "발 길이", rows: [
+        ["0~6개월", "9~10"], ["6~12개월", "11~12"], ["1~3세", "13~15"], ["3~5세", "16~17"],
+        ["6~9세", "18~21"], ["10~12세", "21~23"], ["어른 여성", "22~25"], ["어른 남성", "25~28"],
+      ] },
+      { label: "가슴 둘레", rows: [
+        ["0~6개월", "41~43"], ["6~12개월", "47"], ["1~2세", "50~53"], ["4세", "58"], ["6세", "64"], ["8세", "66"], ["10세", "71"], ["12세", "76"],
+        ["어른 여성 S", "81~86"], ["어른 여성 M", "91~97"], ["어른 여성 L", "102~107"], ["어른 여성 XL", "112~117"],
+        ["어른 남성 S", "86~91"], ["어른 남성 M", "97~102"], ["어른 남성 L", "107~112"], ["어른 남성 XL", "117~122"],
+      ] },
+    ],
+  },
+  {
     id: "needle-sizes", title: "바늘 호수 대조", short: "한국 호수 · mm · US · UK",
-    cols: ["한국·일본 호수", "mm", "US", "UK(옛 번호)"], num: [0, 1, 2, 3],
+    cols: ["한국·일본 호수", "mm", "US", "UK(옛 번호)"], num: [0, 1, 2, 3], sizeSearch: true,
     groups: [
       { label: "코바늘", rows: [
         ["2/0호", "2.0", "-", "14"], ["-", "2.25", "B-1", "13"], ["3/0호", "2.3", "-", "-"], ["4/0호", "2.5", "-", "12"],

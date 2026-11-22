@@ -157,3 +157,14 @@
 /* 세탁 기호: the care-label drawings in the table's first column */
 .dict-table td.is-icon{width:72px;text-align:center;vertical-align:middle}
 .dict-care{display:block;width:40px;height:34px;margin:0 auto;color:#5B4F49}
+/* 바늘 호수 (Kim: readable): 코바늘 / 대바늘 on cloth chips and a search by 호 · mm · US, over the sheet */
+.dict-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 20px;margin:4px 0 18px}
+.dict-tools .dict-filters{margin:0}
+.dict-find{display:flex;align-items:center;gap:8px;width:min(260px,100%);height:42px;padding:0 14px;border-radius:12px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #E6DAD2}
+.dict-find:focus-within{box-shadow:inset 0 0 0 1.5px #C9A050}
+.dict-find svg{flex:none;width:17px;height:17px;color:#8C807A}
+.dict-find input{flex:1;min-width:0;border:0;background:none;font:15px/1 "Noto Serif KR",serif;color:#4A3F3B;outline:none}
+.dict-find input::placeholder{color:#B3A79F}
+.dict-sheet-note{margin:0 0 12px;font-size:12.5px;color:#8C807A}
+.dict-none{margin:18px 0;padding:22px;border-radius:12px;background:#FFFDF8;text-align:center;font-size:14px;color:#8C807A}
+.dict-sheet-note.is-foot{margin:16px 2px 0;line-height:1.7}

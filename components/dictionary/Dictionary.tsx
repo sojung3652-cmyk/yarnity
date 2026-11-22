@@ -286,7 +286,64 @@ export function TroubleScreen() {
   );
 }
 
-// ---------------------------------------------------------------- 5) 한눈에 보는 표
+// ---------------------------------------------------------------- 5) 기타 (was 한눈에 보는 표)
+
+/** a table on its sheet of white paper; a cell "@name" is a care-label drawing, "-" a faint dash */
+function Sheet({ cols, rows, num }: { cols: string[]; rows: string[][]; num?: number[] }) {
+  return (
+    <div className="dict-sheet">
+      <table className="dict-table is-big">
+        <thead><tr>{cols.map((c, j) => <th key={c} scope="col" className={num?.includes(j) ? "is-num" : undefined}>{c}</th>)}</tr></thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              {r.map((c, j) => <td key={j} className={(num?.includes(j) ? "is-num" : "") + (c === "-" ? " is-none" : "") + (c.startsWith("@") ? " is-icon" : "") || undefined}>{c.startsWith("@") ? <CareIcon name={c.slice(1)} className="dict-care" /> : c === "-" ? "–" : c}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** "6호" / "6/0호" -> "6", "3.5mm" -> "3.5", "E-4" -> "e4": the forms people write, made alike */
+const sizeKey = (s: string) => s.toLowerCase().replace(/\(.*?\)|\s|mm|호|\/0|-/g, "");
+/** which rows a search finds (Kim: "6호 쓰라는데 내 바늘엔 3.5mm만 써 있어"): 호 or mm or the US size. A 호 search
+ *  looks only at the 호 column and an mm search only at mm, so "6호" does not also find UK 6. */
+function findSizes(rows: string[][], q: string) {
+  const k = sizeKey(q);
+  if (!k) return null;
+  const ok = (c: string | undefined) => !!c && c !== "-";
+  if (/호/.test(q)) return rows.filter(r => ok(r[0]) && sizeKey(r[0]) === k);
+  if (/mm|\./.test(q)) return rows.filter(r => ok(r[1]) && Number(r[1]) === Number(k));
+  // a US size: "E-4" / "E" (the letter) or "4" (its number); a bare number also means 호
+  if (/^[a-z]/.test(k)) return rows.filter(r => ok(r[2]) && (sizeKey(r[2]) === k || (k.length === 1 && sizeKey(r[2]).startsWith(k))));
+  return rows.filter(r => (ok(r[0]) && sizeKey(r[0]) === k) || (ok(r[2]) && sizeKey(r[2]).replace(/^[a-z]/, "") === k));
+}
+
+/** a table in groups (바늘 호수: 코바늘 / 대바늘): one group at a time, picked on cloth chips, and a search */
+function GroupedSheet({ t }: { t: DictTable }) {
+  const groups = t.groups!;
+  const [gi, setGi] = useState(0);
+  const [q, setQ] = useState("");
+  const rows = groups[gi].rows;
+  const found = useMemo(() => findSizes(rows, q), [rows, q]);
+  return (
+    <>
+      <div className="dict-tools">
+        <Filters label="종류" groups={[groups.map((g, i) => ({ id: String(i), label: g.label.replace(/\s*\(.*\)$/, "") }))]} value={String(gi)} onPick={v => setGi(Number(v))} />
+        {t.sizeSearch && <label className="dict-find"><span className="sr">호수나 mm로 찾기</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+          <input type="search" value={q} placeholder="6호, 3.5mm, E-4" onChange={e => setQ(e.target.value)} />
+        </label>}
+      </div>
+      {groups[gi].label.includes("(") && <p className="dict-sheet-note">{groups[gi].label.match(/\((.*)\)/)![1]}</p>}
+      {found && found.length === 0 ? <p className="dict-none">{groups[gi].label.replace(/\s*\(.*\)$/, "")}에는 &lsquo;{q.trim()}&rsquo;에 맞는 굵기가 없어요.</p>
+        : <Sheet cols={t.cols!} rows={found ?? rows} num={t.num} />}
+      {t.foot && <p className="dict-sheet-note is-foot">{t.foot}</p>}
+    </>
+  );
+}
 
 export function TablesScreen() {
   const [open, setOpen] = useState<DictTable | null>(null);
@@ -305,19 +362,8 @@ export function TablesScreen() {
         <DictPop label={open.title} onClose={() => setOpen(null)} wide>
           <p className="my-memo-kick">기타</p>
           <h2>{open.title}</h2>
-          {open.cols && (open.rows || open.groups) ? (
-            <div className="dict-sheet">
-              <table className="dict-table is-big">
-                <thead><tr>{open.cols.map((c, j) => <th key={c} scope="col" className={open.num?.includes(j) ? "is-num" : undefined}>{c}</th>)}</tr></thead>
-                {(open.groups ?? [{ label: "", rows: open.rows! }]).map(g => (
-                  <tbody key={g.label || "all"}>
-                    {g.label && <tr className="dict-group"><th colSpan={open.cols!.length} scope="colgroup">{g.label}</th></tr>}
-                    {g.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={(open.num?.includes(j) ? "is-num" : "") + (c === "-" ? " is-none" : "") + (c.startsWith("@") ? " is-icon" : "") || undefined}>{c.startsWith("@") ? <CareIcon name={c.slice(1)} className="dict-care" /> : c === "-" ? "–" : c}</td>)}</tr>)}
-                  </tbody>
-                ))}
-              </table>
-            </div>
-          ) : <Soon />}
+          {open.cols && open.groups ? <GroupedSheet key={open.id} t={open} />
+            : open.cols && open.rows ? <><Sheet cols={open.cols} rows={open.rows} num={open.num} />{open.foot && <p className="dict-sheet-note is-foot">{open.foot}</p>}</> : <Soon />}
         </DictPop>
       )}
     </>
