@@ -131,7 +131,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       <div className="yw-stage">
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
           : <canvas ref={cv} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
-        {empty && <div className="yw-empty"><i aria-hidden="true" /><p>오른쪽에서 고르면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
+        {empty && <div className="yw-empty"><i aria-hidden="true" /><p>모양을 그리면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
         {rules && ruler && !empty && (
           <svg className="yw-rules" aria-hidden="true">
             {rules.map((r, i) => {
