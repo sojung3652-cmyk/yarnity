@@ -279,3 +279,15 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-name-in input{width:160px}
 .yw-name-in small{margin:0;white-space:nowrap}
 .yw-name-in small{max-width:110px;overflow:hidden;text-overflow:ellipsis}
+
+/* smaller everywhere, the side column narrower (Kim: 글씨 크기 싹 다 줄이고, 옆의 바 더 줄여). The panels keep
+   their layout and are drawn smaller as a whole (zoom), so text, tiles and inputs shrink together. */
+.yw{grid-template-columns:minmax(0,1fr) 320px}
+.yw.yw-mk{grid-template-columns:minmax(0,1fr) 380px}
+.yw-right{zoom:.86}
+.yw-top{zoom:.88}
+.yw-stat{zoom:.9}
+.yw-hint{font-size:12px}
+.yw-intro h2{font-size:16px}.yw-intro h2 small{font-size:12.5px}
+.sk-pop{zoom:.92}
+.yw{grid-template-rows:56px minmax(0,1fr) 32px}
