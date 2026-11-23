@@ -29,6 +29,9 @@ export interface YarnSource extends PlanInput {
   /** strands in a strap (1-5), and things to try on in the 3D */
   handleW?: number | null;
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; tab?: boolean } | null;
+  /** a band handle's rows of 짧은뜨기 on its chain; the piece left to its own weight (the 3D only) */
+  handleRows?: number;
+  drape?: boolean;
   /** a drawn bag's depth against its width, bottom to top (from its side view) */
   depthProfile?: number[];
 }
@@ -46,7 +49,7 @@ export const DEFAULT_COLOR = "#EFE6D4";
 const MAT: Record<string, YarnMaterial> = {
   코튼: "cotton", 울: "wool", 메리노: "wool", 캐시미어: "cashmere", 아크릴: "wool", 알파카: "alpaca", 모헤어: "mohair", 앙고라: "angora",
   수면사: "sleep", 부클레: "boucle", 수세미실: "scrub", 패브릭얀: "tshirt", 리본얀: "ribbon", 황마: "jute",
-  리넨: "linen", 실크: "silk", 대나무: "silk", 나일론: "silk", 폴리에스터: "silk", "벨벳(셔닐)": "chenille",
+  리넨: "linen", 실크: "silk", 대나무: "silk", 나일론: "cord", 폴리에스터: "silk", "벨벳(셔닐)": "chenille",
   라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈릭: "metal",
 };
 
@@ -93,6 +96,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
+    ...(p.handleRows && p.handle !== "none" ? { strapRows: p.handleRows } : {}), ...(p.drape ? { gravity: true } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper || p.extras.tab) ? { extras: p.extras } : {}),
     // a drawn silhouette (lib/sketchMeasure): pressed to its depth, its opening edged
     ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true,

@@ -51,6 +51,9 @@ export interface Draft {
   /** a bag's flap outline below the front edge (3D) and how many handles: 1 across the top, or 2 */
   flapShape?: "half" | "square" | "triangle";
   handleCount?: 1 | 2;
+  /** a band handle (a chain, then this many rows of 짧은뜨기 along it); the 3D left to its own weight */
+  handleRows?: number;
+  drape?: boolean;
   /** a drawn body's silhouette (lib/pattern PlanInput.profile) and the colours of its parts when they differ */
   profile?: number[];
   /** a drawn bag's depth against its width at the same heights (its side view; none: a round handbag's) */

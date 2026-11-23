@@ -65,6 +65,12 @@ export interface YarnPattern {
   depth?: number[];
   /** a firm edging round the opening (the last round worked as a thicker border) */
   rim?: boolean;
+  /** a handle worked as a band (Kim): a chain from one side of the opening to the other, then this many rows of
+   *  짧은뜨기 along it, each row a little longer than the one inside it */
+  strapRows?: number;
+  /** set down and left to its own weight (Kim: a real bag is not rigid): the wall gives by how firm the yarn is -
+   *  cord and nylon stand, cotton sinks a little, soft yarns fold - and a soft handle falls to one side */
+  gravity?: boolean;
   /** a drawn body's own outline (lib/outline): every round is laid on it, so the 3D's front view is the drawing */
   outline?: Outline;
   /** a closed, stuffed piece (a drawn shape that ends on its centre line): it keeps its shape, no slump */
@@ -583,6 +589,19 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const H = Math.max(rr * .5, Math.sqrt(Math.max(0, (len / 2) ** 2 - (A.distanceTo(B) / 2) ** 2)) * .92); strapH = Math.max(strapH, H);
         if (nrm.x * (mid.x - cx) + nrm.z * (mid.z - cz) > 0) nrm.negate();
         const sw = Math.max(1, Math.min(5, Math.round(pat.strapW ?? 3)));
+        if (pat.strap === "long" && pat.strapRows) {
+          // a band handle: a chain across, then rows of 짧은뜨기 along it - drawn stitch by stitch, each row lying
+          // outside the one before in the arch's own plane. Left to its weight a soft band falls to one side.
+          const rows = Math.max(1, Math.min(8, Math.round(pat.strapRows))), half = A.distanceTo(B) / 2, tilt = pat.gravity ? (1 - firm()) ** 2 * 1.25 : 0;
+          const upd = new THREE.Vector3(0, Math.cos(tilt), 0).addScaledVector(nrm, -Math.sin(tilt)), pn = new THREE.Vector3().crossVectors(w, upd).normalize();
+          const c0 = (t: number) => { const th = Math.PI * t; return mid.clone().addScaledVector(w, -half * Math.cos(th)).addScaledVector(upd, H * Math.sin(th) - D.rh * (1 - Math.sin(th)) ** 3); };
+          let L = 0; for (let i = 1; i <= 60; i++) L += c0(i / 60).distanceTo(c0((i - 1) / 60));
+          const ns = Math.max(8, Math.round(L / D.sw)), row = (r: number) => Array.from({ length: ns + 1 }, (_, k) => { const t = k / ns, c = c0(t), T = c0(Math.min(1, t + .01)).sub(c0(Math.max(0, t - .01))).normalize(), o = new THREE.Vector3().crossVectors(T, pn).normalize(); if (o.dot(c.clone().sub(mid)) < 0) o.negate(); return c.addScaledVector(o, r * D.rh * .92); });
+          const put = (arr: THREE.Vector3[], rad: number) => { const cv = new THREE.CatmullRomCurve3(arr, false, "catmullrom", .5), g = buildYarn(cv.getSpacedPoints(Math.max(24, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g); };
+          let prev = row(0); put(prev, R * 1.15); // the chain
+          for (let r = 1; r <= rows; r++) { const cur = row(r), saw: THREE.Vector3[] = []; cur.forEach((q, k) => { saw.push(q.clone(), prev[k].clone().lerp(prev[Math.min(ns, k + 1)], .5)); }); put(saw, R); put(cur, R * .9); prev = cur; }
+          strapH = Math.max(strapH, H * Math.cos(tilt) + rows * D.rh); return;
+        }
         if (pat.strap === "long" && pat.strapCm < 70) {
           // one handle over the opening (Kim's round handbag): a thick crocheted cord, its section a flattened
           // ellipse (wide to the front), arching from the two sides - a little out first, then in to the top,
@@ -816,7 +835,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       }
     }
     // a drawn body: its rounds laid on the drawing's own outline - nothing else bends it afterwards
-    if (pat.outline && layOnOutline(D, pat.outline, b.x1 - b.x0 >= b.z1 - b.z0, cx, cz)) return;
+    if (pat.outline && layOnOutline(D, pat.outline, b.x1 - b.x0 >= b.z1 - b.z0, cx, cz)) { if (pat.gravity) drape(D); return; }
     if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
     const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
     if (s < .03) return;
@@ -836,6 +855,24 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const t = p.y / H, th = Math.atan2(p.z - cz, p.x - cx);
       const k = (1 + s * (.07 * Math.sin(Math.PI * Math.min(1, t * 1.1)) - .055 * t * t) * (.6 + .4 * slim)) * (1 + s * .04 * t * (Math.sin(2 * th + .6) + .5 * Math.sin(3 * th + 2.1)));
       p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; p.y -= s * .075 * t * t * H * (.6 + .4 * slim);
+    }
+  }
+  // how firmly the yarn holds a shape, 0-1 (Kim: nylon and cord stand, then cotton; the others are limp)
+  const firm = () => (st.preset === "cord" ? .92 : st.preset === "raffia" || st.preset === "jute" ? .8 : st.preset === "cotton" || st.preset === "linen" || st.preset === "tshirt" ? .5 : Math.max(.06, .3 - st.soft * .3));
+  // The piece under its own weight, as animation cloth is settled: every stitch is pulled down, kept at its
+  // distance from its neighbours (the fabric neither stretches nor shrinks: the wall has to fold or belly out),
+  // kept above the table, and drawn back towards the shape it was made in by as much as the yarn is firm.
+  function drape(D: ItemData) {
+    const n = D.P.length, G = D.P.map(p => p.clone()), f = firm(), rest = D.E.map(e => G[e[0]].distanceTo(G[e[1]])), d = new THREE.Vector3();
+    let H = 0; G.forEach(p => { if (p.y > H) H = p.y; }); if (H < D.rh * 3) return;
+    const g = H * .012 * (1 - f) ** 1.2, pull = .02 + .5 * f ** 2, IT_N = 160;
+    let cx = 0, cz = 0; G.forEach(p => { cx += p.x; cz += p.z; }); cx /= n; cz /= n;
+    for (let it = 0; it < IT_N; it++) {
+      for (let i = 0; i < n; i++) { const p = D.P[i], q = G[i]; if (q.y < D.rh * .5) continue; p.y -= g;
+        // a wall that is pushed down goes outwards rather than through itself; one side gives first
+        const k = g * .35 * (1 + .5 * Math.sin(3 * Math.atan2(q.z - cz, q.x - cx) + q.y)); p.x += (q.x - cx) / (Math.hypot(q.x - cx, q.z - cz) || 1) * k; p.z += (q.z - cz) / (Math.hypot(q.x - cx, q.z - cz) || 1) * k; }
+      for (let k = 0; k < 4; k++) for (let e = 0; e < D.E.length; e++) { const ed = D.E[e], a = D.P[ed[0]], b = D.P[ed[1]]; d.subVectors(b, a); const len = d.length() || 1e-6, c = (len - rest[e]) / len * .5; a.addScaledVector(d, c); b.addScaledVector(d, -c); }
+      for (let i = 0; i < n; i++) { const p = D.P[i], q = G[i]; p.lerp(q, pull * .12); const lo = q.y * (.42 + .58 * f); if (p.y < lo) p.y = lo; /* folded fabric piles up: it cannot lie thinner than that */ if (q.y < D.rh * .5) { p.y = q.y; } }
     }
   }
   // Every round on the drawn outline (lib/outline): the round's own place among the pattern's rounds gives its
@@ -1038,7 +1075,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
       if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; }
-      const retop = p.top !== pat.top || JSON.stringify(p.outline ?? null) !== JSON.stringify(pat.outline ?? null) || JSON.stringify(p.depth ?? null) !== JSON.stringify(pat.depth ?? null); // another kind of piece: the camera starts over
+      const retop = p.top !== pat.top || p.gravity !== pat.gravity || JSON.stringify(p.outline ?? null) !== JSON.stringify(pat.outline ?? null) || JSON.stringify(p.depth ?? null) !== JSON.stringify(pat.depth ?? null); // another kind of piece: the camera starts over
       pat = p;
       if (mat) Object.assign(st, presetOf(p.material));
       if (reshape) startItem();
