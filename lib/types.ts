@@ -44,6 +44,11 @@ export interface Draft {
   /** hook size in mm (the size name stays in `hook` for display) and its material */
   hookMm?: number | null;
   hookMaterial?: string;
+  /** the Girl's Diary book cover (lib/covers.ts id), picked on 도안 만들기's last step (Kim); none: a random one
+   *  when the work is saved (AppProvider addProject, coverAuto) */
+  cover?: string;
+  /** the cover was given at random (Kim: none picked) - the picker shows nothing chosen yet */
+  coverAuto?: boolean;
   /** beanie inputs (converted to a / h by engineDims) */
   circ?: number;
   depth?: number;
@@ -60,10 +65,6 @@ export interface Project extends Draft {
   updatedAt?: number;
   /** stitch width from the 5-row measurement (rows / tube items) */
   measuredW?: number | null;
-  /** the Girl's Diary book cover chosen after the pattern is made (lib/covers.ts id); none: the linen cover */
-  cover?: string;
-  /** the cover was given at random (Kim: none picked) - the picker shows nothing chosen yet */
-  coverAuto?: boolean;
   current: number;
   created: number;
 }

@@ -11,7 +11,7 @@ import { ClothPatch } from "./Diary";
 // the four sets of 2026-11-22 (Kim): 꽃 자수, 레이스와 리본, 무늬 천, 금실 자수
 const SETS: { title: string; ids: string[] }[] = COVER_SETS.map(st => ({ title: st.title, ids: COVERS.filter(c => c.id.startsWith(st.prefix)).map(c => c.id) }));
 
-export function CoverPicker({ p, onPick, onClose, first }: { p: Project; onPick: (id: string) => void; onClose: () => void; first?: boolean }) {
+export function CoverPicker({ p, onPick, onClose, first, title }: { p: Project; onPick: (id: string) => void; onClose: () => void; first?: boolean; title?: string }) {
   const [sel, setSel] = useState<string | null>(p.coverAuto ? null : p.cover ?? null);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [onClose]);
   // the preview book: this work, without its state tag
@@ -22,7 +22,7 @@ export function CoverPicker({ p, onPick, onClose, first }: { p: Project; onPick:
         <GoldDefs />
         <span className="cpk-grip" aria-hidden="true" />
         <header className="cpk-head">
-          <h2 id="cpkTitle">{first ? "도안이 완성되었습니다. 표지를 골라 주십시오" : "표지 바꾸기"}</h2>
+          <h2 id="cpkTitle">{title ?? (first ? "도안이 완성되었습니다. 표지를 골라 주십시오" : "표지 바꾸기")}</h2>
           <p>나의 도안집에 이 표지로 꽂힙니다. 나중에 바꿀 수 있습니다.</p>
         </header>
         <div className="cpk-scroll">
