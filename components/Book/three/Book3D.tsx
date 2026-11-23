@@ -415,7 +415,12 @@ function CameraRig({ anim, layer, wizard, coverIn = 0 }: { anim: Anim; layer: Cs
   // the bar is .ynav now (it was .nav: the book was fitted to the whole height and slid under it - Kim); measured
   // again a moment later too, in case the bar comes in after the book
   useEffect(() => {
-    const m = () => setNavH(wizard ? Math.max(0, Math.round(document.querySelector(".ynav, .nav")?.getBoundingClientRect().bottom ?? 0)) : 0);
+    // only as much of the bar as lies over the book's own box (raised over a page, the box already starts under it)
+    const m = () => {
+      if (!wizard) { setNavH(0); return; }
+      const nb = document.querySelector(".ynav, .nav")?.getBoundingClientRect().bottom ?? 0, top = document.getElementById("book")?.getBoundingClientRect().top ?? 0;
+      setNavH(Math.max(0, Math.round(nb - Math.max(0, top))));
+    };
     m(); const t1 = setTimeout(m, 300), t2 = setTimeout(m, 1200); return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [size, wizard]);
   useFrame(() => {
