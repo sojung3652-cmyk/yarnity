@@ -52,7 +52,7 @@ import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import { PATTERN_BY_ID, chartNameOf } from "@/lib/stitchPatterns";
 import { autoName, bodyOf, bodyPatch, bodyWidth, partLines, scaleDraft } from "@/lib/assemble";
-import { AskStart, NameStart } from "./AskStart";
+import { AskInline, AskStart, NameStart } from "./AskStart";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -211,6 +211,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the yarn first (Kim): the work screen opens on the yarn check; what to make is asked once the yarn is set
   // (모양 만들기 on the yarn check). The yarn can still be changed afterwards (its sections, 실 확인 on the top).
   const [yarnSet, setYarnSet] = useState(false), [named, setNamed] = useState(false);
+  /** what to make, answered (the window or 모양): the parts on at once, the first part's sliders open */
+  const applyAsk = (d: Draft) => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); window.dispatchEvent(new Event("yw:shape")); };
   useEffect(() => { const f = () => setYarnSet(true); window.addEventListener("yw:yarnset", f); return () => window.removeEventListener("yw:yarnset", f); }, []);
 
   // a new item starts from its own defaults (no values carried over from the previous item)
@@ -810,12 +812,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const setBottom = (k: "a" | "b" | "h", v: number) => { const nd = { ...draft, [k]: v }; apply({ [k]: v, ...(draft.asm && (draft.asm.belly >= .03 || k === "a") ? bodyPatch(nd, draft.asm.belly < .03 && draft.topA == null ? { ...draft.asm, top: nd.a } : draft.asm) : {}) }); };
     const ra = rng("a", [6, 40]), rb = rng("b", [4, 30]), rh = rng("h", [5, 40]);
     const widest = base ? Math.round(Math.max(...[0, .25, .5, .75, 1].map(t => bodyWidth(draft.a, form, t))) * 10) / 10 : 0;
+    // nothing made yet (Kim: 주관식): the reader's own words, no list of items to pick from
     const asmPanel = !picked ? (
-      <div className="nb-web">
-        <div className="asm-none"><p>조립할 부품이 아직 없습니다.</p>
-          <button type="button" className="nb-tile" onClick={() => setAsked(false)}>얀이에게 말로 설명하기</button></div>
-        <WebItems value="" onPick={pickItem} tried={tried} />
-      </div>
+      <div className="nb-web"><AskInline draft={draft} onApply={applyAsk} /></div>
     ) : (draft.free || draft.paint) ? (
       <div className="nb-web"><p className="nb-help">직접 그린 모양입니다. 부품으로 조립하려면 아래에서 뜰 것을 다시 정해 주십시오.</p>
         <button type="button" className="nb-tile" onClick={() => { patch({ free: undefined, paint: undefined, itemPicked: false }); setAsked(false); }}>부품으로 다시 시작하기</button></div>
@@ -944,7 +943,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       // the colour is part of the yarn (Kim): one 실 section, its colour first, then thickness and material
       { id: "yarn", title: "실", body: <><ColorStudio draft={draft} patch={patch} /><div className="yw-sub">{oneYarn}</div></> },
       { id: "needle", title: "바늘", body: oneHook },
-      { id: "stitch", title: "무늬", note: (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit" ? "대바늘" : "코바늘", body: oneStitch },
+      // 무늬 테스트해보기 (Kim): optional - tried on the yarn check's swatch
+      { id: "stitch", title: "무늬 테스트해보기", note: "선택", body: oneStitch },
       { id: "draw", title: "모양", note: picked ? itemLabel : undefined, body: oneAsm },
     ],
     done: () => {
@@ -958,7 +958,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // 조립하기: what to make, asked first (Kim); the 크기 틀 dragged on the 3D
     ask: big3d.open && !picked && !editId && !named ? <NameStart name={draft.name} onName={v => patch({ name: v })} onNext={() => setNamed(true)} />
       : big3d.open && yarnSet && !picked && !asked && !editId ? <AskStart draft={draft} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
-      onApply={d => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); window.dispatchEvent(new Event("yw:shape")); }} /> : undefined,
+      onApply={applyAsk} /> : undefined,
     onResize: picked && !draft.free && !draft.paint ? (fx, fy) => {
       if (fx !== 1 && fx === fy) { apply(scaleDraft(draft, fx)); return; }
       const lim = (k: "a" | "b" | "h", v: number) => { const r = item.range[k]; const x = Math.round(v * 2) / 2; return r ? Math.min(r[1], Math.max(r[0], x)) : x; };

@@ -9,7 +9,6 @@ import { readSpec, specToDraft } from "@/lib/sketchShape";
 import { guessSpec } from "@/lib/assemble";
 import { ClothLabel } from "./ClothLabel";
 
-const QUICK = ["가방", "파우치", "바구니", "모자", "목도리", "수세미", "코스터", "담요"];
 
 /** the first window (Kim: 이름을 먼저): the piece's name; may stay empty */
 export function NameStart({ name, onName, onNext }: { name: string; onName: (v: string) => void; onNext: () => void }) {
@@ -29,9 +28,9 @@ export function NameStart({ name, onName, onNext }: { name: string; onName: (v: 
   );
 }
 
-export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d: Draft) => void; onSkip: () => void }) {
+/** what to make, in the reader's own words (Kim: 주관식): 얀이 lays out the parts and they go on at once */
+function useAsk(draft: Draft, onApply: (d: Draft) => void) {
   const [text, setText] = useState(""), [busy, setBusy] = useState(false), [err, setErr] = useState("");
-
   const prepare = async () => {
     const t = text.trim(); if (!t || busy) { if (!t) setErr("무엇을 뜨고 싶은지 한 줄만 적어 주십시오."); return; }
     setBusy(true); setErr("");
@@ -47,26 +46,42 @@ export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d
     // the parts go on at once (Kim): they are added, changed and taken off afterwards in 모양
     onApply(specToDraft(draft, spec));
   };
+  const field = (
+    <label className="ask-f"><span>뜨고 싶은 것</span>
+      <textarea value={text} maxLength={300} rows={3} placeholder="예: 어깨에 메는 둥근 가방. 덮개가 있고 단추로 잠그면 좋겠어요."
+        onChange={e => { setText(e.target.value); setErr(""); }} onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); prepare(); } }} /></label>
+  );
+  return { busy, err, prepare, field };
+}
 
+/** the window after the yarn (Kim): only what to make; the parts and the rest are in 모양 */
+export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d: Draft) => void; onSkip: () => void }) {
+  const q = useAsk(draft, onApply);
   return (
     <div className="ask" role="dialog" aria-modal="true" aria-labelledby="ask-h">
       <div className="ask-box">
         <h2 id="ask-h">무엇을 떠 볼까요</h2>
-        <p className="ask-lead">적어 주신 내용으로 얀이가 부품을 맞춰 바로 조립합니다. 부품은 다음 화면에서 언제든 더하고 빼고 바꿀 수 있습니다.</p>
-        <label className="ask-f"><span>뜨고 싶은 것</span>
-          <textarea value={text} maxLength={300} rows={3} autoFocus placeholder="예: 어깨에 메는 둥근 가방. 덮개가 있고 단추로 잠그면 좋겠어요. 손잡이는 넓적하게."
-            onChange={e => { setText(e.target.value); setErr(""); }} onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); prepare(); } }} /></label>
-        <div className="ask-quick" role="group" aria-label="눌러서 넣기">
-          {QUICK.map(q => <button key={q} type="button" onClick={() => { setText(t => (t.trim() ? t.trim() + " " : "") + q); setErr(""); }}>{q}</button>)}
-          <span>눌러서 넣어도 됩니다</span>
-        </div>
-        {err && <p className="ask-err" role="alert">{err}</p>}
+        <p className="ask-lead">자유롭게 적어 주십시오. 얀이가 부품을 맞춰 조립하고, 크기와 부품은 다음 화면에서 정합니다.</p>
+        {q.field}
+        {q.err && <p className="ask-err" role="alert">{q.err}</p>}
         <div className="ask-foot">
-          <span className="ask-skipnote">건너뛰면 부품을 목록에서 직접 고릅니다.</span>
-          <ClothLabel side="back" type="button" onClick={onSkip}>건너뛰기</ClothLabel>
-          <ClothLabel side="next" type="button" onClick={prepare} blocked={busy}>{busy ? "조립하는 중…" : "조립하기 →"}</ClothLabel>
+          <ClothLabel side="back" type="button" onClick={onSkip}>나중에</ClothLabel>
+          <ClothLabel side="next" type="button" onClick={q.prepare} blocked={q.busy}>{q.busy ? "조립하는 중…" : "조립하기 →"}</ClothLabel>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** the same question inside 모양, while nothing is made yet (no list of items to pick: the reader's own words) */
+export function AskInline({ draft, onApply }: { draft: Draft; onApply: (d: Draft) => void }) {
+  const q = useAsk(draft, onApply);
+  return (
+    <div className="ask-in">
+      <p className="ask-in-h">무엇을 떠 볼까요</p>
+      {q.field}
+      {q.err && <p className="ask-err" role="alert">{q.err}</p>}
+      <button type="button" className="sk-make" onClick={q.prepare} disabled={q.busy}>{q.busy ? "조립하는 중…" : "조립하기"}</button>
     </div>
   );
 }
