@@ -26,6 +26,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ellipseRing, roundSection, type Outline } from "@/lib/outline";
+import type { Chart } from "@/lib/crochetChart";
 import { stitchOf } from "@/lib/knit";
 
 export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal"
@@ -40,7 +41,9 @@ export type YarnShape =
   | { kind: "tube"; W: number; H: number; circCm: number; hCm: number }    // in the round, no bottom
   // a painted picture (직접 그리기 · 자유롭게): W x H stitches, row-major from the bottom, -1 = a hole, else the
   // colour's index in `colors`; it stands up facing you (two of it, front and back, for pieces 2)
-  | { kind: "grid"; W: number; H: number; wCm: number; hCm: number; cells: number[]; pieces?: 1 | 2 };
+  | { kind: "grid"; W: number; H: number; wCm: number; hCm: number; cells: number[]; pieces?: 1 | 2 }
+  // a crochet stitch pattern (lib/crochetChart: shells, mesh...), lying flat: every stitch from its base to its top
+  | { kind: "chart"; chart: Chart; wCm: number; hCm: number };
 export interface YarnPattern {
   shape: YarnShape;
   /** one colour per course, bottom first (a shorter list: its last colour goes on) */
@@ -166,6 +169,7 @@ export function stitchCount(s: YarnShape): number {
   if (s.kind === "round") return s.counts.reduce((a, b) => a + b, 0);
   if (s.kind === "oval" || s.kind === "rect") return s.chain + [...s.bottom, ...s.body].reduce((a, b) => a + b, 0);
   if (s.kind === "grid") return s.cells.filter(c => c >= 0).length * (s.pieces ?? 1);
+  if (s.kind === "chart") return s.chart.st.length * 3 + s.chart.ch.length;
   return s.W * s.H;
 }
 
@@ -333,6 +337,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   }
 
   // ---------- pattern -> 3D: stitch = point, joins = springs (the shape comes from the counts alone)
+  // a chart's place on the table (set by makeItem for a chart: its x along, its y away, its height up)
+  let chartAt: ((x: number, y: number, up?: number) => THREE.Vector3) | null = null;
   function makeItem(): ItemData {
     // round / oval / rect past the stitch budget (sizes have no limit: a 3m rug is 100,000s of stitches): every
     // k-th round is drawn with 1/k of its stitches and the stitch k times as big, so the size and shape stay
@@ -513,6 +519,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       fixed = true; skip = k > 1 ? { stitch: k, row: k } : null; rhOut = ey; swOut = ex;
       rows(W, H, ex, ey, swap, midCi(k, s.H));
       if (s.knit) knit = { type: "flat", W, H, swap, wk: ex, rk: ey, rho: 0, R: 0 };
+    } else if (s.kind === "chart") {
+      // the chart lies flat, its rows going away from the viewer; its points only give the piece its size
+      const ex = s.wCm * 10 / MM / Math.max(1, s.chart.W), ey = s.hCm * 10 / MM / Math.max(1, s.chart.H);
+      const ca = (x: number, y: number, up = 0) => new THREE.Vector3((x - (s.chart.W - 1) / 2) * ex, up, -(y - s.chart.H / 2) * ey); chartAt = ca;
+      s.chart.st.forEach(c => { P.push(ca(c.b[0], c.b[1]), ca(c.t[0], c.t[1])); }); s.chart.ch.forEach(c => P.push(ca(c[0], c[1])));
+      fixed = true; rhOut = ey; swOut = ex; flat.push(...P.map((_, i) => i));
     } else if (s.kind === "grid") {
       const k = skipOf(s.W, s.H * (s.pieces ?? 1)), { ex, ey } = grid(s, k);
       fixed = true; skip = k > 1 ? { stitch: k, row: k } : null; rhOut = ey; swOut = ex;
@@ -538,7 +550,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const n = D.P.length, pos = new Float32Array(n * 3); const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     const ring: number[] = [], vert: number[] = []; D.E.forEach(e => { if (e[3] === 1) (Math.abs(e[2] - D.sw) < 1e-9 ? ring : vert).push(e[0], e[1]); });
     const mk = (idx: number[], color: number, op: number) => { const g = new THREE.BufferGeometry(); g.setAttribute("position", pg.getAttribute("position")); g.setIndex(idx); return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: lin(color), transparent: true, opacity: op })); };
-    const LC = D.C[D.C.length - 1], hi: number[] = []; for (let i = 0; i < LC.idx.length - (LC.closed ? 0 : 1); i++) hi.push(LC.idx[i], LC.idx[(i + 1) % LC.idx.length]);
+    const LC = D.C[D.C.length - 1] ?? { idx: [], closed: false }, hi: number[] = []; for (let i = 0; i < LC.idx.length - (LC.closed ? 0 : 1); i++) hi.push(LC.idx[i], LC.idx[(i + 1) % LC.idx.length]);
     const g = new THREE.Group(); g.add(mk(vert, 0xb99447, .28), mk(ring, 0xb08a3e, .9), mk(hi, 0xc0787e, 1), new THREE.Points(pg, new THREE.PointsMaterial({ color: lin(0xa8823a), size: .11, sizeAttenuation: true })));
     g.userData.pos = pg.getAttribute("position"); return g;
   }
@@ -553,6 +565,25 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   function buildItemYarn(D: ItemData) {
     const R = yarnR(D), geos: THREE.BufferGeometry[] = [];
     const mat = yarnMat(R), M = LOD.M, step = LOD.step, lp = (b: Bot) => D.P[b[0]].clone().lerp(D.P[b[1]], b[2]);
+    if (pat.shape.kind === "chart" && chartAt) {
+      // a crochet chart, stitch by stitch: each stitch's head lying on its top (a loop across the post), its post
+      // as two strands from the base up, and a long stitch's wrap round the middle; each chain its own loop
+      const s = pat.shape, at = chartAt, color = colorOf(0), add = (pts: THREE.Vector3[], closed: boolean, rad = R) => {
+        const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5), g = buildYarn(cv.getSpacedPoints(Math.max(16, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color });
+        const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
+      };
+      // loops lie in the fabric (an oval across, short along), just above it
+      const loop = (c: THREE.Vector3, ax: THREE.Vector3, al: THREE.Vector3, w: number, d: number, h: number) => { const pts: THREE.Vector3[] = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; pts.push(c.clone().addScaledVector(ax, Math.cos(a) * w).addScaledVector(al, Math.sin(a) * d).setY(h * (1 + .35 * Math.sin(a)))); } return pts; };
+      const X1 = new THREE.Vector3(1, 0, 0), Z1 = new THREE.Vector3(0, 0, 1), r = R * .82;
+      s.chart.ch.forEach(([x, y]) => add(loop(at(x, y), X1, Z1, D.sw * .4, D.rh * .2, r), true, r * .9));
+      s.chart.st.forEach(c => {
+        const b = at(c.b[0], c.b[1]), t = at(c.t[0], c.t[1]), dir = t.clone().sub(b), dn = dir.clone().normalize(), across = new THREE.Vector3(-dn.z, 0, dn.x), w = D.sw * .15;
+        add(loop(t, across, dn, D.sw * .44, D.rh * .2, r * 1.3), true, r);
+        for (const k of [-1, 1]) add([b.clone().addScaledVector(across, w * k).setY(r), b.clone().lerp(t, .5).addScaledVector(across, w * k * 1.35).setY(r * 2), t.clone().addScaledVector(across, w * k * .6).addScaledVector(dn, -D.rh * .2).setY(r * 1.3)], false, r);
+        if (c.type !== "sc") { const m1 = b.clone().lerp(t, .38), m2 = b.clone().lerp(t, .56); add([m1.clone().addScaledVector(across, -D.sw * .22).setY(r * 1.4), m1.clone().lerp(m2, .5).setY(r * 3), m2.clone().addScaledVector(across, D.sw * .22).setY(r * 1.4)], false, r * .95); }
+      });
+      haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz); strapH = 0; flapTip = null; return;
+    }
     if (D.knit) buildKnit(D, R, mat, geos);
     else D.C.forEach(c => {
       const tops = c.idx.map(n => D.P[n].clone()), saw: THREE.Vector3[] = [];
@@ -796,6 +827,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       : k < .8 ? "바늘이 가늘어서 빡빡하고 단단한 편물이 됩니다." : k > 1.45 ? "바늘이 굵어서 성글고 부드러운 편물이 됩니다." : "실과 바늘이 잘 맞습니다.";
     const round = s.kind === "round" || s.kind === "tube";
     const h = s.kind === "tube" ? cm(my + D.rh) : my > D.rh * 2 ? cm(my) : null;
+    if (s.kind === "chart") { opts.onInfo({ round: false, widthCm: s.wCm, depthCm: s.hCm, heightCm: null, fit, skip: null }); return { my: D.rh, mr: Math.max(dx, dz) / 2 }; }
     if (s.kind === "grid") { opts.onInfo({ round: false, widthCm: s.wCm, depthCm: s.hCm, heightCm: null, fit, skip: D.skip }); return { my, mr: Math.max(dx, my) / 2 }; }
     opts.onInfo({ round, widthCm: cm(Math.max(dx, dz)), depthCm: cm(Math.min(dx, dz)), heightCm: h, fit, skip: D.skip });
     return { my, mr: Math.max(dx, dz) / 2 };

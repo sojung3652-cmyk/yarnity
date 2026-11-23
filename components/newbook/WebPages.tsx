@@ -14,6 +14,8 @@ import type { Draft } from "@/lib/types";
 import { CROCHET, YARN_KO, type CrochetStitch, type Weight } from "@/lib/pattern";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
+import { familiesOf, PATTERN_BY_ID, STITCH_PATTERNS, type StitchPattern } from "@/lib/stitchPatterns";
+import { CHART_MULT, CHART_ROWS, type ChartKey } from "@/lib/crochetChart";
 import { GROUPS, ITEM, ITEMS, type Item, type ItemId } from "@/lib/items";
 import { Fold, useOneOpen } from "./Fold";
 import { ItemArt } from "./ItemArt";
@@ -382,32 +384,58 @@ export function CrochetChart({ k }: { k: CrochetStitch }) {
     </svg>
   );
 }
-/** 무늬 by the needle (Kim: 코바늘, 대바늘 별로): the needle as a joined choice first, then that needle's own
- *  stitches as chart tiles. The pick is kept for each needle (Draft.crochetStitch, Draft.stitch), so trying the
- *  other needle and coming back keeps it. `flatOnly`: knitting is worked out for flat pieces only - said so. */
+/** 무늬 by the needle (Kim: 메리야스뜨기, 부채모양뜨기 - the named patterns, by the needle): the needle as a joined
+ *  choice, the needle's families as tabs, every named pattern of the family as a tile - a picture where the 3D
+ *  draws it, its name alone where it does not yet - and under them how the picked one is worked. Picking one
+ *  sets what the 3D and the pattern use (Draft.stitch for knitting, crochetStitch / crochetChart for crochet). */
 export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly }: { draft: Draft; patch: Patch; n: number; craft: "crochet" | "knit"; flatOnly?: boolean }) {
-  const cs = draft.crochetStitch ?? "sc", keys = Object.keys(CROCHET) as CrochetStitch[];
+  const fams = familiesOf(craft);
+  const cur = (draft.pattern && PATTERN_BY_ID[draft.pattern]?.needle === craft ? PATTERN_BY_ID[draft.pattern] : null)
+    ?? STITCH_PATTERNS.find(p => p.needle === craft && p.draw === (craft === "knit" ? "kn:" + (draft.stitch ?? "stock") : draft.crochetChart ? "ch:" + draft.crochetChart : "st:" + (draft.crochetStitch ?? "sc")))!;
+  const [tab, setTab] = useState<string>(cur?.fam ?? fams[0]);
+  const fam = fams.includes(tab) ? tab : fams[0], list = STITCH_PATTERNS.filter(p => p.needle === craft && p.fam === fam);
+  const pick = (p: StitchPattern) => {
+    const [k, v] = (p.draw ?? ":").split(":");
+    if (craft === "knit") patch({ pattern: p.id, ...(k === "kn" ? { stitch: v } : {}) });
+    else patch({ pattern: p.id, ...(k === "st" ? { crochetStitch: v === "sc" ? undefined : v as CrochetStitch, crochetChart: undefined } : k === "ch" ? { crochetChart: v as ChartKey, crochetStitch: undefined } : {}) });
+  };
+  const pic = (p: StitchPattern) => {
+    const [k, v] = (p.draw ?? ":").split(":");
+    if (k === "kn") return <StitchChart s={stitchOf(v)} />;
+    if (k === "st") return <CrochetChart k={v as CrochetStitch} />;
+    if (k === "ch") return <img className="nb-chart" src={`/stitches/${v}.webp`} alt="" width={120} height={120} />;
+    return null;
+  };
+  const [ck, cv] = (cur?.draw ?? ":").split(":");
+  const knitNow = ck === "kn" ? stitchOf(cv) : null, left = knitNow && knitNow.mult > 1 ? n % knitNow.mult : 0;
   return (
     <div className="nb-web">
       <div className="nb-wg">
-        <Head note="바늘마다 고를 수 있는 무늬가 다릅니다">바늘</Head>
         <div className="nb-needle" role="radiogroup" aria-label="바늘">
           {([["crochet", "코바늘"], ["knit", "대바늘"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={craft === k} onClick={() => patch({ craft: k })}>{t}</button>)}
         </div>
+        {flatOnly && <p className="nb-help nb-needle-note">대바늘 도안은 목도리처럼 평평하게 뜨는 편물에서 만들어집니다. 이 모양의 도안은 코바늘로 계산하고, 무늬는 3D 실 확인에서 볼 수 있습니다.</p>}
       </div>
-      {craft === "crochet" ? (
-        <div className="nb-wg">
-          <Head note={CROCHET[cs].note}>코바늘 무늬</Head>
-          <div className="nb-tiles nb-tiles-4 nb-stitches" role="radiogroup" aria-label="코바늘 무늬">
-            {keys.map(k => <button key={k} type="button" role="radio" aria-checked={cs === k} className="nb-tile nb-stitch" onClick={() => patch({ crochetStitch: k === "sc" ? undefined : k })}><CrochetChart k={k} />{CROCHET[k].ko}</button>)}
-          </div>
-          <p className="nb-wnote">칸 높이는 한 단의 높이입니다. 키가 큰 무늬일수록 같은 높이를 적은 단으로 뜹니다.</p>
+      <div className="nb-tabs nb-famtabs" role="tablist" aria-label={(craft === "knit" ? "대바늘" : "코바늘") + " 무늬 종류"}>
+        {fams.map(f => <button key={f} type="button" role="tab" aria-selected={f === fam} onClick={() => setTab(f)}>{f}</button>)}
+      </div>
+      <div className="nb-pats" role="radiogroup" aria-label={fam + " 무늬"}>
+        {list.map(p => (
+          <button key={p.id} type="button" role="radio" aria-checked={cur?.id === p.id} className={"nb-pat" + (p.draw ? " has-pic" : "")} onClick={() => pick(p)}>
+            {pic(p)}<span>{p.ko}</span>{p.draw ? <small>{p.mult.split(" · ")[0]}</small> : <small className="nb-pat-later">3D 준비 중</small>}
+          </button>
+        ))}
+      </div>
+      {cur && (
+        <div className="nb-patdet" aria-live="polite">
+          <h3>{cur.ko}<small>{cur.en} · {cur.level}</small></h3>
+          <p>{cur.how}</p>
+          {cur.mult !== "—" && <p className="nb-patm">{cur.mult}</p>}
+          {ck === "ch" && <ol>{CHART_ROWS[cv as ChartKey].map((r, i) => <li key={i}>{r}</li>)}</ol>}
+          {knitNow && knitNow.mult > 1 && <p className="nb-patfit">{left ? `${knitNow.mult}코 단위 무늬인데 지금 폭은 ${n}코라서 가장자리에서 ${left}코 남습니다.` : `${knitNow.mult}코 단위 무늬이고, 지금 폭 ${n}코에 딱 맞습니다.`}</p>}
+          {ck === "ch" && (() => { const [m, a] = CHART_MULT[cv as ChartKey], r = (n - a) % m; return <p className="nb-patfit">{r ? `${m}코 + ${a} 단위 무늬라서, 지금 폭 ${n}코에서는 ${n - r}코나 ${n - r + m}코가 딱 맞습니다.` : `지금 폭 ${n}코에 딱 맞습니다.`}</p>; })()}
+          {!cur.draw && <p className="nb-patfit">이 무늬는 도안에 이름으로 적어 둡니다. 3D와 단별 글은 아직 기본 코로 보여 드립니다.</p>}
         </div>
-      ) : (
-        <>
-          {flatOnly && <p className="nb-help nb-needle-note">대바늘 도안은 목도리처럼 평평하게 뜨는 편물에서 만들어집니다. 이 모양의 도안은 코바늘로 계산하고, 무늬는 3D 실 확인에서 볼 수 있습니다.</p>}
-          <WebStitch draft={draft} patch={patch} n={n} />
-        </>
       )}
     </div>
   );

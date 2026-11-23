@@ -9,10 +9,13 @@
 import { CROCHET, paintMask, paintSize, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
+import { compileChart, type ChartKey } from "@/lib/crochetChart";
 import type { YarnMaterial, YarnPattern, YarnShape } from "./engine";
 
 /** the pattern's own fields the engine reads (Draft and Project both have them) */
 export interface YarnSource extends PlanInput {
+  /** a crochet stitch pattern drawn as a chart (lib/crochetChart: 부채모양뜨기...) on a flat crocheted piece */
+  crochetChart?: ChartKey | null;
   flapShape?: "half" | "square" | "triangle";
   handleCount?: 1 | 2;
   flapColor?: string;
@@ -70,6 +73,12 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     // a drawn shape: its rounds as they are, each in the colour drawn at its height
     const rr = pp.rows.filter(r => r.part === "bottom" || r.part === "body"); if (!rr.length) return null;
     shape = { kind: "round", counts: rr.map(r => Math.max(1, Math.round(r.n))), flat: pp.bottomRounds }; rowColors = rr.map(r => r.color);
+  } else if (p.object === "rows" && p.crochetChart && !isKnit(p)) {
+    // a crochet stitch pattern: as many stitches across as the piece has (to the pattern's multiple), as many
+    // rows as reach its height, each stitch drawn from where it is worked into
+    const rows = counts("rows"), g = pp.g, hc = (p.b ?? p.a), k = p.crochetChart;
+    const ch = compileChart(k, Math.min(61, Math.max(7, rows[0] || Math.round(p.a / g.w))), Math.max(2, Math.min(14, Math.round(hc / (g.h * 2.05)))));
+    shape = { kind: "chart", chart: ch, wCm: ch.W * g.w, hCm: ch.H * g.h };
   } else if (p.object === "rows") {
     const rows = counts("rows"); if (!rows.length) return null;
     shape = { kind: "rows", W: rows[0], H: rows.length, wCm: p.a, hCm: p.b ?? p.a, knit: isKnit(p), stitch: p.stitch ?? undefined };

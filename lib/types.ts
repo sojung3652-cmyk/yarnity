@@ -48,6 +48,9 @@ export interface Draft {
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean };
   /** the crochet stitch (Kim: 코바늘 무늬; lib/pattern CROCHET) */
   crochetStitch?: import("./pattern").CrochetStitch;
+  /** a crochet stitch pattern drawn as a chart (lib/crochetChart), and the named pattern picked (lib/stitchPatterns) */
+  crochetChart?: import("./crochetChart").ChartKey;
+  pattern?: string;
   /** a bag's flap outline below the front edge (3D) and how many handles: 1 across the top, or 2 */
   flapShape?: "half" | "square" | "triangle";
   handleCount?: 1 | 2;
