@@ -20,6 +20,7 @@ import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "
 import { store } from "@/lib/store";
 import { BUTTONS, LABEL_GROUPS, extraPic } from "@/lib/extras";
 import { shots } from "@/lib/shots";
+import { endEdit3d } from "@/lib/edit3d";
 import { ExtraPicker } from "./ExtraPicker";
 import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
@@ -387,13 +388,21 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     if (!webStart) { if (phone) store.set("iyarn.go3d", 0); return; }
     const t = setTimeout(() => { store.set("iyarn.go3d", 0); next(); }, 700); return () => clearTimeout(t);
   }, [ready, step, webStart]); // eslint-disable-line react-hooks/exhaustive-deps
-  // 고치기 (Kim: straight into the 3D work screen): a work opened to be changed goes on to its shape at once
+  // 고치기 (Kim: straight into the 3D work screen, the book never seen): a work opened to be changed goes on to
+  // its shape at once; closed without finishing, it goes back where it came from (lib/edit3d)
+  const edit3d = useRef(false);
   useEffect(() => {
     if (!ready || !editId || !store.get<number>("iyarn.edit3d", 0)) return;
-    if (!(web && inBook != null && big3d.supported)) { if (phone) store.set("iyarn.edit3d", 0); return; }
-    const t = setTimeout(() => { store.set("iyarn.edit3d", 0); setNamed(true); setYarnSet(true); bookPause.set(true); big3d.show(); setSheet(3, 0); go(3); setTimeout(() => window.dispatchEvent(new Event("yw:shape")), 400); }, 500);
+    if (!(web && inBook != null && big3d.supported)) { if (phone) { store.set("iyarn.edit3d", 0); endEdit3d(); } return; }
+    const t = setTimeout(() => { store.set("iyarn.edit3d", 0); edit3d.current = true; setNamed(true); setYarnSet(true); bookPause.set(true); big3d.show(); setSheet(3, 0); go(3); setTimeout(() => window.dispatchEvent(new Event("yw:shape")), 400); }, 60);
     return () => clearTimeout(t);
   }, [ready, editId, web, inBook, big3d.supported]); // eslint-disable-line react-hooks/exhaustive-deps
+  const was3d = useRef(false);
+  useEffect(() => {
+    if (big3d.open) { was3d.current = true; return; }
+    if (!was3d.current) return; was3d.current = false;
+    if (edit3d.current) { edit3d.current = false; book.close(); setTimeout(endEdit3d, 1600); } // kept even as the page changes
+  }, [big3d.open]); // eslint-disable-line react-hooks/exhaustive-deps
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
@@ -468,7 +477,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // wide screens with the 3D: the book's pages between are gone (Kim) - the work screen closed on them goes to
   // 확인 (something made) or back to the first page
   useEffect(() => {
-    if (web && inBook != null && big3d.supported && (step === 2 || step === 3) && !big3d.open) { const t = setTimeout(() => go(picked ? 4 : 1, true), 60); return () => clearTimeout(t); }
+    if (web && inBook != null && big3d.supported && (step === 2 || step === 3) && !big3d.open) {
+      const t = setTimeout(() => go(picked ? 4 : 1, true), 60); return () => clearTimeout(t);
+    }
   }, [web, inBook, step, big3d.open]); // eslint-disable-line react-hooks/exhaustive-deps
   const back = () => {
     if (web && inBook != null && big3d.supported && step === 4) { go(1); return; }
@@ -1000,7 +1011,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       ? () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); }
       : () => {
         if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.yw [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
-        big3d.close(); setSheet(3, sheets3 - 1); go(4, true);
+        edit3d.current = false; endEdit3d(); big3d.close(); setSheet(3, sheets3 - 1); go(4, true);
       },
     doneLabel: !yarnSet ? "모양 만들기 →" : "확인하기 →", blocked: yarnSet && (!picked || !stepOk),
     footNote: !yarnSet ? "실을 다 정하셨으면 무엇을 뜰지 정합니다. 실은 나중에도 바꿀 수 있습니다." : undefined,

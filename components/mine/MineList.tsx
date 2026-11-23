@@ -6,7 +6,7 @@
 // (도안 고치기, 중단 / 다시 시작, 완성으로 표시, 이름 바꾸기, 복제, 지우기). Deleting asks first and can be undone
 // for 6 seconds. Light from the upper right: every shadow falls to the lower left (mine.css).
 import Link from "next/link";
-import { store } from "@/lib/store";
+import { startEdit3d } from "@/lib/edit3d";
 import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -203,7 +203,7 @@ export function MineList({ query, onNew, onImport }: { query?: string; onNew?: (
     else if (a === "view") setActive(p.id);
     else if (a === "cover" && v) updateProject(p.id, { cover: v, coverAuto: false });
     else if (a === "photos") setPhotoFor(p.id);
-    else if (a === "edit") { setOpen(null); store.set("iyarn.edit3d", 1); book.editHere(p.id); } // the book rises over this list; closing it comes back here
+    else if (a === "edit") { setOpen(null); startEdit3d(); book.editHere(p.id); } // the book rises over this list; closing it comes back here
     else if (a === "pause") updateProject(p.id, { status: "paused", pausedAt: Date.now() });
     else if (a === "unpause") updateProject(p.id, { status: "knitting", pausedAt: null });
     else if (a === "done") updateProject(p.id, { status: "done", pausedAt: null });

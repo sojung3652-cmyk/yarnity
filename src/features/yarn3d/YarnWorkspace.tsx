@@ -201,7 +201,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           ? <label className="yw-name yw-name-in"><span className="sr">작품 이름</span>
               <input value={extra.name.value} maxLength={40} placeholder="작품 이름" autoComplete="off" spellCheck={false}
                 onChange={e => extra.name!.onChange(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }} />
-              {extra.sub && <small>{extra.sub}</small>}</label>
+              {/* what it is, beside a given name only (Kim: no name - just "작품 이름", faint) */}
+              {extra.sub && extra.name.value.trim() && extra.name.value.trim() !== extra.sub && <small>{extra.sub}</small>}</label>
           : <p className="yw-name">{extra?.title ?? "3D 미리 보기"}{extra?.sub && <small>{extra.sub}</small>}</p>}
         {!noGL && <>
           <div className="yw-bar">
