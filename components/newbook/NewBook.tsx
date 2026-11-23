@@ -195,7 +195,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     if (p) {
       const it = ITEM[itemIdOf(p)];
       const { id: _id, measuredH: _mh, measuredW: _mw, current: _cur, created: _cr, ...saved } = p; // eslint-disable-line @typescript-eslint/no-unused-vars
-      d = { ...saved, itemPicked: true, name: p.name === NO_NAME ? "" : p.name, item: it.id, circ: p.circ ?? it.defaults.circ, depth: p.depth ?? it.defaults.depth,
+      d = { ...saved, editOf: p.id, itemPicked: true, name: p.name === NO_NAME ? "" : p.name, item: it.id, circ: p.circ ?? it.defaults.circ, depth: p.depth ?? it.defaults.depth,
         yarnMode: p.yarnMode ?? (p.yarnMm ? "mm" : "level") }; // older works: their thin/medium/thick stays
       setDraft(d); setEditId(p.id);
     }
@@ -447,7 +447,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // waits in 나의 도안집); the next 새 도안 starts clean. Phones and the one-page /new go to 완성 도안 as before.
     // wide screens, in the 3D book: the book sinks and the finished pattern is shown (Kim: 완성 · 최종 도안 보기
     // used to put the book away and show nothing); the next 새 도안 starts clean
-    if (inBook && !phone) { if (!editId) setDraft(freshDraft()); book.sinkTo("/pattern"); return; }
+    // saved (Kim): nothing of it stays as a draft to go on with - a made work is changed only with 고치기
+    setDraft(freshDraft()); store.set(STEP_KEY, 1);
+    if (inBook && !phone) { book.sinkTo("/pattern"); return; }
     router.push("/pattern");
   };
   // the web's step 3, spread by spread: the yarn needs only its thickness; the hook-and-size spread its

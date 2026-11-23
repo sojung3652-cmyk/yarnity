@@ -16,15 +16,14 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
   always?: boolean;
 }) {
   const { removeProjects, restoreProjects, setDraft } = useApp();
-  const hasDraft = !!(draft.itemPicked || draft.name.trim() || draft.free || draft.paint);
+  const hasDraft = !draft.editOf && !!(draft.itemPicked || draft.name.trim() || draft.free || draft.paint);
   // every work, newest first (the list scrolls), so each can be found and taken away (Kim)
-  const works = [...projects].sort((a, b) => (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created));
   const [picking, setPicking] = useState(false), [picked, setPicked] = useState<string[]>([]), [ask, setAsk] = useState<string[] | null>(null);
   const [undo, setUndo] = useState<{ n: number; r?: Removed; d?: Draft } | null>(null);
   useEffect(() => { if (!undo) return; const t = setTimeout(() => setUndo(null), 6000); return () => clearTimeout(t); }, [undo]);
   const rows: { id: string; name: string; sub: string; open: () => void }[] = [
     ...(hasDraft ? [{ id: "draft", name: draft.name.trim() || "이름 없는 도안", sub: `만들던 도안${draft.itemPicked ? ` · ${draft.free || draft.paint ? "직접 그린 모양" : ITEM[itemIdOf(draft)].name}` : ""}`, open: onDraft }] : []),
-    ...works.map(p => ({ id: p.id, name: p.name, sub: `${ITEM[itemIdOf(p)].name} · ${new Date(p.updatedAt ?? p.created).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })}`, open: () => onOpen(p.id) })),
+    // saved works are not here (Kim): they are in 나의 도안집, changed only with 고치기
   ];
   const allIds = rows.map(r => r.id), allOn = allIds.length > 0 && allIds.every(id => picked.includes(id));
   const nameOf = (id: string) => rows.find(r => r.id === id)?.name ?? "";
@@ -34,8 +33,7 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
     if (d) { setDraft(freshDraft()); store.set("iyarn.newstep", 1); }
     setUndo({ n: ids.length, r, d }); setAsk(null); setPicked([]); setPicking(false);
   };
-  if (!hasDraft && !works.length && !always) return null;
-  const day = (t: number) => new Date(t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
+  if (!hasDraft && !always) return null;
   if (always) return (
     <div className="st st-big">
       <p className="st-kicker" lang="en">new pattern</p>
@@ -49,16 +47,9 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
           <span className="tp-label-top" lang="en">continue</span><b>이어서 하기</b><span className="st-desc">만들던 것 불러오기</span>
         </button>
       </div>
-      {mode === "go" && !hasDraft && !works.length && !undo && <p className="nb-help st-none">이어서 할 것이 아직 없습니다. 새로 시작해 주십시오.</p>}
-      {mode === "go" && (hasDraft || !!works.length) && (
+      {mode === "go" && !hasDraft && !undo && <p className="nb-help st-none">만들다 만 도안이 없습니다. 저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>}
+      {mode === "go" && hasDraft && (
         <div className="st-go">
-          <div className="st-tools">
-            {picking ? <>
-              <button type="button" className="nb-link" onClick={() => setPicked(allOn ? [] : allIds)}>{allOn ? "전체 해제" : "전체 선택"}</button>
-              <button type="button" className="nb-link" disabled={!picked.length} onClick={() => setAsk(picked)}>{picked.length}개 지우기</button>
-              <button type="button" className="nb-link st-muted" onClick={() => { setPicking(false); setPicked([]); }}>선택 취소</button>
-            </> : <button type="button" className="nb-link" onClick={() => setPicking(true)}>선택</button>}
-          </div>
           {/* asked here, never with a browser dialog; the works can be brought back for a few seconds */}
           {ask && (
             <div className="st-ask-del" role="alertdialog" aria-label="지우기">
@@ -93,19 +84,14 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
       <p className="st-ask">어디서부터 시작하시겠습니까?</p>
       <Tiles label="시작" value={mode ?? ""} cols={2} onPick={v => { onMode(v as "new" | "go"); if (v === "new") onFresh(); }}
         options={[["new", "새로 시작", "빈 종이에서"], ["go", "이어서 하기", "만들던 것 불러오기"]]} />
-      {mode === "go" && !hasDraft && !works.length && <p className="nb-help st-none">이어서 할 것이 아직 없습니다. 새로 시작해 주십시오.</p>}
-      {mode === "go" && (hasDraft || !!works.length) && (
+      {mode === "go" && !hasDraft && <p className="nb-help st-none">만들다 만 도안이 없습니다. 저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>}
+      {mode === "go" && hasDraft && (
         <ul className="st-list">
           {hasDraft && (
             <li><button type="button" onClick={onDraft}>
               <b>{draft.name.trim() || "이름 없는 도안"}</b><span>만들던 도안{draft.itemPicked ? ` · ${draft.free || draft.paint ? "직접 그린 모양" : ITEM[itemIdOf(draft)].name}` : ""}</span>
             </button></li>
           )}
-          {works.map(p => (
-            <li key={p.id}><button type="button" onClick={() => onOpen(p.id)}>
-              <b>{p.name}</b><span>{ITEM[itemIdOf(p)].name} · {day(p.updatedAt ?? p.created)}</span>
-            </button></li>
-          ))}
         </ul>
       )}
     </div>

@@ -64,6 +64,9 @@ export interface Draft {
   flapShape?: "half" | "square" | "triangle";
   /** how far a bag's top stays open, cm (Kim: with a flap the top closes to this; 0 shut as a zipper's) */
   topGapCm?: number | null;
+  /** the draft holds a saved work opened with 고치기 (Kim: a made work is changed only that way) - never shown as
+   *  something to go on with */
+  editOf?: string;
   /** how the top closes (Kim): "spread" the sides go out; "tuck" the width kept, the sides folded in */
   topFold?: "spread" | "tuck";
   handleCount?: 1 | 2;

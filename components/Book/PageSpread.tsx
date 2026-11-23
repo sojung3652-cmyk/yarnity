@@ -64,7 +64,7 @@ export function RightPage({ onClose }: { onClose: () => void }) {
   // picture of this page on the turning leaf still shows the choice that was made
   useEffect(() => { if (book.view !== "wizard") setChoose(false); }, [book.view]);
   const saved = (() => { const s = store.get<number>("iyarn.newstep", 1); return (s >= 1 && s <= 4 ? s : 1) as WizStep; })();
-  const hasDraft = ready && (saved > 1 || draft.name.trim() !== "");
+  const hasDraft = ready && !draft.editOf && (saved > 1 || draft.name.trim() !== "");
   const startNew = () => {
     setDraft(freshDraft()); store.set("iyarn.newstep", 1);
     book.startWizard(1);
