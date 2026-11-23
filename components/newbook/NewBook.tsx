@@ -254,7 +254,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch, chartName: chartNameOf(draft.pattern, draft.craft ?? (knitNow ? "knit" : "crochet")), moreColors: draft.moreColors }), [input, draft.pattern, draft.craft, knitNow, draft.moreColors, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.extras, draft.crochetChart, draft.crochetStitch]);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, topGapCm: draft.topGapCm, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch, chartName: chartNameOf(draft.pattern, draft.craft ?? (knitNow ? "knit" : "crochet")), moreColors: draft.moreColors }), [input, draft.pattern, draft.craft, knitNow, draft.moreColors, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.topGapCm, draft.extras, draft.crochetChart, draft.crochetStitch]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
   const itemLabel = draft.free || draft.paint ? "직접 그린 모양" : item.name;
@@ -317,29 +317,50 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       </div>
     );
   };
+  // 장식 (Kim: 여러 개, 클릭해서 크기·위치): every picture adds one more; each is moved by dragging it on the 3D and
+  // made bigger or smaller by pressing it there (or here); the legacy single button/label (Yarni's) is one of them
+  const items = exNow.items ?? [];
+  const addPic = (id: string) => {
+    const p = extraPic(id); if (!p) return; const n = items.length, btn = id.startsWith("b-");
+    setEx({ items: [...items, { pic: id, at: [Math.max(-.9, Math.min(.9, (btn ? 0 : .45) + ((n % 3) - 1) * .3)), btn ? .72 - Math.floor(n / 3) * .12 : .34, p.cm] }] });
+  };
+  const exName = (k: string) => k === "button" ? (extraPic(exNow.buttonPic)?.name ?? "단추") : k === "label" ? (extraPic(exNow.labelPic)?.name ?? "라벨") : (extraPic(items[Number(k.slice(5))]?.pic)?.name ?? "장식");
+  const exSize = (k: string, f: number) => {
+    const fit = (v: number) => Math.round(Math.max(.6, Math.min(14, v * f)) * 10) / 10;
+    if (k === "button") { const a = exNow.buttonAt ?? [0, .72, 1.9]; setEx({ buttonAt: [a[0], a[1], fit(a[2])] }); }
+    else if (k === "label") { const a = exNow.labelAt ?? [.5, .34, 2.8]; setEx({ labelAt: [a[0], a[1], fit(a[2])] }); }
+    else { const i = Number(k.slice(5)); setEx({ items: items.map((it, j) => j === i ? { ...it, at: [it.at[0], it.at[1], fit(it.at[2])] } : it) }); }
+  };
+  const exRemove = (k: string) => k === "button" ? setEx({ button: false, buttonAt: undefined }) : k === "label" ? setEx({ label: false, labelAt: undefined }) : setEx({ items: items.filter((_, j) => j !== Number(k.slice(5))) });
+  const exMove = (k: string, x: number, y: number) => {
+    if (k === "button") setEx({ buttonAt: [x, y, exNow.buttonAt?.[2] ?? 1.9] });
+    else if (k === "label") setEx({ labelAt: [x, y, exNow.labelAt?.[2] ?? 2.8] });
+    else { const i = Number(k.slice(5)); setEx({ items: items.map((it, j) => j === i ? { ...it, at: [x, y, it.at[2]] } : it) }); }
+  };
+  const placed: string[] = [...(exNow.button ? ["button"] : []), ...(exNow.label ? ["label"] : []), ...items.map((_, i) => "item:" + i)];
   const extrasGroup = (
-    <div className="nb-wg"><Head note="3D로만 달아 봅니다">단추·라벨</Head>
-      {/* 단추와 라벨 (Kim: 한 카테고리에): every picture in one place; a button and a label can both be on */}
-      <ExtraPicker label="단추·라벨 고르기" groups={[["단추", BUTTONS], ...LABEL_GROUPS.map(([g, l]): [string, typeof l] => [g + " 라벨", l])]} wide
-        value={[exNow.button ? exNow.buttonPic : undefined, exNow.label ? exNow.labelPic : undefined]}
-        onPick={p => p.id.startsWith("b-")
-          ? setEx(exNow.button && exNow.buttonPic === p.id ? { button: false } : { button: true, buttonPic: p.id, buttonAt: [exNow.buttonAt?.[0] ?? 0, exNow.buttonAt?.[1] ?? .72, p.cm] })
-          : setEx(exNow.label && exNow.labelPic === p.id ? { label: false } : { label: true, labelPic: p.id, labelAt: [exNow.labelAt?.[0] ?? .5, exNow.labelAt?.[1] ?? .34, p.cm] })} />
-      {(exNow.button || exNow.label) && <p className="nb-help">3D에서 끌어서 옮길 수 있습니다. 같은 그림을 한 번 더 누르면 뺍니다.</p>}
-      {exNow.button && <>
-        <p className="nb-wsubhead">단추{exNow.buttonPic ? ` · ${extraPic(exNow.buttonPic)?.name ?? ""}` : ""}<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ button: false, buttonAt: undefined })}>빼기</button></p>
-        {placeSliders("buttonAt", [0, .72, 1.9], "지름", 5)}
-      </>}
-      {exNow.label && <>
-        <p className="nb-wsubhead">라벨{exNow.labelPic ? ` · ${extraPic(exNow.labelPic)?.name ?? ""}` : ""}<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ label: false, labelAt: undefined })}>빼기</button></p>
-        {placeSliders("labelAt", [.5, .34, 2.8], "가로", 7)}
+    <div className="nb-wg"><Head note="3D로만 달아 봅니다">장식</Head>
+      {/* 단추와 라벨 (Kim: 한 카테고리에): every picture in one place; each press puts on one more */}
+      <ExtraPicker label="단추·라벨 넣기" groups={[["단추", BUTTONS], ...LABEL_GROUPS.map(([g, l]): [string, typeof l] => [g + " 라벨", l])]} wide value={[]} onPick={p => addPic(p.id)} />
+      {placed.length > 0 && <>
+        <p className="nb-help">3D에서 끌어서 옮기고, 눌러서 크기를 바꿉니다.</p>
+        <ul className="ex-placed">
+          {placed.map(k => {
+            const size = k === "button" ? exNow.buttonAt?.[2] ?? 1.9 : k === "label" ? exNow.labelAt?.[2] ?? 2.8 : items[Number(k.slice(5))]?.at[2] ?? 0;
+            return <li key={k}><b>{exName(k)}</b><span>{size}cm</span>
+              <button type="button" className="nb-link" aria-label={`${exName(k)} 작게`} onClick={() => exSize(k, 1 / 1.15)}>−</button>
+              <button type="button" className="nb-link" aria-label={`${exName(k)} 크게`} onClick={() => exSize(k, 1.15)}>+</button>
+              <button type="button" className="nb-link nb-exdel" onClick={() => exRemove(k)}>빼기</button></li>;
+          })}
+        </ul>
       </>}
       <p className="nb-wsubhead">지퍼{exNow.zipper
         ? <button type="button" className="nb-link nb-exdel" onClick={() => setEx({ zipper: false })}>빼기</button>
-        : <button type="button" className="nb-link nb-exdel" onClick={() => setEx({ zipper: true })}>달기</button>}</p>
+        : <button type="button" className="nb-link nb-exdel" onClick={() => setEx({ zipper: true, zipOpen: exNow.zipOpen ?? 0 })}>달기</button>}</p>
       {exNow.zipper && <>
         <Tiles label="지퍼 색" value={exNow.zipColor ?? "gold"} cols={3} onPick={v => setEx({ zipColor: v as "gold" | "silver" | "brass" })} options={[["gold", "금색"], ["silver", "은색"], ["brass", "황동색"]]} />
         <Slide label="잠그기" min={0} max={1} step={.05} value={1 - (exNow.zipOpen ?? 0)} onChange={x => setEx({ zipOpen: Math.round((1 - x) * 100) / 100 })} text={(exNow.zipOpen ?? 0) <= .02 ? "잠김" : (exNow.zipOpen ?? 0) >= .98 ? "열림" : `${Math.round((1 - (exNow.zipOpen ?? 0)) * 100)}% 잠김`} />
+        <p className="nb-help">잠글수록 가방 윗면이 다물어집니다.</p>
       </>}
     </div>
   );
@@ -807,8 +828,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const rng = (k: "a" | "b" | "h", d: [number, number]) => item.range[k] ?? d;
     const hasFlap = !!draft.flapCm, flapNow = draft.flapCm ?? 0;
     const railParts: [string, string, boolean][] = base
-      ? [["bottom", "바닥", true], ["body", "몸통", true], ...(item.handles ? [["handle", "손잡이", draft.handle !== "none"] as [string, string, boolean]] : []), ...(bagNow ? [["top", "입구·덮개", hasFlap || closureNow !== "open"] as [string, string, boolean]] : []), ["extra", "달기", !!(exNow.button || exNow.label || exNow.zipper)]]
-      : [["size", "크기", true], ["extra", "달기", !!(exNow.button || exNow.label || exNow.zipper)]];
+      ? [["bottom", "바닥", true], ["body", "몸통", true], ...(item.handles ? [["handle", "손잡이", draft.handle !== "none"] as [string, string, boolean]] : []), ...(bagNow ? [["top", "입구·덮개", hasFlap || closureNow !== "open"] as [string, string, boolean]] : []), ["extra", "장식", !!(exNow.button || exNow.label || exNow.zipper || exNow.items?.length)]]
+      : [["size", "크기", true], ["extra", "장식", !!(exNow.button || exNow.label || exNow.zipper || exNow.items?.length)]];
     const partNow = railParts.some(([k]) => k === asmPart) ? asmPart : railParts[0][0];
     const setBody = (f: Partial<typeof form>) => apply(bodyPatch(draft, { ...form, ...f }));
     const setBottom = (k: "a" | "b" | "h", v: number) => { const nd = { ...draft, [k]: v }; apply({ [k]: v, ...(draft.asm && (draft.asm.belly >= .03 || k === "a") ? bodyPatch(nd, draft.asm.belly < .03 && draft.topA == null ? { ...draft.asm, top: nd.a } : draft.asm) : {}) }); };
@@ -875,16 +896,18 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             {hasFlap && <>
               <Tiles label="덮개 모양" value={draft.flapShape ?? "half"} cols={3} onPick={v => patch({ flapShape: v as "half" | "square" | "triangle" })} options={[["half", "반달"], ["square", "네모"], ["triangle", "세모"]]} />
               <div className="nb-sliders nb-sliders-1"><Slide label="덮개 길이" min={3} max={Math.max(8, Math.round(draft.h))} step={.5} value={Math.min(flapNow, Math.max(8, Math.round(draft.h)))} onChange={v => patch({ flapCm: v })} text={`${flapNow}cm`} /></div>
+              <div className="nb-sliders nb-sliders-1"><Slide label="입구 여유" min={0} max={Math.max(4, Math.round(draft.a * .6))} step={.5} value={draft.topGapCm ?? 2} onChange={v => patch({ topGapCm: v })} text={(draft.topGapCm ?? 2) < .25 ? "꼭 닫힘" : `${draft.topGapCm ?? 2}cm`} /></div>
+              <p className="nb-help">덮개는 뒷면 마지막 단에서 이어 떠서, 입구 여유만큼 윗면을 지난 뒤 앞면을 덮습니다. 0cm면 윗면이 지퍼처럼 꼭 다물어집니다.</p>
               <button type="button" className="nb-link asm-del" onClick={() => patch({ closure: "open", flapCm: null })}>덮개 빼기</button>
             </>}
             {closureNow === "drawstring" && <p className="nb-help">입구 아래에 끈 구멍 단을 한 단 더 뜨고, 사슬로 뜬 끈을 꿰어 조입니다.</p>}
-            <p className="nb-help">지퍼와 단추는 "달기"에서 붙입니다.</p>
+            <p className="nb-help">지퍼와 단추, 라벨은 "장식"에서 붙입니다.</p>
           </>}
           {partNow === "extra" && extrasGroup}
         </div>
         <div className="asm-sum"><h3>지금 조립된 것</h3>
           <ul>{partLines(draft).map(([a, b]) => <li key={a}><b>{a}</b><span>{b}</span></li>)}</ul>
-          <button type="button" className="nb-link" onClick={() => setAsked(false)}>얀이에게 다시 말로 설명하기</button>
+          <button type="button" className="nb-link" onClick={() => setAsked(false)}>Yarni에게 다시 말로 설명하기</button>
         </div>
       </div>
     );
@@ -958,6 +981,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       },
     doneLabel: !yarnSet ? "모양 만들기 →" : "확인하기 →", blocked: yarnSet && (!picked || !stepOk),
     footNote: !yarnSet ? "실을 다 정하셨으면 무엇을 뜰지 정합니다. 실은 나중에도 바꿀 수 있습니다." : undefined,
+    tabs: [
+      { label: "실 설정", on: !yarnSet, onClick: () => window.dispatchEvent(new Event("yw:yarncheck")) },
+      { label: "모양", on: yarnSet, onClick: () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); } },
+    ],
   } : undefined;
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
@@ -978,7 +1005,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
     parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1),
     // 단추 / 라벨 dragged on the 3D (Kim): kept where they were let go, their size as it was
-    onExtraMove: (k, x, y) => { const key = k === "button" ? "buttonAt" : "labelAt", old = exNow[key]; setEx({ [key]: [x, y, old?.[2] ?? (k === "button" ? 1.9 : 2.8)] }); } }) : null;
+    onExtraMove: exMove, extraTools: { name: exName, size: exSize, remove: exRemove } }) : null;
 
   return {
     ready, formRef, onSubmit, onKeyDown, phone: phoneStep,

@@ -52,7 +52,9 @@ export interface Draft {
   /** 단추 / 라벨 / 지퍼 (the 3D only), where and how big: [across -1..1, up 0..1, size cm]; 지퍼 0 closed .. 1 open */
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean;
     /** Kim's button and label pictures (lib/extras), when one is picked */
-    buttonPic?: string; labelPic?: string };
+    buttonPic?: string; labelPic?: string;
+    /** more buttons and labels (Kim: 여러 개): a picture (lib/extras) at [across, up, size cm] */
+    items?: { pic: string; at: [number, number, number] }[] };
   /** the crochet stitch (Kim: 코바늘 무늬; lib/pattern CROCHET) */
   crochetStitch?: import("./pattern").CrochetStitch;
   /** a crochet stitch pattern drawn as a chart (lib/crochetChart), and the named pattern picked (lib/stitchPatterns) */
@@ -60,6 +62,8 @@ export interface Draft {
   pattern?: string;
   /** a bag's flap outline below the front edge (3D) and how many handles: 1 across the top, or 2 */
   flapShape?: "half" | "square" | "triangle";
+  /** how far a bag's top stays open, cm (Kim: with a flap the top closes to this; 0 shut as a zipper's) */
+  topGapCm?: number | null;
   handleCount?: 1 | 2;
   /** a band handle (a chain, then this many rows of 짧은뜨기 along it); the 3D left to its own weight */
   handleRows?: number;

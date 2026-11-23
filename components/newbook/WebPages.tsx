@@ -104,7 +104,25 @@ const WEB_MATERIALS = ["코튼", "울", "알파카", "모헤어", "앙고라", "
 
 /** One slider with its name and value (털 양, 털 길이, 굵기): the 3D follows while it is dragged. */
 export function Slide({ label, min, max, step, value, onChange, text }: { label: string; min: number; max: number; step: number; value: number; onChange: (v: number) => void; text: string }) {
-  return <label className="nb-slide"><span>{label}</span><input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} /><output>{text}</output></label>;
+  // 직접 입력 (Kim): the value beside the slider is pressed and typed; Enter or leaving it sets it (kept within the
+  // slider's range, on its steps); Esc leaves it as it was
+  const [ed, setEd] = useState<string | null>(null);
+  const commit = () => {
+    if (ed == null) return; const v = parseNum(ed); setEd(null);
+    if (!Number.isFinite(v)) return;
+    const k = Math.round((Math.min(max, Math.max(min, v)) - min) / step) * step + min;
+    onChange(Math.round(k * 1000) / 1000);
+  };
+  return (
+    <div className="nb-slide">
+      <span>{label}</span>
+      <input type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} />
+      <output>{ed != null
+        ? <input className="nb-slide-v" autoFocus inputMode="decimal" aria-label={`${label} 직접 입력`} value={ed} onChange={e => setEd(e.target.value)} onBlur={commit}
+            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); commit(); } if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setEd(null); } }} />
+        : <button type="button" className="nb-slide-b" title="눌러서 직접 입력" onClick={() => setEd(String(value))}>{text}</button>}</output>
+    </div>
+  );
 }
 /** 털 양 / 털 길이 (Kim: turned while looking): only how the 3D draws the yarn, the pattern's counts stay. */
 function HairSliders({ draft, patch }: { draft: Draft; patch: Patch }) {

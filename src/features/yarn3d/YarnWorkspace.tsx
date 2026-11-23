@@ -34,9 +34,13 @@ export interface WorkExtra {
   onClosed?: () => void;
   /** 3D로 보면서 만들기 (도안 만들기, Kim): the wizard's own step in the right column - where you are among the
    *  steps, the step's question and inputs, 이전 / 다음 at the foot. Enter goes on, as in the book. */
-  making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean; footNote?: string };
+  making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean; footNote?: string;
+    /** the bar over the column (Kim): the parts of the work - 실 설정, 모양 - to go between */
+    tabs?: { label: string; on: boolean; onClick: () => void }[] };
   /** 단추 / 라벨 dragged on the 3D and let go: where (Kim: moved freely) */
-  onExtraMove?: (kind: "button" | "label", across: number, up: number) => void;
+  onExtraMove?: (kind: string, across: number, up: number) => void;
+  /** a button or label pressed on the 3D (Kim: 클릭해서 크기 조절): its name, bigger or smaller, taken off */
+  extraTools?: { name: (kind: string) => string; size: (kind: string, f: number) => void; remove: (kind: string) => void };
   /** 크기 틀 (Kim: Ctrl+T처럼): the frame's edge or corner dragged and let go - the piece that much wider (fx)
    *  and taller (fy); a corner gives the same for both */
   onResize?: (fx: number, fy: number) => void;
@@ -67,6 +71,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), backRef = useRef<HTMLSpanElement>(null), viewer = useRef<YarnViewer | null>(null);
   const shown = useRef<YarnPattern>(pattern), latest = useRef(pattern); latest.current = pattern;
   const moveEx = useRef(extra?.onExtraMove); moveEx.current = extra?.onExtraMove;
+  const [pickEx, setPickEx] = useState<{ k: string; x: number; y: number } | null>(null);
   const [tool, setTool] = useState<Tool>("rotate"), [ruler, setRuler] = useState(false);
   // 크기 틀: the piece's box on the screen, and the pull on it while a handle is dragged
   const [frameOn, setFrameOn] = useState(false), [box, setBox] = useState<[number, number, number, number] | null>(null), [pull, setPull] = useState<{ fx: number; fy: number } | null>(null);
@@ -138,7 +143,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     import("./engine").then(({ createYarnViewer, hasWebGL }) => {
       if (gone || !cv.current) return;
       const p = latest.current;
-      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y) }) : null;
+      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y),
+        onExtraPick: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) setPickEx({ k, x: x - r.left, y: y - r.top }); } }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
     });
@@ -181,10 +187,6 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
         {!noGL && <>
           <div className="yw-bar">
             {/* how it is looked at: one-off moves (no state), then two either-or choices */}
-            <Group name="보는 방향" plain>
-              <Opt onClick={() => look("front")}>앞</Opt><Opt onClick={() => look("side")}>옆</Opt><Opt onClick={() => look("top")}>위</Opt><Opt onClick={() => look("inside")}>안쪽</Opt>
-              <Opt label="처음 각도로" onClick={() => viewer.current?.home()}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
-            </Group>
             <Group name="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></Group>
             <Group name="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></Group>
             {/* tools: each on or off by itself (재기, 실 확인) or played once (뜨는 순서) */}
@@ -211,6 +213,23 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
         )}
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
           : <canvas ref={cv} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
+        {/* a picked button or label (Kim: 클릭해서 크기를 조절하거나 옮기기): its size and 빼기, beside it */}
+        {pickEx && extra?.extraTools && (
+          <div className="yw-pick" style={{ left: pickEx.x, top: pickEx.y }} role="group" aria-label="고른 장식">
+            <b>{extra.extraTools.name(pickEx.k)}</b>
+            <button type="button" aria-label="작게" onClick={() => extra.extraTools!.size(pickEx.k, 1 / 1.15)}>−</button>
+            <button type="button" aria-label="크게" onClick={() => extra.extraTools!.size(pickEx.k, 1.15)}>+</button>
+            <button type="button" onClick={() => { extra.extraTools!.remove(pickEx.k); setPickEx(null); }}>빼기</button>
+            <button type="button" aria-label="닫기" onClick={() => setPickEx(null)}>×</button>
+          </div>
+        )}
+        {/* 보는 방향 on the stage itself, top right (Kim) */}
+        {!noGL && !empty && !intro && (
+          <div className="yw-views" role="group" aria-label="보는 방향">
+            <Opt onClick={() => look("front")}>앞</Opt><Opt onClick={() => look("side")}>옆</Opt><Opt onClick={() => look("top")}>위</Opt><Opt onClick={() => look("inside")}>안쪽</Opt>
+            <Opt label="처음 각도로" onClick={() => viewer.current?.home()}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
+          </div>
+        )}
         {!noGL && !empty && !intro && <p className="yw-hint">{frameOn ? "틀의 옆 손잡이는 가로, 위 손잡이는 높이, 모서리는 전체 크기를 바꿉니다" : ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
         {empty && <div className="yw-empty"><i aria-hidden="true" /><p>모양을 그리면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
         {box && frameOn && !empty && !intro && (() => {
@@ -237,7 +256,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       {mk ? (
         <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); mk.done(); }}>
           <nav className="yw-index" aria-label="항목">
-            {mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); root.current?.querySelector("#yw-" + x.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><b>{i + 1}</b>{x.title}</a>)}
+            {mk.tabs ? mk.tabs.map((t, i) => <a key={t.label} href="#" className="yw-tab" aria-current={t.on ? "step" : undefined} onClick={e => { e.preventDefault(); t.onClick(); }}><b>{i + 1}</b>{t.label}</a>) : mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); root.current?.querySelector("#yw-" + x.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><b>{i + 1}</b>{x.title}</a>)}
           </nav>
           <div className="yw-mkbody" ref={body}>
             {mk.sections.map((x, i) => (

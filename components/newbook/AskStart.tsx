@@ -1,6 +1,6 @@
 "use client";
 // 조립하기의 첫 창 (Kim): when the 3D screen opens it asks the piece's name (may stay empty: it is named from
-// the finished pattern) and what the reader wants to make; 얀이 (app/api/shape with the words) lays out the
+// the finished pattern) and what the reader wants to make; Yarni (app/api/shape with the words) lays out the
 // parts, the reader ticks what stays, and the piece comes up put together. Without the AI (no key, no network)
 // the words are read here (lib/assemble guessSpec), so the window always leads somewhere (Rule 6).
 import { useState } from "react";
@@ -28,7 +28,7 @@ export function NameStart({ name, onName, onNext }: { name: string; onName: (v: 
   );
 }
 
-/** what to make, in the reader's own words (Kim: 주관식): 얀이 lays out the parts and they go on at once */
+/** what to make, in the reader's own words (Kim: 주관식): Yarni lays out the parts and they go on at once */
 function useAsk(draft: Draft, onApply: (d: Draft) => void) {
   const [text, setText] = useState(""), [busy, setBusy] = useState(false), [err, setErr] = useState("");
   const prepare = async () => {
@@ -61,7 +61,7 @@ export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d
     <div className="ask" role="dialog" aria-modal="true" aria-labelledby="ask-h">
       <div className="ask-box">
         <h2 id="ask-h">무엇을 떠 볼까요</h2>
-        <p className="ask-lead">자유롭게 적어 주십시오. 얀이가 부품을 맞춰 조립하고, 크기와 부품은 다음 화면에서 정합니다.</p>
+        <p className="ask-lead">자유롭게 적어 주십시오. Yarni가 부품을 맞춰 조립하고, 크기와 부품은 다음 화면에서 정합니다.</p>
         {q.field}
         {q.err && <p className="ask-err" role="alert">{q.err}</p>}
         <div className="ask-foot">
