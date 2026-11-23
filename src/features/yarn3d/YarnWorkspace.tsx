@@ -34,7 +34,7 @@ export interface WorkExtra {
   onClosed?: () => void;
   /** 3D로 보면서 만들기 (도안 만들기, Kim): the wizard's own step in the right column - where you are among the
    *  steps, the step's question and inputs, 이전 / 다음 at the foot. Enter goes on, as in the book. */
-  making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean };
+  making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean; footNote?: string };
   /** 단추 / 라벨 dragged on the 3D and let go: where (Kim: moved freely) */
   onExtraMove?: (kind: "button" | "label", across: number, up: number) => void;
   /** 크기 틀 (Kim: Ctrl+T처럼): the frame's edge or corner dragged and let go - the piece that much wider (fx)
@@ -96,7 +96,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   useEffect(() => { const f = () => setIntro(false); window.addEventListener("yw:shape", f); return () => window.removeEventListener("yw:shape", f); }, []);
   // the yarn again (Kim: from the shape too): the yarn check on the stage, the yarn's section on the right
   useEffect(() => {
-    const f = () => { setIntro(true); root.current?.querySelector("#yw-yarn")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
+    const f = () => { setIntro(true); setTimeout(() => root.current?.querySelector("#yw-yarn")?.scrollIntoView({ block: "start" }), 60); };
     window.addEventListener("yw:yarncheck", f); return () => window.removeEventListener("yw:yarncheck", f);
   }, []);
   // the stage dark by default (Kim), and light by itself when the yarn picked is dark (it would sink into the
@@ -107,7 +107,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const pickBg = (d: boolean) => setDark(d);
   // the yarn is set (Kim: the yarn first, then what to make): the page is told, and asks what to make
   const yarnSet = () => window.dispatchEvent(new Event("yw:yarnset"));
-  const toShape = () => { setIntro(false); yarnSet(); root.current?.querySelector("#yw-draw")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
+  const toShape = () => { setIntro(false); yarnSet(); setTimeout(() => root.current?.querySelector("#yw-draw")?.scrollIntoView({ block: "start" }), 60); };
 
   // the book stops, the page stays still, the way back takes the focus; Esc closes, Tab stays inside
   useEffect(() => {
@@ -189,7 +189,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             <Group name="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></Group>
             {/* tools: each on or off by itself (재기, 실 확인) or played once (뜨는 순서) */}
             <div className="yw-acts" role="group" aria-label="도구">
-              {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => { if (intro) yarnSet(); setIntro(v => !v); }}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
+              {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => { if (intro) toShape(); else window.dispatchEvent(new Event("yw:yarncheck")); }}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
               <button type="button" className="yw-act" aria-pressed={ruler} onClick={toggleRuler}><Ic s={18} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />재기</button>
               {extra?.onResize && !empty && <button type="button" className="yw-act" aria-pressed={frameOn} title="크기 틀 (Ctrl+T)" onClick={toggleFrame}><Ic s={18} d="M5 5h14v14H5zM3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4z" />크기 틀</button>}
               <button type="button" className="yw-act" onClick={() => viewer.current?.playDraw()}><Ic s={18} d="M7 4.5v15l12-7.5z" />뜨는 순서</button>
@@ -248,7 +248,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             ))}
           </div>
           <div className="yw-mkfoot">
-            <span className="yw-mknote">{mk.blocked ? "정하지 않은 항목이 있습니다. 누르면 그곳으로 갑니다." : "다 정하셨으면 책으로 돌아가 확인합니다."}</span>
+            <span className="yw-mknote">{mk.footNote ?? (mk.blocked ? "정하지 않은 항목이 있습니다. 누르면 그곳으로 갑니다." : "다 정하셨으면 책으로 돌아가 확인합니다.")}</span>
             <ClothLabel side="next" type="submit" blocked={mk.blocked}>{mk.doneLabel}</ClothLabel>
           </div>
         </form>

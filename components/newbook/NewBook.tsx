@@ -214,6 +214,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   /** what to make, answered (the window or 모양): the parts on at once, the first part's sliders open */
   const applyAsk = (d: Draft) => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); window.dispatchEvent(new Event("yw:shape")); };
   useEffect(() => { const f = () => setYarnSet(true); window.addEventListener("yw:yarnset", f); return () => window.removeEventListener("yw:yarnset", f); }, []);
+  // back to the yarn (실 다시 정하기): the right column is the yarn's section again
+  useEffect(() => { const f = () => setYarnSet(false); window.addEventListener("yw:yarncheck", f); return () => window.removeEventListener("yw:yarncheck", f); }, []);
 
   // a new item starts from its own defaults (no values carried over from the previous item)
   const pickItem = (id: ItemId) => {
@@ -939,19 +941,23 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const swatchKnit = (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit";
   const swatchSrc = { ...yarnSrc, craft: swatchKnit ? "knit" as const : "crochet" as const, object: "rows" as const, item: swatchKnit ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
   const making = web && (step === 2 || step === 3) ? {
-    sections: [
-      // the colour is part of the yarn (Kim): one 실 section, its colour first, then thickness and material
+    // two parts (Kim: 무늬 테스트까지가 한 섹션): first the yarn - 실 (with its colour), 바늘, 무늬 테스트해보기 -
+    // and on to 모양 만들기; then the shape alone, the parts put together. 실 다시 정하기 goes back.
+    sections: !yarnSet ? [
       { id: "yarn", title: "실", body: <><ColorStudio draft={draft} patch={patch} /><div className="yw-sub">{oneYarn}</div></> },
       { id: "needle", title: "바늘", body: oneHook },
-      // 무늬 테스트해보기 (Kim): optional - tried on the yarn check's swatch
       { id: "stitch", title: "무늬 테스트해보기", note: "선택", body: oneStitch },
+    ] : [
       { id: "draw", title: "모양", note: picked ? itemLabel : undefined, body: oneAsm },
     ],
-    done: () => {
-      if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.yw [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
-      big3d.close(); setSheet(3, sheets3 - 1); go(4);
-    },
-    doneLabel: "확인하기 →", blocked: !picked || !stepOk,
+    done: !yarnSet
+      ? () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); }
+      : () => {
+        if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.yw [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
+        big3d.close(); setSheet(3, sheets3 - 1); go(4);
+      },
+    doneLabel: !yarnSet ? "모양 만들기 →" : "확인하기 →", blocked: yarnSet && (!picked || !stepOk),
+    footNote: !yarnSet ? "실을 다 정하셨으면 무엇을 뜰지 정합니다. 실은 나중에도 바꿀 수 있습니다." : undefined,
   } : undefined;
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
