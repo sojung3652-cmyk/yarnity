@@ -243,6 +243,9 @@ export function MineList({ query, onNew, onImport }: { query?: string; onNew?: (
             <select id="mineSort" className="mine-sort" value={sort} onChange={e => setSort(e.target.value as Sort)}>{(Object.keys(SORT_KO) as Sort[]).map(s => <option key={s} value={s}>{SORT_KO[s]}</option>)}</select>
             {picking
               ? <>
+                  {/* 전체 선택 (Kim): every work shown now (the tab and the search as they are), or none again */}
+                  {(() => { const ids = shown.map(b => b.y ? b.y.id : b.i!.id), all = ids.length > 0 && ids.every(id => picked.includes(id));
+                    return <button type="button" className="mine-link" disabled={!ids.length} onClick={() => setPicked(all ? [] : ids)}>{all ? "전체 해제" : "전체 선택"}</button>; })()}
                   <button type="button" className="mine-link" disabled={!picked.length} onClick={() => setAskMany(true)}>{picked.length}개 지우기</button>
                   <button type="button" className="mine-link muted" onClick={() => { setPicking(false); setPicked([]); setAskMany(false); }}>그만 고르기</button>
                 </>
