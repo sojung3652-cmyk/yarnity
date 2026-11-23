@@ -2588,6 +2588,33 @@
       "note": null
     },
     {
+      "id": "pureusio",
+      "category": "community",
+      "name": "푸르시오",
+      "aliases": [
+        "푸르시오 하다"
+      ],
+      "en": {
+        "us": null,
+        "uk": null
+      },
+      "ja": null,
+      "symbol": null,
+      "summary": "떠 놓은 편물을 잘못 뜬 곳까지 한꺼번에 풀어 다시 뜨는 일입니다. 한두 코가 아니라 여러 단을 풀 때 씁니다. 영어권에서는 frogging이라고 합니다.",
+      "difficulty": 1,
+      "steps": [],
+      "mistake": null,
+      "related": [
+        "tink"
+      ],
+      "verified": "2",
+      "sources": [
+        "brunch_purusio",
+        "yt_purusio"
+      ],
+      "note": null
+    },
+    {
       "id": "yarn_barf",
       "category": "community",
       "name": "Yarn Barf",
@@ -2686,7 +2713,9 @@
     "rosygreen_slang": "https://rosygreenwool.com/en/blogs/knitting-blog/secretlanguage",
     "gathered_terms": "https://www.gathered.how/knitting-and-crochet/knitting/knitting-terms-explained/",
     "wiki_sweater_curse": "https://en.wikipedia.org/wiki/Sweater_curse",
-    "yarncom_kal": "https://www.yarn.com/pages/knit-alongs-and-crochet-alongs"
+    "yarncom_kal": "https://www.yarn.com/pages/knit-alongs-and-crochet-alongs",
+    "brunch_purusio": "https://brunch.co.kr/@sadal1004/44",
+    "yt_purusio": "https://www.youtube.com/watch?v=OHRg_3RJRlU"
   },
   "notes": {
     "verified": "2+ = 두 곳 이상 확인, 1 = 한 곳에서만 확인, conflict = 출처마다 이름이 다름 (note 참고)",
