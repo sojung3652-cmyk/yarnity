@@ -223,7 +223,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch]);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const sizeCaption = (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
     : (input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`) + (input.object === "bag" && input.h ? ` · 높이 ${input.h}cm` : ""))

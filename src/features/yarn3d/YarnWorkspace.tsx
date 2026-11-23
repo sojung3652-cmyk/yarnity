@@ -36,7 +36,8 @@ export interface WorkExtra {
 }
 
 type Tool = "rotate" | "pan" | "zoom" | "ruler";
-const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["mohair", "모헤어"], ["linen", "리넨"], ["silk", "실크"], ["chenille", "셔닐"], ["raffia", "라피아"], ["cord", "코드사"], ["fur", "털실"], ["metal", "메탈릭"]];
+const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["cashmere", "캐시미어"], ["alpaca", "알파카"], ["mohair", "모헤어"], ["angora", "앙고라"], ["sleep", "수면사"], ["chenille", "셔닐"], ["boucle", "부클레"],
+  ["fur", "털실"], ["scrub", "수세미실"], ["linen", "리넨"], ["silk", "실크"], ["raffia", "라피아"], ["tshirt", "패브릭얀"], ["ribbon", "리본얀"], ["jute", "황마"], ["cord", "코드사"], ["metal", "메탈릭"]];
 const Ic = ({ d, s = 22 }: { d: string; s?: number }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 const TOOLS: [Tool, string, string, string][] = [
   ["rotate", "돌리기", "M20 12a8 8 0 1 1-2.6-5.9M20 3.5v4.2h-4.2", "끌어서 돌리기 · 휠로 확대"],

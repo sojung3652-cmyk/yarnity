@@ -27,7 +27,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { stitchOf } from "@/lib/knit";
 
-export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal";
+export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal"
+  | "cashmere" | "alpaca" | "angora" | "sleep" | "boucle" | "scrub" | "tshirt" | "ribbon" | "jute";
 export type YarnStrap = "none" | "two" | "long";
 /** what is drawn, in the pattern's own counts (stitches per course, bottom first) */
 export type YarnShape =
@@ -48,6 +49,9 @@ export interface YarnPattern {
   material: YarnMaterial;
   /** "fabric": frame a knitted piece close up (the 무늬 page) instead of the whole piece */
   focus?: "fabric";
+  /** the reader's own hairiness (Kim: 털 양, 털 길이 turned while looking): 1 is the material's own; 0 none */
+  fuzzK?: number;
+  hairK?: number;
 }
 export interface YarnInfo { round: boolean; widthCm: number; depthCm: number; heightCm: number | null; fit: string; skip: { stitch: number; row: number } | null }
 export interface YarnViewer {
@@ -85,21 +89,34 @@ export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: bo
 //  flat      raffia and ribbon: the strand is a flat tape (width : thickness), slowly turning
 //  slub      linen: the strand thickens and thins along its length
 //  fill      the strand's width against the stitch (crochet fabric is dense: the yarn fills the stitch)
-interface Preset { plies: number; twist: number; fuzz: number; depth: number; braid: boolean; rough: number; ao: number; sheen: number; metal: number; halo: number; flat: number; slub: number; fill: number }
-const P0 = { braid: false, sheen: 0, metal: 0, halo: 0, flat: 1, slub: 0, fill: 1.3 };
+//  hair      how long the loose fibres are (1: a light fuzz; 2 and more: a pile - fur, the tinsel of 수세미실)
+//  glint     the share of those fibres that shine white (tinsel)
+//  soft      how much the finished piece gives under its own weight (a stiff cord basket stands, mohair slumps)
+interface Preset { plies: number; twist: number; fuzz: number; depth: number; braid: boolean; rough: number; ao: number; sheen: number; metal: number; halo: number; flat: number; slub: number; fill: number; hair: number; glint: number; soft: number }
+const P0 = { braid: false, sheen: 0, metal: 0, halo: 0, flat: 1, slub: 0, fill: 1.3, hair: 1, glint: 0, soft: .5 };
 export const PRE: Record<YarnMaterial, Preset> = {
-  cotton: { ...P0, plies: 4, twist: 1, fuzz: .04, depth: .3, rough: .82, ao: .3 },
-  wool: { ...P0, plies: 3, twist: .7, fuzz: .5, depth: .22, rough: .92, ao: .24, sheen: .55, halo: .18 },
-  mohair: { ...P0, plies: 2, twist: .45, fuzz: 1.7, depth: .12, rough: 1, ao: .16, sheen: .4, halo: .5, fill: 1.05 },
-  linen: { ...P0, plies: 2, twist: .55, fuzz: .08, depth: .2, rough: .9, ao: .3, slub: .38 },
-  silk: { ...P0, plies: 3, twist: .9, fuzz: 0, depth: .18, rough: .38, ao: .22, sheen: .7 },
-  chenille: { ...P0, plies: 1, twist: 0, fuzz: .15, depth: 0, rough: 1, ao: .1, sheen: .9, halo: .3, fill: 1.75 },
-  raffia: { ...P0, plies: 1, twist: .25, fuzz: 0, depth: 0, rough: .58, ao: .22, flat: 3.4, fill: 1.15 },
-  cord: { ...P0, plies: 8, twist: 1.3, fuzz: 0, depth: .2, braid: true, rough: .66, ao: .28, sheen: .25 },
-  fur: { ...P0, plies: 2, twist: .6, fuzz: 1, depth: .12, rough: 1, ao: .14, halo: .85, fill: 1 },
-  metal: { ...P0, plies: 3, twist: 1.5, fuzz: 0, depth: .3, rough: .3, ao: .3, metal: .85 },
+  cotton: { ...P0, plies: 4, twist: 1, fuzz: .04, depth: .3, rough: .82, ao: .3, soft: .4 },
+  wool: { ...P0, plies: 3, twist: .7, fuzz: .5, depth: .22, rough: .92, ao: .24, sheen: .55, halo: .18, soft: .6 },
+  mohair: { ...P0, plies: 2, twist: .45, fuzz: 1.7, depth: .12, rough: 1, ao: .16, sheen: .4, halo: .5, fill: 1.05, soft: .85 },
+  linen: { ...P0, plies: 2, twist: .55, fuzz: .08, depth: .2, rough: .9, ao: .3, slub: .38, soft: .45 },
+  silk: { ...P0, plies: 3, twist: .9, fuzz: 0, depth: .18, rough: .38, ao: .22, sheen: .7, soft: .75 },
+  chenille: { ...P0, plies: 1, twist: 0, fuzz: .15, depth: 0, rough: 1, ao: .1, sheen: .9, halo: .3, fill: 1.75, soft: .7 },
+  raffia: { ...P0, plies: 1, twist: .25, fuzz: 0, depth: 0, rough: .58, ao: .22, flat: 3.4, fill: 1.15, soft: .2 },
+  cord: { ...P0, plies: 8, twist: 1.3, fuzz: 0, depth: .2, braid: true, rough: .66, ao: .28, sheen: .25, soft: .1 },
+  fur: { ...P0, plies: 2, twist: .6, fuzz: 1, depth: .12, rough: 1, ao: .14, halo: .85, fill: 1, hair: 3.4, soft: .7 },
+  metal: { ...P0, plies: 3, twist: 1.5, fuzz: 0, depth: .3, rough: .3, ao: .3, metal: .85, soft: .35 },
+  // more yarns to tell apart in the 3D (Kim: as many as can be shown)
+  cashmere: { ...P0, plies: 3, twist: .6, fuzz: .7, depth: .16, rough: .95, ao: .2, sheen: .7, halo: .32, soft: .8 },
+  alpaca: { ...P0, plies: 2, twist: .5, fuzz: 1.15, depth: .14, rough: 1, ao: .18, sheen: .5, halo: .42, hair: 1.25, fill: 1.15, soft: .8 },
+  angora: { ...P0, plies: 2, twist: .4, fuzz: 2.3, depth: .08, rough: 1, ao: .12, sheen: .35, halo: .72, hair: 1.5, fill: 1, soft: .9 },
+  sleep: { ...P0, plies: 1, twist: 0, fuzz: .9, depth: 0, rough: 1, ao: .08, sheen: .6, halo: .7, hair: 1.2, fill: 1.8, soft: .85 },     // 수면사: a thick, very soft pile yarn
+  boucle: { ...P0, plies: 2, twist: .35, fuzz: .45, depth: .26, rough: 1, ao: .26, sheen: .3, halo: .34, slub: .95, fill: 1.4, soft: .65 }, // loops along the strand
+  scrub: { ...P0, plies: 1, twist: .3, fuzz: 1.25, depth: 0, rough: .4, ao: .16, sheen: .8, metal: .18, halo: .4, hair: 2.2, glint: .4, fill: .95, soft: .5 }, // 수세미실: shiny tinsel
+  tshirt: { ...P0, plies: 1, twist: .12, fuzz: 0, depth: 0, rough: .95, ao: .2, flat: 2.3, fill: 1.5, soft: .5 },                         // 패브릭얀: a jersey tape
+  ribbon: { ...P0, plies: 1, twist: .4, fuzz: 0, depth: 0, rough: .36, ao: .2, sheen: .75, flat: 4.2, fill: 1.2, soft: .55 },
+  jute: { ...P0, plies: 3, twist: 1.15, fuzz: .7, depth: .32, rough: 1, ao: .36, slub: .3, hair: .8, soft: .2 },                           // 황마: rough, hairy, stiff
 };
-const presetOf = (m: YarnMaterial) => ({ ...(PRE[m] ?? PRE.cotton), preset: m, fur: m === "fur" });
+const presetOf = (m: YarnMaterial) => { const p = PRE[m] ?? PRE.cotton; return { ...p, preset: m, fur: p.hair >= 2 }; };
 
 const MM = 12; // model units: 1 unit = 12mm
 const lin = (hex: number) => new THREE.Color().setHex(hex, THREE.LinearSRGBColorSpace);
@@ -235,12 +252,16 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     for (let i = 0; i < 900; i++) { const g = 120 + Math.random() * 135 | 0; x.strokeStyle = `rgb(${g},${g},${g})`; x.lineWidth = .5 + Math.random() * .8; const x0 = Math.random() * 128, y0 = Math.random() * 128, a = Math.random() * 6.28, l = 4 + Math.random() * 14; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + Math.cos(a) * l, y0 + Math.sin(a) * l); x.stroke(); }
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
   })();
+  // the material's hairiness times the reader's own (털 양: above 1 it adds fuzz to a smooth yarn too)
+  const fk = () => Math.max(0, pat.fuzzK ?? 1), hk = () => Math.max(.2, pat.hairK ?? 1);
+  const fuzzOf = () => st.fuzz * fk() + Math.max(0, fk() - 1) * .35, haloOf = () => st.halo * Math.min(fk(), 1.6) + Math.max(0, fk() - 1) * .15;
   function haloShell(geos: THREE.BufferGeometry[]) {
-    if (st.halo <= 0.01) return;
-    const mat = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: Math.min(.6, .14 + st.halo * .4), alphaMap: HTEX, depthWrite: false });
+    const halo = haloOf();
+    if (halo <= 0.01) return;
+    const mat = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: Math.min(.6, .14 + halo * .4), alphaMap: HTEX, depthWrite: false });
     geos.forEach(g => {
       const R = g.userData.R as number, pos = g.getAttribute("position") as THREE.BufferAttribute, nor = g.getAttribute("normal") as THREE.BufferAttribute, col = g.getAttribute("color") as THREE.BufferAttribute;
-      const out = new Float32Array(pos.count * 3), c2 = new Float32Array(pos.count * 3), push = R * st.halo * (st.fur ? 1.5 : 1.05);
+      const out = new Float32Array(pos.count * 3), c2 = new Float32Array(pos.count * 3), push = R * halo * (st.fur ? 1.5 : 1.05) * Math.min(1.5, .6 + hk() * .4);
       for (let i = 0; i < pos.count; i++) {
         out[i * 3] = pos.getX(i) + nor.getX(i) * push; out[i * 3 + 1] = pos.getY(i) + nor.getY(i) * push; out[i * 3 + 2] = pos.getZ(i) + nor.getZ(i) * push;
         // lighter than the yarn: the fibres catch the light
@@ -252,26 +273,28 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     });
   }
   function fuzzLines(geos: THREE.BufferGeometry[]) {
-    if (st.fuzz <= 0.01 || !geos.length) return null;
+    const fuzz = fuzzOf(), fluffy = st.halo >= .4;
+    if (fuzz <= 0.01 || !geos.length) return null;
     const v: number[] = [], col: number[] = [], cc = new THREE.Color(), WH = lin(0xffffff); const d = new THREE.Vector3(), p = new THREE.Vector3(), jit = new THREE.Vector3();
-    const per = (g: THREE.BufferGeometry) => { const fr = g.userData.frames; return fr[fr.length - 1].s / g.userData.R * st.fuzz * (st.fur ? 46 : st.preset === "mohair" ? 34 : 26); };
+    const per = (g: THREE.BufferGeometry) => { const fr = g.userData.frames; return fr[fr.length - 1].s / g.userData.R * fuzz * (st.fur ? 46 : fluffy ? 34 : 26); };
     const raw = geos.reduce((a, g) => a + per(g), 0), scale = Math.min(1, fuzzCap() / Math.max(1, raw));
     geos.forEach(g => {
       const fr = g.userData.frames, R = g.userData.R, count = Math.floor(per(g) * scale);
       // fur: the proper colour; the light fuzz: the prototype used the sRGB numbers as linear (lighter), so do the same
-      cc.set(g.userData.color); if (!st.fur) { cc.convertLinearToSRGB(); cc.lerp(WH, st.preset === "mohair" ? .12 : .35); }
+      cc.set(g.userData.color); if (!st.fur) { cc.convertLinearToSRGB(); cc.lerp(WH, fluffy ? .12 : .35); }
       for (let k = 0; k < count; k++) {
         const f = fr[Math.random() * fr.length | 0], ph = Math.random() * 6.283, c = Math.cos(ph), s = Math.sin(ph);
         d.set(0, 0, 0).addScaledVector(f.n, c).addScaledVector(f.b, s); p.copy(f.p).addScaledVector(d, R * .8);
-        const L = R * (.25 + Math.random() * Math.random() * 2.2) * (.35 + st.fuzz) * (st.fur ? 3.4 : 1);
+        const L = R * (.25 + Math.random() * Math.random() * 2.2) * (.35 + Math.min(2.5, fuzz)) * st.hair * hk();
         d.addScaledVector(f.t, (Math.random() - .5) * 1.6).add(jit.set(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(.5)).normalize();
         v.push(p.x, p.y, p.z, p.x + d.x * L, p.y + d.y * L, p.z + d.z * L);
         const br = st.fur ? .75 + Math.random() * .25 : 1, k0 = st.fur ? .8 : .9;
-        col.push(cc.r * br * k0, cc.g * br * k0, cc.b * br * k0, cc.r * br, cc.g * br, cc.b * br);
+        if (st.glint > 0 && Math.random() < st.glint) col.push(.92, .92, .9, 1, 1, 1); // tinsel: a fibre that catches the light
+        else col.push(cc.r * br * k0, cc.g * br * k0, cc.b * br * k0, cc.r * br, cc.g * br, cc.b * br);
       }
     });
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
-    return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: st.fur ? .7 : st.preset === "mohair" ? .4 : .22, depthWrite: false }));
+    return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: st.fur ? .7 : fluffy ? .4 : .22, depthWrite: false }));
   }
 
   // ---------- pattern -> 3D: stitch = point, joins = springs (the shape comes from the counts alone)
@@ -542,8 +565,33 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (IT.view === "yarn" && D.done) buildItemYarn(D); else { holo = buildHolo(D); updateHolo(D); group.add(holo); }
     kick();
   }
+  // ---------- a knitted or crocheted piece is not rigid (Kim): once the shape has settled, a piece with
+  // walls gives a little under its own weight - the top drops and leans in, the belly comes out, the rim is
+  // no perfect circle; a flat piece lifts at its edge. How much: the material (a cord basket stands, mohair
+  // slumps) and how loose it is worked. The settled shape is kept (rest), so another material starts from it.
+  // Not on phones (their 3D stays as it was).
+  let rest: Float32Array | null = null;
+  function soften(D: ItemData) {
+    if (D.fixed || !rest || opts.phone || rest.length !== D.P.length * 3) return;
+    for (let i = 0; i < D.P.length; i++) D.P[i].set(rest[i * 3], rest[i * 3 + 1], rest[i * 3 + 2]);
+    const s = Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
+    if (s < .03) return;
+    const b = boxOf(D), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, H = b.my, rm = Math.max(b.x1 - b.x0, b.z1 - b.z0) / 2 || 1;
+    if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
+      for (const p of D.P) { const k = (Math.hypot(p.x - cx, p.z - cz) / rm) ** 2.4; p.y += s * D.rh * .7 * k * (.5 + .5 * Math.sin(3 * Math.atan2(p.z - cz, p.x - cx) + 1.3)); }
+      return;
+    }
+    const slim = Math.min(1.6, H / (rm * 2)); // a tall, narrow wall gives more
+    for (const p of D.P) {
+      if (p.y <= D.rh * .5) continue;
+      const t = p.y / H, th = Math.atan2(p.z - cz, p.x - cx);
+      const k = (1 + s * (.07 * Math.sin(Math.PI * Math.min(1, t * 1.1)) - .055 * t * t) * (.6 + .4 * slim)) * (1 + s * .04 * t * (Math.sin(2 * th + .6) + .5 * Math.sin(3 * th + 2.1)));
+      p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; p.y -= s * .075 * t * t * H * (.6 + .4 * slim);
+    }
+  }
   let t0 = 0;
   function startItem() {
+    rest = null;
     opts.onInfo(null); t0 = performance.now(); IT.data = makeItem(); lodFor(IT.data.knit ? IT.data.knit.W * IT.data.knit.H * 1.6 : IT.data.P.length);
     if (IT.data.fixed) IT.data.iter = 1e9; // a known shape: nothing to settle
     showItem();
@@ -562,6 +610,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       if (!D.fixed && D.iter < iters) relax(D, Math.round(ppf * iters * .75));
       if (D.fixed) relax(D, 0); // centre it on the ground
       D.done = true;
+      rest = new Float32Array(D.P.length * 3); D.P.forEach((q, i) => { rest![i * 3] = q.x; rest![i * 3 + 1] = q.y; rest![i * 3 + 2] = q.z; }); soften(D);
       showItem(); // the straps' height is known once the yarn is on
       frameOn(D); opts.onBuilt?.(performance.now() - t0);
     }
@@ -686,12 +735,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       pat = p;
       if (mat) Object.assign(st, presetOf(p.material));
       if (reshape) startItem();
-      else if (IT.data?.done) { showItem(); if (refocus) frameOn(IT.data); } // colour, material or stitch pattern: the yarn again, the shape as it is
+      else if (IT.data?.done) { if (mat) soften(IT.data); showItem(); if (refocus) frameOn(IT.data); } // colour, material or stitch pattern: the yarn again, the shape as it is (a softer yarn gives more)
     },
     setMaterial(m) {
       if (m === st.preset) return;
       Object.assign(st, presetOf(m));
-      if (IT.data?.done) showItem();
+      if (IT.data?.done) { soften(IT.data); showItem(); }
     },
     setView(v) { IT.view = v; if (IT.data) showItem(); },
     playDraw,
