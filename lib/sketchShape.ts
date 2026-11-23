@@ -66,6 +66,10 @@ export function specToDraft(d: Draft, s: ShapeSpec): Draft {
   // the numbers decide the direction (the words and the numbers have disagreed): top edge against bottom edge
   const ratio = s.topWidthCm && s.widthCm ? s.topWidthCm / s.widthCm : s.body === "wider" ? 1.3 : s.body === "narrower" ? .7 : 1;
   const topA = !bag || curved || Math.abs(ratio - 1) < .08 ? null : ratio > 1 ? clamp(Math.round(a * ratio), a + 1, a * 2) : clamp(Math.round(a * ratio), Math.ceil(a * .4), a - 1);
+  // a short "flap" (a tab with a button over the rim, as on Kim's test photo) is no flap: the 3D's flap is as wide as
+  // the opening and reads as a lid. It becomes the button, high on the front
+  const tab = bag && s.flap !== "none" && (s.flapCm ?? 99) < s.heightCm * .3;
+  if (tab) { s = { ...s, flap: "none", button: true }; if (s.buttonY == null || s.buttonY < .6) s = { ...s, buttonX: s.buttonX ?? 0, buttonY: .82 }; }
   const flapOn = bag && s.flap !== "none";
   const handles = it.handles ? s.handles : 0;
   const ex: NonNullable<Draft["extras"]> = {};

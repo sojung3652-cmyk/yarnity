@@ -30,7 +30,7 @@ const TOOL: Anthropic.Tool = {
       rounded: { type: "boolean", description: "true when the piece has no hard corners: a curved bottom and soft rounded sides (hobo, half-moon, dumpling, bucket); false for a boxy flat-sided shape" },
       flapColor: { type: "string", description: "the flap's colour as #RRGGBB when it differs from the body" },
       handleColor: { type: "string", description: "the handle's colour as #RRGGBB when it differs from the body" },
-      flap: { type: "string", enum: ["none", "half", "square", "triangle"], description: "a flap over the opening and its outline: half (a half-moon / rounded), square, triangle" },
+      flap: { type: "string", enum: ["none", "half", "square", "triangle"], description: "a flap over the opening and its outline: half (a half-moon / rounded), square, triangle. A flap covers most of the opening's width; a narrow tab or strap with a button is NOT a flap - that is flap none and button true" },
       flapCm: { type: "number", description: "how far the flap reaches down the front, in cm" },
       handles: { type: "integer", enum: [0, 1, 2], description: "0 none, 1 one handle across the top, 2 two handles (front and back)" },
       handleCm: { type: "number", description: "the handle's length in cm" },

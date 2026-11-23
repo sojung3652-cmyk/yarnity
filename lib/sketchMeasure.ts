@@ -21,8 +21,36 @@ export type Measured = {
  *  everything the outline closes in */
 export function maskOf(rgba: Uint8ClampedArray, w: number, h: number): Mask | null {
   const ink = new Uint8Array(w * h); let n = 0;
-  // ink: drawn, and not paper-white (a photo or scan brought onto the sheet has its white paper too)
-  for (let i = 0; i < w * h; i++) { const j = i * 4; if (rgba[j + 3] > 40 && !(rgba[j] > 232 && rgba[j + 1] > 232 && rgba[j + 2] > 228)) { ink[i] = 1; n++; } }
+  // ink: drawn, and not paper. A photo brought onto the sheet has its own background (Kim's test: a bag on a beige
+  // wall): when the sheet's edge is mostly opaque, the edge's colour is the paper; otherwise paper is near-white
+  // the photo's own edge (fitted onto the square sheet it leaves transparent bands): the box of what is opaque
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) if (rgba[(y * w + x) * 4 + 3] > 200) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  let er = 0, eg = 0, eb = 0, en = 0, edge = 0;
+  if (x1 >= 0) {
+    const at = (x: number, y: number) => { const j = (y * w + x) * 4; edge++; if (rgba[j + 3] > 200) { er += rgba[j]; eg += rgba[j + 1]; eb += rgba[j + 2]; en++; } };
+    for (let x = x0; x <= x1; x++) { at(x, y0); at(x, y1); }
+    for (let y = y0; y <= y1; y++) { at(x0, y); at(x1, y); }
+  }
+  // a photo: a large opaque box whose edge is opaque all round (a drawing's edge is bare paper, transparent)
+  const photo = (x1 - x0) * (y1 - y0) > w * h * .4 && en > edge * .9, bg = photo ? [er / en, eg / en, eb / en] : null;
+  // against a photo's background by hue, not by light: a light pink bag on a beige wall is near it in plain
+  // distance but another hue; its shadow on the wall and floor is the wall's hue, only darker. Ink lines on paper
+  // (a photo of a drawing) are far darker than any shadow.
+  const hueSat = (r: number, g: number, b: number): [number, number] => {
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), c = mx - mn; if (!c) return [0, 0];
+    const hh = mx === r ? ((g - b) / c + 6) % 6 : mx === g ? (b - r) / c + 2 : (r - g) / c + 4;
+    return [hh * 60, c / mx];
+  };
+  const bgH = bg ? hueSat(bg[0], bg[1], bg[2]) : null, bgL = bg ? (bg[0] + bg[1] + bg[2]) / 3 : 0;
+  const paper = (j: number) => {
+    const r = rgba[j], g = rgba[j + 1], b = rgba[j + 2];
+    if (!bg || !bgH) return r > 232 && g > 232 && b > 228;
+    if (bgL - (r + g + b) / 3 > 95) return false; // ink-dark
+    const [hh, sat] = hueSat(r, g, b), dh = Math.min(Math.abs(hh - bgH[0]), 360 - Math.abs(hh - bgH[0]));
+    return !(sat > .08 && dh > 14) && Math.abs(sat - bgH[1]) < .22;
+  };
+  for (let i = 0; i < w * h; i++) { const j = i * 4; if (rgba[j + 3] > 40 && !paper(j)) { ink[i] = 1; n++; } }
   if (n < 50) return null;
   // the paper reachable from the edge without crossing ink is outside
   const out = new Uint8Array(w * h), st: number[] = [];
@@ -47,15 +75,18 @@ export function measure(m: Mask): Measured | null {
   for (let y = 0; y < m.h; y++) { const r = runs(m, y); rows.push(r); if (r.length) { if (top < 0) top = y; bot = y; } }
   if (top < 0 || bot - top < 8) return null;
   const span = (r: [number, number][]) => r.length ? r[r.length - 1][1] - r[0][0] + 1 : 0;
-  // a gap inside a row (the paper under a handle) wider than a pen line, beside ink on both sides
-  const gapped = (r: [number, number][], wide: number) => { for (let i = 1; i < r.length; i++) if (r[i][0] - r[i - 1][1] > Math.max(8, wide * .08)) return true; return false; };
-  // up from the bottom: the body goes on while a row is whole and not much narrower than the body so far
-  let wide = 0, end = bot;
+  // a gap inside a row (the paper under a handle), wider than a pen line or a photo's speck, beside ink on both
+  // sides; against the widest the drawing gets anywhere
+  let W = 0; for (let y = top; y <= bot; y++) W = Math.max(W, span(rows[y]));
+  const gapped = (r: [number, number][]) => { for (let i = 1; i < r.length; i++) if (r[i][0] - r[i - 1][1] > Math.max(10, W * .06)) return true; return false; };
+  // up from the bottom: the body goes on while rows are whole and not much narrower than the body so far; it ends
+  // where that stops for a few rows running (one ragged row is no handle)
+  let wide = 0, end = bot, run = 0;
   for (let y = bot; y >= top; y--) {
     const r = rows[y], sp = span(r);
     if (!sp) continue;
-    if (y < bot - 6 && (gapped(r, wide) || sp < wide * .35)) break;
-    wide = Math.max(wide, sp); end = y;
+    if (y < bot - 6 && (gapped(r) || sp < wide * .35)) { if (++run >= 4) break; continue; }
+    run = 0; wide = Math.max(wide, sp); end = y;
   }
   const bodyPx = bot - end + 1;
   if (bodyPx < 8 || wide < 8) return null;
@@ -72,7 +103,7 @@ export function measure(m: Mask): Measured | null {
   const hPx = end - top;
   if (hPx > 6) {
     let ring = 0, band = 0, bandW = 0;
-    for (let y = top; y < end; y++) { const r = rows[y]; if (!r.length) continue; if (gapped(r, wide) || r.length > 1) ring++; else { band++; bandW += span(r); } }
+    for (let y = top; y < end; y++) { const r = rows[y]; if (!r.length) continue; if (gapped(r)) ring++; else { band++; bandW += span(r); } }
     if (ring >= band) {
       // half an ellipse over the opening (Ramanujan), along the handle's middle
       const a = openPx / 2, b = hPx;
