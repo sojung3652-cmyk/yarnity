@@ -31,6 +31,8 @@ export interface Draft {
   lot?: string;
   /** more yarns / colours beyond the first (the first stays in color / colorName / colorNo / lot) */
   moreColors?: YarnColor[];
+  /** a knitted item's stitch pattern (lib/knit.ts KNIT_STITCHES key); none = 메리야스 */
+  stitch?: string;
   /** yarn thickness in mm as typed; weight is derived from it (lib/yarn.ts); "level" = picked thin/medium/thick */
   yarnMm?: number | null;
   yarnMode?: "mm" | "level";

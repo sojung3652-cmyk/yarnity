@@ -16,7 +16,8 @@ import { CopyLot } from "@/components/YarnInfo";
 import { GlossText } from "@/components/glossary/GlossText";
 import { drawing } from "@/lib/drawing";
 import { ITEM, itemIdOf } from "@/lib/items";
-import { fmt, PART_KO, plan, SHAPE_KO, withChains, type Row } from "@/lib/pattern";
+import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
+import { isKnit, partName, shownPlan } from "@/lib/knit";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { yarnUse } from "@/lib/yarnUse";
 import { WorkMore } from "@/components/WorkMore";
@@ -43,7 +44,7 @@ export function PatternScreen() {
   useEffect(() => { try { if (sessionStorage.getItem("m.justMade")) { sessionStorage.removeItem("m.justMade"); setPicking(true); } } catch {} }, []);
   if (!ready || !p) return <main id="view-pattern" />;
 
-  const pp = withChains(plan(p)), it = ITEM[itemIdOf(p)];
+  const pp = shownPlan(p), it = ITEM[itemIdOf(p)];
   const rounds = p.object === "coaster" || p.object === "bag";
 
   // the rows in sections by part; runs of identical rows read as one line ("26–50단")
@@ -113,7 +114,7 @@ export function PatternScreen() {
             <p className="ps-gauge"><b>{fmt(pp.g.h * 10)}</b><span>mm</span></p>
             <p className="ps-small">한 코 높이 · {pp.g.measured ? "직접 잰 값" : "예상 값"}</p>
             <p className="ps-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산합니다." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드립니다."}</p>
-            <p className="ps-small ps-rule"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 뜹니다." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세웁니다."} 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다.</p>
+            {isKnit(p) ? <p className="ps-small ps-rule"><b>겉면 · 안면</b> 홀수 단은 겉면, 짝수 단은 안면에서 뜹니다. 단 끝에서 편물을 뒤집어 다음 단을 뜹니다.</p> : <p className="ps-small ps-rule"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 뜹니다." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세웁니다."} 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다.</p>}
           </div>
         </section>
 
@@ -121,7 +122,7 @@ export function PatternScreen() {
         <section className="ps-rows" id="patRows" aria-label="단별 도안">
           {sections.map((s, k) => (
             <div key={k} className="ps-part">
-              <h2 className="ps-part-title"><span className="ps-part-no">{String(k + 1).padStart(2, "0")}</span>{PART_KO[s.part]}
+              <h2 className="ps-part-title"><span className="ps-part-no">{String(k + 1).padStart(2, "0")}</span>{partName(s.part, p)}
                 <span className="ps-part-cnt">{s.part === "handle" ? count(s.part) + "개" : s.part === "start" ? "" : count(s.part) + "단"}</span></h2>
               <table className="ps-table">
                 <tbody>

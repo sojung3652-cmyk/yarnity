@@ -25,6 +25,7 @@
 //    phones and on the book's page (`detail: "page"`)
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { stitchOf } from "@/lib/knit";
 
 export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal";
 export type YarnStrap = "none" | "two" | "long";
@@ -33,7 +34,7 @@ export type YarnShape =
   | { kind: "round"; counts: number[]; flat: number }                       // magic ring; `flat` = rounds that lie flat (the bottom)
   | { kind: "oval"; chain: number; bottom: number[]; body: number[] }        // around a base chain, then a body (wall)
   | { kind: "rect"; chain: number; bottom: number[]; body: number[] }
-  | { kind: "rows"; W: number; H: number; wCm: number; hCm: number; knit: boolean } // back and forth (knit: stockinette)
+  | { kind: "rows"; W: number; H: number; wCm: number; hCm: number; knit: boolean; stitch?: string } // back and forth (knit: its stitch pattern, lib/knit.ts)
   | { kind: "tube"; W: number; H: number; circCm: number; hCm: number };   // in the round, no bottom
 export interface YarnPattern {
   shape: YarnShape;
@@ -45,6 +46,8 @@ export interface YarnPattern {
   /** handle length (cm), for the strap's height */
   strapCm: number;
   material: YarnMaterial;
+  /** "fabric": frame a knitted piece close up (the 무늬 page) instead of the whole piece */
+  focus?: "fabric";
 }
 export interface YarnInfo { round: boolean; widthCm: number; depthCm: number; heightCm: number | null; fit: string; skip: { stitch: number; row: number } | null }
 export interface YarnViewer {
@@ -480,10 +483,17 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // knitted stockinette: one row = one strand of joined loops (the prototype's buildKnit)
   function buildKnit(D: ItemData, R: number, mat: THREE.Material, geos: THREE.BufferGeometry[]) {
     const K = D.knit!, w = K.wk, Hh = 1.05 * w, a = .22 * w, d = Math.min(R, w * .3), per = page ? 10 : 14, q = Math.round(per * .25), rowC = D.C;
+    // a purl stitch is a knit stitch seen from behind: its loop's front and back are swapped. The sign
+    // blends over a fifth of a stitch where a knit meets a purl, so the strand passes through the fabric.
+    const kf = stitchOf(pat.shape.kind === "rows" ? pat.shape.stitch : undefined).f; // read now: the pattern can change without a new shape
+    const sg = (j: number, u: number) => {
+      const n = Math.floor(u), fr = u - n, c = (k: number) => kf(j, ((k % K.W) + K.W) % K.W);
+      return fr < .1 ? c(n - 1) + (c(n) - c(n - 1)) * (.5 + fr / .2) : fr > .9 ? c(n) + (c(n + 1) - c(n)) * ((fr - .9) / .2) : c(n);
+    };
     for (let j = 0; j < K.H; j++) {
       const pts: THREE.Vector3[] = [], tb = K.type === "tube";
       for (let i = tb ? 0 : -q; i < (tb ? K.W * per : K.W * per + q + 1); i++) {
-        const u = i / per, ac = w * u + a * Math.sin(4 * Math.PI * u), lp = (Hh / 2) * Math.cos(2 * Math.PI * u), dz = d * Math.cos(4 * Math.PI * u);
+        const u = i / per, ac = w * u + a * Math.sin(4 * Math.PI * u), lp = (Hh / 2) * Math.cos(2 * Math.PI * u), dz = d * Math.cos(4 * Math.PI * u) * sg(j, u);
         if (tb) { const th = ac / K.rho, r = K.rho - dz; pts.push(new THREE.Vector3(Math.cos(th) * r, j * K.rk - lp + Hh / 2, Math.sin(th) * r)); }
         else { const al = (j - (K.H - 1) / 2) * K.rk - lp, x = ac - K.W * w / 2, y = d - dz; pts.push(K.swap ? new THREE.Vector3(al, y, x) : new THREE.Vector3(x, y, al)); }
       }
@@ -533,14 +543,31 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       if (!D.fixed && D.iter < iters) relax(D, Math.round(ppf * iters * .75));
       if (D.fixed) relax(D, 0); // centre it on the ground
       D.done = true;
-      const z = sizeInfo(D);
       showItem(); // the straps' height is known once the yarn is on
+      frameOn(D); opts.onBuilt?.(performance.now() - t0);
+    }
+  }
+  /** the camera on the finished piece (or, `focus: "fabric"`, near enough to read a knitted fabric's stitches) */
+  let wasFab = false;
+  function frameOn(D: ItemData) {
+    {
+      const z = sizeInfo(D);
       const tot = z.my + strapH, ext = Math.max(z.mr * 2, tot);
       // the angle the reader turned it to stays; the distance follows the piece. The target sits a little
       // below the middle so the piece stands clear of the labels along the bottom
       const dir = cam.position.clone().sub(ctl.target).normalize(); ctl.target.set(0, tot * .32, 0);
-      const dist = (ext * (st.fur ? 2.3 : z.my < D.rh * 3 ? 1.55 : 2) + 2) * (page ? (z.my < D.rh * 3 ? 1.12 : .92) : 1.15); // a flat piece is as wide as the page: a little further back cam.position.copy(ctl.target).addScaledVector(dir, dist); ctl.maxDistance = Math.max(40, dist * 2.2);
-      setShadow(Math.max(10, ext * 1.4)); fit(); opts.onBuilt?.(performance.now() - t0);
+      // 무늬 고르기: looked at with its rows across the screen (a scarf lies with its length sideways); back
+      // to the usual angle when the whole piece is shown again
+      const fab = pat.focus === "fabric" && !!D.knit;
+      if (fab !== wasFab) { wasFab = fab; if (fab && D.knit!.swap) dir.set(.74, .67, 0); else dir.set(0, .63, .77).normalize(); dir.normalize(); }
+      // a flat piece is as wide as the page: a little further back; and never so near that the piece's
+      // width runs off the sides of a narrow canvas (a long scarf on the book's page)
+      const hf = Math.atan(Math.tan(cam.fov * Math.PI / 360) * cam.aspect);
+      const dist = Math.max((ext * (st.fur ? 2.3 : z.my < D.rh * 3 ? 1.55 : 2) + 2) * (page ? (z.my < D.rh * 3 ? 1.12 : .92) : 1.15), z.mr / Math.tan(hf));
+      // 무늬 고르기: about 22 stitches across, so the knit and purl stitches can be told apart
+      const near = pat.focus === "fabric" && D.knit ? Math.min(dist, 11 * D.knit.wk / Math.tan(hf)) : dist;
+      cam.position.copy(ctl.target).addScaledVector(dir, near); ctl.maxDistance = Math.max(40, dist * 2.2);
+      setShadow(Math.max(10, ext * 1.4)); if (near === dist) fit(); else ctl.update();
     }
   }
   // 뜨는 순서: the yarn grows course by course (draw range over the meshes, which are in course order);
@@ -584,14 +611,15 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   startItem();
 
   // what changes the shape (counts, yarn and hook, strap): anything else is colour
-  const shapeKey = (p: YarnPattern) => JSON.stringify([p.shape, p.yarnMm, p.hookMm, p.strap, p.strapCm]);
+  // the stitch pattern of a knitted piece changes its yarn, not its shape
+  const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm, p.strap, p.strapCm]);
   return {
     setPattern(p) {
-      const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material;
+      const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
       pat = p;
       if (mat) Object.assign(st, presetOf(p.material));
       if (reshape) startItem();
-      else if (IT.data?.done) showItem(); // colour or material: the yarn again, the shape as it is
+      else if (IT.data?.done) { showItem(); if (refocus) frameOn(IT.data); } // colour, material or stitch pattern: the yarn again, the shape as it is
     },
     setMaterial(m) {
       if (m === st.preset) return;

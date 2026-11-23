@@ -13,6 +13,7 @@ import { useApp } from "@/components/AppProvider";
 import { FoilLogo } from "@/components/FoilLogo";
 import { GoldX } from "@/components/GoldX";
 import { PART_KO, plan } from "@/lib/pattern";
+import { partName } from "@/lib/knit";
 import { statusOf } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { MobileNotebook, Spiral } from "./MobileNotebook";
@@ -26,7 +27,7 @@ const STEP_NAME = ["", "이름", "품목", "실과 크기", "확인"];
 export function progressOf(p: Project) {
   const pp = plan(p), total = pp.rows.length, cur = Math.min(p.current || 0, total);
   const r = pp.rows[Math.min(cur, total - 1)];
-  const where = cur >= total ? "다 떴습니다" : r.part === "start" ? "시작 사슬" : /단$/.test(r.label) ? `${PART_KO[r.part]} ${r.label}째` : r.label;
+  const where = cur >= total ? "다 떴습니다" : r.part === "start" ? partName(r.part, p) : /단$/.test(r.label) ? `${PART_KO[r.part]} ${r.label}째` : r.label;
   return { total, cur, where, pos: `${Math.min(cur + 1, total)} / ${total}`, pct: total ? cur / total : 0 };
 }
 

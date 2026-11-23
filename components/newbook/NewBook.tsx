@@ -24,7 +24,8 @@ import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
-import { Head, Tiles, WebCheck, WebHook, WebYarn } from "./WebPages";
+import { Head, Tiles, WebCheck, WebHook, WebStitch, WebYarn } from "./WebPages";
+import { isKnit, stitchOf } from "@/lib/knit";
 import { yarnUse } from "@/lib/yarnUse";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { Fold, useOneOpen } from "./Fold";
@@ -142,7 +143,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // and, for a bag, its shape (sheet 2: body, flap, handle); the 3D book turns its page between them
   // (Book3D reads the sheet). Phones keep their own sheets.
   const web = phone === false, liveSheet = useSheet(3, web ? WEB_SHEETS3 : undefined);
-  const bagNow = ITEM[itemIdOf(draft)].group === "가방", sheets3 = bagNow ? 3 : 2;
+  // the third spread: a bag's shape, or a knitted item's stitch pattern (무늬)
+  const bagNow = ITEM[itemIdOf(draft)].group === "가방", knitNow = isKnit({ item: itemIdOf(draft) }), sheets3 = bagNow || knitNow ? 3 : 2;
   const sheet = web && step === 3 ? Math.min(inSheet ?? liveSheet, sheets3 - 1) : 0, pos = step * 3 + sheet;
   const [editId, setEditId] = useState<string | null>(null);
   const [nums, setNums] = useState<Record<FieldKey, string>>(numsOf(draft));
@@ -220,7 +222,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials }), [input, draft.item, draft.color, draft.yarnMm, draft.materials]);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch]);
   // 크게 보기 on the left page (web): the full-screen 3D
   const big3d = useYarn3D(yarnSrc, pp);
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
@@ -278,7 +280,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   };
   // the web's step 3, spread by spread: the yarn needs only its thickness; the hook-and-size spread its
   // hook and sizes (the bag's shape spread follows); the last spread everything (stepOk)
-  const sheetOk = !(web && step === 3) ? stepOk : sheet === 0 ? yarnThickOk(draft) : sheet === 1 && bagNow ? yarnStepOk(draft) && Object.keys(errors).length === 0 : stepOk;
+  const sheetOk = !(web && step === 3) ? stepOk : sheet === 0 ? yarnThickOk(draft) : sheet === 1 && sheets3 === 3 ? yarnStepOk(draft) && Object.keys(errors).length === 0 : stepOk;
   const next = () => {
     if (!sheetOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"], .mw-form [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
     if (web && step === 3 && sheet < sheets3 - 1) { setSheet(3, sheet + 1); return; }
@@ -306,14 +308,14 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   let rightWeb: ReactNode = null;
 
 
-  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: web ? (["어떤 실로 뜨시겠습니까?", "바늘과 크기를 정합니다", "가방 모양을 정합니다"][sheet]) : "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
-  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : web && sheet === 1 && bagNow ? "다음 · 가방 모양 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
+  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: web ? (["어떤 실로 뜨시겠습니까?", "바늘과 크기를 정합니다", bagNow ? "가방 모양을 정합니다" : "어떤 무늬로 뜨시겠습니까?"][sheet]) : "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
+  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : web && sheet === 1 && bagNow ? "다음 · 가방 모양 →" : web && sheet === 1 && knitNow ? "다음 · 무늬 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
   // folios (web): 1-2 이름, 3-4 품목, then two pages per spread of step 3 (실, 바늘과 크기, 가방 모양), then 확인;
   // four spreads on the one-page book
   const folio = web ? (step <= 2 ? step * 2 - 1 : step === 3 ? 5 + sheet * 2 : 5 + sheets3 * 2) : step * 2 - 1;
   // the web's step 3: where you are among its spreads, under the title
   const subSteps = web && step === 3 ? (
-    <ol className="nb-substeps" aria-label="실과 크기 단계">{["실", "바늘과 크기", "가방 모양"].slice(0, sheets3).map((t, i) => <li key={t} aria-current={i === sheet ? "step" : undefined}>{t}</li>)}</ol>
+    <ol className="nb-substeps" aria-label="실과 크기 단계">{["실", "바늘과 크기", bagNow ? "가방 모양" : "무늬"].slice(0, sheets3).map((t, i) => <li key={t} aria-current={i === sheet ? "step" : undefined}>{t}</li>)}</ol>
   ) : null;
 
   const progress = (
@@ -542,6 +544,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       { k: "실", v: <>{ucolors[0]?.hex && <i className="nb-swatch" style={{ background: ucolors[0].hex }} />}{yarnBits || "고르지 않음"}</>, fix: () => fixAt(0) },
       { k: "바늘", v: Number.isFinite(hookMm) ? hookLabel(hookMm) : "고르지 않음", fix: () => fixAt(1) },
       { k: "크기", v: sizeText.replace("cm", "cm") + (input.object === "bag" && draft.h ? ` · 높이 ${draft.h}cm` : ""), fix: () => fixAt(1) },
+      ...(isKnit({ item: item.id }) ? [{ k: "무늬", v: stitchOf(draft.stitch).ko, fix: () => fixAt(2) }] : []),
       ...(isBag(item) ? [{ k: "모양", v: [draft.topA ? `위로 넓어지는 (입구 ${draft.topA}cm)` : "일자형", draft.flapCm ? `덮개 ${draft.flapCm}cm` : "", item.handles ? `손잡이 ${handleText(draft)}` : ""].filter(Boolean).join(" · "), fix: () => fixAt(2) }] : []),
     ];
     const facts: [string, string][] = [["한 코", `약 ${Math.round(g.h * 10)}mm`]];
@@ -552,7 +555,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const basis = use.basis === "label" ? "실 라벨" : use.basis === "mm" ? `실 굵기 ${draft.yarnMm}mm` : "실 굵기";
     const skeinText = draft.skeinG && draft.skeinM ? `한 타래 ${draft.skeinG}g · ${draft.skeinM}m 기준` : draft.skeinG ? `한 타래 ${draft.skeinG}g 기준` : draft.skeinM ? `한 타래 ${draft.skeinM}m 기준` : "";
     rightWeb = step === 3
-      ? [<WebYarn key="y" draft={draft} patch={patch} tried={tried} />, webSize, webBag][sheet]
+      ? [<WebYarn key="y" draft={draft} patch={patch} tried={tried} />, webSize, bagNow ? webBag : <WebStitch key="s" draft={draft} patch={patch} n={pp.last} />][sheet]
       : <WebCheck draft={draft} itemName={item.name} rows={checkRows} facts={facts}
           use={{ g: use.g, m: use.m, skeins: use.skeins ?? null, short: !!use.short, labelOdd: !!use.labelOdd, perColor: !!use.perColor, colors: ucolors.length, per100: use.per100, basis, skeinText }}
           measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} />;
@@ -582,7 +585,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     left: web && step > 1 ? (
       // the web from step 2 (Kim): the left page is the 3D alone; at its foot 이전 and 크게 보기 (the full screen)
       <section className="nb-page nb-left nb-3dleft" aria-label="3D 미리 보기">
-        <YarnPagePreview source={yarnSrc} plan={pp} />
+        <YarnPagePreview source={yarnSrc} plan={pp} fabric={knitNow && step === 3 && sheet === 2} />
         <div className="nb-foot">
           <ClothLabel side="back" type="button" onClick={back}>← 이전</ClothLabel>
           {big3d.supported && <ClothLabel side="next" type="button" onClick={big3d.show}>크게 보기</ClothLabel>}

@@ -5,12 +5,14 @@
 //   실          - thickness, colour (dots), material (tiles: the 3D shows it at once); the label details
 //                 (brand, colour no., LOT, skeins, shop, memo) in one folded row at the bottom
 //   바늘과 크기  - the hook as tiles (+ 직접 입력) with a line on whether it suits the yarn; shape, size
-//   가방 모양    - body, flap, handle as tiles (bags only; NewBook.tsx builds it from BagTiles)
+//   가방 모양    - body, flap, handle as tiles (bags only; NewBook.tsx builds it)
+//   무늬         - a knitted item's stitch pattern as chart tiles (WebStitch)
 // Phones keep YarnStep.tsx's pages as they are.
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import type { Draft } from "@/lib/types";
 import { YARN_KO, type Weight } from "@/lib/pattern";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
+import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
 import { Fold, useOneOpen } from "./Fold";
 import { COLORS, ColorEditor } from "./YarnStep";
 
@@ -218,6 +220,52 @@ export function WebCheck({ draft, itemName, rows, use, facts, measureNote }: {
       </div>
       <div className="nb-wfacts">{facts.map(([k, v]) => <div key={k}><span>{k}</span>{v}</div>)}</div>
       <p className="nb-help">{measureNote}</p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- 무늬 (knitted items)
+/** A stitch pattern as knitters chart it, seen from the right side: an empty square = knit, a dash on
+ *  dusty rose = purl (the same chart the 3D reads). */
+export function StitchChart({ s, cells = 8 }: { s: KnitStitch; cells?: number }) {
+  const c = 100 / cells, purl: ReactNode[] = [];
+  for (let j = 0; j < cells; j++) for (let i = 0; i < cells; i++) if (s.f(j, i) < 0) {
+    const x = (cells - 1 - i) * c, y = (cells - 1 - j) * c; // stitch 0 is the right-hand column, row 0 the bottom
+    purl.push(<g key={j + "-" + i}><rect x={x} y={y} width={c} height={c} fill="#F3DCDB" /><rect x={x + c * .22} y={y + c * .44} width={c * .56} height={c * .12} fill="#6E5350" /></g>);
+  }
+  const lines: string[] = []; for (let t = 0; t <= cells; t++) lines.push(`M${t * c} 0V100M0 ${t * c}H100`);
+  return (
+    <svg className="nb-chart" viewBox="0 0 100 100" aria-hidden="true">
+      <rect width="100" height="100" fill="#FFFDF8" />{purl}<path d={lines.join("")} stroke="#CDBFB4" strokeWidth=".6" fill="none" />
+    </svg>
+  );
+}
+
+/** The web's 무늬 spread: the knit-and-purl patterns as chart tiles; the 3D on the left knits the picked one.
+ *  `n`: the stitches of a row (the plan's), to say whether the pattern's multiple fits the width. */
+export function WebStitch({ draft, patch, n }: { draft: Draft; patch: Patch; n: number }) {
+  const cur = stitchOf(draft.stitch), refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const idx = Math.max(0, KNIT_STITCHES.findIndex(s => s.key === cur.key));
+  const key = (e: KeyboardEvent, i: number) => {
+    const d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!d) return;
+    e.preventDefault(); const j = (i + d + KNIT_STITCHES.length) % KNIT_STITCHES.length; patch({ stitch: KNIT_STITCHES[j].key }); refs.current[j]?.focus();
+  };
+  const left = cur.mult > 1 ? n % cur.mult : 0;
+  return (
+    <div className="nb-web">
+      <div className="nb-wg">
+        <Head note="빈 칸 겉뜨기 · 줄 칸 안뜨기">겉뜨기 · 안뜨기 무늬</Head>
+        <div className="nb-tiles nb-tiles-6 nb-stitches" role="radiogroup" aria-label="무늬">
+          {KNIT_STITCHES.map((s, i) => (
+            <button key={s.key} ref={el => { refs.current[i] = el; }} type="button" role="radio" aria-checked={s.key === cur.key} tabIndex={i === idx ? 0 : -1}
+              className="nb-tile nb-stitch" onClick={() => patch({ stitch: s.key })} onKeyDown={e => key(e, i)}><StitchChart s={s} />{s.ko}</button>
+          ))}
+        </div>
+        <p className="nb-wnote" aria-live="polite">{cur.note}{cur.mult > 1 && (left
+          ? ` ${cur.mult}코 단위 무늬인데 지금 폭은 ${n}코라서, 가장자리에서 무늬가 ${left}코 남습니다. 그대로 떠도 되고, 폭을 조금 바꾸면 딱 맞습니다.`
+          : ` ${cur.mult}코 단위 무늬이고, 지금 폭 ${n}코에 딱 맞습니다.`)}</p>
+      </div>
     </div>
   );
 }

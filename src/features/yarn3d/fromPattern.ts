@@ -8,6 +8,7 @@
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
 import type { Plan, PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
+import { isKnit } from "@/lib/knit";
 import type { YarnMaterial, YarnPattern, YarnShape } from "./engine";
 
 /** the pattern's own fields the engine reads (Draft and Project both have them) */
@@ -16,6 +17,8 @@ export interface YarnSource extends PlanInput {
   color?: string;
   yarnMm?: number | null;
   materials?: string[];
+  /** a knitted item's stitch pattern (lib/knit.ts) */
+  stitch?: string | null;
 }
 
 // no thickness typed (only thin / medium / thick picked): the middle of each level in lib/yarn.ts
@@ -29,8 +32,6 @@ const MAT: Record<string, YarnMaterial> = {
   리넨: "linen", 실크: "silk", 대나무: "silk", 나일론: "silk", 폴리에스터: "silk", "벨벳(셔닐)": "chenille",
   라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈릭: "metal",
 };
-// knitted items (Kim: 목도리 is knitted; the pattern data itself has no knitting)
-const KNIT = new Set(["scarf"]);
 
 export function yarn3dSupported(p: PlanInput): boolean {
   return ["coaster", "bag", "rows", "tube"].includes(p.object);
@@ -42,7 +43,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   let shape: YarnShape;
   if (p.object === "rows") {
     const rows = counts("rows"); if (!rows.length) return null;
-    shape = { kind: "rows", W: rows[0], H: rows.length, wCm: p.a, hCm: p.b ?? p.a, knit: KNIT.has(p.item ?? "") };
+    shape = { kind: "rows", W: rows[0], H: rows.length, wCm: p.a, hCm: p.b ?? p.a, knit: isKnit(p), stitch: p.stitch ?? undefined };
   } else if (p.object === "tube") {
     const rounds = counts("rounds"); if (!rounds.length) return null;
     shape = { kind: "tube", W: rounds[0], H: rounds.length, circCm: p.a, hCm: p.h ?? 1 };

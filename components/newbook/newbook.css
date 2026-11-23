@@ -630,3 +630,8 @@ button.nb-ribbon:hover,button.nb-ribbon:focus-visible{transform:scale(1.1)}
 .nb-tile{min-height:42px}
 .nb-in3d .nb-substeps{margin-bottom:18px}
 .nb-wrow .nb-link{align-self:center;padding:0}
+/* 무늬: chart tiles (WebStitch) */
+.nb-stitch{gap:5px;padding:6px 6px 7px;font-size:13.5px}
+.nb-chart{display:block;width:100%;height:auto;border-radius:3px}
+.nb-tiles-6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.nb-stitch{font-size:12.5px;padding:5px 4px 6px;min-height:0}

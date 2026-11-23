@@ -8,7 +8,8 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useApp } from "@/components/AppProvider";
 import { ITEM, itemIdOf } from "@/lib/items";
-import { fmt, PART_KO, plan, SHAPE_KO, withChains, type Row } from "@/lib/pattern";
+import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
+import { partName, shownPlan } from "@/lib/knit";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { yarnUse } from "@/lib/yarnUse";
 
@@ -17,7 +18,7 @@ export function MobilePatternPage() {
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
   if (!ready || !p) return null;
 
-  const pp = withChains(plan(p)), it = ITEM[itemIdOf(p)];
+  const pp = shownPlan(p), it = ITEM[itemIdOf(p)];
   // the rows in sections by part; runs of identical rows read as one line ("26–50단"), as on the web sheet
   const sections: { part: Row["part"]; rows: { label: string; r: Row }[] }[] = [];
   for (let i = 0; i < pp.rows.length; i++) {
@@ -53,7 +54,7 @@ export function MobilePatternPage() {
       <section className="mpp-rows" aria-label="단별 도안">
         {sections.map((s, k) => (
           <div key={k} className="mpp-part">
-            <h2><span>{String(k + 1).padStart(2, "0")}</span>{PART_KO[s.part]}</h2>
+            <h2><span>{String(k + 1).padStart(2, "0")}</span>{partName(s.part, p)}</h2>
             <ol>
               {s.rows.map(({ label, r }) => (
                 <li key={r.idx}>

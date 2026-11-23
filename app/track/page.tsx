@@ -11,7 +11,8 @@ import { WorkMore } from "@/components/WorkMore";
 import { useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
-import { clamp, fmt, PART_KO, plan, withChains, type Row } from "@/lib/pattern";
+import { clamp, fmt, PART_KO, plan, type Row } from "@/lib/pattern";
+import { partName, shownPlan } from "@/lib/knit";
 import type { Project } from "@/lib/types";
 import { useMobile } from "@/components/mobile/useMobile";
 import { MobileTopBar, MoreButton } from "@/components/mobile/MobileTopBar";
@@ -126,7 +127,7 @@ export function TrackScreen() {
 
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
 
-  const pp = useMemo(() => (p ? withChains(plan(p)) : null), [p]), total = pp ? pp.rows.length : 0;
+  const pp = useMemo(() => (p ? shownPlan(p) : null), [p]), total = pp ? pp.rows.length : 0;
   // phones: 3D로 보기 in the ··· sheet (the web has it as a label in the header)
   const y3 = useYarn3D(p, pp);
   const current = p ? clamp(p.current || 0, 0, total) : 0;
@@ -226,7 +227,7 @@ export function TrackScreen() {
   // phones: its own screen (screens-mobile.css): the bar, where you are, the row as a card (이전 / 다음 단 to
   // read ahead), a small chart (or the measuring card at 3단 끝), and 되돌리기 + 한 단 끝 at the foot
   if (m) {
-    const part = r.part === "start" ? "시작 사슬" : PART_KO[r.part];
+    const part = partName(r.part, p!);
     const measuring = !measureLater && (showMeasure || showMeasureRows);
     return (
       <main id="view-track" className="ms-screen mst">
@@ -321,7 +322,7 @@ export function TrackScreen() {
           </div>
         </header>
         <div className="tk-progress">
-          <span className="tk-sec" id="trPart">{done ? "완성" : r.part === "start" ? <><b>{secNo(r.part)}</b>시작 사슬</> : <><b>{secNo(r.part)}</b>{PART_KO[r.part]} · {r.label}</>}</span>
+          <span className="tk-sec" id="trPart">{done ? "완성" : r.part === "start" ? <><b>{secNo(r.part)}</b>{partName(r.part, p!)}</> : <><b>{secNo(r.part)}</b>{PART_KO[r.part]} · {r.label}</>}</span>
           <div className="tk-bar" aria-hidden="true"><i id="trBar" style={{ width: (current / total * 100) + "%" }} /></div>
           <span className="tk-pos">{Math.min(current + 1, total)}<i>/</i>{total}</span>
         </div>

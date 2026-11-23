@@ -14,7 +14,8 @@ import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { drawing } from "@/lib/drawing";
 import { ITEM, itemIdOf } from "@/lib/items";
-import { fmt, PART_KO, plan, SHAPE_KO, withChains, type Row } from "@/lib/pattern";
+import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
+import { isKnit, partName, shownPlan } from "@/lib/knit";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { yarnUse } from "@/lib/yarnUse";
 import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
@@ -39,7 +40,7 @@ export function MobilePatternScreen() {
   useEffect(() => { if (ready && !p) router.replace("/mine"); }, [ready, p, router]);
   if (!ready || !p) return <main id="view-pattern" className="ms-screen" />;
 
-  const pp = withChains(plan(p)), it = ITEM[itemIdOf(p)], total = pp.rows.length;
+  const pp = shownPlan(p), it = ITEM[itemIdOf(p)], total = pp.rows.length;
   const sections: { part: Row["part"]; rows: { label: string; r: Row }[] }[] = [];
   for (let i = 0; i < pp.rows.length; i++) {
     const r = pp.rows[i];
@@ -97,7 +98,7 @@ export function MobilePatternScreen() {
             const rows = partRows(s.part), last = rows[rows.length - 1];
             return (
               <div key={k} className="msp-part">
-                <h2><span className="msp-no">{String(k + 1).padStart(2, "0")}</span><b>{PART_KO[s.part]}</b>
+                <h2><span className="msp-no">{String(k + 1).padStart(2, "0")}</span><b>{partName(s.part, p)}</b>
                   <small>{s.part === "start" ? `${last.n}코` : s.part === "handle" ? `${rows.length}개` : `${rows.length}단 · 마지막 ${last.n}코`}</small></h2>
                 <ol>
                   {s.rows.map(({ label, r }) => (
@@ -132,7 +133,7 @@ export function MobilePatternScreen() {
           <h2 className="msp-h">게이지</h2>
           <p className="msp-gauge">한 코 높이 <b>{fmt(pp.g.h * 10)}</b> mm · {pp.g.measured ? "직접 잰 값" : "예상 값"}</p>
           <p className="msp-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산합니다." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드립니다."}</p>
-          <p className="msp-tip"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 뜹니다." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세웁니다."} 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다.</p>
+          {isKnit(p) ? <p className="msp-tip"><b>겉면 · 안면</b> 홀수 단은 겉면, 짝수 단은 안면에서 뜹니다. 단 끝에서 편물을 뒤집어 다음 단을 뜹니다.</p> : <p className="msp-tip"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 뜹니다." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세웁니다."} 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다.</p>}
         </section>
       )}
       </div>

@@ -11,10 +11,11 @@ import type { YarnPattern, YarnViewer } from "./engine";
 import { toYarnPattern, type YarnSource } from "./fromPattern";
 import "./yarn3d-place.css";
 
-const shapeKey = (p: YarnPattern) => JSON.stringify([p.shape, p.yarnMm, p.hookMm, p.strap, p.strapCm]);
+const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm, p.strap, p.strapCm]);
 
-export function YarnPagePreview({ source, plan }: { source: YarnSource; plan: Plan }) {
-  const pattern = useMemo(() => toYarnPattern(source, plan), [source, plan]);
+/** `fabric`: the 무늬 page - close enough to read the stitches of a knitted piece */
+export function YarnPagePreview({ source, plan, fabric }: { source: YarnSource; plan: Plan; fabric?: boolean }) {
+  const pattern = useMemo(() => { const p = toYarnPattern(source, plan); return p && fabric ? { ...p, focus: "fabric" as const } : p; }, [source, plan, fabric]);
   const box = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), viewer = useRef<YarnViewer | null>(null), shown = useRef<YarnPattern | null>(null);
   const latest = useRef(pattern); latest.current = pattern;
   const [noGL, setNoGL] = useState(false);
