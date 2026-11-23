@@ -25,6 +25,7 @@
 //    phones and on the book's page (`detail: "page"`)
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { extraPic, extraSrc } from "@/lib/extras";
 import { stitchOf } from "@/lib/knit";
 
 export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal"
@@ -74,7 +75,7 @@ export interface YarnPattern {
   strapWcm?: number;
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼), with where and how big (Kim): `buttonAt` /
    *  `labelAt` = [across the front -1..1, up 0..1, size in cm]; `zipOpen` 0 closed .. 1 open; the button's colour */
-  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean };
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean; buttonPic?: string; labelPic?: string };
   /** a handle (strap) in its own colour, when it differs from the body */
   strapColor?: string;
   /** a bag's flap (덮개): worked from the back of the opening, over the top and down the front (Kim: it has to show) */
@@ -195,6 +196,21 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const group = new THREE.Group(); scene.add(group);
   // 단추 / 라벨 that can be dragged over the piece (Kim): the sewn-on things, and how to put one at a place
   let exObjs: THREE.Object3D[] = [], exPlace: ((o: THREE.Object3D, across: number, up: number) => void) | null = null;
+  // Kim's button and label pictures, loaded once each (the 3D is drawn again when one arrives)
+  const pics = new Map<string, THREE.Texture>();
+  const picTex = (id: string) => {
+    let t = pics.get(id);
+    if (!t) { t = new THREE.TextureLoader().load(extraSrc(id), () => kick()); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; pics.set(id, t); }
+    return t;
+  };
+  /** a picture cut to its edge, standing out a little from the piece (a thin card: its face, and its edge darker behind) */
+  const picCard = (id: string, w: number, h: number, depth: number) => {
+    const g = new THREE.Group(), map = picTex(id);
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map, transparent: true, alphaTest: .45, roughness: .55, metalness: 0 }));
+    face.position.z = depth; g.add(face);
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map, color: 0x6e6158, transparent: true, alphaTest: .45, roughness: .9 }));
+    g.add(back); return g;
+  };
   // the light, its shadow box and the ground grow with the piece (the prototype's wider camera / shadow range)
   function setShadow(half: number) {
     sc.left = -half; sc.right = half; sc.top = half; sc.bottom = -half; sc.far = Math.max(40, half * 4.5);
@@ -776,8 +792,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const ba = ex.buttonAt, gold = ex.buttonColor === "gold";
       const { p, n } = ba && !tabTip ? (wall ? at(ba[1], ba[0] * Math.PI * .42) : { p: new THREE.Vector3(cx + ba[0] * (b.x1 - b.x0) / 2, b.my, cz - (ba[1] - .5) * (b.z1 - b.z0)), n: new THREE.Vector3(0, 1, 0) })
         : flapTip ?? tabTip ?? (wall ? at(.72, 0) : { p: new THREE.Vector3(cx, b.my, cz), n: new THREE.Vector3(0, 1, 0) });
-      const r = (ba?.[2] ?? 1.9) / 2 * U, g = new THREE.Group();
-      if (gold) {
+      const bp = extraPic(ex.buttonPic), r = (ba?.[2] ?? bp?.cm ?? 1.9) / 2 * U;
+      const g = bp ? picCard(bp.id, r * 2 * Math.min(1, bp.r), r * 2 / Math.max(1, bp.r), .14 * U) : new THREE.Group();
+      if (bp) { /* Kim's picture */ } else if (gold) {
         // a gold dome, as on a handbag's clasp
         const dome = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), std(0xd4af37, .28, .9)); dome.rotation.x = Math.PI / 2; dome.scale.set(1, .55, 1); g.add(dome);
       } else {
@@ -792,10 +809,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (ex.label) {
       const la = ex.labelAt;
       const { p, n } = la ? (wall ? at(la[1], la[0] * Math.PI * .42) : at(1, la[0])) : wall ? at(.34, .5) : at(1, .9);
-      const g = new THREE.Group(), w = (la?.[2] ?? 2.8) * U, h = w / 2;
-      g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, .07 * U), std(0xf4ebdd, .95)));
-      const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w * .86, h * .72)), new THREE.LineDashedMaterial({ color: lin(0xb99447), dashSize: .12 * U, gapSize: .1 * U })); edge.computeLineDistances(); edge.position.z = .045 * U; g.add(edge);
-      const bar = new THREE.Mesh(new THREE.BoxGeometry(w * .42, h * .1, .02 * U), std(0x9c5d63, .9)); bar.position.z = .045 * U; g.add(bar);
+      const lp = extraPic(ex.labelPic), w = (la?.[2] ?? lp?.cm ?? 2.8) * U, h = lp ? w / lp.r : w / 2;
+      const g = lp ? picCard(lp.id, w, h, .06 * U) : new THREE.Group();
+      if (!lp) {
+        g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, .07 * U), std(0xf4ebdd, .95)));
+        const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w * .86, h * .72)), new THREE.LineDashedMaterial({ color: lin(0xb99447), dashSize: .12 * U, gapSize: .1 * U })); edge.computeLineDistances(); edge.position.z = .045 * U; g.add(edge);
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(w * .42, h * .1, .02 * U), std(0x9c5d63, .9)); bar.position.z = .045 * U; g.add(bar);
+      }
       if (wall) face(g, n); else { g.rotation.x = -Math.PI / 2; g.rotation.z = -.3; }
       g.position.copy(p).addScaledVector(n, R * 1.5 + .05 * U); if (!wall) { g.position.x -= w * .3; g.position.z -= h * .6; } put(g);
       if (wall) { g.userData.extra = "label"; exObjs.push(g); }
@@ -1156,7 +1176,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       alive = false; cancelAnimationFrame(raf); ro.disconnect(); clearGroup(); ctl.dispose();
       canvas.removeEventListener("pointerdown", exDown, true); canvas.removeEventListener("pointermove", exMove); canvas.removeEventListener("pointerup", exUp); canvas.removeEventListener("pointercancel", exUp);
       scene.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | undefined; if (mt) mt.dispose(); });
-      FTEX.dispose(); HTEX.dispose(); envSrc.dispose(); ENV.dispose(); sun.shadow.map?.dispose();
+      pics.forEach(t => t.dispose()); FTEX.dispose(); HTEX.dispose(); envSrc.dispose(); ENV.dispose(); sun.shadow.map?.dispose();
       renderer.dispose(); renderer.forceContextLoss();
     },
   };

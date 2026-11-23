@@ -18,6 +18,8 @@ import { drawing } from "@/lib/drawing";
 import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, LEN_RANGE, type FieldKey, type Item, type ItemId } from "@/lib/items";
 import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
+import { BUTTONS, LABEL_GROUPS } from "@/lib/extras";
+import { ExtraPicker } from "./ExtraPicker";
 import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
 import { TitleCover, TitlePage } from "./TitlePage";
@@ -308,10 +310,13 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       {(exNow.button || exNow.label) && <p className="nb-help">3D에서 단추와 라벨을 끌어서 옮길 수 있습니다.</p>}
       {exNow.button && <>
         <p className="nb-wsubhead">단추{draft.flapCm && !exNow.buttonAt ? " · 지금은 덮개 끝에 있습니다" : ""}<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ button: false, buttonAt: undefined })}>빼기</button></p>
-        <Tiles label="단추 색" value={exNow.buttonColor === "gold" ? "gold" : "wood"} cols={3} onPick={v => setEx({ buttonColor: v === "gold" ? "gold" : undefined })} options={[["wood", "나무"], ["gold", "금색"]]} />
+        {/* Kim's buttons: the picked one's own size to start with */}
+        <ExtraPicker label="단추 고르기" groups={[["", BUTTONS]]} value={exNow.buttonPic} onPick={p => setEx({ buttonPic: p.id, buttonAt: [exNow.buttonAt?.[0] ?? 0, exNow.buttonAt?.[1] ?? .72, p.cm] })} />
         {placeSliders("buttonAt", [0, .72, 1.9], "지름", 5)}
       </>}
-      {exNow.label && <><p className="nb-wsubhead">라벨<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ label: false, labelAt: undefined })}>빼기</button></p>{placeSliders("labelAt", [.5, .34, 2.8], "가로", 7)}</>}
+      {exNow.label && <><p className="nb-wsubhead">라벨<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ label: false, labelAt: undefined })}>빼기</button></p>
+        <ExtraPicker label="라벨 고르기" groups={LABEL_GROUPS} wide value={exNow.labelPic} onPick={p => setEx({ labelPic: p.id, labelAt: [exNow.labelAt?.[0] ?? .5, exNow.labelAt?.[1] ?? .34, p.cm] })} />
+        {placeSliders("labelAt", [.5, .34, 2.8], "가로", 7)}</>}
       {exNow.zipper && <>
         <p className="nb-wsubhead">지퍼<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ zipper: false })}>빼기</button></p>
         <Tiles label="지퍼 색" value={exNow.zipColor ?? "gold"} cols={3} onPick={v => setEx({ zipColor: v as "gold" | "silver" | "brass" })} options={[["gold", "금색"], ["silver", "은색"], ["brass", "황동색"]]} />
