@@ -56,8 +56,8 @@ export function useYarn3D(source: YarnSource | null | undefined, pp?: Plan | nul
 
 /** look: "label" the book's cloth label, "ps" the pattern sheet's labels (도안 보기 / 따라 뜨기),
  *  "patch" 나의 도안집's cloth patch (web), "mm" the phone 도안집's label */
-export function YarnPreviewButton({ source, plan, look = "label", className = "" }: { source: YarnSource; plan?: Plan; look?: "label" | "ps" | "patch" | "mm"; className?: string }) {
-  const y = useYarn3D(source, plan);
+export function YarnPreviewButton({ source, plan, look = "label", className = "", onEdit }: { source: YarnSource; plan?: Plan; look?: "label" | "ps" | "patch" | "mm"; className?: string; onEdit?: () => void }) {
+  const y = useYarn3D(source, plan, onEdit ? { onEdit } : undefined);
   if (!y.supported) return null;
   const text = "3D로 보기";
   const btn = look === "label" ? <ClothLabel side="next" type="button" onClick={y.show}>{text}</ClothLabel>
