@@ -44,6 +44,11 @@ export interface Draft {
   paint?: import("./pattern").PaintShape;
   /** web, the 3D only: strands in the handle (1-5; 3 when missing), and 단추 / 라벨 / 지퍼 tried on */
   handleW?: number;
+  /** the handle as it is made (Kim): 평면 - a chain joining its two ends, then rows along it widen it (flat-chain),
+   *  or single crochet as wide as it should be, then row after row to its other end (flat-rows) - or 원통형, worked
+   *  round (tube). Missing: strands side by side (handleW). `handleWcm`: the flat one's width, the tube's thickness */
+  handleStyle?: "flat-chain" | "flat-rows" | "tube";
+  handleWcm?: number;
   /** 단추 / 라벨 / 지퍼 (the 3D only), where and how big: [across -1..1, up 0..1, size cm]; 지퍼 0 closed .. 1 open */
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean };
   /** the crochet stitch (Kim: 코바늘 무늬; lib/pattern CROCHET) */

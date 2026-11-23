@@ -237,7 +237,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, extras: draft.extras }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.extras]);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, extras: draft.extras }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.extras]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
   const itemLabel = draft.free || draft.paint ? "직접 그린 모양" : item.name;
@@ -265,7 +265,25 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const handleSliders = hasHandle ? (
     <div className="nb-sliders nb-sliders-1">
       <Slide label="길이" min={15} max={Math.max(150, handleCmOf(draft))} step={1} value={handleCmOf(draft)} onChange={v => { setHRev(n => n + 1); patch({ handle: "short", handleCm: v }); }} text={`${handleCmOf(draft)}cm`} />
-      <Slide label="굵기" min={1} max={5} step={1} value={draft.handleW ?? 3} onChange={v => patch({ handleW: v })} text={`${draft.handleW ?? 3}가닥`} />
+      {draft.handleStyle
+        ? <Slide label={draft.handleStyle === "tube" ? "굵기" : "너비"} min={1} max={draft.handleStyle === "tube" ? 4 : 6} step={.5} value={draft.handleWcm ?? 2.5} onChange={v => patch({ handleWcm: v })} text={`${draft.handleWcm ?? 2.5}cm`} />
+        : <Slide label="굵기" min={1} max={5} step={1} value={draft.handleW ?? 3} onChange={v => patch({ handleW: v })} text={`${draft.handleW ?? 3}가닥`} />}
+    </div>
+  ) : null;
+  // how the handle is made (Kim): strands side by side, flat, or a tube; a flat one from a chain joining its two
+  // ends then widened, or worked to its width then row by row to its other end
+  const hs = draft.handleStyle;
+  const handleMake = hasHandle ? (
+    <div className="nb-wsub">
+      <Tiles label="손잡이 모양" value={!hs ? "cord" : hs === "tube" ? "tube" : "flat"} cols={3}
+        onPick={v => patch({ handleStyle: v === "cord" ? undefined : v === "tube" ? "tube" : hs && hs !== "tube" ? hs : "flat-chain" })}
+        options={[["cord", "끈", "여러 가닥"], ["flat", "평면", "납작한 띠"], ["tube", "원통형", "둥근 관"]]} />
+      {hs && hs !== "tube" && <>
+        <p className="nb-wsubhead">뜨는 방법</p>
+        <Tiles label="평면 손잡이 뜨는 방법" value={hs} cols={2} onPick={v => patch({ handleStyle: v as "flat-chain" | "flat-rows" })}
+          options={[["flat-chain", "사슬로 잇고 넓히기", "길이 방향으로 단"], ["flat-rows", "너비부터 뜨기", "한 단씩 길게"]]} />
+        <p className="nb-help">{hs === "flat-chain" ? "양 끝을 사슬로 이은 뒤, 그 사슬을 따라 단을 늘려 너비를 만듭니다." : "짧은뜨기로 손잡이 너비만큼 뜬 뒤, 반대쪽 끝까지 한 단씩 떠 나갑니다."}</p>
+      </>}
     </div>
   ) : null;
   // 단추 / 라벨 / 지퍼: tried on in the 3D only
@@ -721,6 +739,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
               else patch({ handle: "short", handleCm: Number(v) });
             }} options={[["none", "없음"], ...HANDLE_PRESETS.map(([n, v]): [string, ReactNode, ReactNode] => [String(v), n, `${v}cm`]), ["own", "직접", "cm"]]} />
             {draft.handle !== "none" && <Tiles label="손잡이 수" value={String(draft.handleCount ?? (handleCmOf(draft) >= 60 ? 1 : 2))} cols={2} onPick={v => patch({ handleCount: Number(v) as 1 | 2 })} options={[["1", "1개", "위로 가로질러"], ["2", "2개", "앞뒤로"]]} />}
+            {handleMake}
             {handleSliders}
             {handlePick === "own" && <div className="nb-wsub"><CmInput key={"wh" + hRev} label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} autoFocus={ownHandle} onValue={v => patch({ handle: "short", handleCm: v ?? 0 })} /></div>}
             <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다.</p>

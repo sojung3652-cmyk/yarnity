@@ -68,6 +68,10 @@ export interface YarnPattern {
   firm?: boolean;
   /** how many strands side by side a strap is (1-5; 3 when missing) */
   strapW?: number;
+  /** a handle as it is made (Kim): flat in rows along it (a chain first, widened), flat in rows across it (worked
+   *  to its width, then row by row to its end), or a tube worked round; `strapWcm` its width or thickness */
+  strapStyle?: "flat-chain" | "flat-rows" | "tube";
+  strapWcm?: number;
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼), with where and how big (Kim): `buttonAt` /
    *  `labelAt` = [across the front -1..1, up 0..1, size in cm]; `zipOpen` 0 closed .. 1 open; the button's colour */
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean };
@@ -584,6 +588,18 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const H = Math.max(rr * .5, Math.sqrt(Math.max(0, (len / 2) ** 2 - (A.distanceTo(B) / 2) ** 2)) * .92); strapH = Math.max(strapH, H);
         if (nrm.x * (mid.x - cx) + nrm.z * (mid.z - cz) > 0) nrm.negate();
         const sw = Math.max(1, Math.min(5, Math.round(pat.strapW ?? 3)));
+        if (pat.strapStyle) {
+          // its centre line: one hand handle rises from the sides, a little out first, then in (as above); two,
+          // or a shoulder strap, arch over from end to end. Its ends go into the rim.
+          const half = A.distanceTo(B) / 2, up = new THREE.Vector3(0, 1, 0), single = pat.strap === "long" && pat.strapCm < 70, N = 96;
+          const cl = Array.from({ length: N + 1 }, (_, i) => {
+            const t = i / N, th = Math.PI * t, s = Math.sin(th), c = Math.cos(th);
+            if (single) return mid.clone().addScaledVector(w, -half * c * (1 + .32 * s * c * c)).addScaledVector(up, H * s - D.rh * 1.3 * (1 - s) ** 3);
+            const q = A.clone().lerp(B, t); q.y += H * s - D.rh * 1.2 * (1 - s) ** 2; return q.addScaledVector(nrm, lean * rr * .12 * s);
+          });
+          const ht = strapBand(cl, nrm, color, R, M, step, mat, geos, D.rh);
+          strapH = Math.max(strapH, H + ht); return;
+        }
         if (pat.strap === "long" && pat.strapCm < 70) {
           // one handle over the opening (Kim's round handbag): a thick crocheted cord, its section a flattened
           // ellipse (wide to the front), arching from the two sides - a little out first, then in to the top,
@@ -615,6 +631,61 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     flapTip = addFlap(D, R, mat, M, step, geos);
     haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz);
     if (!opts.phone) addExtras(D, R);
+  }
+  // ---------- a handle as it is made (Kim). Along its centre line `cl`, its flat face towards `nrm`:
+  //   tube        rounds round it, one after another (a crocheted tube), as thick as strapWcm
+  //   flat-chain  a chain from end to end, widened by rows along it: its rows run the handle's length
+  //   flat-rows   worked as wide as it should be, then row after row to its other end: its rows run across
+  // A flat one is two layers of yarn thick, its stitches a little raised. Returns how far it stands out.
+  function strapBand(cl: THREE.Vector3[], nrm: THREE.Vector3, color: string, R: number, M: number, step: number, mat: THREE.Material, geos: THREE.BufferGeometry[], rh: number) {
+    const U = 10 / MM, Wd = Math.max(.8, pat.strapWcm ?? 2.5) * U, N = cl.length - 1;
+    const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + cl[i].distanceTo(cl[i - 1]));
+    const L = cum[N];
+    const frame = (s: number) => {
+      let i = 1; while (i < N && cum[i] < s) i++;
+      const f = Math.max(0, Math.min(1, (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]))), P = cl[i - 1].clone().lerp(cl[i], f);
+      const T = cl[i].clone().sub(cl[i - 1]).normalize(), Q = new THREE.Vector3().crossVectors(T, nrm).normalize(), F = new THREE.Vector3().crossVectors(Q, T).normalize();
+      return { P, T, Q, F };
+    };
+    // one yarn for the whole handle (as it is worked: a spiral, or rows turning at their ends), its points made
+    // even (no curve fitting over thousands of points) - one mesh, light enough beside the book's own 3D
+    const add = (pts: THREE.Vector3[]) => {
+      if (pts.length < 2) return; const gap = R * .6 * step, out: THREE.Vector3[] = [pts[0]];
+      for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], k = Math.ceil(a.distanceTo(b) / gap); for (let j = 1; j <= k; j++) out.push(a.clone().lerp(b, j / k)); }
+      const even: THREE.Vector3[] = [out[0]]; let last = out[0];
+      for (const q of out) if (q.distanceTo(last) >= gap * .9) { even.push(q); last = q; }
+      const g = buildYarn(even, R, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
+    };
+    const sw = R * 2.2; // one stitch across
+    // a row's stitches stand up and lean back in turn (a zigzag the row's height): rows touch, as crochet's do
+    const zz = (x: number) => (1 - 4 * Math.abs(x - Math.round(x))) * rh * .42;
+    const th = R * 1.1; // a flat one's yarn passes front and back of its middle, stitch by stitch
+    const pts: THREE.Vector3[] = [];
+    if (pat.strapStyle === "tube") {
+      // worked round in a spiral: one turn a round, each round a row's height further along
+      const r = Wd / 2, n = Math.max(2, Math.round(L / rh)), k = Math.max(12, Math.round(2 * Math.PI * r / (R * .45))), nst = Math.max(6, Math.round(2 * Math.PI * r / sw));
+      for (let t = 0; t <= n * k; t++) {
+        const i = t % k, a = 2 * Math.PI * i / k, { P, Q, F } = frame(Math.max(0, Math.min(L, L * t / (n * k) + zz(i / k * nst))));
+        pts.push(P.addScaledVector(Q, r * Math.cos(a)).addScaledVector(F, r * Math.sin(a)));
+      }
+      add(pts); return r;
+    }
+    if (pat.strapStyle === "flat-chain") {
+      // a chain from end to end, then rows along it, back and forth, until it is as wide as it should be
+      const n = Math.max(2, Math.round(Wd / rh)), m = Math.ceil(L / (R * .35));
+      for (let j = 0; j < n; j++) {
+        const o = (j - (n - 1) / 2) * Wd / n;
+        for (let i = 0; i <= m; i++) { const s = L * (j % 2 ? m - i : i) / m, { P, Q, F } = frame(s); pts.push(P.addScaledVector(Q, o + zz(s / sw + j * .5)).addScaledVector(F, th * Math.cos(Math.PI * s / sw))); }
+      }
+      add(pts); return th + R;
+    }
+    // flat-rows: worked as wide as it should be, then row after row, back and forth, to its other end
+    const n = Math.max(2, Math.round(L / rh)), m = Math.max(8, Math.ceil(Wd / (R * .35)));
+    for (let j = 0; j <= n; j++) for (let i = 0; i <= m; i++) {
+      const x = ((j % 2 ? m - i : i) / m - .5) * Wd, { P, Q, F } = frame(Math.max(0, Math.min(L, L * j / n + zz(x / sw + j * .5))));
+      pts.push(P.addScaledVector(Q, x).addScaledVector(F, th * Math.cos(Math.PI * x / sw)));
+    }
+    add(pts); return th + R;
   }
   // ---------- 덮개: rows across the opening from the back, over the top, then down the front as far as the flap
   // is long; its outline below the front edge is the picked shape (반달 / 네모 / 세모). Returns where its tip is.
