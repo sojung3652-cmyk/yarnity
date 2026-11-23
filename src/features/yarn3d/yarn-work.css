@@ -346,7 +346,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
    section titles as small woven labels with lavender stitches at their ends, gold hairlines, rose for what is
    picked. Only colours and dressing here; the places stay as set above.
    ===================================================================================================== */
-.yw{--linen:#F6EFE2;--linen2:#FBF7EF;--stitch:#EEBEC7;--rose:#F4E0DF;--gold:#B99447;--ink:#3E3430;--ink2:#6A5B55}
+.yw{--linen:#F6EFE2;--linen2:#FBF7EF;--stitch:var(--book-lav,#EEBDC7);--rose:#F4E0DF;--gold:#B99447;--ink:#3E3430;--ink2:#6A5B55}
 .yw-top,.yw-stat,.yw-index,.yw-mkfoot{background:var(--weave),var(--linen)}
 .yw-top{border-bottom:1px solid rgba(185,148,71,.55)}
 .yw-stat{border-top:1px solid rgba(185,148,71,.45)}
@@ -393,3 +393,13 @@ body:has(.yw) .aic-root{z-index:460}
 .yw .asm-card h3 small{margin-left:8px;font-size:12px;font-weight:400;color:#8A7A72}
 /* 교체: the same kind's pictures under the tools */
 .yw-swap{position:absolute;left:0;top:calc(100% + 6px);width:300px;max-height:260px;overflow:auto;padding:10px;border-radius:4px;background:#FFFDF8;box-shadow:-2px 4px 12px -6px rgba(70,50,30,.5),inset 0 0 0 1px #D9CCBF;white-space:normal}
+
+/* Yarni: the web's own badge, at the stage's lower right */
+.yw-stage .ai-badge.yw-badge{position:absolute;right:18px;bottom:16px;z-index:3}
+.yw .yw-hint{right:96px}
+/* how to move the view, above the view buttons; each motion in its box (Kim) */
+.yw .yw-hint.yw-keys{top:14px;right:14px;bottom:auto;display:flex;gap:12px;padding:6px 10px;font-size:12px}
+.yw-keys span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.yw-keys kbd{display:inline-block;padding:2px 6px;border-radius:3px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #D9C9B2,0 1px 0 #D9C9B2;font:600 11.5px "Noto Serif KR",serif;color:#3E3430}
+.yw-views{top:54px}
+.yw-stage.is-dark .yw-keys kbd{background:#3A3431;color:#F3ECE2;box-shadow:inset 0 0 0 1px #5A514B}

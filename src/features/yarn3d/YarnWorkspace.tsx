@@ -237,7 +237,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           </div>
         )}
         {/* Yarni, called from the stage's lower right (Kim) */}
-        <button type="button" className="yw-yarni" aria-label="Yarni에게 물어보기" title="Yarni에게 물어보기" onClick={() => setChat(c => ({ ...c, open: true }))}><span aria-hidden="true">Yarni</span></button>
+        <button type="button" className="ai-badge yw-badge" aria-label="Yarni에게 물어보기" onClick={() => setChat(c => ({ ...c, open: true }))}>
+          <span className="ai-badge__label" aria-hidden="true">Yarni에게 물어보기</span>
+        </button>
         {/* 보는 방향 on the stage itself, top right (Kim) */}
         {!noGL && !empty && (
           <div className="yw-views" role="group" aria-label="보는 방향">
@@ -245,7 +247,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             <Opt label="처음 각도로" onClick={() => { setIntro(false); viewer.current?.home(); }}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
           </div>
         )}
-        {!noGL && !empty && !intro && <p className="yw-hint">{frameOn ? "틀의 옆 손잡이는 가로, 위 손잡이는 높이, 모서리는 전체 크기를 바꿉니다" : ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
+        {!noGL && !empty && !intro && !ruler && !frameOn && <p className="yw-hint yw-keys"><span><kbd>드래그</kbd> 돌리기</span><span><kbd>스크롤</kbd> 확대</span><span><kbd>스페이스+드래그</kbd> 옮기기</span></p>}
+        {!noGL && !empty && !intro && (ruler || frameOn) && <p className="yw-hint">{frameOn ? "틀의 옆 손잡이는 가로, 위 손잡이는 높이, 모서리는 전체 크기를 바꿉니다" : ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
         {empty && <div className="yw-empty"><i aria-hidden="true" /><p>모양을 그리면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
         {box && frameOn && !empty && !intro && (() => {
           const [l, t, r, b] = box, cx = (l + r) / 2, w = (r - l) / 2 * (pull?.fx ?? 1), h = (b - t) * (pull?.fy ?? 1), st = { left: cx - w, top: b - h, width: w * 2, height: h };

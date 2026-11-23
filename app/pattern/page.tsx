@@ -14,7 +14,7 @@ import { useBook } from "@/components/Book/BookProvider";
 import { CopyLot } from "@/components/YarnInfo";
 import { GlossText } from "@/components/glossary/GlossText";
 import { drawing } from "@/lib/drawing";
-import { shots } from "@/lib/shots";
+import { useShot } from "@/lib/useShot";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
 import { isKnit, partName, shownPlan } from "@/lib/knit";
@@ -41,8 +41,7 @@ export function PatternScreen() {
   // just made (NewBook save): the cover is picked on 도안 만들기's last step now, or given at random; nothing to ask here - Kim)
   useEffect(() => { try { sessionStorage.removeItem("m.justMade"); } catch {} }, []);
   // the 3D's front view, taken when the work was finished on the work screen (lib/shots; this browser only)
-  const [shot, setShot] = useState<string | null>(null);
-  useEffect(() => { setShot(p ? shots.get(p.id) : null); }, [p]);
+  const shot = useShot(p?.id, p, p ? shownPlan(p) : null);
   if (!ready || !p) return <main id="view-pattern" />;
 
   const pp = shownPlan(p), it = ITEM[itemIdOf(p)];

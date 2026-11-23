@@ -12,6 +12,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
+import { ClothLabel } from "@/components/newbook/ClothLabel";
 import { freshDraft } from "@/lib/items";
 import { store } from "@/lib/store";
 import { bookPageOf, isPhone } from "@/components/mobile/bookPages";
@@ -278,8 +279,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
             <h2 id="leaveT">만들던 도안을 저장하시겠습니까?</h2>
             <p id="leaveD">저장해 두면 메뉴의 &lsquo;이어서 만들기&rsquo;로 지금 단계부터 다시 이어 갈 수 있습니다.</p>
             <div className="leave-btns">
-              <button type="button" className="btn btn-primary" autoFocus onClick={() => leave(true)}>저장하고 나가기</button>
-              <button type="button" className="btn btn-line" onClick={() => leave(false)}>저장하지 않고 나가기</button>
+              <ClothLabel side="next" type="button" pressed onClick={() => leave(true)}>저장하고 나가기</ClothLabel>
+              <ClothLabel side="back" type="button" onClick={() => leave(false)}>저장하지 않고 나가기</ClothLabel>
             </div>
             <button type="button" className="leave-stay" onClick={() => setLeaving(null)}>계속 만들기</button>
           </div>
