@@ -552,3 +552,81 @@ button.nb-ribbon:hover,button.nb-ribbon:focus-visible{transform:scale(1.1)}
   .tp-cover .tp-logo-web+.tp-cap{margin-top:-1px;font-size:10px}
 }
 
+
+/* ---- the web's step 3 and 확인, right page (WebPages.tsx; Kim: "가독성이 너무 안좋아") ----
+   one heading per group (15px, dark), the main choices open as square tiles (no pill chips), numbers in
+   boxes, the yarn label details in one folded row; dusty rose for what is picked, a gold edge on it.
+   Only inside the 3D book (.nb-in3d): phones keep their pages. */
+.nb-in3d .nb-page h1{margin-bottom:10px}
+.nb-substeps{display:flex;gap:0;margin:0 0 22px;padding:0;list-style:none;font-size:13px;color:#7A6A63}
+.nb-substeps li+li::before{content:"·";margin:0 9px;color:#C9BBA8}
+.nb-substeps li[aria-current="step"]{color:#9C5D63;font-weight:600}
+.nb-in3d .ask-line{margin:-12px 0 20px}
+.nb-web{display:flex;flex-direction:column}
+.nb-wg{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.nb-wh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-size:15px;font-weight:600;color:#3E3430}
+.nb-wh small{font-size:13px;font-weight:400;color:#6B5C55}
+.nb-wrow{display:flex;align-items:center;flex-wrap:wrap;gap:10px 12px}
+.nb-wright{margin-left:auto}
+.nb-wsub{margin-top:2px}
+/* a number in a box: the value large, its unit small */
+.nb-box{display:inline-flex;align-items:baseline;gap:8px;min-width:150px;height:46px;box-sizing:border-box;padding:0 14px;border-radius:5px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #CDBFB4}
+.nb-box:focus-within{box-shadow:inset 0 0 0 1.5px #6E5350}
+.nb-box:has([aria-invalid="true"]){box-shadow:inset 0 0 0 1.5px #B4574A}
+.nb-box input{width:90px;height:44px;border:0;background:none;outline:none;padding:0;font:inherit;font-size:18px;color:#3E3430}
+.nb-box input::placeholder{color:#A99A92}
+.nb-box span{font-size:13px;color:#6B5C55}
+.nb-box-text{min-width:min(100%,320px)}.nb-box-text input{width:100%;font-size:15px}
+.nb-wtag{padding:3px 9px;border-radius:3px;background:rgba(224,170,174,.28);font-size:13px;color:#7A4E55}
+/* the size fields: the same boxes */
+.nb-web .nb-wtwo{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.nb-web .nb-field{margin-bottom:6px}
+.nb-web .nb-field>label{border-left:0;padding-left:0;font-size:13.5px;font-weight:500;color:#4A3D38}
+.nb-web .nb-field .nb-input{max-width:none;height:46px;padding:0 14px;border:0;border-radius:5px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #CDBFB4;font-size:18px;color:#3E3430}
+.nb-web .nb-field .nb-input:focus{box-shadow:inset 0 0 0 1.5px #6E5350}
+.nb-web .nb-field .nb-input[aria-invalid="true"]{box-shadow:inset 0 0 0 1.5px #B4574A}
+.nb-web .nb-mm>.nb-unit{padding-bottom:14px}
+/* square tiles (radio or toggle): the picked one dusty rose with a gold edge; the shadow falls lower left */
+.nb-tiles{display:grid;gap:8px}
+.nb-tiles-2{grid-template-columns:repeat(2,minmax(0,1fr))}.nb-tiles-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.nb-tiles-4{grid-template-columns:repeat(4,minmax(0,1fr))}.nb-tiles-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.nb-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:46px;padding:6px 4px;border:0;border-radius:5px;background:#FFFDF8;
+  box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #DDCFC3;font:inherit;font-size:14.5px;line-height:1.25;color:#3E3430;text-align:center;cursor:pointer;transition:box-shadow .15s,background-color .15s}
+.nb-tile small{font-size:12px;color:#6B5C55}
+.nb-tile:hover{box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #B4A397}
+.nb-tile[aria-checked="true"],.nb-tile[aria-pressed="true"]{background:#F6E3E2;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px #B99447;font-weight:600}
+.nb-tile:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
+.nb-tile-soft{color:#6B5C55;background:transparent;box-shadow:inset 0 0 0 1px #DDCFC3}
+.nb-tile-inline{min-height:46px;padding:0 18px}
+@media (prefers-reduced-motion:reduce){.nb-tile{transition:none}}
+/* colours: bigger dots, the picker beside them */
+.nb-wdots{align-items:center;gap:10px;margin:0}
+.nb-wdots .nb-dot-color{width:28px;height:28px}
+.nb-wheel{background:conic-gradient(#F28B82,#F6C177,#F3E08A,#A8D5A2,#9CC7EA,#F5ABB9,#F28B82)!important}
+.nb-wadd{align-self:flex-start;min-height:34px;padding:0 12px;border:0;border-radius:4px;background:none;box-shadow:inset 0 0 0 1px #CDBFB4;font:inherit;font-size:13.5px;color:#4A3D38;cursor:pointer}
+.nb-wadd:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
+.nb-wextra{margin-top:2px}
+.nb-wmore{margin-top:4px}
+.nb-wmore .nb-fold-value{font-size:13px}
+/* a line under the hook: suits the yarn (plain), or not (warm) */
+.nb-wnote{margin:0;padding:9px 12px;border-radius:4px;background:rgba(224,170,174,.2);font-size:13.5px;line-height:1.5;color:#4A3D38}
+.nb-wnote.is-warn{background:#F6E8DC;color:#7D4F35}
+/* 확인 */
+.nb-wfor{margin:0 0 10px;font-size:13.5px;color:#6B5C55}
+.nb-wsum{margin:0 0 16px;border-top:1px solid #DDCFC3}
+.nb-wsum>div{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:10px 2px;border-bottom:1px solid #E8DDD2}
+.nb-wsum dt{font-size:13.5px;color:#6B5C55}
+.nb-wsum dd{margin:0;min-width:0;font-size:15px;color:#3E3430;overflow-wrap:anywhere}
+.nb-wfix .nb-link{font-size:13px}
+.nb-wcheck .nb-sup-use{margin-top:0}
+.nb-wlen{margin-left:12px;font-family:inherit;font-size:14px;color:#4A3D38}
+.nb-wfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:14px 0 6px}
+.nb-wfacts>div{padding:9px 12px;border-radius:5px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #DDCFC3;font-size:15px;font-weight:600;color:#3E3430}
+.nb-wfacts span{display:block;margin-bottom:2px;font-size:12.5px;font-weight:400;color:#6B5C55}
+.nb-wh small{display:inline-flex;gap:14px}
+.nb-wh .nb-link{font-size:13px;padding:0}
+.nb-wsoft{margin-left:8px;font-style:normal;font-size:12.5px;font-weight:400;color:#7A6A63}
+.nb-wg{margin-bottom:20px}
+.nb-tile{min-height:42px}
+.nb-in3d .nb-substeps{margin-bottom:18px}
+.nb-wrow .nb-link{align-self:center;padding:0}

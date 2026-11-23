@@ -27,7 +27,7 @@ import { useMobile } from "@/components/mobile/useMobile";
 import { MobileBookWizard } from "@/components/mobile/MobileBookWizard";
 import { MobileBookPages } from "@/components/mobile/MobileBookPages";
 import { BOOK_PAGES, bookPageOf } from "@/components/mobile/bookPages";
-import { useSheet } from "@/components/mobile/sheetStore";
+import { useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import { usePathname } from "next/navigation";
 
 // ---- timeline (seconds) ----
@@ -455,7 +455,7 @@ function CameraRig({ anim, layer, wizard, coverIn = 0 }: { anim: Anim; layer: Cs
 export interface Spread { view: BookView; step: WizStep; page?: string; sheet?: number }
 const spreadKey = (s: Spread) => (s.page ? "p" + s.page : s.view === "wizard" ? "w" + s.step + (s.sheet != null ? "-" + s.sheet : "") : s.view);
 const isSpread = (s: Spread) => s.view === "home" || s.view === "wizard";
-const order = (s: Spread) => (s.page ? BOOK_PAGES[s.page] : s.view === "wizard" ? (s.sheet != null ? s.step * 2 + s.sheet : s.step) : 0); // menu, the four steps (phones: then 도안집, 도안, 따라 뜨기)
+const order = (s: Spread) => (s.page ? BOOK_PAGES[s.page] : s.view === "wizard" ? (s.sheet != null ? s.step * 3 + s.sheet : s.step) : 0); // menu, the four steps (phones: then 도안집, 도안, 따라 뜨기); up to three sheets a step (web step 3: 실 / 바늘과 크기 / 가방 모양)
 const frames = (n: number) => new Promise<void>(res => { const f = () => (--n <= 0 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); });
 /** Texture width of a page picture: the page's size on screen x pixel ratio, so a texel is about a screen
  *  pixel (a 2x bigger picture, minified, came out blurred and lighter than the live text). */
@@ -752,9 +752,9 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
   // want: the spread the address asks for; shown: the one whose DOM is in the book (they differ during a turn)
   // phones: 도안집, 도안 and 따라 뜨기 keep the book open, as its right page
   const path = usePathname(), page = phone ? bookPageOf(path) : null;
-  // the wizard's sheets: a phone's every step; wide screens split step 3 in two (실 / 바늘과 크기, Kim) and give the
-  // other steps sheet 0, so the order (step * 2 + sheet) runs the same way through all of them
-  const sheet = useSheet(b.step), wizSheet = b.view !== "wizard" ? undefined : phone ? sheet : b.step === 3 ? sheet : 0;
+  // the wizard's sheets: a phone's every step; wide screens split step 3 in two or three (실 / 바늘과 크기 / 가방 모양
+  // for a bag, Kim) and give the other steps sheet 0, so the order (step * 3 + sheet) runs the same way through all of them
+  const sheet = useSheet(b.step, phone || b.step !== 3 ? undefined : WEB_SHEETS3), wizSheet = b.view !== "wizard" ? undefined : phone ? sheet : b.step === 3 ? sheet : 0;
   const want = useMemo<Spread>(() => (page ? { view: "home", step: b.step, page } : { view: b.view, step: b.step, sheet: wizSheet }), [b.view, b.step, page, wizSheet]);
   const [shown, setShown] = useState<Spread>(want);
   const [ready, setReady] = useState(false);

@@ -26,7 +26,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-export type YarnMaterial = "cotton" | "wool" | "mohair" | "cord" | "fur" | "metal";
+export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal";
 export type YarnStrap = "none" | "two" | "long";
 /** what is drawn, in the pattern's own counts (stitches per course, bottom first) */
 export type YarnShape =
@@ -56,15 +56,30 @@ export interface YarnViewer {
 }
 export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; onInfo: (i: YarnInfo | null) => void; onBuilt?: (ms: number) => void }
 
-interface Preset { plies: number; twist: number; fuzz: number; depth: number; braid: boolean; rough: number }
+// how each yarn looks (Kim: the material has to show, also at the size of the book's page):
+//  plies / twist / depth  the twisted strands and how deep the grooves between them are
+//  ao        how much darker the grooves are (low: the colour stays clear; the old .45 greyed pastels)
+//  rough / sheen / metal  matte cotton and linen, a soft sheen on wool, chenille and silk, metallic
+//  fuzz      loose fibres as hairs;  halo  a soft cloud of fibre round the strand (a see-through shell, so
+//            mohair and alpaca read as fluffy even when one stitch is a few pixels)
+//  flat      raffia and ribbon: the strand is a flat tape (width : thickness), slowly turning
+//  slub      linen: the strand thickens and thins along its length
+//  fill      the strand's width against the stitch (crochet fabric is dense: the yarn fills the stitch)
+interface Preset { plies: number; twist: number; fuzz: number; depth: number; braid: boolean; rough: number; ao: number; sheen: number; metal: number; halo: number; flat: number; slub: number; fill: number }
+const P0 = { braid: false, sheen: 0, metal: 0, halo: 0, flat: 1, slub: 0, fill: 1.3 };
 export const PRE: Record<YarnMaterial, Preset> = {
-  cotton: { plies: 4, twist: 1, fuzz: .05, depth: .3, braid: false, rough: .8 },
-  wool: { plies: 3, twist: .8, fuzz: .4, depth: .26, braid: false, rough: .96 },
-  mohair: { plies: 2, twist: .5, fuzz: 1, depth: .16, braid: false, rough: 1 },
-  cord: { plies: 8, twist: 1.3, fuzz: 0, depth: .2, braid: true, rough: .68 },
-  fur: { plies: 2, twist: .6, fuzz: 1, depth: .12, braid: false, rough: 1 },
-  metal: { plies: 3, twist: 1.5, fuzz: 0, depth: .3, braid: false, rough: .3 },
+  cotton: { ...P0, plies: 4, twist: 1, fuzz: .04, depth: .3, rough: .82, ao: .3 },
+  wool: { ...P0, plies: 3, twist: .7, fuzz: .5, depth: .22, rough: .92, ao: .24, sheen: .55, halo: .18 },
+  mohair: { ...P0, plies: 2, twist: .45, fuzz: 1.7, depth: .12, rough: 1, ao: .16, sheen: .4, halo: .5, fill: 1.05 },
+  linen: { ...P0, plies: 2, twist: .55, fuzz: .08, depth: .2, rough: .9, ao: .3, slub: .38 },
+  silk: { ...P0, plies: 3, twist: .9, fuzz: 0, depth: .18, rough: .38, ao: .22, sheen: .7 },
+  chenille: { ...P0, plies: 1, twist: 0, fuzz: .15, depth: 0, rough: 1, ao: .1, sheen: .9, halo: .3, fill: 1.75 },
+  raffia: { ...P0, plies: 1, twist: .25, fuzz: 0, depth: 0, rough: .58, ao: .22, flat: 3.4, fill: 1.15 },
+  cord: { ...P0, plies: 8, twist: 1.3, fuzz: 0, depth: .2, braid: true, rough: .66, ao: .28, sheen: .25 },
+  fur: { ...P0, plies: 2, twist: .6, fuzz: 1, depth: .12, rough: 1, ao: .14, halo: .85, fill: 1 },
+  metal: { ...P0, plies: 3, twist: 1.5, fuzz: 0, depth: .3, rough: .3, ao: .3, metal: .85 },
 };
+const presetOf = (m: YarnMaterial) => ({ ...(PRE[m] ?? PRE.cotton), preset: m, fur: m === "fur" });
 
 const MM = 12; // model units: 1 unit = 12mm
 const lin = (hex: number) => new THREE.Color().setHex(hex, THREE.LinearSRGBColorSpace);
@@ -99,11 +114,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const cam = new THREE.PerspectiveCamera(32, 1, 0.1, 900); cam.position.set(0, 11, 13.5);
   const ctl = new OrbitControls(cam, canvas); ctl.enableDamping = true; ctl.dampingFactor = .08; ctl.enablePan = false; ctl.minDistance = 3; ctl.maxDistance = 40;
   // light from the upper right -> shadows fall to the lower left
-  scene.add(new THREE.HemisphereLight(lin(0xfffaf2), lin(0xd8c4a8), 0.78 * Math.PI));
-  const sun = new THREE.DirectionalLight(lin(0xfff6ea), 0.95 * Math.PI); sun.position.set(7, 9, 10); sun.castShadow = true;
+  scene.add(new THREE.HemisphereLight(lin(0xfffaf2), lin(0xe6dccd), 0.62 * Math.PI));
+  const sun = new THREE.DirectionalLight(lin(0xfff6ea), 0.88 * Math.PI); sun.position.set(7, 9, 10); sun.castShadow = true;
   sun.shadow.mapSize.set(page ? 1024 : 2048, page ? 1024 : 2048); const sc = sun.shadow.camera; sc.near = 1; sun.shadow.bias = -0.0006; sun.shadow.radius = 4;
   scene.add(sun);
   const fill = new THREE.DirectionalLight(lin(0xf2e9df), 0.16 * Math.PI); fill.position.set(-8, -2, 6); scene.add(fill);
+  // the yarn casts its shadow on the ground but not on itself: self-shadowing greyed every colour (Kim:
+  // "칙칙"); the grooves between strands already shade the fabric
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.ShadowMaterial({ color: lin(0x5a4632), opacity: .2 }));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -.3; ground.receiveShadow = true; scene.add(ground);
   const group = new THREE.Group(); scene.add(group);
@@ -137,7 +154,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const FTEX = fiberTex();
 
   let pat = first;
-  const st = { preset: pat.material, thick: 1, ...PRE[pat.material], fur: pat.material === "fur", metal: pat.material === "metal" ? .85 : 0 };
+  const st = { thick: 1, ...presetOf(pat.material) };
   const IT = { view: "yarn" as "yarn" | "holo", data: null as ItemData | null };
   const colorOf = (ci: number) => pat.colors[Math.max(0, Math.min(ci, pat.colors.length - 1))] || "#EFE6D4";
 
@@ -151,10 +168,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     LOD = want >= BASE_VPS ? { M: maxM, step: 1 } : { M: want >= BASE_VPS * .6 ? Math.min(8, maxM) : 6, step: 1 };
     if (want < BASE_VPS) LOD.step = Math.min(4, Math.max(1, (17 * (LOD.M + 1)) / want));
   }
-  const fuzzCap = () => page ? (st.fur ? 5_000 : 8_000) : opts.phone ? (st.fur ? 9_000 : 14_000) : 60_000;
+  const fuzzCap = () => page ? (st.fur ? 9_000 : 16_000) : opts.phone ? (st.fur ? 12_000 : 18_000) : 60_000;
 
   function yarnMat(R: number) {
-    return new THREE.MeshStandardMaterial({ vertexColors: true, roughness: st.rough, metalness: st.metal, envMap: st.metal ? ENV : null, envMapIntensity: 1.25, bumpMap: FTEX, bumpScale: R * .05 });
+    // sheen: the soft light along fibres (wool, chenille, silk), the colour stays the yarn's own
+    const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: st.rough, metalness: st.metal, envMap: st.metal || st.preset === "silk" ? ENV : null, envMapIntensity: st.metal ? 1.25 : .35,
+      bumpMap: FTEX, bumpScale: R * (st.preset === "raffia" ? .14 : .05), sheen: st.sheen, sheenRoughness: st.preset === "silk" ? .28 : .6, sheenColor: new THREE.Color(.34, .33, .32) });
+    return m;
   }
 
   // ---------- yarn: centre line (points) -> twisted ply surface
@@ -162,7 +182,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const n = pts.length, M = o.M || Math.max(14, st.plies * 6), N = o.M ? Math.min(st.plies, Math.floor(o.M / 4)) : st.plies, tau = st.twist * 0.75 / R, K = 3;
     const pos = new Float32Array(n * (M + 1) * 3), col = new Float32Array(n * (M + 1) * 3), uv = new Float32Array(n * (M + 1) * 2), frames: { p: THREE.Vector3; t: THREE.Vector3; n: THREE.Vector3; b: THREE.Vector3; s: number }[] = [];
     const T = new THREE.Vector3(), Nv = new THREE.Vector3(), B = new THREE.Vector3(), tmp = new THREE.Vector3();
-    let s = 0; const base = new THREE.Color(o.color); // already linear in r187 (no convertSRGBToLinear)
+    let s = 0; const base = new THREE.Color(o.color), slub0 = Math.random() * 9; // already linear in r187 (no convertSRGBToLinear)
     for (let i = 0; i < n; i++) {
       T.copy(pts[Math.min(n - 1, i + 1)]).sub(pts[Math.max(0, i - 1)]).normalize();
       if (i === 0) { Nv.set(0, 0, 1); if (Math.abs(T.z) > .9) Nv.set(0, 1, 0); }
@@ -173,10 +193,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const ph = j / M * Math.PI * 2; let f: number;
         if (st.braid) { const a = .5 + .5 * Math.cos(N * (ph - tau * s)), b = .5 + .5 * Math.cos(N * (ph + tau * s)); f = Math.max(a, b) * .75 + .25 * (a * b); }
         else f = N <= 1 ? 1 : Math.pow(Math.abs(Math.cos(N / 2 * (ph - tau * s))), .55);
-        const e = o.closed ? 1 : Math.min(1, Math.sqrt(1 - Math.pow(1 - Math.min(i, n - 1 - i, K) / K, 2)) + .02); const r = R * (1 - st.depth + st.depth * f) * e, k = (i * (M + 1) + j);
-        const cx = Math.cos(ph) * r, sx = Math.sin(ph) * r;
+        const e = o.closed ? 1 : Math.min(1, Math.sqrt(1 - Math.pow(1 - Math.min(i, n - 1 - i, K) / K, 2)) + .02); const sl = st.slub ? 1 + st.slub * (Math.sin(s / R * .9 + slub0) * .6 + Math.sin(s / R * 2.3 + slub0 * 2) * .4) : 1;
+        const r = R * (1 - st.depth + st.depth * f) * e * sl, k = (i * (M + 1) + j);
+        // a flat tape (raffia) turns slowly along the strand
+        const fw = st.flat, rot = fw > 1 ? s / R * .12 : 0, a0 = Math.cos(ph) * r * Math.sqrt(fw), b0 = Math.sin(ph) * r / Math.sqrt(fw);
+        const cx = a0 * Math.cos(rot) - b0 * Math.sin(rot), sx = a0 * Math.sin(rot) + b0 * Math.cos(rot);
         pos[k * 3] = pts[i].x + Nv.x * cx + B.x * sx; pos[k * 3 + 1] = pts[i].y + Nv.y * cx + B.y * sx; pos[k * 3 + 2] = pts[i].z + Nv.z * cx + B.z * sx;
-        const sh = .55 + .45 * f; col[k * 3] = base.r * sh; col[k * 3 + 1] = base.g * sh; col[k * 3 + 2] = base.b * sh;
+        const sh = 1 - st.ao + st.ao * f; col[k * 3] = base.r * sh; col[k * 3 + 1] = base.g * sh; col[k * 3 + 2] = base.b * sh;
         uv[k * 2] = s / (R * 7); uv[k * 2 + 1] = j / M * Math.max(1, N) - tau * s / (Math.PI * 2) * Math.max(1, N) * (st.braid ? 0 : 1);
       }
     }
@@ -185,27 +208,50 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     g.userData = { frames, R, perRing: M * 6, color: o.color }; return g;
   }
 
+  // the soft cloud of fibre round a fluffy strand: the strand's own surface pushed out along its normals,
+  // see-through and speckled, lighter than the yarn (mohair, alpaca, fur; a little on wool and chenille)
+  const HTEX = (() => {
+    const c = document.createElement("canvas"); c.width = 128; c.height = 128; const x = c.getContext("2d")!; x.fillStyle = "#000"; x.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 900; i++) { const g = 120 + Math.random() * 135 | 0; x.strokeStyle = `rgb(${g},${g},${g})`; x.lineWidth = .5 + Math.random() * .8; const x0 = Math.random() * 128, y0 = Math.random() * 128, a = Math.random() * 6.28, l = 4 + Math.random() * 14; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + Math.cos(a) * l, y0 + Math.sin(a) * l); x.stroke(); }
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  })();
+  function haloShell(geos: THREE.BufferGeometry[]) {
+    if (st.halo <= 0.01) return;
+    const mat = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: Math.min(.6, .14 + st.halo * .4), alphaMap: HTEX, depthWrite: false });
+    geos.forEach(g => {
+      const R = g.userData.R as number, pos = g.getAttribute("position") as THREE.BufferAttribute, nor = g.getAttribute("normal") as THREE.BufferAttribute, col = g.getAttribute("color") as THREE.BufferAttribute;
+      const out = new Float32Array(pos.count * 3), c2 = new Float32Array(pos.count * 3), push = R * st.halo * (st.fur ? 1.5 : 1.05);
+      for (let i = 0; i < pos.count; i++) {
+        out[i * 3] = pos.getX(i) + nor.getX(i) * push; out[i * 3 + 1] = pos.getY(i) + nor.getY(i) * push; out[i * 3 + 2] = pos.getZ(i) + nor.getZ(i) * push;
+        // lighter than the yarn: the fibres catch the light
+        for (let k = 0; k < 3; k++) c2[i * 3 + k] = Math.min(1, col.array[i * 3 + k] * 1.04 + .02);
+      }
+      const h = new THREE.BufferGeometry(); h.setAttribute("position", new THREE.BufferAttribute(out, 3)); h.setAttribute("normal", nor); h.setAttribute("color", new THREE.BufferAttribute(c2, 3)); h.setAttribute("uv", g.getAttribute("uv")); h.setIndex(g.getIndex());
+      h.userData = { perRing: g.userData.perRing };
+      const m = new THREE.Mesh(h, mat); m.renderOrder = 1; group.add(m); halos.push(m);
+    });
+  }
   function fuzzLines(geos: THREE.BufferGeometry[]) {
     if (st.fuzz <= 0.01 || !geos.length) return null;
     const v: number[] = [], col: number[] = [], cc = new THREE.Color(), WH = lin(0xffffff); const d = new THREE.Vector3(), p = new THREE.Vector3(), jit = new THREE.Vector3();
-    const per = (g: THREE.BufferGeometry) => { const fr = g.userData.frames; return fr[fr.length - 1].s / g.userData.R * st.fuzz * (st.fur ? 46 : 26); };
+    const per = (g: THREE.BufferGeometry) => { const fr = g.userData.frames; return fr[fr.length - 1].s / g.userData.R * st.fuzz * (st.fur ? 46 : st.preset === "mohair" ? 34 : 26); };
     const raw = geos.reduce((a, g) => a + per(g), 0), scale = Math.min(1, fuzzCap() / Math.max(1, raw));
     geos.forEach(g => {
       const fr = g.userData.frames, R = g.userData.R, count = Math.floor(per(g) * scale);
       // fur: the proper colour; the light fuzz: the prototype used the sRGB numbers as linear (lighter), so do the same
-      cc.set(g.userData.color); if (!st.fur) { cc.convertLinearToSRGB(); cc.lerp(WH, .35); }
+      cc.set(g.userData.color); if (!st.fur) { cc.convertLinearToSRGB(); cc.lerp(WH, st.preset === "mohair" ? .12 : .35); }
       for (let k = 0; k < count; k++) {
         const f = fr[Math.random() * fr.length | 0], ph = Math.random() * 6.283, c = Math.cos(ph), s = Math.sin(ph);
         d.set(0, 0, 0).addScaledVector(f.n, c).addScaledVector(f.b, s); p.copy(f.p).addScaledVector(d, R * .8);
         const L = R * (.25 + Math.random() * Math.random() * 2.2) * (.35 + st.fuzz) * (st.fur ? 3.4 : 1);
         d.addScaledVector(f.t, (Math.random() - .5) * 1.6).add(jit.set(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(.5)).normalize();
         v.push(p.x, p.y, p.z, p.x + d.x * L, p.y + d.y * L, p.z + d.z * L);
-        const br = st.fur ? .5 + Math.random() * .5 : 1, k0 = st.fur ? .5 : .9;
+        const br = st.fur ? .75 + Math.random() * .25 : 1, k0 = st.fur ? .8 : .9;
         col.push(cc.r * br * k0, cc.g * br * k0, cc.b * br * k0, cc.r * br, cc.g * br, cc.b * br);
       }
     });
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
-    return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: st.fur ? .6 : .22, depthWrite: false }));
+    return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: st.fur ? .7 : st.preset === "mohair" ? .4 : .22, depthWrite: false }));
   }
 
   // ---------- pattern -> 3D: stitch = point, joins = springs (the shape comes from the counts alone)
@@ -381,9 +427,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   }
   function updateHolo(D: ItemData) { const a = holo!.userData.pos as THREE.BufferAttribute; for (let i = 0; i < D.P.length; i++) a.setXYZ(i, D.P[i].x, D.P[i].y, D.P[i].z); a.needsUpdate = true; }
 
-  let meshes: THREE.Mesh[] = [], fz: THREE.LineSegments | null = null, anim = 0, strapH = 0;
+  let halos: THREE.Mesh[] = [], meshes: THREE.Mesh[] = [], fz: THREE.LineSegments | null = null, anim = 0, strapH = 0;
   const yarnR = (D: ItemData) => {
-    const R = pat.yarnMm / 2 / MM * st.thick * (st.preset === "mohair" ? .8 : 1);
+    const R = pat.yarnMm / 2 / MM * st.thick * st.fill;
     // a big flat piece drawn every k-th stitch: its yarn stands for k strands
     return D.skip ? Math.min(R * D.skip.stitch, Math.min(D.rh, D.sw) * .42) : R;
   };
@@ -397,7 +443,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       [saw, tops].forEach((arr, ix) => {
         if (arr.length < 3) return; const cv = new THREE.CatmullRomCurve3(arr, c.closed, "catmullrom", .5), Rr = ix ? R * .9 : R;
         const pts = cv.getSpacedPoints(Math.max(24, Math.ceil(cv.getLength() / (Rr * .75 * step))));
-        const g = buildYarn(pts, Rr, { M, closed: c.closed, color: colorOf(c.ci) }), m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = true; group.add(m); meshes.push(m); geos.push(g);
+        const g = buildYarn(pts, Rr, { M, closed: c.closed, color: colorOf(c.ci) }), m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
       });
     });
     strapH = 0;
@@ -419,7 +465,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         });
       });
     }
-    fz = fuzzLines(geos); if (fz) group.add(fz);
+    haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz);
   }
   // knitted stockinette: one row = one strand of joined loops (the prototype's buildKnit)
   function buildKnit(D: ItemData, R: number, mat: THREE.Material, geos: THREE.BufferGeometry[]) {
@@ -432,7 +478,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         else { const al = (j - (K.H - 1) / 2) * K.rk - lp, x = ac - K.W * w / 2, y = d - dz; pts.push(K.swap ? new THREE.Vector3(al, y, x) : new THREE.Vector3(x, y, al)); }
       }
       const cv = new THREE.CatmullRomCurve3(pts, tb), g = buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength() / (R * .6 * LOD.step))), R, { M: Math.min(8, LOD.M), closed: tb, color: colorOf(rowC[j]?.ci ?? j) }), m = new THREE.Mesh(g, mat);
-      m.castShadow = true; m.receiveShadow = true; group.add(m); meshes.push(m); geos.push(g);
+      m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
     }
   }
   function sizeInfo(D: ItemData) {
@@ -452,7 +498,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (anim) { cancelAnimationFrame(anim); anim = 0; }
     group.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | THREE.Material[] | undefined; if (mt) (Array.isArray(mt) ? mt : [mt]).forEach(x => x.dispose()); });
     while (group.children.length) group.remove(group.children[0]);
-    meshes = []; fz = null; holo = null;
+    meshes = []; halos = []; fz = null; holo = null;
   }
   function showItem() {
     const D = IT.data!; clearGroup();
@@ -483,7 +529,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       // the angle the reader turned it to stays; the distance follows the piece. The target sits a little
       // below the middle so the piece stands clear of the labels along the bottom
       const dir = cam.position.clone().sub(ctl.target).normalize(); ctl.target.set(0, tot * .32, 0);
-      const dist = (ext * (st.fur ? 2.45 : z.my < D.rh * 3 ? 1.6 : 2.1) + 3) * 1.25; cam.position.copy(ctl.target).addScaledVector(dir, dist); ctl.maxDistance = Math.max(40, dist * 2.2);
+      const dist = (ext * (st.fur ? 2.3 : z.my < D.rh * 3 ? 1.55 : 2) + 2) * (page ? .92 : 1.15); cam.position.copy(ctl.target).addScaledVector(dir, dist); ctl.maxDistance = Math.max(40, dist * 2.2);
       setShadow(Math.max(10, ext * 1.4)); fit(); opts.onBuilt?.(performance.now() - t0);
     }
   }
@@ -493,12 +539,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (IT.view === "holo" || !IT.data?.done) { startItem(); return; }
     if (anim) cancelAnimationFrame(anim);
     if (reduced()) return;
-    if (fz) fz.visible = false; const totals = meshes.map(m => m.geometry.index!.count), sum = totals.reduce((a, b) => a + b, 0); meshes.forEach(m => m.geometry.setDrawRange(0, 0));
+    if (fz) fz.visible = false; halos.forEach(h => h.visible = false); const totals = meshes.map(m => m.geometry.index!.count), sum = totals.reduce((a, b) => a + b, 0); meshes.forEach(m => m.geometry.setDrawRange(0, 0));
     const s0 = performance.now(), dur = Math.min(9000, 3500 + IT.data.C.length * 60);
     const stepFn = (now: number) => {
       let k = Math.min(1, (now - s0) / dur) * sum;
       meshes.forEach((m, i) => { const pr = m.geometry.userData.perRing, c = Math.max(0, Math.min(totals[i], k)); m.geometry.setDrawRange(0, Math.floor(c / pr) * pr); k -= totals[i]; });
-      if (now - s0 < dur) anim = requestAnimationFrame(stepFn); else { meshes.forEach(m => m.geometry.setDrawRange(0, Infinity)); if (fz) fz.visible = true; anim = 0; }
+      if (now - s0 < dur) anim = requestAnimationFrame(stepFn); else { meshes.forEach(m => m.geometry.setDrawRange(0, Infinity)); if (fz) fz.visible = true; halos.forEach(h => h.visible = true); anim = 0; }
       kick();
     };
     anim = requestAnimationFrame(stepFn);
@@ -533,13 +579,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material;
       pat = p;
-      if (mat) Object.assign(st, PRE[p.material], { preset: p.material, fur: p.material === "fur", metal: p.material === "metal" ? .85 : 0 });
+      if (mat) Object.assign(st, presetOf(p.material));
       if (reshape) startItem();
       else if (IT.data?.done) showItem(); // colour or material: the yarn again, the shape as it is
     },
     setMaterial(m) {
       if (m === st.preset) return;
-      Object.assign(st, PRE[m], { preset: m, fur: m === "fur", metal: m === "metal" ? .85 : 0 });
+      Object.assign(st, presetOf(m));
       if (IT.data?.done) showItem();
     },
     setView(v) { IT.view = v; if (IT.data) showItem(); },
@@ -547,7 +593,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     dispose() {
       alive = false; cancelAnimationFrame(raf); ro.disconnect(); clearGroup(); ctl.dispose();
       scene.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | undefined; if (mt) mt.dispose(); });
-      FTEX.dispose(); envSrc.dispose(); ENV.dispose(); sun.shadow.map?.dispose();
+      FTEX.dispose(); HTEX.dispose(); envSrc.dispose(); ENV.dispose(); sun.shadow.map?.dispose();
       renderer.dispose(); renderer.forceContextLoss();
     },
   };

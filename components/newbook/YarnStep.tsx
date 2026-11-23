@@ -197,7 +197,7 @@ function setColor(d: Draft, i: number, c: YarnColor): Partial<Draft> {
   const more = [...(d.moreColors ?? [])]; more[i - 1] = c; return { moreColors: more };
 }
 
-function ColorEditor({ c, i, onChange }: { c: YarnColor; i: number; onChange: (c: YarnColor) => void }) {
+export function ColorEditor({ c, i, onChange }: { c: YarnColor; i: number; onChange: (c: YarnColor) => void }) {
   const preset = c.hex ? COLORS.find(([n, hex]) => hex === c.hex && n === c.name) : undefined;
   const id = (k: string) => `yc${i}${k}`;
   return (

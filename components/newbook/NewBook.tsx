@@ -24,6 +24,9 @@ import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
+import { Head, Tiles, WebCheck, WebHook, WebYarn } from "./WebPages";
+import { yarnUse } from "@/lib/yarnUse";
+import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
 import { useMobile } from "@/components/mobile/useMobile";
@@ -33,7 +36,7 @@ import { AiTab } from "@/components/AiTab";
 import { LaceButton } from "@/components/diary/Diary";
 import { useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
-import { setSheet, useSheet } from "@/components/mobile/sheetStore";
+import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -135,9 +138,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const { ready, draft, setDraft, addProject, updateProject, projects, setActive, chat } = useApp();
   const router = useRouter();
   const book = useBook(), step = inBook ?? book.step, phone = useMobile();
-  // wide screens (Kim): step 3 is two spreads, the yarn (sheet 0) then the hook and the size (sheet 1); the
-  // 3D book turns its page between them (Book3D reads the sheet). Phones keep their own sheets.
-  const web = phone === false, liveSheet = useSheet(3), sheet = web && step === 3 ? (inSheet ?? liveSheet) : 0, pos = step * 2 + sheet;
+  // wide screens (Kim): step 3 is up to three spreads, the yarn (sheet 0), the hook and the size (sheet 1)
+  // and, for a bag, its shape (sheet 2: body, flap, handle); the 3D book turns its page between them
+  // (Book3D reads the sheet). Phones keep their own sheets.
+  const web = phone === false, liveSheet = useSheet(3, web ? WEB_SHEETS3 : undefined);
+  const bagNow = ITEM[itemIdOf(draft)].group === "가방", sheets3 = bagNow ? 3 : 2;
+  const sheet = web && step === 3 ? Math.min(inSheet ?? liveSheet, sheets3 - 1) : 0, pos = step * 3 + sheet;
   const [editId, setEditId] = useState<string | null>(null);
   const [nums, setNums] = useState<Record<FieldKey, string>>(numsOf(draft));
   const [dir, setDir] = useState<1 | -1>(1);
@@ -270,19 +276,22 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     if (inBook && !phone) { if (!editId) setDraft(freshDraft()); book.sinkAway(); return; }
     router.push("/pattern");
   };
+  // the web's step 3, spread by spread: the yarn needs only its thickness; the hook-and-size spread its
+  // hook and sizes (the bag's shape spread follows); the last spread everything (stepOk)
+  const sheetOk = !(web && step === 3) ? stepOk : sheet === 0 ? yarnThickOk(draft) : sheet === 1 && bagNow ? yarnStepOk(draft) && Object.keys(errors).length === 0 : stepOk;
   const next = () => {
-    // the web's yarn spread: only the thickness has to be right to turn to the hook and the size
-    const ok = web && step === 3 && sheet === 0 ? yarnThickOk(draft) : stepOk;
-    if (!ok) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"], .mw-form [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
-    if (web && step === 3 && sheet === 0) { setSheet(3, 1); return; }
+    if (!sheetOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"], .mw-form [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
+    if (web && step === 3 && sheet < sheets3 - 1) { setSheet(3, sheet + 1); return; }
     if (web && step === 2) setSheet(3, 0);
     if (step < 4) go((step + 1) as Step); else save();
   };
   const back = () => {
-    if (web && step === 3 && sheet === 1) { setSheet(3, 0); return; }
-    if (web && step === 4) setSheet(3, 1);
+    if (web && step === 3 && sheet > 0) { setSheet(3, sheet - 1); return; }
+    if (web && step === 4) setSheet(3, sheets3 - 1);
     go((step - 1) as Step);
   };
+  /** 확인's 고치기: back to the spread of step 3 that holds it */
+  const fixAt = (sh: number) => { if (web) setSheet(3, Math.min(sh, sheets3 - 1)); go(3); };
 
   const onSubmit = (e: React.FormEvent) => { e.preventDefault(); next(); };
   // Enter = next step from anywhere in the book (inputs submit by themselves; chips, cards and the
@@ -297,10 +306,15 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   let rightWeb: ReactNode = null;
 
 
-  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: web ? (sheet === 0 ? "어떤 실로 뜨시겠습니까?" : "바늘과 크기를 정합니다") : "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
-  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
-  // folios: 1-2 이름, 3-4 품목, 5-6 실, 7-8 바늘과 크기, 9-10 확인 (web); four spreads on the one-page book
-  const folio = web ? (step <= 2 ? step * 2 - 1 : step === 3 ? 5 + sheet * 2 : 9) : step * 2 - 1;
+  const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: web ? (["어떤 실로 뜨시겠습니까?", "바늘과 크기를 정합니다", "가방 모양을 정합니다"][sheet]) : "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
+  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : web && sheet === 1 && bagNow ? "다음 · 가방 모양 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
+  // folios (web): 1-2 이름, 3-4 품목, then two pages per spread of step 3 (실, 바늘과 크기, 가방 모양), then 확인;
+  // four spreads on the one-page book
+  const folio = web ? (step <= 2 ? step * 2 - 1 : step === 3 ? 5 + sheet * 2 : 5 + sheets3 * 2) : step * 2 - 1;
+  // the web's step 3: where you are among its spreads, under the title
+  const subSteps = web && step === 3 ? (
+    <ol className="nb-substeps" aria-label="실과 크기 단계">{["실", "바늘과 크기", "가방 모양"].slice(0, sheets3).map((t, i) => <li key={t} aria-current={i === sheet ? "step" : undefined}>{t}</li>)}</ol>
+  ) : null;
 
   const progress = (
     <ol className="nb-progress" aria-label="진행 단계">
@@ -470,21 +484,78 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       right = previewPage;
     }
     if (phone) phoneBody = <>{left}<div className="mw-split" aria-hidden="true" />{right}</>;
-    const counts = (
-      <p className="nb-counts" aria-live="polite">
-        <span>{`${item.name} · ${sizeText}`}</span>
-        {input.object === "rows" && start && <b>{`시작 사슬 ${start.n}코 · 한 단 ${pp.last}코 · ${pp.bodyRows}단`}</b>}
-        {input.object === "tube" && start && <b>{`시작 사슬 ${start.n}코 (고리) · ${pp.bodyRows}단`}</b>}
-        {(input.object === "coaster" || input.object === "bag") && <b>{`바닥 ${pp.bottomRounds}단 · 마지막 단 ${pp.last}코`}</b>}
-        {input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (flapRows ? ` · 덮개 ${flapRows}단` : "") + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
-      </p>
+    // the web (Kim: easier to read, nothing cut off): the main choices open as tiles, numbers in boxes
+    const webSize = (
+      <div className="nb-web">
+        <WebHook draft={draft} patch={patch} tried={tried} />
+        {shapes.length > 1 && (
+          <div className="nb-wg"><Head>{item.kind === "flat-round" ? "모양" : "바닥 모양"}</Head>
+            <Tiles label="모양" value={draft.shape} cols={3} onPick={v => pickShape(v as Shape)} options={shapes.map(s => [s, SHAPE_KO[s]])} />
+          </div>
+        )}
+        <div className="nb-wg"><Head note={item.name}>크기</Head>
+          <div className="nb-two nb-wtwo">
+            {fields.map(f => (
+              <Field key={item.id + f.key + draft.shape} label={f.label} error={errors[f.key]}>
+                {(id, eb) => <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={nums[f.key]} onChange={e => setNum(f.key)(e.target.value)} />}
+              </Field>
+            ))}
+          </div>
+          {item.note && <p className="nb-help">{item.note}</p>}
+        </div>
+        <AskAiLine which="size" />
+      </div>
     );
+    const webBag = (
+      <div className="nb-web">
+        <div className="nb-wg"><Head>몸통</Head>
+          <Tiles label="몸통 모양" value={draft.topA != null ? "flare" : "straight"} cols={3} options={[["straight", "일자형"], ["flare", "위로 넓어지는"]]}
+            onPick={v => patch({ topA: v === "flare" ? Math.round(draft.a * 1.3) : null })} />
+          {draft.topA != null && <div className="nb-wsub"><CmInput key={"top" + draft.shape + draft.a} label={draft.shape === "circle" ? "입구 지름 (cm)" : "입구 가로 (cm)"} value={draft.topA || null}
+            range={[Math.ceil(draft.a) + 1, Math.round(draft.a * 2)]} onValue={v => patch({ topA: v ?? 0 })} /></div>}
+        </div>
+        <div className="nb-wg"><Head>덮개</Head>
+          <Tiles label="덮개" value={draft.flapCm != null ? "yes" : "no"} cols={3} options={[["no", "없음"], ["yes", "있음"]]}
+            onPick={v => patch({ flapCm: v === "yes" ? Math.max(4, Math.round(draft.h * 0.6)) : null })} />
+          {draft.flapCm != null && <div className="nb-wsub"><CmInput label="덮개 길이 (cm)" value={draft.flapCm || null} range={[3, 40]} onValue={v => patch({ flapCm: v ?? 0 })} /></div>}
+        </div>
+        {item.handles && (
+          <div className="nb-wg"><Head note="길이">손잡이</Head>
+            <Tiles label="손잡이" value={handlePick} cols={5} onPick={v => {
+              setOwnHandle(v === "own");
+              if (v === "none") patch({ handle: "none" });
+              else if (v === "own") patch({ handle: "short", handleCm: handleCmOf(draft) });
+              else patch({ handle: "short", handleCm: Number(v) });
+            }} options={[["none", "없음"], ...HANDLE_PRESETS.map(([n, v]): [string, ReactNode, ReactNode] => [String(v), n, `${v}cm`]), ["own", "직접", "cm"]]} />
+            {handlePick === "own" && <div className="nb-wsub"><CmInput label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} autoFocus={ownHandle} onValue={v => patch({ handle: "short", handleCm: v ?? 0 })} /></div>}
+            <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다.</p>
+          </div>
+        )}
+      </div>
+    );
+    // 확인: short rows with 고치기, the yarn amount, the counts as small cards
+    const hookMm = draft.hook ? hookMmOf(draft) : NaN;
+    const ucolors = [{ hex: draft.color, name: draft.colorName }, ...(draft.moreColors ?? [])].filter(c => c.hex || c.name);
+    const use = yarnUse(pp, { weight: draft.weight, yarnMm: draft.yarnMm, yarnMode: draft.yarnMode, skeinG: draft.skeinG, skeinM: draft.skeinM, skeins: draft.skeins, colors: Math.max(1, ucolors.length), materials: draft.materials });
+    const yarnBits = [draft.materials?.join(" · "), yarnWeightText(draft) !== "—" ? yarnWeightText(draft) : "", ucolors.map(c => c.name || "직접 고른 색").join(" · ")].filter(Boolean).join(" · ");
+    const checkRows = [
+      { k: "실", v: <>{ucolors[0]?.hex && <i className="nb-swatch" style={{ background: ucolors[0].hex }} />}{yarnBits || "고르지 않음"}</>, fix: () => fixAt(0) },
+      { k: "바늘", v: Number.isFinite(hookMm) ? hookLabel(hookMm) : "고르지 않음", fix: () => fixAt(1) },
+      { k: "크기", v: sizeText.replace("cm", "cm") + (input.object === "bag" && draft.h ? ` · 높이 ${draft.h}cm` : ""), fix: () => fixAt(1) },
+      ...(isBag(item) ? [{ k: "모양", v: [draft.topA ? `위로 넓어지는 (입구 ${draft.topA}cm)` : "일자형", draft.flapCm ? `덮개 ${draft.flapCm}cm` : "", item.handles ? `손잡이 ${handleText(draft)}` : ""].filter(Boolean).join(" · "), fix: () => fixAt(2) }] : []),
+    ];
+    const facts: [string, string][] = [["한 코", `약 ${Math.round(g.h * 10)}mm`]];
+    if (input.object === "rows" && start) facts.push(["시작 사슬", `${start.n}코`], ["단 수", `${pp.bodyRows}단`]);
+    if (input.object === "tube" && start) facts.push(["시작 사슬", `${start.n}코`], ["단 수", `${pp.bodyRows}단`]);
+    if (input.object === "coaster" || input.object === "bag") facts.push(["바닥", `${pp.bottomRounds}단 · ${pp.last}코`]);
+    if (input.object === "bag") facts.push(["몸통", `${pp.bodyRows}단` + (handleRow ? ` · 손잡이 ${handleRow.n}코` : "")]);
+    const basis = use.basis === "label" ? "실 라벨" : use.basis === "mm" ? `실 굵기 ${draft.yarnMm}mm` : "실 굵기";
+    const skeinText = draft.skeinG && draft.skeinM ? `한 타래 ${draft.skeinG}g · ${draft.skeinM}m 기준` : draft.skeinG ? `한 타래 ${draft.skeinG}g 기준` : draft.skeinM ? `한 타래 ${draft.skeinM}m 기준` : "";
     rightWeb = step === 3
-      ? (sheet === 0 ? <YarnPage draft={draft} patch={patch} tried={tried} part="yarn" />
-        : <div className="nb-stack"><YarnPage draft={draft} patch={patch} tried={tried} part="hook" />
-            <section className="nb-sec" aria-labelledby="secSize"><h2 className="nb-sec-title" id="secSize">모양과 크기</h2><AskAiLine which="size" />{sizePage}</section></div>)
-      // 확인: the supplies and the counts; the flat drawing is gone (the 3D on the left shows the shape)
-      : <>{left}{counts}</>;
+      ? [<WebYarn key="y" draft={draft} patch={patch} tried={tried} />, webSize, webBag][sheet]
+      : <WebCheck draft={draft} itemName={item.name} rows={checkRows} facts={facts}
+          use={{ g: use.g, m: use.m, skeins: use.skeins ?? null, short: !!use.short, labelOdd: !!use.labelOdd, perColor: !!use.perColor, colors: ucolors.length, per100: use.per100, basis, skeinText }}
+          measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} />;
   }
 
   const phoneNext: Record<Step, string> = { 1: "다음 · 품목 ↑", 2: "다음 · 실과 바늘 ↑", 3: "다음 · 준비물 확인 ↑", 4: "완성 · 최종 도안 보기" };
@@ -540,6 +611,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         <div key={"r" + pos + "-" + rev} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
           {web && step > 1 ? <>
             <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>
+            {subSteps}
             {step === 2 && <AskAiLine which="item" />}{step === 3 && sheet === 0 && <AskAiLine which="yarn" />}
             {rightWeb}
           </> : right}
@@ -551,7 +623,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             ? <LaceButton variant="mocha" width={360} type="submit" className="nb-final-lace" aria-disabled={blockNext || undefined}>
                 <small>마지막 단계</small>완성 · 최종 도안 보기 →
               </LaceButton>
-            : <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && (web && sheet === 0 ? !yarnThickOk(draft) : !stepOk))}>{nextLabel[step]}</ClothLabel>}
+            : <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !sheetOk)}>{nextLabel[step]}</ClothLabel>}
         </div>
       </section>
     ),

@@ -24,7 +24,11 @@ const LEVEL_MM: Record<string, number> = { thin: 2, medium: 3, thick: 5 };
 // no colour picked yet: ivory (Kim: unpicked values are drawn as ivory cotton)
 export const DEFAULT_COLOR = "#EFE6D4";
 // the pattern's yarn material (lib/yarn.ts MATERIALS) -> the engine's look; anything else stays cotton
-const MAT: Record<string, YarnMaterial> = { 울: "wool", 메리노: "wool", 캐시미어: "wool", 알파카: "wool", 아크릴: "wool", 모헤어: "mohair" };
+const MAT: Record<string, YarnMaterial> = {
+  코튼: "cotton", 울: "wool", 메리노: "wool", 캐시미어: "wool", 아크릴: "wool", 알파카: "mohair", 모헤어: "mohair",
+  리넨: "linen", 실크: "silk", 대나무: "silk", 나일론: "silk", 폴리에스터: "silk", "벨벳(셔닐)": "chenille",
+  라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈릭: "metal",
+};
 // knitted items (Kim: 목도리 is knitted; the pattern data itself has no knitting)
 const KNIT = new Set(["scarf"]);
 

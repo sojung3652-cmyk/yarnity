@@ -10,7 +10,7 @@ export const HOOK_MM_RANGE: [number, number] = [0.4, 25];
 export const HOOK_YARN_RATIO: [number, number] = [0.6, 2.5];
 export const MAX_TEXT = 40;
 
-export const MATERIALS = ["코튼", "울", "메리노", "캐시미어", "알파카", "모헤어", "아크릴", "나일론", "폴리에스터", "리넨", "실크", "대나무", "벨벳(셔닐)", "혼방"];
+export const MATERIALS = ["코튼", "울", "메리노", "캐시미어", "알파카", "모헤어", "아크릴", "나일론", "폴리에스터", "리넨", "실크", "대나무", "벨벳(셔닐)", "라피아", "코드사", "페이크퍼", "메탈릭", "혼방"];
 export const HOOK_MATERIALS = ["알루미늄", "스틸", "대나무", "나무", "플라스틱"];
 /** Common hook sizes shown as chips (the engine's own HOOKS table is unchanged; 7.5호 is display only). */
 export const HOOK_CHIPS: [string, number][] = [["2호", 2.0], ["3호", 2.3], ["4호", 2.5], ["5호", 3.0], ["6호", 3.5], ["7호", 4.0], ["7.5호", 4.5], ["8호", 5.0], ["10호", 6.0]];

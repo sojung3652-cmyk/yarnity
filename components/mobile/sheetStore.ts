@@ -9,12 +9,15 @@ export const SHEETS: Record<number, number> = { 1: 1, 2: 2, 3: 2, 4: 2 };
 
 let state: Record<number, number> = {};
 const subs = new Set<() => void>();
-export const sheetOf = (step: number) => Math.min(state[step] ?? 0, (SHEETS[step] ?? 1) - 1);
+/** the web's 3D book: step 3 is up to three spreads (실 / 바늘과 크기 / 가방 모양 for a bag) */
+export const WEB_SHEETS3 = 3;
+/** `max`: sheets of that step to allow (default: the phone's SHEETS) */
+export const sheetOf = (step: number, max = SHEETS[step] ?? 1) => Math.min(state[step] ?? 0, max - 1);
 export function setSheet(step: number, sheet: number) {
   if (state[step] === sheet) return;
   state = { ...state, [step]: sheet }; subs.forEach(f => f());
 }
 const subscribe = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
-export function useSheet(step: number) {
-  return useSyncExternalStore(subscribe, () => sheetOf(step), () => 0);
+export function useSheet(step: number, max?: number) {
+  return useSyncExternalStore(subscribe, () => sheetOf(step, max), () => 0);
 }

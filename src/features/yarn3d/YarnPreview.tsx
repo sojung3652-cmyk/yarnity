@@ -12,7 +12,7 @@ import type { YarnInfo, YarnMaterial, YarnPattern, YarnViewer } from "./engine";
 import { bookPause } from "./pause";
 import "./yarn3d.css";
 
-const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["mohair", "모헤어"], ["cord", "코드사"], ["fur", "털실"], ["metal", "메탈릭"]];
+const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["mohair", "모헤어"], ["linen", "리넨"], ["silk", "실크"], ["chenille", "셔닐"], ["raffia", "라피아"], ["cord", "코드사"], ["fur", "털실"], ["metal", "메탈릭"]];
 
 export default function YarnPreview({ pattern, onClose }: { pattern: YarnPattern; onClose: () => void }) {
   const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), closeRef = useRef<HTMLButtonElement>(null), viewer = useRef<YarnViewer | null>(null);
