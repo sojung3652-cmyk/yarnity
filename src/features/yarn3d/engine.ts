@@ -1004,18 +1004,34 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // the top closed (Kim: 덮개 설정에 따라 가방 윗면을 다물어지게; a zipper closes it too): the front and back walls
   // come together over the top part, to the gap asked (0: shut as a zipper's), the width kept a little wider
   function closeTop(D: ItemData) {
+    // 오므리기 (Kim): the stitches stay as they are - the same count in every round - so a round pressed shallower
+    // grows wider by as much: each height keeps its round's length, front and back coming together while the
+    // sides go out (a cylinder's top becomes a wide, flat line; seen from the front the bag flares to the top)
     const ex = pat.extras, zip = !!ex?.zipper && !pat.flap;
     if (pat.topGap == null && !zip) return;
     const b = boxOf(D), H = b.my; if (H < D.rh * 3) return;
-    const wide = wideX(b), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
-    let hd = 0; for (const p of D.P) if (p.y > H * .9) hd = Math.max(hd, Math.abs(wide ? p.z - cz : p.x - cx));
-    if (!hd) return;
+    const wide = wideX(b), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, NB = 24;
+    const uv = (p: THREE.Vector3) => wide ? [p.x - cx, p.z - cz] : [p.z - cz, p.x - cx];
+    const ua = new Array(NB + 1).fill(0), vb = new Array(NB + 1).fill(0), bin = (y: number) => Math.max(0, Math.min(NB, Math.round(y / H * NB)));
+    for (const p of D.P) { const k = bin(p.y), [u, v] = uv(p); ua[k] = Math.max(ua[k], Math.abs(u)); vb[k] = Math.max(vb[k], Math.abs(v)); }
+    const hd = vb[NB] || vb[NB - 1]; if (!hd) return;
     const want = zip ? Math.max(.12, Math.min(1, ex!.zipOpen ?? 0)) * hd : Math.max(R0() * 1.4, (pat.topGap ?? 0) * 10 / MM / 2);
     if (want >= hd) return;
-    const k1 = want / hd;
+    const per = (a: number, c: number) => Math.PI * (3 * (a + c) - Math.sqrt((3 * a + c) * (a + 3 * c)));
+    // each height's new half-width and half-depth, its length kept
+    const sa = new Array(NB + 1).fill(1), sb = new Array(NB + 1).fill(1);
+    for (let k = 0; k <= NB; k++) {
+      const a = ua[k], c = vb[k]; if (!a || !c) continue;
+      const u = Math.max(0, Math.min(1, (k / NB - .05) / .95)), f = u ** 1.4; if (!f) continue; // from the round bottom up to the closed top, little by little (Kim's sketch)
+      const c2 = c - (c - Math.min(c, want)) * f, L = per(a, c); let a2 = a;
+      for (let i = 0; i < 24; i++) a2 *= L / per(a2, c2);
+      sa[k] = a2 / a; sb[k] = c2 / c;
+    }
     for (const p of D.P) {
-      const u = Math.max(0, Math.min(1, (p.y / H - .74) / .26)), f = Math.sqrt(u * u * (3 - 2 * u)), k = 1 - f * (1 - k1), wd = 1 + f * (1 - k1) * .07;
-      if (wide) { p.z = cz + (p.z - cz) * k; p.x = cx + (p.x - cx) * wd; } else { p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * wd; }
+      // between two heights' measures, smoothly (no steps from one band to the next)
+      const fk = Math.max(0, Math.min(NB, p.y / H * NB)), k0 = Math.floor(fk), k1 = Math.min(NB, k0 + 1), t = fk - k0;
+      const [u, v] = uv(p), u2 = u * (sa[k0] + (sa[k1] - sa[k0]) * t), v2 = v * (sb[k0] + (sb[k1] - sb[k0]) * t);
+      if (wide) { p.x = cx + u2; p.z = cz + v2; } else { p.z = cz + u2; p.x = cx + v2; }
     }
   }
   function soften(D: ItemData) {

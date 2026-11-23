@@ -340,3 +340,36 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-pick b{margin:0 6px 0 4px;font-weight:600;color:#3A322D}
 .yw-pick button{min-width:26px;height:26px;padding:0 6px;border:0;border-radius:3px;background:none;font:inherit;color:#3A322D;cursor:pointer}
 .yw-pick button:hover{background:#F4E0DF}
+
+/* =====================================================================================================
+   Cream linen + cloth labels (Kim's pick): the book's cream weave for the bars and the column, the tabs and
+   section titles as small woven labels with lavender stitches at their ends, gold hairlines, rose for what is
+   picked. Only colours and dressing here; the places stay as set above.
+   ===================================================================================================== */
+.yw{--linen:#F6EFE2;--linen2:#FBF7EF;--stitch:#EEBEC7;--rose:#F4E0DF;--gold:#B99447;--ink:#3E3430;--ink2:#6A5B55}
+.yw-top,.yw-stat,.yw-index,.yw-mkfoot{background:var(--weave),var(--linen)}
+.yw-top{border-bottom:1px solid rgba(185,148,71,.55)}
+.yw-stat{border-top:1px solid rgba(185,148,71,.45)}
+.yw-right,.yw-mkr{background:var(--weave),var(--linen2)}
+/* the bar's tabs: woven labels */
+.yw-index{gap:10px;padding:12px 18px;border-bottom:1px solid rgba(185,148,71,.45)}
+.yw-index a.yw-tab{position:relative;display:inline-flex;align-items:baseline;gap:6px;padding:7px 18px 6px;border-radius:2px;background:var(--weave),#F3EBDD;border-top:1px solid #E6DAC6;border-bottom:1px solid #E6DAC6;
+  box-shadow:0 1px 2px rgba(70,50,40,.12);color:var(--ink2);font-size:13.5px;text-decoration:none;transform:rotate(-.4deg)}
+.yw-index a.yw-tab::before,.yw-index a.yw-tab::after{content:"";position:absolute;top:5px;bottom:5px;width:0;border-left:1.5px dashed var(--stitch)}
+.yw-index a.yw-tab::before{left:6px}.yw-index a.yw-tab::after{right:6px;left:auto;background:none;height:auto}
+.yw-index a.yw-tab[aria-current="step"]{background:var(--weave),var(--rose);color:var(--ink);font-weight:600;transform:rotate(0)}
+.yw-index a.yw-tab b{color:var(--gold)}
+/* section titles: a small woven label */
+.yw-sec h2{display:inline-flex;position:relative;padding:6px 18px 5px;border-radius:2px;background:var(--weave),#F3EBDD;border-top:1px solid #E6DAC6;border-bottom:1px solid #E6DAC6;box-shadow:0 1px 2px rgba(70,50,40,.12);font-size:15px}
+.yw-sec h2::before,.yw-sec h2::after{content:"";position:absolute;top:5px;bottom:5px;border-left:1.5px dashed var(--stitch)}
+.yw-sec h2::before{left:6px}.yw-sec h2::after{right:6px}
+.yw-sec+.yw-sec{border-top:1px solid rgba(185,148,71,.35)}
+/* picked things: rose with a gold edge, everywhere on this screen */
+.yw .nb-tile[aria-pressed="true"],.yw .nb-tile[aria-checked="true"],.yw [role="radio"][aria-checked="true"].nb-tile,.yw .asm-rail button[aria-selected="true"],.yw .nb-needle button[aria-checked="true"]{background:var(--rose);box-shadow:inset 0 0 0 1.5px var(--gold);color:var(--ink)}
+.yw .nb-tile,.yw .asm-rail,.yw .asm-card,.yw .ex-placed li,.yw .xp-tile{background:#FFFDF8}
+.yw .asm-rail{border-color:#D9C9B2}
+.yw .asm-card{box-shadow:inset 0 0 0 1px #E6DAC6}
+.yw .yw-opt[aria-pressed="true"],.yw .yw-act[aria-pressed="true"]{background:var(--rose);box-shadow:inset 0 0 0 1.5px var(--gold);color:var(--ink)}
+.yw .yw-act{background:var(--weave),#FFFDF8;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #D9C9B2}
+.yw .nb-slide input[type="range"]::-webkit-slider-thumb{background:#C98C97}
+.yw .nb-link{color:var(--ink);text-decoration-color:var(--gold)}
