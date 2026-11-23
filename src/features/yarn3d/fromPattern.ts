@@ -19,7 +19,7 @@ export interface YarnSource extends PlanInput {
   crochetChart?: ChartKey | null;
   /** a named pattern drawn from its recipe (lib/stitchCharts), for either needle, and the other yarns' colours */
   chartName?: string | null;
-  moreColors?: { hex?: string; material?: string; held?: boolean }[] | null;
+  moreColors?: { hex?: string; material?: string; materials?: string[]; held?: boolean }[] | null;
   flapShape?: "half" | "square" | "triangle";
   handleCount?: 1 | 2;
   flapColor?: string;
@@ -120,7 +120,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.free ? {} : p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
     // with a flap the top closes to the gap asked (2cm when not said)
     // 합사 (Kim): the first added yarn held together with the main one - its colour twists in, its fibres show
-    ...((h => h ? { marl: h.hex, ...(h.material && MAT[h.material] ? { marlMat: MAT[h.material] } : {}) } : {})((p.moreColors ?? []).find(c => c?.held && !!c.hex && /^#[0-9a-f]{6}$/i.test(c.hex)))),
+    ...((h => h ? { marl: h.hex, ...((m => m && MAT[m] ? { marlMat: MAT[m] } : {})(h.materials?.length ? h.materials[h.materials.length - 1] : h.material)) } : {})((p.moreColors ?? []).find(c => c?.held && !!c.hex && /^#[0-9a-f]{6}$/i.test(c.hex)))),
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
     // a handle is flat or a tube (Kim: no strands): flat when not said
     ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),

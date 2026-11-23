@@ -9,7 +9,8 @@
 //   무늬         - a knitted item's stitch pattern as chart tiles (WebStitch)
 // Phones keep YarnStep.tsx's pages as they are.
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import type { Draft } from "@/lib/types";
+import type { Draft, YarnColor } from "@/lib/types";
+import { ColorStudio } from "./ColorStudio";
 import { CROCHET, YARN_KO, type CrochetStitch, type Weight } from "@/lib/pattern";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
@@ -183,7 +184,7 @@ export function PanelYarn({ draft, patch }: { draft: Draft; patch: Patch }) {
 
 // ---------------------------------------------------------------- 실
 /** `noColor`: the work screen has its own 색 section (ColorStudio), so the colour row is left out there */
-export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch: Patch; tried: boolean; noColor?: boolean }) {
+export function WebYarn({ draft, patch, tried, noColor, sub }: { draft: Draft; patch: Patch; tried: boolean; noColor?: boolean; sub?: boolean }) {
   const [open, toggle] = useOneOpen();
   const [mmRaw, setMmRaw] = useState(draft.yarnMm != null ? String(draft.yarnMm) : "");
   const [more, setMore] = useState(false), [adding, setAdding] = useState(false), [own, setOwn] = useState("");
@@ -282,29 +283,34 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
         )}
       </div>
 
-      {/* 실 추가 (Kim: 갈색 울 + 흰색 앙고라): another yarn - its colour and material - held together with the main
-          one (합사) or worked on its own for stripes and colourwork (배색) */}
-      {noColor && <div className="nb-wg">
-        <Head note={extra.length < 4 && <button type="button" className="nb-link" onClick={() => { patch({ moreColors: [...extra, { held: true }] }); toggle("y" + extra.length); }}>+ 실 추가</button>}>더 쓰는 실</Head>
-        {!extra.length && <p className="nb-help">한 가지 실로만 뜹니다.</p>}
-        {extra.length > 0 && <div className="nb-folds nb-wextra">
-          {extra.map((c, i) => {
-            const set = (nc: Partial<typeof c>) => { const m = [...extra]; m[i] = { ...c, ...nc }; patch({ moreColors: m }); };
-            return (
-              <Fold key={i} label={`실 ${i + 2}`} open={open === "y" + i} onToggle={() => toggle("y" + i)}
-                value={<>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{[c.material, c.held ? "합사" : "배색"].filter(Boolean).join(" · ")}</>}>
-                <Tiles label="쓰는 방법" value={c.held ? "held" : "own"} cols={2} onPick={v => set({ held: v === "held" })}
-                  options={[["held", "합사", "본 실과 같이 뜨기"], ["own", "배색", "따로 바꿔 뜨기"]]} />
-                <ColorEditor c={c} i={i + 1} onChange={nc => set(nc)} />
-                <p className="nb-wsubhead">재질</p>
-                <div className="nb-tiles nb-tiles-4" role="radiogroup" aria-label={`실 ${i + 2} 재질`}>
-                  {WEB_MATERIALS.slice(0, 12).map(m => <button key={m} type="button" role="radio" aria-checked={c.material === m} className="nb-tile" onClick={() => set({ material: c.material === m ? undefined : m })}>{m}</button>)}
-                </div>
-                <button type="button" className="nb-link nb-color-del" onClick={() => { patch({ moreColors: extra.filter((_, j) => j !== i) }); toggle("y" + i); }}>이 실 빼기</button>
-              </Fold>
-            );
-          })}
-        </div>}
+      {/* 실 추가 (Kim: 갈색 울 + 흰색 앙고라): another yarn, set just as the main one - colour, thickness, material,
+          its hairs, its label - and held together with it (합사) or worked on its own for colourwork (배색) */}
+      {noColor && !sub && <div className="nb-wg xy">
+        {extra.map((c, i) => {
+          const set = (nc: Partial<YarnColor>) => { const m = [...extra]; m[i] = { ...c, ...nc }; patch({ moreColors: m }); };
+          // this yarn as a draft, so the main yarn's own parts take it as they are
+          const asDraft: Draft = { ...draft, color: c.hex, colorName: c.name, colorNo: c.no, lot: c.lot, yarnMm: c.yarnMm ?? null, yarnMode: c.yarnMode ?? "mm", weight: c.weight ?? draft.weight,
+            materials: c.materials ?? (c.material ? [c.material] : []), blend: c.blend ?? "", fuzzK: c.fuzzK, hairK: c.hairK, yarn: c.yarn ?? "", skeinG: c.skeinG ?? null, skeinM: c.skeinM ?? null, skeins: c.skeins ?? null, moreColors: [] };
+          const back = (p: Partial<Draft>) => {
+            const o: Partial<YarnColor> = {};
+            if ("color" in p) o.hex = p.color; if ("colorName" in p) o.name = p.colorName; if ("colorNo" in p) o.no = p.colorNo; if ("lot" in p) o.lot = p.lot;
+            for (const k of ["yarnMm", "yarnMode", "weight", "materials", "blend", "fuzzK", "hairK", "yarn", "skeinG", "skeinM", "skeins"] as const) if (k in p) (o as Record<string, unknown>)[k] = p[k];
+            if (o.materials) o.material = o.materials[o.materials.length - 1];
+            set(o);
+          };
+          return (
+            <section key={i} className="xy-card" aria-label={`실 ${i + 2}`}>
+              <div className="xy-head"><b>실 {i + 2}</b>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}<span>{[asDraft.materials?.join(" · "), c.held ? "합사" : "배색"].filter(Boolean).join(" · ")}</span>
+                <button type="button" className="nb-link nb-exdel" onClick={() => patch({ moreColors: extra.filter((_, j) => j !== i) })}>이 실 빼기</button></div>
+              <Tiles label="쓰는 방법" value={c.held ? "held" : "own"} cols={2} onPick={v => set({ held: v === "held" })}
+                options={[["held", "합사", "본 실과 같이 뜨기"], ["own", "배색", "따로 바꿔 뜨기"]]} />
+              <p className="nb-wsubhead">색</p>
+              <ColorStudio draft={asDraft} patch={back} />
+              <WebYarn key={"xy" + i} draft={asDraft} patch={back} tried={false} noColor sub />
+            </section>
+          );
+        })}
+        {extra.length < 4 && <button type="button" className="xy-add" onClick={() => patch({ moreColors: [...extra, { held: true }] })}><span aria-hidden="true">+</span>실 추가<small>다른 실과 합사하거나 배색할 때</small></button>}
       </div>}
 
       {/* 내 실 사진 is left out for now (Kim) */}

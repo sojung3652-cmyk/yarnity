@@ -104,7 +104,10 @@ export interface Draft {
 
 export interface YarnColor { hex?: string; name?: string; no?: string; lot?: string;
   /** an added yarn (Kim: 실 추가): its material, and whether it is held together with the main yarn (합사) */
-  material?: string; held?: boolean }
+  material?: string; held?: boolean;
+  /** the same as the main yarn's (Kim: 실 1이랑 똑같이) */
+  yarnMm?: number | null; yarnMode?: "mm" | "level"; weight?: import("./pattern").Weight; materials?: string[]; blend?: string;
+  fuzzK?: number; hairK?: number; yarn?: string; skeinG?: number | null; skeinM?: number | null; skeins?: number | null }
 
 export interface Project extends Draft {
   id: string;

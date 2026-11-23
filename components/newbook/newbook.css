@@ -1022,3 +1022,16 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
   display:grid;place-items:center;font-size:18px;line-height:1;color:#A99A92;cursor:pointer}
 .st-list .st-del:hover{background:#F4E0DF;color:#9F4A50;box-shadow:none}
 .st-tools{margin-bottom:8px}
+
+/* 실 추가 (Kim: 실 1이랑 똑같이, 잘 보이게): each added yarn a card of its own, set as the main yarn; the way to add one a clear tile */
+.xy{display:grid;gap:14px}
+.xy-card{padding:14px 14px 4px;border-radius:6px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #E0D2BE}
+.xy-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.xy-head b{font-size:15px;font-weight:700;color:#3A322D}
+.xy-head span{flex:1 1 auto;min-width:0;font-size:12.5px;color:#7A6A63}
+.xy-head .nb-exdel{margin-left:auto}
+.xy-card .nb-web{padding:0}
+.xy-add{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:10px 16px;border:1.5px dashed #C9B48A;border-radius:6px;background:#FBF6EC;font:inherit;font-size:15px;font-weight:600;color:#3A322D;cursor:pointer;text-align:left}
+.xy-add span{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#F4E0DF;box-shadow:inset 0 0 0 1px #B99447;font-size:17px;line-height:1}
+.xy-add small{margin-left:auto;font-size:12.5px;font-weight:400;color:#7A6A63}
+.xy-add:hover{background:#F4E0DF}
