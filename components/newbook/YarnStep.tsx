@@ -226,7 +226,7 @@ export function ColorEditor({ c, i, onChange }: { c: YarnColor; i: number; onCha
               })}<circle cx="16" cy="16" r="5.5" fill="#FFFBF5" /><path d="M16 13.2v5.6M13.2 16h5.6" stroke="#6B5C55" strokeWidth="1.4" strokeLinecap="round" /></svg>
             )}
           </span>
-          <span className="nb-picker-text">{!preset && c.hex ? "직접 고른 색" : "직접 고르기"}</span>
+          <span className="nb-picker-text">{!preset && c.hex ? `직접 고른 색 ${c.hex.toUpperCase()}` : "직접 고르기"}</span>
           <input type="color" aria-label="팔레트에서 색 고르기" value={!preset && c.hex ? c.hex : "#F0C1CA"} onChange={e => onChange({ ...c, hex: e.target.value, name: preset ? undefined : c.name })} />
         </label>
       </div>
@@ -253,7 +253,7 @@ function ColorList({ draft, patch, open, toggle }: { draft: Draft; patch: Patch;
       <div className="nb-folds nb-colors">
         {colors.map((c, i) => (
           <Fold key={i} label={colors.length > 1 ? `색 ${i + 1}` : "실 색"} open={open === "c" + i} onToggle={() => toggle("c" + i)}
-            value={c.hex || c.name || c.no || c.lot ? <>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || (c.hex ? "직접 고른 색" : "")}{c.no ? ` · ${c.no}` : ""}{c.lot ? ` · LOT ${c.lot}` : ""}</> : ""}>
+            value={c.hex || c.name || c.no || c.lot ? <>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || (c.hex ? `직접 고른 색 ${c.hex.toUpperCase()}` : "")}{c.no ? ` · ${c.no}` : ""}{c.lot ? ` · LOT ${c.lot}` : ""}</> : ""}>
             <ColorEditor c={c} i={i} onChange={nc => patch(setColor(draft, i, nc))} />
             {i > 0 && <button type="button" className="nb-link nb-color-del" onClick={() => remove(i)}>이 색 빼기</button>}
           </Fold>
@@ -281,7 +281,7 @@ export function SuppliesPage({ draft, item, pp, stitchMm, measureNote }: { draft
         <div><dt>실</dt><dd>{yarnLine || <span className="nb-none">이름 없음</span>}{yarnWeightText(draft) !== "—" && <small>{yarnWeightText(draft)}</small>}</dd></div>
         <div><dt>바늘</dt><dd>{Number.isFinite(mm) ? hookLabel(mm) : <span className="nb-none">고르지 않음</span>}</dd></div>
         <div><dt>색</dt><dd className="nb-sup-colors">{colors.length ? colors.map((c, i) => (
-          <span key={i} className="nb-sup-color">{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || "직접 고른 색"}{c.lot ? <small>LOT {c.lot}</small> : null}</span>
+          <span key={i} className="nb-sup-color">{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || (c.hex ? `직접 고른 색 ${c.hex.toUpperCase()}` : "직접 고른 색")}{c.lot ? <small>LOT {c.lot}</small> : null}</span>
         )) : <span className="nb-none">고르지 않음</span>}</dd></div>
       </dl>
 

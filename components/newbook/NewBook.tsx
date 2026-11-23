@@ -938,7 +938,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const hookMm = draft.hook ? hookMmOf(draft) : NaN;
     const ucolors = [{ hex: draft.color, name: draft.colorName }, ...(draft.moreColors ?? [])].filter(c => c.hex || c.name);
     const use = yarnUse(pp, { weight: draft.weight, yarnMm: draft.yarnMm, yarnMode: draft.yarnMode, skeinG: draft.skeinG, skeinM: draft.skeinM, skeins: draft.skeins, colors: Math.max(1, ucolors.length), materials: draft.materials });
-    const yarnBits = [draft.materials?.join(" · "), yarnWeightText(draft) !== "—" ? yarnWeightText(draft) : "", ucolors.map(c => c.name || "직접 고른 색").join(" · ")].filter(Boolean).join(" · ");
+    const yarnBits = [draft.materials?.join(" · "), yarnWeightText(draft) !== "—" ? yarnWeightText(draft) : "", ucolors.map(c => c.name || (c.hex ? `직접 고른 색 ${c.hex.toUpperCase()}` : "직접 고른 색")).join(" · ")].filter(Boolean).join(" · ");
     // 입구 for 확인 (the drawn one shows its drawing)
     const closureText = closureNow === "flap" ? `${{ half: "반달", square: "네모", triangle: "세모" }[draft.flapShape ?? "half"]} 덮개${draft.flapCm ? ` ${draft.flapCm}cm` : ""}` : closureNow === "drawstring" ? "끈으로 조이기" : closureNow === "zipper" ? `지퍼 약 ${zipCm}cm` : closureNow === "button" ? "단추로 닫기" : "";
     const checkRows = [

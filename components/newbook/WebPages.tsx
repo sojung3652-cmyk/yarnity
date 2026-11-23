@@ -242,7 +242,7 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
           })}
           <label className={"nb-picker" + (!preset && draft.color ? " is-own" : "")} title="팔레트에서 색 고르기">
             <span className="nb-picker-dot" aria-hidden="true">{!preset && draft.color ? <i style={{ background: draft.color }} /> : <i className="nb-wheel" />}</span>
-            <span className="nb-picker-text">{!preset && draft.color ? "직접 고른 색" : "직접 고르기"}</span>
+            <span className="nb-picker-text">{!preset && draft.color ? `직접 고른 색 ${draft.color.toUpperCase()}` : "직접 고르기"}</span>
             <input type="color" aria-label="팔레트에서 색 고르기" value={!preset && draft.color ? draft.color : "#F0C1CA"} onChange={e => patch({ color: e.target.value, colorName: undefined })} />
           </label>
         </div>
@@ -250,7 +250,7 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
           <div className="nb-folds nb-wextra">
             {extra.map((c, i) => (
               <Fold key={i} label={`색 ${i + 2}`} open={open === "c" + i} onToggle={() => toggle("c" + i)}
-                value={c.hex || c.name ? <>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || "직접 고른 색"}</> : ""}>
+                value={c.hex || c.name ? <>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{c.name || (c.hex ? `직접 고른 색 ${c.hex.toUpperCase()}` : "직접 고른 색")}</> : ""}>
                 <ColorEditor c={c} i={i + 1} onChange={nc => { const m = [...extra]; m[i] = nc; patch({ moreColors: m }); }} />
                 <button type="button" className="nb-link nb-color-del" onClick={() => { patch({ moreColors: extra.filter((_, j) => j !== i) }); toggle("c" + i); }}>이 색 빼기</button>
               </Fold>

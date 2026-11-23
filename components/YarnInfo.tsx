@@ -21,10 +21,10 @@ export function YarnInfo({ p }: { p: Project }) {
   const rows: [string, React.ReactNode][] = [
     ["이름", p.yarn || "—"],
     ...(p.materials?.length ? [["재질", p.materials.join(", ") + (p.blend ? ` (${p.blend})` : "")] as [string, React.ReactNode]] : []),
-    ...(p.color || p.colorName ? [["색", <span key="c">{p.color && <i className="sw-dot" style={{ background: p.color }} />}{p.colorName || "직접 고른 색"}{p.colorNo ? ` (${p.colorNo})` : ""}</span>] as [string, React.ReactNode]] : []),
+    ...(p.color || p.colorName ? [["색", <span key="c">{p.color && <i className="sw-dot" style={{ background: p.color }} />}{p.colorName || (p.color ? `직접 고른 색 ${p.color.toUpperCase()}` : "직접 고른 색")}{p.colorNo ? ` (${p.colorNo})` : ""}</span>] as [string, React.ReactNode]] : []),
     // colours added after the first one (도안 만들기 "+ 색 추가"), each with its own number and LOT
     ...(p.moreColors ?? []).filter(c => c.hex || c.name || c.no || c.lot).map((c, i): [string, React.ReactNode] => [`색 ${i + 2}`,
-      <span key={"c" + i}>{c.hex && <i className="sw-dot" style={{ background: c.hex }} />}{c.name || (c.hex ? "직접 고른 색" : "")}{c.no ? ` (${c.no})` : ""}{c.lot ? <> · LOT {c.lot} <CopyLot lot={c.lot} /></> : ""}</span>]),
+      <span key={"c" + i}>{c.hex && <i className="sw-dot" style={{ background: c.hex }} />}{c.name || (c.hex ? `직접 고른 색 ${c.hex.toUpperCase()}` : "")}{c.no ? ` (${c.no})` : ""}{c.lot ? <> · LOT {c.lot} <CopyLot lot={c.lot} /></> : ""}</span>]),
     ["굵기", yarnWeightText(p)],
     ["코바늘", hookLabel(mm) + (p.hookMaterial ? ` · ${p.hookMaterial}` : "")],
     ...(label ? [["라벨", label] as [string, React.ReactNode]] : []),

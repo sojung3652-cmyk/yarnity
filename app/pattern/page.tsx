@@ -108,7 +108,7 @@ export function PatternScreen() {
               <div><dt>실</dt><dd>{[p.yarn, p.materials?.join(" · ")].filter(Boolean).join(" · ") || "—"}<small>{yarnWeightText(p)}</small></dd></div>
               <div><dt>바늘</dt><dd>{hookLabel(mm)}</dd></div>
               {colors.length > 0 && <div><dt>색</dt><dd>{colors.map((c, i) => (
-                <span key={i} className="ps-color">{c.hex && <i style={{ background: c.hex }} />}{c.name || "직접 고른 색"}{c.no ? ` ${c.no}` : ""}{c.lot && <small>LOT {c.lot} <CopyLot lot={c.lot} /></small>}</span>
+                <span key={i} className="ps-color">{c.hex && <i style={{ background: c.hex }} />}{c.name || (c.hex ? `직접 고른 색 ${c.hex.toUpperCase()}` : "직접 고른 색")}{c.no ? ` ${c.no}` : ""}{c.lot && <small>LOT {c.lot} <CopyLot lot={c.lot} /></small>}</span>
               ))}</dd></div>}
               {/* 실 양: left out until its reckoning is settled (Kim) */}
             </dl>
