@@ -64,6 +64,8 @@ export interface Draft {
   flapShape?: "half" | "square" | "triangle";
   /** how far a bag's top stays open, cm (Kim: with a flap the top closes to this; 0 shut as a zipper's) */
   topGapCm?: number | null;
+  /** 합사 (Kim): a second yarn in another colour held together with the first, worked as one strand */
+  color2?: string;
   /** how the top closes (Kim): "spread" the sides go out; "tuck" the width kept, the sides folded in */
   topFold?: "spread" | "tuck";
   handleCount?: 1 | 2;

@@ -254,6 +254,21 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
         )}
       </div>}
 
+      {/* 합사 (Kim): another colour's yarn held together with this one - one row, a colour when it is on */}
+      <div className="nb-wg">
+        <Head note="다른 색 실과 두 가닥 같이 뜰 때">합사</Head>
+        <div className="nb-dots nb-wdots" role="radiogroup" aria-label="함께 뜨는 실 색">
+          <button type="button" role="radio" aria-checked={!draft.color2} className="nb-tile nb-tile-inline" onClick={() => patch({ color2: undefined })}>안 함</button>
+          {COLORS.filter(([, hex]) => hex !== draft.color).map(([n, hex]) => (
+            <button key={n} type="button" role="radio" aria-checked={draft.color2 === hex} aria-label={n} title={n} className="nb-dot-color" style={{ background: hex }} onClick={() => patch({ color2: draft.color2 === hex ? undefined : hex })} />
+          ))}
+          <label className={"nb-picker" + (draft.color2 && !COLORS.some(([, h]) => h === draft.color2) ? " is-own" : "")} title="팔레트에서 색 고르기">
+            <span className="nb-picker-dot" aria-hidden="true">{draft.color2 && !COLORS.some(([, h]) => h === draft.color2) ? <i style={{ background: draft.color2 }} /> : <i className="nb-wheel" />}</span>
+            <input type="color" aria-label="함께 뜨는 실 색 직접 고르기" value={draft.color2 ?? "#9BB7D4"} onChange={e => patch({ color2: e.target.value })} />
+          </label>
+        </div>
+      </div>
+
       <div className="nb-wg">
         <Head note={<><button type="button" className="nb-link" disabled={!mats.length} onClick={() => patch({ materials: [], blend: "" })}>초기화</button><button type="button" className="nb-link" onClick={() => setMore(m => !m)}>{more ? "접기" : "더 보기"}</button>{!adding && <button type="button" className="nb-link" onClick={() => setAdding(true)}>직접 입력</button>}</>}>재질 <em className="nb-wsoft">여러 개 고를 수 있습니다</em></Head>
         <div className={"nb-matbox" + (more ? "" : " is-short")}>

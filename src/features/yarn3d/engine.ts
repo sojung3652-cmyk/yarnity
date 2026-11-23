@@ -83,6 +83,8 @@ export interface YarnPattern {
   /** how far the top stays open, cm (Kim: a flap's bag is closed to this at its top - 0 shut as a zipper's); a
    *  zipper closes it by itself (extras.zipOpen) */
   topGap?: number;
+  /** 합사: a second yarn's colour held together with the first - their plies twist round each other (marled) */
+  marl?: string;
   /** closing the top: "spread" the sides go out (the round's length kept), "tuck" the width kept and the sides
    *  folded in at the top (as a paper bag's) */
   topFold?: "spread" | "tuck";
@@ -301,7 +303,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const n = pts.length, M = o.M || Math.max(14, st.plies * 6), N = o.M ? Math.min(st.plies, Math.floor(o.M / 4)) : st.plies, tau = st.twist * 0.75 / R, K = 3;
     const pos = new Float32Array(n * (M + 1) * 3), col = new Float32Array(n * (M + 1) * 3), uv = new Float32Array(n * (M + 1) * 2), frames: { p: THREE.Vector3; t: THREE.Vector3; n: THREE.Vector3; b: THREE.Vector3; s: number }[] = [];
     const T = new THREE.Vector3(), Nv = new THREE.Vector3(), B = new THREE.Vector3(), tmp = new THREE.Vector3();
-    let s = 0; const base = new THREE.Color(o.color), slub0 = Math.random() * 9; // already linear in r187 (no convertSRGBToLinear)
+    let s = 0; const base = new THREE.Color(o.color), slub0 = Math.random() * 9;
+    // 합사 (Kim): the main yarn and a second one held together - the plies take the two colours in turn, twisting
+    const base2 = pat.marl && o.color === pat.colors[0] ? new THREE.Color(pat.marl) : null, NP = Math.max(2, N); // already linear in r187 (no convertSRGBToLinear)
     for (let i = 0; i < n; i++) {
       T.copy(pts[Math.min(n - 1, i + 1)]).sub(pts[Math.max(0, i - 1)]).normalize();
       if (i === 0) { Nv.set(0, 0, 1); if (Math.abs(T.z) > .9) Nv.set(0, 1, 0); }
@@ -318,7 +322,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const fw = st.flat, rot = fw > 1 ? s / R * .12 : 0, a0 = Math.cos(ph) * r * Math.sqrt(fw), b0 = Math.sin(ph) * r / Math.sqrt(fw);
         const cx = a0 * Math.cos(rot) - b0 * Math.sin(rot), sx = a0 * Math.sin(rot) + b0 * Math.cos(rot);
         pos[k * 3] = pts[i].x + Nv.x * cx + B.x * sx; pos[k * 3 + 1] = pts[i].y + Nv.y * cx + B.y * sx; pos[k * 3 + 2] = pts[i].z + Nv.z * cx + B.z * sx;
-        const sh = 1 - st.ao + st.ao * f; col[k * 3] = base.r * sh; col[k * 3 + 1] = base.g * sh; col[k * 3 + 2] = base.b * sh;
+        const sh = 1 - st.ao + st.ao * f, cc = base2 && Math.floor((((ph - tau * s) / (Math.PI * 2) * NP) % NP + NP) % NP) % 2 ? base2 : base;
+        col[k * 3] = cc.r * sh; col[k * 3 + 1] = cc.g * sh; col[k * 3 + 2] = cc.b * sh;
         uv[k * 2] = s / (R * 7); uv[k * 2 + 1] = j / M * Math.max(1, N) - tau * s / (Math.PI * 2) * Math.max(1, N) * (st.braid ? 0 : 1);
       }
     }

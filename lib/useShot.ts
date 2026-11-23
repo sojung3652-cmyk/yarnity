@@ -7,11 +7,12 @@ import { shots } from "@/lib/shots";
 import { toYarnPattern, type YarnSource } from "@/src/features/yarn3d/fromPattern";
 import type { YarnViewer } from "@/src/features/yarn3d/engine";
 
-export function useShot(id: string | undefined, src: YarnSource | null | undefined, pp: Plan | null) {
+export function useShot(id: string | undefined, src: YarnSource | null | undefined, pp: Plan | null, changed = 0) {
   const [shot, setShot] = useState<string | null>(null);
   useEffect(() => {
     if (!id || !src || !pp) { setShot(null); return; }
-    const have = shots.get(id); if (have) { setShot(have); return; }
+    // kept, and taken after the work last changed (도안 고치기 takes a new one)
+    const have = shots.get(id, changed); if (have) { setShot(have); return; }
     const pat = toYarnPattern(src, pp); if (!pat) return;
     let gone = false, v: YarnViewer | null = null;
     const c = document.createElement("canvas");
@@ -27,6 +28,6 @@ export function useShot(id: string | undefined, src: YarnSource | null | undefin
       if (!v) done();
     });
     return () => { gone = true; done(); };
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, changed]); // eslint-disable-line react-hooks/exhaustive-deps
   return shot;
 }

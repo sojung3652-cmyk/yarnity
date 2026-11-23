@@ -42,7 +42,7 @@ export function PatternScreen() {
   // just made (NewBook save): the cover is picked on 도안 만들기's last step now, or given at random; nothing to ask here - Kim)
   useEffect(() => { try { sessionStorage.removeItem("m.justMade"); } catch {} }, []);
   // the 3D's front view, taken when the work was finished on the work screen (lib/shots; this browser only)
-  const shot = useShot(p?.id, p, p ? shownPlan(p) : null);
+  const shot = useShot(p?.id, p, p ? shownPlan(p) : null, p?.updatedAt ?? 0);
   if (!ready || !p) return <main id="view-pattern" />;
 
   const pp = shownPlan(p), it = ITEM[itemIdOf(p)];

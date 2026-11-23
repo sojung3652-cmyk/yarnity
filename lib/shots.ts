@@ -1,9 +1,16 @@
 // The finished piece seen from the front (Kim: 완성 모양 with the 3D's front view): a small JPEG per work, kept in
 // this browser beside the works - never in the draft or the work itself (those go to the server and to the AI).
-const K = (id: string) => "iyarn.shot." + id;
+// Each is kept with when it was taken and with the 3D's drawing version: a work changed after it (도안 고치기) or a
+// 3D drawn differently since (V) takes a new one.
+const K = (id: string) => "iyarn.shot." + id, V = 2;
+type Kept = { u: string; at: number; v: number };
+const read = (id: string): Kept | null => {
+  try { const s = localStorage.getItem(K(id)); if (!s) return null; if (s.startsWith("data:")) return { u: s, at: 0, v: 1 }; return JSON.parse(s) as Kept; } catch { return null; }
+};
 export const shots = {
-  get(id: string): string | null { try { return localStorage.getItem(K(id)); } catch { return null; } },
-  set(id: string, url: string) { try { localStorage.setItem(K(id), url); } catch { /* full or blocked: not kept */ } },
-  /** the draft's picture becomes the saved work's */
-  move(from: string, to: string) { const u = shots.get(from); if (u) { shots.set(to, u); try { localStorage.removeItem(K(from)); } catch { /* */ } } },
+  /** the picture, if it is the 3D's current way of drawing and newer than `after` (the work's last change) */
+  get(id: string, after = 0): string | null { const k = read(id); return k && k.v === V && k.at >= after ? k.u : null; },
+  set(id: string, u: string) { try { localStorage.setItem(K(id), JSON.stringify({ u, at: Date.now(), v: V })); } catch { /* full or blocked: not kept */ } },
+  /** the draft's picture becomes the saved work's (taken now, as the work is saved) */
+  move(from: string, to: string) { const k = read(from); if (k && k.v === V) shots.set(to, k.u); try { localStorage.removeItem(K(from)); } catch { /* */ } },
 };
