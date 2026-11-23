@@ -56,8 +56,8 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
             {picking ? <>
               <button type="button" className="nb-link" onClick={() => setPicked(allOn ? [] : allIds)}>{allOn ? "전체 해제" : "전체 선택"}</button>
               <button type="button" className="nb-link" disabled={!picked.length} onClick={() => setAsk(picked)}>{picked.length}개 지우기</button>
-              <button type="button" className="nb-link st-muted" onClick={() => { setPicking(false); setPicked([]); }}>그만 고르기</button>
-            </> : <button type="button" className="nb-link" onClick={() => setPicking(true)}>고르기</button>}
+              <button type="button" className="nb-link st-muted" onClick={() => { setPicking(false); setPicked([]); }}>선택 취소</button>
+            </> : <button type="button" className="nb-link" onClick={() => setPicking(true)}>선택</button>}
           </div>
           {/* asked here, never with a browser dialog; the works can be brought back for a few seconds */}
           {ask && (

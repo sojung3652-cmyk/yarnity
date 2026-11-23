@@ -1,5 +1,5 @@
 "use client";
-// 내 작품 (나의 도안집): search, filter by status, sort, "고르기" (delete several at once), and the works as books
+// 내 작품 (나의 도안집): search, filter by status, sort, "선택" (delete several at once), and the works as books
 // on shelves - five to a shelf, four or three when the page is narrower (the same covers as the phone's
 // 도안집, components/BookCover.tsx). A book opens its details in a popup: its cover, where it is, what it is
 // made with (LOT with copy), 도안 보기 / 사진 기록 / 이어서 뜨기, and the old ⋯ menu as small links
@@ -247,9 +247,9 @@ export function MineList({ query, onNew, onImport }: { query?: string; onNew?: (
                   {(() => { const ids = shown.map(b => b.y ? b.y.id : b.i!.id), all = ids.length > 0 && ids.every(id => picked.includes(id));
                     return <button type="button" className="mine-link" disabled={!ids.length} onClick={() => setPicked(all ? [] : ids)}>{all ? "전체 해제" : "전체 선택"}</button>; })()}
                   <button type="button" className="mine-link" disabled={!picked.length} onClick={() => setAskMany(true)}>{picked.length}개 지우기</button>
-                  <button type="button" className="mine-link muted" onClick={() => { setPicking(false); setPicked([]); setAskMany(false); }}>그만 고르기</button>
+                  <button type="button" className="mine-link muted" onClick={() => { setPicking(false); setPicked([]); setAskMany(false); }}>선택 취소</button>
                 </>
-              : <button type="button" className="mine-link" onClick={() => setPicking(true)}>고르기</button>}
+              : <button type="button" className="mine-link" onClick={() => setPicking(true)}>선택</button>}
             {/* the small search box right after 고르기 (Kim): just 찾기 */}
             <label className="mine-find" htmlFor="mineSearch">
               <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10.4 10.4 14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
