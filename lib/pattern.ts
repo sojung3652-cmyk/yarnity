@@ -42,6 +42,8 @@ export interface PlanInput {
   topA?: number | null;
   /** bag flap (cover) length in cm, worked back and forth over the back half of the opening; unset = none */
   flapCm?: number | null;
+  /** how the top is closed (Draft.closure): a drawstring adds an eyelet round under the rim */
+  closure?: string | null;
   /** a shape the reader drew (web: 직접 그리기); when set, the rounds follow it (planFree) */
   free?: FreeShape | null;
   measuredH?: number | null; // stitch height from the 3rd-round measurement (cm)
@@ -174,6 +176,13 @@ export function plan(p: PlanInput): Plan {
       prevN = n;
     }
     const rimN = prevN;
+    // 끈으로 조이기 (Kim): an eyelet round under the rim - a chain over every other stitch - and a cord through it,
+    // about one and a half times the opening's length. Only when picked: patterns without it are as before.
+    if (p.closure === "drawstring") {
+      const holes = Math.floor(rimN / 2), cord = Math.round(rimN * g.w * 1.5);
+      rows.push({ part: "rim", n: rimN, how: `끈 구멍 단: (사슬 1, 1코 건너뛰고 짧은뜨기 1) × ${holes}${rimN % 2 ? ", 짧은뜨기 1" : ""}`,
+        why: `구멍 ${holes}개 · 사슬 끈 약 ${cord}cm를 꿰어 조입니다`, inc: 0 } as Row);
+    }
     for (let i = 0; i < 2; i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? `짧은뜨기 ${rimN}코` : `빼뜨기 ${rimN}코로 마무리`, why: "입구를 단단하게", inc: 0 } as Row);
     if (p.flapCm && p.flapCm > 0) {
       const fn = Math.max(4, Math.round(rimN / 2) - 2), fr = Math.max(2, rnd(p.flapCm / g.h));

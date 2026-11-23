@@ -161,7 +161,8 @@ export function PanelYarn({ draft, patch }: { draft: Draft; patch: Patch }) {
 }
 
 // ---------------------------------------------------------------- 실
-export function WebYarn({ draft, patch, tried }: { draft: Draft; patch: Patch; tried: boolean }) {
+/** `noColor`: the work screen has its own 색 section (ColorStudio), so the colour row is left out there */
+export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch: Patch; tried: boolean; noColor?: boolean }) {
   const [open, toggle] = useOneOpen();
   const [mmRaw, setMmRaw] = useState(draft.yarnMm != null ? String(draft.yarnMm) : "");
   const [more, setMore] = useState(false), [adding, setAdding] = useState(false), [own, setOwn] = useState("");
@@ -204,7 +205,7 @@ export function WebYarn({ draft, patch, tried }: { draft: Draft; patch: Patch; t
         {showErr && mode === "mm" && <p className="nb-err" id="yMmErr">{mmErr}</p>}
       </div>
 
-      <div className="nb-wg">
+      {!noColor && <div className="nb-wg">
         <Head note={extra.length < 5 && <button type="button" className="nb-link" onClick={() => { patch({ moreColors: [...extra, {}] }); toggle("c" + extra.length); }}>+ 색 추가 (실 추가)</button>}>색</Head>
         <div className="nb-dots nb-wdots" role="radiogroup" aria-label="실 색">
           {COLORS.map(([n, hex]) => {
@@ -229,7 +230,7 @@ export function WebYarn({ draft, patch, tried }: { draft: Draft; patch: Patch; t
             ))}
           </div>
         )}
-      </div>
+      </div>}
 
       <div className="nb-wg">
         <Head note={<>{!more && <button type="button" className="nb-link" onClick={() => setMore(true)}>더 보기</button>}{!adding && <button type="button" className="nb-link" onClick={() => setAdding(true)}>직접 입력</button>}</>}>재질 <em className="nb-wsoft">여러 개 고를 수 있습니다</em></Head>

@@ -3,7 +3,7 @@ import { CATEGORIES, TERMS, searchTerms, termById, termForWord, termRegex } from
 
 describe("glossary", () => {
   it("has every term, sorted by category order then 가나다", () => {
-    expect(TERMS).toHaveLength(63);
+    expect(TERMS).toHaveLength(97);
     const order = new Map(CATEGORIES.map(c => [c.id, c.order]));
     for (let i = 1; i < TERMS.length; i++) {
       const a = TERMS[i - 1], b = TERMS[i];

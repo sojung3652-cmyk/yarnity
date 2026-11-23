@@ -43,6 +43,10 @@ export interface Draft {
   /** web, the 3D only: strands in the handle (1-5; 3 when missing), and 단추 / 라벨 / 지퍼 tried on */
   handleW?: number;
   extras?: { button?: boolean; label?: boolean; zipper?: boolean };
+  /** how the top is closed (Kim): open, a flap (flapCm), a drawstring through an eyelet round, a zipper,
+   *  a button, or the maker's own drawing (closureSketch: SVG path data in a 200 x 120 box) */
+  closure?: "open" | "flap" | "drawstring" | "zipper" | "button" | "sketch";
+  closureSketch?: string;
   yarnMode?: "mm" | "level";
   skeinG?: number | null;
   skeinM?: number | null;

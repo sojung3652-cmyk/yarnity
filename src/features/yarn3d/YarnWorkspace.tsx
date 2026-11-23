@@ -1,11 +1,13 @@
 "use client";
-// The 3D work screen (web, wide screens; Kim: Photoshop's layout as the reference). Over the whole screen:
-//   left    a strip of tools - 돌리기 / 옮기기 / 확대 / 재기 say what dragging does, 순서 plays the order
-//   top     the way back, the piece's name, the picked tool's options (보는 방향, 실 / 구조)
-//   centre  the 3D alone, the whole piece in view
-//   right   panels: in 도안 만들기 the yarn and the size, changed here and seen at once (the book takes the
-//           same values); elsewhere what the pattern is made of, and other yarns to look at; then its parts
-//   bottom  the size in one line
+// The 3D work screen (web, wide screens; Kim: drawing tools - Photoshop, Illustrator, After Effects, Paint -
+// as the reference, in the site's own look). Over the whole screen:
+//   top     the way back, the piece's name, 보는 방향, 실 / 구조, 재기, 뜨는 순서
+//   centre  the 3D alone, the whole piece in view; no tool buttons (Kim): drag turns it, the wheel zooms, and
+//           Space held while dragging moves it - the status line says so
+//   right   in 도안 만들기 every section of the shape on one screen (뜰 것, 색, 실, 바늘과 크기, 모양과 입구),
+//           an index over them, and one way on (확인); elsewhere what the pattern is made of and its parts
+//   bottom  the size in one line, and how to move the view
+// It comes down from the top and settles, the book dimming behind it (Kim).
 // Phones keep YarnPreview.tsx as it is (YarnPreviewButton picks). The engine loads here, and everything it
 // made is disposed on the way out; the book's canvas and its 3D page wait meanwhile (bookPause).
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -30,28 +32,23 @@ export interface WorkExtra {
   onClosed?: () => void;
   /** 3D로 보면서 만들기 (도안 만들기, Kim): the wizard's own step in the right column - where you are among the
    *  steps, the step's question and inputs, 이전 / 다음 at the foot. Enter goes on, as in the book. */
-  making?: { tabs: string[]; cur: number; title: string; body: ReactNode; back?: () => void; next: () => void; nextLabel: string; blocked?: boolean };
+  making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean };
   /** nothing to draw yet (no item picked): the stage says so instead of showing a piece nobody chose */
   empty?: boolean;
 }
 
-type Tool = "rotate" | "pan" | "zoom" | "ruler";
+type Tool = "rotate" | "pan";
 const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["cashmere", "캐시미어"], ["alpaca", "알파카"], ["mohair", "모헤어"], ["angora", "앙고라"], ["sleep", "수면사"], ["chenille", "셔닐"], ["boucle", "부클레"],
   ["fur", "털실"], ["scrub", "수세미실"], ["linen", "리넨"], ["silk", "실크"], ["raffia", "라피아"], ["tshirt", "패브릭얀"], ["ribbon", "리본얀"], ["jute", "황마"], ["cord", "코드사"], ["metal", "메탈릭"]];
 const Ic = ({ d, s = 22 }: { d: string; s?: number }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
-const TOOLS: [Tool, string, string, string][] = [
-  ["rotate", "돌리기", "M20 12a8 8 0 1 1-2.6-5.9M20 3.5v4.2h-4.2", "끌어서 돌리기 · 휠로 확대"],
-  ["pan", "옮기기", "M12 3v18M3 12h18M9.5 5.5 12 3l2.5 2.5M9.5 18.5 12 21l2.5-2.5M5.5 9.5 3 12l2.5 2.5M18.5 9.5 21 12l-2.5 2.5", "끌어서 화면 안에서 옮기기"],
-  ["zoom", "확대", "M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 0 0 0-13zM15.5 15.5l5 5M10.5 8v5M8 10.5h5", "위아래로 끌어서 확대 · 축소"],
-  ["ruler", "재기", "M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4", "가로와 높이를 cm로 보여 줍니다"],
-];
+const HINT = "드래그: 돌리기 · 스크롤: 확대 · 스페이스를 누른 채 드래그: 옮기기";
 
 const Opt = ({ on, onClick, children }: { on?: boolean; onClick: () => void; children: ReactNode }) => <button type="button" className="yw-opt" aria-pressed={on} onClick={onClick}>{children}</button>;
 
 export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: YarnPattern; onClose: () => void; extra?: WorkExtra }) {
   const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), backRef = useRef<HTMLSpanElement>(null), viewer = useRef<YarnViewer | null>(null);
   const shown = useRef<YarnPattern>(pattern), latest = useRef(pattern); latest.current = pattern;
-  const [tool, setTool] = useState<Tool>("rotate");
+  const [tool, setTool] = useState<Tool>("rotate"), [ruler, setRuler] = useState(false);
   const [view, setView] = useState<"yarn" | "holo">("yarn");
   const [mat, setMat] = useState<YarnMaterial | null>(null); // another yarn to look at (read-only screens)
   const [info, setInfo] = useState<YarnInfo | null>(null);
@@ -73,8 +70,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       const i = f.indexOf(document.activeElement as HTMLElement), j = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i < 0 || i === f.length - 1 ? 0 : i + 1);
       e.preventDefault(); f[j].focus();
     };
-    window.addEventListener("keydown", onKey, true);
-    return () => { window.removeEventListener("keydown", onKey, true); document.body.style.overflow = prev; bookPause.set(false); };
+    // Space held = move (as in drawing tools); not while typing
+    const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+    const spaceDown = (e: KeyboardEvent) => { if (e.code !== "Space" || typing(e.target)) return; e.preventDefault(); if (!e.repeat) { viewer.current?.setTool("pan"); setTool("pan"); } };
+    const spaceUp = (e: KeyboardEvent) => { if (e.code !== "Space") return; viewer.current?.setTool("rotate"); setTool("rotate"); };
+    window.addEventListener("keydown", onKey, true); window.addEventListener("keydown", spaceDown); window.addEventListener("keyup", spaceUp);
+    return () => { window.removeEventListener("keydown", onKey, true); window.removeEventListener("keydown", spaceDown); window.removeEventListener("keyup", spaceUp); document.body.style.overflow = prev; bookPause.set(false); };
   }, [onClose]);
 
   // the engine: made once, disposed on the way out
@@ -98,14 +99,15 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     return () => clearTimeout(t);
   }, [pattern]);
 
-  const pick = (t: Tool) => { setTool(t); viewer.current?.setTool(t === "ruler" ? "rotate" : t); viewer.current?.setRuler(t === "ruler"); if (t !== "ruler") setRules(null); };
+  const toggleRuler = () => { const on = !ruler; setRuler(on); viewer.current?.setRuler(on); if (!on) setRules(null); };
   const show = (v: "yarn" | "holo") => { setView(v); viewer.current?.setView(v); };
   const look = (v: YarnLook) => viewer.current?.look(v);
   const tryMat = (m: YarnMaterial) => { setMat(m); viewer.current?.setMaterial(m); };
   const mk = extra?.making, empty = !!extra?.empty;
   const size = empty ? "" : extra?.caption ?? (!info ? "" : (info.round ? `지름 약 ${info.widthCm}cm` : `약 ${info.widthCm} × ${info.depthCm}cm`) + (info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : ""));
 
-  return createPortal(
+  return createPortal(<>
+    <div className="yw-dim" aria-hidden="true" />
     <div ref={root} className={"yw" + (mk ? " yw-mk" : "")} role="dialog" aria-modal="true" aria-label="3D 작업 화면" data-built-ms={builtMs ?? undefined}
       onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()} onSubmit={e => e.stopPropagation()}>
       <div className="yw-top">
@@ -113,32 +115,24 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
         <p className="yw-name">{extra?.title ?? "3D 미리 보기"}{extra?.sub && <small>{extra.sub}</small>}</p>
         {!noGL && <>
           <span className="yw-sep" aria-hidden="true" />
-          {tool === "zoom" ? (
-            <span className="yw-opts" role="group" aria-label="확대"><Opt onClick={() => viewer.current?.zoom(.8)}>확대</Opt><Opt onClick={() => viewer.current?.zoom(1.25)}>축소</Opt><Opt onClick={() => viewer.current?.home()}>전체 보기</Opt></span>
-          ) : (
-            <><span className="yw-lb">보는 방향</span>
-              <span className="yw-opts" role="group" aria-label="보는 방향"><Opt onClick={() => look("front")}>앞</Opt><Opt onClick={() => look("side")}>옆</Opt><Opt onClick={() => look("top")}>위</Opt><Opt onClick={() => look("inside")}>안쪽</Opt></span>
-              <span className="yw-opts"><Opt onClick={() => viewer.current?.home()}>처음 각도로</Opt></span></>
-          )}
+          <span className="yw-lb">보는 방향</span>
+          <span className="yw-opts" role="group" aria-label="보는 방향"><Opt onClick={() => look("front")}>앞</Opt><Opt onClick={() => look("side")}>옆</Opt><Opt onClick={() => look("top")}>위</Opt><Opt onClick={() => look("inside")}>안쪽</Opt></span>
+          <span className="yw-opts"><Opt onClick={() => viewer.current?.home()}>처음 각도로</Opt></span>
           <span className="yw-sep" aria-hidden="true" />
           <span className="yw-lb">보기</span>
           <span className="yw-opts" role="group" aria-label="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></span>
+          <span className="yw-sep" aria-hidden="true" />
+          <span className="yw-opts"><Opt on={ruler} onClick={toggleRuler}><Ic s={17} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />재기</Opt>
+            <Opt onClick={() => viewer.current?.playDraw()}><Ic s={17} d="M7 4.5v15l12-7.5z" />뜨는 순서</Opt></span>
         </>}
       </div>
 
-      {!noGL && (
-        <div className="yw-tools" role="toolbar" aria-label="도구" aria-orientation="vertical">
-          {TOOLS.map(([k, label, d]) => <button key={k} type="button" aria-pressed={tool === k} onClick={() => pick(k)}><Ic d={d} />{label}</button>)}
-          <hr />
-          <button type="button" onClick={() => viewer.current?.playDraw()}><Ic d="M7 4.5v15l12-7.5z" />순서</button>
-        </div>
-      )}
 
       <div className="yw-stage">
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
-          : <canvas ref={cv} className={"yw-canvas yw-tool-" + tool} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
+          : <canvas ref={cv} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
         {empty && <div className="yw-empty"><i aria-hidden="true" /><p>오른쪽에서 고르면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
-        {rules && tool === "ruler" && !empty && (
+        {rules && ruler && !empty && (
           <svg className="yw-rules" aria-hidden="true">
             {rules.map((r, i) => {
               const mx = (r.x1 + r.x2) / 2, my = (r.y1 + r.y2) / 2, t = `${extra?.dims?.[i] ?? r.cm}cm`, w = t.length * 8 + 16;
@@ -150,15 +144,21 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       </div>
 
       {mk ? (
-        <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); mk.next(); }}
-          onKeyDown={e => { const t = e.target as HTMLElement; if (e.key === "Enter" && !e.nativeEvent.isComposing && t.getAttribute("role") === "radio") { e.preventDefault(); mk.next(); } }}>
-          <ol className="yw-steps" aria-label="만드는 단계">
-            {mk.tabs.map((t, i) => <li key={t} className={i < mk.cur ? "done" : undefined} aria-current={i === mk.cur ? "step" : undefined}><b aria-hidden="true">{i < mk.cur ? "✓" : i + 1}</b>{t}</li>)}
-          </ol>
-          <div className="yw-mkbody" key={mk.cur}><h2>{mk.title}</h2>{mk.body}</div>
+        <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); mk.done(); }}>
+          <nav className="yw-index" aria-label="항목">
+            {mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} onClick={e => { e.preventDefault(); root.current?.querySelector("#yw-" + x.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><b>{i + 1}</b>{x.title}</a>)}
+          </nav>
+          <div className="yw-mkbody">
+            {mk.sections.map((x, i) => (
+              <section key={x.id} id={"yw-" + x.id} className="yw-sec" aria-labelledby={"yw-h-" + x.id}>
+                <h2 id={"yw-h-" + x.id}><b aria-hidden="true">{i + 1}</b>{x.title}{x.note && <small>{x.note}</small>}</h2>
+                {x.body}
+              </section>
+            ))}
+          </div>
           <div className="yw-mkfoot">
-            {mk.back ? <ClothLabel side="back" type="button" onClick={mk.back}>← 이전</ClothLabel> : <span />}
-            <ClothLabel side="next" type="submit" blocked={mk.blocked}>{mk.nextLabel}</ClothLabel>
+            <span className="yw-mknote">{mk.blocked ? "빠진 값이 있으면 누를 때 알려 드립니다." : "모두 정했습니다."}</span>
+            <ClothLabel side="next" type="submit" blocked={mk.blocked}>{mk.doneLabel}</ClothLabel>
           </div>
         </form>
       ) : (
@@ -187,9 +187,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
 
       <div className="yw-stat" aria-live="polite">
         <span>{empty ? "뜰 것을 고르면 3D로 보여 드립니다." : <>{size ? <b>{size}</b> : "모양을 계산하고 있습니다."}{info && <>{info.fit}</>}</>}</span>
-        <span>{TOOLS.find(t => t[0] === tool)![3]}</span>
+        <span>{ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</span>
       </div>
-    </div>,
-    document.body,
-  );
+    </div>
+  </>, document.body);
 }

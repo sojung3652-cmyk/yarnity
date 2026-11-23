@@ -95,3 +95,42 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-mkbody .nb-sliders{grid-template-columns:minmax(0,1fr)}
 .yw .nb-slide>span{white-space:nowrap}
 .yw-mkbody .nb-mm{display:flex;align-items:center;gap:8px}.yw-mkbody .nb-mm .nb-input{flex:1 1 auto;min-width:0}.yw-mkbody .nb-web .nb-mm>.nb-unit{padding-bottom:0}
+
+/* ---- one screen for the whole shape (Kim): no tool strip, every section in the right column ---- */
+.yw{grid-template:"top top" 56px "stage right" minmax(0,1fr) "stat stat" 34px / minmax(0,1fr) 380px;font-size:14.5px}
+.yw.yw-mk{grid-template-columns:minmax(0,1fr) 468px}
+.yw-opt{display:inline-flex;align-items:center;gap:5px;font-size:14px;color:#3A322D}
+.yw-lb{font-size:13.5px;color:#5E554E}
+.yw-canvas.is-pan,.yw-canvas.is-pan:active{cursor:move}
+/* readable: darker secondary text, a size up everywhere in the column */
+.yw-stat{font-size:13.5px;color:#5E554E}
+.yw-mkr{display:flex;flex-direction:column;overflow:hidden;margin:0}
+.yw-index{flex:none;display:flex;flex-wrap:wrap;gap:4px 18px;padding:14px 26px 12px;border-bottom:1px solid #DCCFC2;background:#FBF8F1}
+.yw-index a{display:inline-flex;align-items:baseline;gap:5px;font-size:14px;color:#5E554E;text-decoration:none;white-space:nowrap}
+.yw-index a:hover{color:#3A322D;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#B99447}
+.yw-index b,.yw-sec h2 b{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:600;color:#B99447}
+.yw-mkbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 26px 8px;scrollbar-width:thin;scrollbar-color:#D8CABD transparent}
+.yw-sec{padding:22px 0 24px;border-bottom:1px solid #E2D7CB}
+.yw-sec:last-child{border-bottom:0}
+.yw-sec h2{display:flex;align-items:baseline;gap:9px;margin:0 0 16px;font-size:18px;font-weight:600;line-height:1.35;color:#3A322D}
+.yw-sec h2 small{margin-left:auto;font-size:13.5px;font-weight:400;color:#5E554E}
+.yw-mkfoot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:14px;height:72px;padding:0 26px;background:#FBF8F1;box-shadow:0 -1px 0 rgba(181,168,148,.55)}
+.yw-mknote{font-size:13.5px;color:#5E554E}
+/* the wizard's inputs in the column: one size up, darker helper text, more room between groups */
+.yw-mkbody .nb-web{font-size:14.5px}
+.yw-mkbody .nb-wg{margin-bottom:22px}
+.yw-mkbody .nb-wg:last-child{margin-bottom:0}
+.yw-mkbody .nb-wh,.yw-mkbody .nb-help,.yw-mkbody .nb-hint{font-size:13.5px;color:#5E554E}
+.yw-mkbody .nb-tile{min-height:42px;font-size:14px}
+.yw-mkbody .nb-tile small{font-size:12px}
+.yw-mkbody .nb-tiles{gap:7px}
+.yw-mkbody .nb-pre-t{font-size:13.5px}
+.yw-mkbody .nb-pre-t small{font-size:12px}
+.yw-sec > .nb-tiles{margin-bottom:16px}
+
+/* ---- the entrance (Kim): the sheet comes down from above and settles, the book dimming behind ---- */
+.yw-dim{position:fixed;inset:0;z-index:399;background:rgba(58,46,41,.32);animation:yw-dim .35s ease-out both}
+.yw{box-shadow:-6px 14px 40px -12px rgba(58,46,41,.45);animation:yw-drop .55s cubic-bezier(.22,1.2,.36,1) both}
+@keyframes yw-drop{from{transform:translateY(-104%)}to{transform:none}}
+@keyframes yw-dim{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.yw,.yw-dim{animation:none}}
