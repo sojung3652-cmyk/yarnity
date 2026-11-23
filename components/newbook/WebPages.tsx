@@ -233,7 +233,7 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
       </div>}
 
       <div className="nb-wg">
-        <Head note={<>{!more && <button type="button" className="nb-link" onClick={() => setMore(true)}>더 보기</button>}{!adding && <button type="button" className="nb-link" onClick={() => setAdding(true)}>직접 입력</button>}</>}>재질 <em className="nb-wsoft">여러 개 고를 수 있습니다</em></Head>
+        <Head note={<>{mats.length > 0 && <button type="button" className="nb-link" onClick={() => patch({ materials: [], blend: "" })}>초기화</button>}{!more && <button type="button" className="nb-link" onClick={() => setMore(true)}>더 보기</button>}{!adding && <button type="button" className="nb-link" onClick={() => setAdding(true)}>직접 입력</button>}</>}>재질 <em className="nb-wsoft">여러 개 고를 수 있습니다</em></Head>
         <div className="nb-tiles nb-tiles-4" role="group" aria-label="재질 (여러 개)">
           {listed.map(m => <button key={m} type="button" className="nb-tile" aria-pressed={mats.includes(m)} onClick={() => toggleMat(m)}>{m}</button>)}
           {customMats.map(m => <button key={m} type="button" className="nb-tile" aria-pressed="true" aria-label={`${m} 지우기`} onClick={() => toggleMat(m)}>{m}<small>지우기 ×</small></button>)}

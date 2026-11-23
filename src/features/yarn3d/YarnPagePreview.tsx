@@ -16,8 +16,9 @@ import "./yarn3d-place.css";
 const I = ({ d }: { d: string }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm]);
 
-/** `fabric`: the 무늬 page - close enough to read the stitches of a knitted piece */
-export function YarnPagePreview({ source, plan, fabric, caption }: { source: YarnSource; plan: Plan; fabric?: boolean; caption?: string }) {
+/** `fabric`: the 무늬 page - close enough to read the stitches of a knitted piece; `live`: shown ON the work
+ *  screen (the yarn check), so it follows changes even while the book's page 3D waits */
+export function YarnPagePreview({ source, plan, fabric, caption, live }: { source: YarnSource; plan: Plan; fabric?: boolean; caption?: string; live?: boolean }) {
   const pattern = useMemo(() => { const p = toYarnPattern(source, plan); return p && fabric ? { ...p, focus: "fabric" as const } : p; }, [source, plan, fabric]);
   const box = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), viewer = useRef<YarnViewer | null>(null), shown = useRef<YarnPattern | null>(null);
   const latest = useRef(pattern); latest.current = pattern;
@@ -43,12 +44,12 @@ export function YarnPagePreview({ source, plan, fabric, caption }: { source: Yar
   useEffect(() => bookPause.subscribe(() => setCovered(bookPause.get())), []);
   useEffect(() => {
     const v = viewer.current, p = pattern;
-    if (!v || !p || !shown.current || covered) return;
+    if (!v || !p || !shown.current || (covered && !live)) return;
     if (JSON.stringify(p) === JSON.stringify(shown.current)) return; // something else on the page changed
     if (shapeKey(p) === shapeKey(shown.current)) { v.setPattern(p); shown.current = p; return; }
     const t = setTimeout(() => { v.setPattern(p); shown.current = p; }, 200);
     return () => clearTimeout(t);
-  }, [pattern, covered]);
+  }, [pattern, covered, live]);
 
   return (
     <div ref={box} className="y3-page">

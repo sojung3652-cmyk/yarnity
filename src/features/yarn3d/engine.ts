@@ -743,7 +743,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // Not on phones (their 3D stays as it was).
   let rest: Float32Array | null = null;
   function soften(D: ItemData) {
-    if (D.fixed || !rest || rest.length !== D.P.length * 3) return;
+    // a known shape stays as built - except a flat piece in rows (the yarn check's swatch, a scarf): a soft yarn
+    // lies soft (Kim: 단단한 실이 아니면 흐물흐물하게)
+    if ((D.fixed && pat.shape.kind !== "rows") || !rest || rest.length !== D.P.length * 3) return;
     for (let i = 0; i < D.P.length; i++) D.P[i].set(rest[i * 3], rest[i * 3 + 1], rest[i * 3 + 2]);
     const b = boxOf(D), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, H = b.my, rm = Math.max(b.x1 - b.x0, b.z1 - b.z0) / 2 || 1;
     // the opening first: a pouch's long sides come together along the top (its ends spread a little, the
@@ -760,7 +762,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
     if (s < .03) return;
     if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
-      for (const p of D.P) { const k = (Math.hypot(p.x - cx, p.z - cz) / rm) ** 2.4; p.y += s * D.rh * .7 * k * (.5 + .5 * Math.sin(3 * Math.atan2(p.z - cz, p.x - cx) + 1.3)); }
+      const soft = Math.max(0, s - .3) / .7, A = Math.min(D.rh, rm * .06); // soft: 0 for firm yarns (cotton, cord), up to 1 for mohair; A: gentle against the piece's size
+      for (const p of D.P) {
+        const u = (p.x - cx) / rm, v = (p.z - cz) / rm, k = (Math.hypot(u, v)) ** 2.4;
+        const edge = .5 + .5 * Math.sin(3 * Math.atan2(v, u) + 1.3);
+        const ripple = (.5 + .5 * Math.sin(u * 3.4 + 1.7) * Math.cos(v * 2.6 + .4)) * (.35 + .65 * Math.max(Math.abs(u), Math.abs(v)));
+        p.y += s * A * (.7 + 1.3 * soft) * k * edge + soft * A * .9 * ripple;
+      }
       return;
     }
     const slim = Math.min(1.6, H / (rm * 2)); // a tall, narrow wall gives more

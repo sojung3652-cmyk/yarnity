@@ -830,3 +830,8 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .yc-big figcaption{font-size:15px}
 .yc-big .nb-help{font-size:15px;color:#5E554E}
 .yc-big .yc-up{font-size:15px;height:42px}
+
+/* the yarn check, quieter: a small photo label, no long words */
+.yc-up{height:30px;padding:0 12px;border-radius:4px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #CDBFB4;font-size:13px;color:#3A322D}
+.yc-big figcaption{font-size:13px}
+.yc-big .yc-up{align-self:flex-start;font-size:13px;height:30px}

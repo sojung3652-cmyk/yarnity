@@ -15,7 +15,7 @@ export function YarnCheck({ source, plan, big }: { source: YarnSource; plan: Pla
   return (
     <div className={"yc" + (big ? " yc-big" : "")}>
       <div className={"yc-row" + (photo ? " has-photo" : "")}>
-        <figure className="yc-swatch"><YarnPagePreview source={source} plan={plan} fabric /><figcaption>화면 속 실</figcaption></figure>
+        <figure className="yc-swatch"><YarnPagePreview source={source} plan={plan} fabric live /><figcaption>화면 속 실</figcaption></figure>
         {photo && (
           <figure className="yc-photo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -24,8 +24,7 @@ export function YarnCheck({ source, plan, big }: { source: YarnSource; plan: Pla
           </figure>
         )}
       </div>
-      <label className="cs-tool yc-up">{photo ? "다른 사진으로" : "내 실 사진과 나란히 보기"}<input type="file" accept="image/*" hidden onChange={e => onFile(e.target.files?.[0])} /></label>
-      <p className="nb-help">굵기, 털, 윤기, 색이 내 실과 비슷한지 보십시오. 다르면 위의 실과 색을 고치면 바로 바뀝니다.</p>
+      <label className="yc-up">{photo ? "다른 사진" : "내 실 사진 넣기"}<input type="file" accept="image/*" hidden onChange={e => onFile(e.target.files?.[0])} /></label>
     </div>
   );
 }

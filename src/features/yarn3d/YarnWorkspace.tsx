@@ -43,7 +43,7 @@ type Tool = "rotate" | "pan";
 const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["cashmere", "캐시미어"], ["alpaca", "알파카"], ["mohair", "모헤어"], ["angora", "앙고라"], ["sleep", "수면사"], ["chenille", "셔닐"], ["boucle", "부클레"],
   ["fur", "털실"], ["scrub", "수세미실"], ["linen", "리넨"], ["silk", "실크"], ["raffia", "라피아"], ["tshirt", "패브릭얀"], ["ribbon", "리본얀"], ["jute", "황마"], ["cord", "코드사"], ["metal", "메탈릭"]];
 const Ic = ({ d, s = 22 }: { d: string; s?: number }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
-const HINT = "드래그: 돌리기 · 스크롤: 확대 · 스페이스를 누른 채 드래그: 옮기기";
+const HINT = "드래그 돌리기 · 스크롤 확대 · 스페이스+드래그 옮기기";
 
 const Opt = ({ on, onClick, children }: { on?: boolean; onClick: () => void; children: ReactNode }) => <button type="button" className="yw-opt" aria-pressed={on} onClick={onClick}>{children}</button>;
 
@@ -136,13 +136,14 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       <div className="yw-stage">
         {intro && extra?.intro && (
           <div className="yw-intro">
-            <h2>실 확인<small>화면 속 실이 내 실과 비슷한지 먼저 보십시오</small></h2>
+            <h2>실 확인<small>오른쪽에서 실을 바꾸면 바로 바뀝니다</small></h2>
             {extra.intro}
-            <button type="button" className="yw-go" onClick={toShape}>이 실로 모양 그리러 가기 →</button>
+            <span className="yw-go"><ClothLabel side="next" type="button" onClick={toShape}>모양 그리기 →</ClothLabel></span>
           </div>
         )}
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
           : <canvas ref={cv} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
+        {!noGL && !empty && !intro && <p className="yw-hint">{ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
         {empty && <div className="yw-empty"><i aria-hidden="true" /><p>모양을 그리면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
         {rules && ruler && !empty && (
           <svg className="yw-rules" aria-hidden="true">
@@ -169,7 +170,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             ))}
           </div>
           <div className="yw-mkfoot">
-            <span className="yw-mknote">{mk.blocked ? "빠진 값이 있으면 누를 때 알려 드립니다." : "모두 정했습니다."}</span>
+            <span />
             <ClothLabel side="next" type="submit" blocked={mk.blocked}>{mk.doneLabel}</ClothLabel>
           </div>
         </form>
@@ -199,7 +200,6 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
 
       <div className="yw-stat" aria-live="polite">
         <span>{empty ? "뜰 것을 고르면 3D로 보여 드립니다." : <>{size ? <b>{size}</b> : "모양을 계산하고 있습니다."}{info && <>{info.fit}</>}</>}</span>
-        <span>{ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</span>
       </div>
     </div>
   </>, document.body);

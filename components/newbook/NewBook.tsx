@@ -800,7 +800,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.yw [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
       big3d.close(); setSheet(3, sheets3 - 1); go(4);
     },
-    doneLabel: "확인하러 가기 →", blocked: !picked || !stepOk,
+    doneLabel: "확인하기 →", blocked: !picked || !stepOk,
   } : undefined;
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
