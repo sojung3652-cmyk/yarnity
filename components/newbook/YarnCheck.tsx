@@ -8,11 +8,12 @@ import type { Plan } from "@/lib/pattern";
 import type { YarnSource } from "@/src/features/yarn3d/fromPattern";
 import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
 
-export function YarnCheck({ source, plan }: { source: YarnSource; plan: Plan }) {
+/** `big`: on the work screen's stage, the first thing shown (Kim) */
+export function YarnCheck({ source, plan, big }: { source: YarnSource; plan: Plan; big?: boolean }) {
   const [photo, setPhoto] = useState<string | null>(null);
   const onFile = (f?: File) => { if (!f || !f.type.startsWith("image/")) return; const r = new FileReader(); r.onload = () => setPhoto(String(r.result)); r.readAsDataURL(f); };
   return (
-    <div className="yc">
+    <div className={"yc" + (big ? " yc-big" : "")}>
       <div className={"yc-row" + (photo ? " has-photo" : "")}>
         <figure className="yc-swatch"><YarnPagePreview source={source} plan={plan} fabric /><figcaption>화면 속 실</figcaption></figure>
         {photo && (

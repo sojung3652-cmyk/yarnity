@@ -38,7 +38,9 @@ export const stitchOf = (key?: string | null): KnitStitch => KNIT_STITCH[key ?? 
 
 /** items that are knitted with needles (the rest is crochet) */
 const KNIT_ITEMS = new Set(["scarf"]);
-export const isKnit = (p: { item?: string }) => KNIT_ITEMS.has(p.item ?? "");
+/** knitted: the needle picked (Draft.craft; knitting is worked out for flat pieces in rows), else the item's own */
+export const isKnit = (p: { item?: string; craft?: string | null; object?: string }) =>
+  p.craft === "knit" ? (p.object == null || p.object === "rows") : p.craft === "crochet" ? false : KNIT_ITEMS.has(p.item ?? "");
 
 /** One row of the chart as it is worked back and forth on `n` stitches: "겉 2, 안 2를 끝까지 반복".
  *  Stitch 0 is the chart's right-hand column, as charts are numbered: a right-side row (row 0, 2, ...) is

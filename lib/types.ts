@@ -45,12 +45,18 @@ export interface Draft {
   /** web, the 3D only: strands in the handle (1-5; 3 when missing), and 단추 / 라벨 / 지퍼 tried on */
   handleW?: number;
   /** 단추 / 라벨 / 지퍼 (the 3D only), where and how big: [across -1..1, up 0..1, size cm]; 지퍼 0 closed .. 1 open */
-  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string };
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass" };
   /** the crochet stitch (Kim: 코바늘 무늬; lib/pattern CROCHET) */
   crochetStitch?: import("./pattern").CrochetStitch;
   /** a bag's flap outline below the front edge (3D) and how many handles: 1 across the top, or 2 */
   flapShape?: "half" | "square" | "triangle";
   handleCount?: 1 | 2;
+  /** a drawn body's silhouette (lib/pattern PlanInput.profile) and the colours of its parts when they differ */
+  profile?: number[];
+  /** the needle (Kim: 바늘에 따라 무늬): 코바늘 or 대바늘; none = the item's own (목도리 knitted, the rest crocheted) */
+  craft?: "crochet" | "knit";
+  flapColor?: string;
+  handleColor?: string;
   /** how the top is closed (Kim): open, a flap (flapCm), a drawstring through an eyelet round, a zipper,
    *  or a button (the whole piece is drawn in 그려서 만들기, not its opening alone - Kim) */
   closure?: "open" | "flap" | "drawstring" | "zipper" | "button";

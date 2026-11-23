@@ -134,3 +134,11 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 @keyframes yw-drop{from{transform:translateY(-104%)}to{transform:none}}
 @keyframes yw-dim{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.yw,.yw-dim{animation:none}}
+
+/* the yarn check, first on the stage (Kim): big and plain, the way on below it */
+.yw-intro{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;gap:14px;padding:28px 40px 24px;background:#F6F0E4;overflow-y:auto}
+.yw-intro h2{display:flex;align-items:baseline;gap:14px;margin:0;font-size:22px;font-weight:600;color:#3A322D}
+.yw-intro h2 small{font-size:15px;font-weight:400;color:#5E554E}
+.yw-intro .yc{flex:1 1 auto;min-height:0}
+.yw-intro .yc-row{flex:1 1 auto}
+.yw-go{align-self:flex-end;height:46px;padding:0 22px;border:0;border-radius:6px;background:#F6E3E2;box-shadow:-2px 3px 6px -4px rgba(70,50,30,.45),inset 0 0 0 1.5px #B99447;font:inherit;font-size:16px;font-weight:600;color:#3A322D;cursor:pointer}

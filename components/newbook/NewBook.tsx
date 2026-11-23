@@ -26,6 +26,7 @@ import { CoverChoice } from "./CoverChoice";
 import { ColorStudio } from "./ColorStudio";
 import { SketchPad } from "./SketchPad";
 import { YarnCheck } from "./YarnCheck";
+import { StartChoice } from "./StartChoice";
 import { specToDraft } from "@/lib/sketchShape";
 import { CROCHET, type CrochetStitch } from "@/lib/pattern";
 import { DrawPad } from "./DrawPad";
@@ -153,7 +154,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // (Book3D reads the sheet). Phones keep their own sheets.
   const web = phone === false, liveSheet = useSheet(3, web ? WEB_SHEETS3 : undefined);
   // the third spread: a bag's shape, or a knitted item's stitch pattern (무늬)
-  const bagNow = ITEM[itemIdOf(draft)].group === "가방", knitNow = isKnit({ item: itemIdOf(draft) }), sheets3 = bagNow || knitNow ? 3 : 2;
+  const bagNow = ITEM[itemIdOf(draft)].group === "가방", knitNow = isKnit({ item: itemIdOf(draft), craft: draft.craft, object: ENGINE[ITEM[itemIdOf(draft)].kind] }), sheets3 = bagNow || knitNow ? 3 : 2;
   const sheet = web && step === 3 ? Math.min(inSheet ?? liveSheet, sheets3 - 1) : 0, pos = step * 3 + sheet;
   const [editId, setEditId] = useState<string | null>(null);
   const [nums, setNums] = useState<Record<FieldKey, string>>(numsOf(draft));
@@ -168,6 +169,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     if ((chat.applied ?? 0) === seenApplied.current) return;
     seenApplied.current = chat.applied ?? 0; setNums(numsOf(draft)); setRev(r => r + 1);
   }, [chat.applied, draft]);
+  // 새 도안 (Kim): start fresh or go on with something, asked once on the first page
+  const [startMode, setStartMode] = useState<"new" | "go" | null>(null), [startDone, setStartDone] = useState(false);
   const [drawOn, setDrawOn] = useState(false), [drawKind, setDrawKind] = useState<"sketch" | "paint" | "half">("sketch"); // 직접 그리기: the pad instead of the item tiles
   const [hRev, setHRev] = useState(0); // the handle length was dragged: its typed box takes the new value
   const [ownHandle, setOwnHandle] = useState(false); // handle: "직접 입력" picked (stays custom even on a preset value)
@@ -201,7 +204,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pickItem = (id: ItemId) => {
     if (id === item.id && !draft.free) { if (!draft.itemPicked) patch({ itemPicked: true }); return; }
     const it = ITEM[id], dv = it.defaults;
-    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined };
+    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, profile: undefined, flapColor: undefined, handleColor: undefined, circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined };
     setDraft(d); setNums(numsOf(d));
   };
   const pickShape = (s: Shape) => {
@@ -292,6 +295,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       {exNow.label && <><p className="nb-wsubhead">라벨</p>{placeSliders("labelAt", [.5, .34, 2.8], "가로", 7)}</>}
       {exNow.zipper && <>
         <p className="nb-wsubhead">지퍼</p>
+        <Tiles label="지퍼 색" value={exNow.zipColor ?? "gold"} cols={3} onPick={v => setEx({ zipColor: v as "gold" | "silver" | "brass" })} options={[["gold", "금색"], ["silver", "은색"], ["brass", "황동색"]]} />
         <Slide label="잠그기" min={0} max={1} step={.05} value={1 - (exNow.zipOpen ?? 0)} onChange={x => setEx({ zipOpen: Math.round((1 - x) * 100) / 100 })} text={(exNow.zipOpen ?? 0) <= .02 ? "잠김" : (exNow.zipOpen ?? 0) >= .98 ? "열림" : `${Math.round((1 - (exNow.zipOpen ?? 0)) * 100)}% 잠김`} />
       </>}
     </div>
@@ -478,8 +482,13 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // ① the left page is the book's title (logo, month); the right page the name on a woven label (progress moves there)
     const when = editId ? projects.find(x => x.id === editId)?.created ?? Date.now() : Date.now();
     left = <TitleCover month={new Date(when).toLocaleString("en-US", { month: "long", year: "numeric" }).toUpperCase()} />;
-    right = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} />;
-    if (phone) phoneBody = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={null} />;
+    const start = editId || startDone ? null : (
+      <StartChoice draft={draft} projects={projects} mode={startMode} onMode={setStartMode}
+        onFresh={() => { const f = freshDraft(); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); }}
+        onDraft={() => setStartDone(true)} onOpen={id => { setStartDone(true); book.editHere(id); }} />
+    );
+    right = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} before={start} />;
+    if (phone) phoneBody = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={null} before={start} />;
   } else if (step === 2) {
     left = (
       <div className="nb-folds nb-groups">
@@ -664,9 +673,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const webBag = (
       <div className="nb-web">
         <div className="nb-wg"><Head>몸통</Head>
-          <Tiles label="몸통 모양" value={draft.topA == null ? "straight" : draft.topA && draft.topA < draft.a ? "taper" : "flare"} cols={3}
-            options={[["straight", "일자형"], ["flare", "위로 넓어지는"], ["taper", "위로 좁아지는"]]}
-            onPick={v => patch({ topA: v === "flare" ? Math.round(draft.a * 1.3) : v === "taper" ? Math.max(3, Math.round(draft.a * .7)) : null })} />
+          <Tiles label="몸통 모양" value={draft.profile ? "drawn" : draft.topA == null ? "straight" : draft.topA && draft.topA < draft.a ? "taper" : "flare"} cols={draft.profile ? 4 : 3}
+            options={[...(draft.profile ? [["drawn", "그린 모양대로"] as [string, string]] : []), ["straight", "일자형"], ["flare", "위로 넓어지는"], ["taper", "위로 좁아지는"]]}
+            onPick={v => { if (v === "drawn") return; patch({ profile: undefined, topA: v === "flare" ? Math.round(draft.a * 1.3) : v === "taper" ? Math.max(3, Math.round(draft.a * .7)) : null }); }} />
           {draft.topA != null && <div className="nb-wsub"><CmInput key={"top" + draft.shape + draft.a + (draft.topA < draft.a ? "t" : "f")} label={draft.shape === "circle" ? "입구 지름 (cm)" : "입구 가로 (cm)"} value={draft.topA || null}
             range={draft.topA < draft.a ? [Math.max(3, Math.ceil(draft.a * .4)), Math.floor(draft.a) - 1] : [Math.floor(draft.a) + 1, LEN_RANGE[1]]} onValue={v => patch({ topA: v ?? 0 })} /></div>}
         </div>
@@ -704,7 +713,16 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       </div>
     );
     oneYarn = <WebYarn draft={draft} patch={patch} tried={tried} noColor />;
-    oneHook = <div className="nb-web"><WebHook draft={draft} patch={patch} tried={tried} /></div>;
+    const craftNow = draft.craft ?? (knitNow ? "knit" : "crochet");
+    oneHook = (
+      <div className="nb-web">
+        <div className="nb-wg"><Head note="무늬가 바늘에 따라 달라집니다">바늘 종류</Head>
+          <Tiles label="바늘 종류" value={craftNow} cols={2} onPick={v => patch({ craft: v as "crochet" | "knit" })} options={[["crochet", "코바늘", "짧은뜨기 · 긴뜨기…"], ["knit", "대바늘", "메리야스 · 고무뜨기…"]]} />
+          {craftNow === "knit" && !knitNow && <p className="nb-help">대바늘 도안은 목도리처럼 평평하게 뜨는 편물에서 만들 수 있습니다. 이 모양은 코바늘로 계산합니다.</p>}
+        </div>
+        <WebHook draft={draft} patch={patch} tried={tried} />
+      </div>
+    );
     oneStitch = knitNow ? <WebStitch draft={draft} patch={patch} n={pp.last} /> : (
       <div className="nb-web"><div className="nb-wg"><Head note={CROCHET[draft.crochetStitch ?? "sc"].note}>코바늘 무늬</Head>
         <Tiles label="코바늘 무늬" value={draft.crochetStitch ?? "sc"} cols={4} onPick={v => patch({ crochetStitch: v === "sc" ? undefined : v as CrochetStitch })}
@@ -768,13 +786,14 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const swatchSrc = { ...yarnSrc, object: "rows" as const, item: knitNow ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
   const making = web && (step === 2 || step === 3) ? {
     sections: [
-      { id: "yarn", title: "실", body: <>{oneYarn}{oneHook}</> },
+      { id: "yarn", title: "실", body: oneYarn },
       { id: "color", title: "색", body: <ColorStudio draft={draft} patch={patch} /> },
-      { id: "check", title: "실 확인", body: <YarnCheck source={swatchSrc} plan={plan(swatchSrc)} /> },
+      { id: "needle", title: "바늘", body: oneHook },
+      { id: "stitch", title: "무늬", body: oneStitch },
       { id: "draw", title: "모양 그리기", note: picked ? itemLabel : undefined, body: oneDraw },
       ...(picked ? [
         { id: "size", title: "크기", body: oneSize },
-        { id: "dress", title: "입혀 보기", body: <>{oneStitch}{oneShape}</> },
+        { id: "dress", title: "입혀 보기", body: oneShape },
       ] : []),
     ],
     done: () => {
@@ -785,6 +804,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   } : undefined;
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
+    // the first thing on the stage (Kim): the yarn as it will look, before any shape
+    intro: <YarnCheck source={swatchSrc} plan={plan(swatchSrc)} big />,
     dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
     parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1) }) : null;
 

@@ -803,3 +803,30 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 /* the work screen's 입혀 보기: room between the stitch and the bag's groups, and under a choice before its box */
 .yw-sec .nb-web + .nb-web{margin-top:22px}
 .yw-mkbody .nb-wsub > .nb-tiles{margin-bottom:12px}
+
+/* 새 도안: 새로 시작 / 이어서 하기 (StartChoice), over the name */
+.st{width:min(100%,440px);margin:0 auto 22px}
+.st-ask{margin:0 0 10px;font-size:15px;font-weight:600;color:#3A322D;text-align:center}
+.st-list{display:grid;gap:6px;margin:12px 0 0;padding:0;list-style:none;max-height:240px;overflow-y:auto}
+.st-list button{display:flex;justify-content:space-between;align-items:baseline;gap:12px;width:100%;padding:11px 14px;border:0;border-radius:6px;background:#FFFDF8;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4;font:inherit;text-align:left;cursor:pointer}
+.st-list button:hover{box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px #B99447}
+.st-list b{font-size:15px;font-weight:600;color:#3A322D}
+.st-list span{font-size:13.5px;color:#5E554E;white-space:nowrap}
+
+/* 그려서 만들기: the three sheets as tabs (a dot on the drawn ones), the pen colours */
+.sk-views{display:flex;gap:4px;border-bottom:1px solid #DCCFC2}
+.sk-view{position:relative;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font:inherit;font-size:14.5px;color:#5E554E;cursor:pointer}
+.sk-view[aria-selected="true"]{color:#3A322D;font-weight:600;border-bottom-color:#B99447}
+.sk-view i{display:block;width:6px;height:6px;border-radius:50%;background:#B99447}
+.sk-inks{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sk-ink{width:28px;height:28px;padding:0;border:0;border-radius:50%;cursor:pointer;box-shadow:-1px 2px 3px -1px rgba(70,50,30,.4),inset 0 0 0 1px rgba(90,70,50,.25)}
+.sk-ink[aria-checked="true"]{outline:2px solid #B99447;outline-offset:2px}
+.sk-pad.is-pen,.sk-pad.is-eraser,.sk-pad.is-liquify{cursor:none}
+
+/* the big yarn check on the work screen's stage: the piece large, a photo beside it, larger words */
+.yc-big{display:flex;flex-direction:column;gap:12px}
+.yc-big .yc-swatch{height:auto;flex:1 1 auto;min-height:380px}
+.yc-big .yc-photo img{height:100%;min-height:380px;max-height:62vh}
+.yc-big figcaption{font-size:15px}
+.yc-big .nb-help{font-size:15px;color:#5E554E}
+.yc-big .yc-up{font-size:15px;height:42px}

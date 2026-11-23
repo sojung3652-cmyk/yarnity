@@ -51,12 +51,17 @@ export interface PlanInput {
   /** the crochet stitch the piece is worked in (Kim: 코바늘 무늬): 짧은뜨기 (sc, the default), 이랑뜨기 (sc in
    *  the back loop: ridges, the same height), 긴뜨기 (hdc), 한길긴뜨기 (dc) - taller stitches, fewer rows */
   crochetStitch?: CrochetStitch | null;
+  /** a body drawn as a silhouette (Kim: round forms - a hobo swells and gathers, it is no box): the widths up its
+   *  height, bottom first, as shares of the widest; the bottom (a) is the first width. The rows' counts follow it. */
+  profile?: number[] | null;
   measuredH?: number | null; // stitch height from the 3rd-round measurement (cm)
   measuredW?: number | null; // stitch width from the 5-row measurement (rows / tube only, cm)
 }
 
 /** A drawn shape: its side profile from the bottom up, smoothed - [radius, height], both as shares of the
  *  piece's height - the height in cm, and the colours by height ([from this share of the height, colour]). */
+/** a silhouette's width at a share of its height (0 bottom .. 1 top), between its samples */
+export const profAt = (pr: number[], t: number) => { const x = Math.min(1, Math.max(0, t)) * (pr.length - 1), i = Math.min(pr.length - 2, Math.floor(x)), f = x - i; return pr[i] + (pr[i + 1] - pr[i]) * f; };
 export type CrochetStitch = "sc" | "blo" | "hdc" | "dc";
 /** each crochet stitch: its name, how much taller than single crochet, its turning chain */
 export const CROCHET: Record<CrochetStitch, { ko: string; h: number; turn: number; note: string }> = {
@@ -233,7 +238,14 @@ function planSc(p: PlanInput): Plan {
   const last = bottom[bottom.length - 1].n;
   const rows = bottom.slice() as Row[];
   if (p.object === "bag") {
-    const bodyRows = Math.max(2, rnd((p.h as number) / g.h));
+    const prof = p.profile && p.profile.length >= 2 && p.profile[0] > 0 ? p.profile : null;
+    // a drawn silhouette: rounds are worked ALONG the wall, one stitch-height of fabric each - where the wall flares
+    // out a round gains less height - so the rounds are counted along the side curve's length, and each round is
+    // as wide as the curve is where it lies (a hobo swells and gathers; counted by height it went flat and out)
+    const side = prof ? (() => { const H = p.h as number, R0 = p.a / 2 / prof[0], N = 60, pts: [number, number][] = []; for (let i = 0; i <= N; i++) { const t = i / N; pts.push([R0 * profAt(prof, t), H * t]); }
+      const acc = [0]; for (let i = 1; i <= N; i++) acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+      return { pts, acc, L: acc[N], rAt: (sv: number) => { let i = 1; while (i < N && acc[i] < sv) i++; const f = (sv - acc[i - 1]) / Math.max(1e-9, acc[i] - acc[i - 1]); return pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f; } }; })() : null;
+    const bodyRows = Math.max(2, rnd((side ? side.L : (p.h as number)) / g.h));
     // the opening's stitches: the bottom's last round scaled by the perimeter (circle: diameter ratio;
     // oval / rect: length and width both grow by topA - a, perimeter ~ 2 (a - b) + pi b)
     const b0 = (p.b as number) || p.a;
@@ -242,9 +254,11 @@ function planSc(p: PlanInput): Plan {
       : last;
     let prevN = last;
     for (let i = 0; i < bodyRows; i++) {
-      if (top === last) { rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라갑니다" : `${last}코 그대로`, inc: 0 } as Row); continue; }
+      if (!prof && top === last) { rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라갑니다" : `${last}코 그대로`, inc: 0 } as Row); continue; }
       // widening body: the extra stitches spread evenly over the rows (round 1 of the body stays straight)
-      const n = i === 0 ? last : Math.round(last + (top - last) * i / (bodyRows - 1)), inc = n - prevN;
+      // a drawn silhouette: each row as wide as the drawing is at its height (never more than half again, nor less
+      // than two thirds, of the row below, so every row can be worked); else spread evenly to the opening
+      const n = i === 0 ? last : side ? clamp(Math.round(last * side.rAt(side.L * i / (bodyRows - 1)) / side.rAt(0)), Math.ceil(prevN * .67), Math.floor(prevN * 1.5)) : Math.round(last + (top - last) * i / (bodyRows - 1)), inc = n - prevN;
       rows.push({ part: "body", n, how: inc > 0 ? `짧은뜨기 ${n}코 (늘림 ${inc}코를 고르게 나눠서)` : inc < 0 ? `짧은뜨기 ${n}코 (줄임 ${-inc}번을 고르게 나눠서)` : `늘림 없이 짧은뜨기 ${n}코`,
         why: i === 0 ? "여기서부터 위로 올라갑니다" : inc > 0 ? `${prevN} + 늘림 ${inc} = ${n} · 위로 갈수록 넓어집니다` : inc < 0 ? `${prevN} - 줄임 ${-inc} = ${n} · 위로 갈수록 좁아집니다` : `${n}코 그대로`, inc } as Row);
       prevN = n;

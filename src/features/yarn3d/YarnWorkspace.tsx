@@ -35,6 +35,8 @@ export interface WorkExtra {
   making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean };
   /** nothing to draw yet (no item picked): the stage says so instead of showing a piece nobody chose */
   empty?: boolean;
+  /** shown on the stage first (도안 만들기: the yarn check, Kim), until the reader goes on to the shape */
+  intro?: ReactNode;
 }
 
 type Tool = "rotate" | "pan";
@@ -55,6 +57,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const [rules, setRules] = useState<YarnRule[] | null>(null);
   const [noGL, setNoGL] = useState(false);
   const [builtMs, setBuiltMs] = useState<number | null>(null);
+  const [intro, setIntro] = useState(!!extra?.intro);
+  const toShape = () => { setIntro(false); root.current?.querySelector("#yw-draw")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
   // the book stops, the page stays still, the way back takes the focus; Esc closes, Tab stays inside
   useEffect(() => {
@@ -122,6 +126,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           <span className="yw-lb">보기</span>
           <span className="yw-opts" role="group" aria-label="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></span>
           <span className="yw-sep" aria-hidden="true" />
+          {extra?.intro && <span className="yw-opts"><Opt on={intro} onClick={() => setIntro(v => !v)}>실 확인</Opt></span>}
           <span className="yw-opts"><Opt on={ruler} onClick={toggleRuler}><Ic s={17} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />재기</Opt>
             <Opt onClick={() => viewer.current?.playDraw()}><Ic s={17} d="M7 4.5v15l12-7.5z" />뜨는 순서</Opt></span>
         </>}
@@ -129,6 +134,13 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
 
 
       <div className="yw-stage">
+        {intro && extra?.intro && (
+          <div className="yw-intro">
+            <h2>실 확인<small>화면 속 실이 내 실과 비슷한지 먼저 보십시오</small></h2>
+            {extra.intro}
+            <button type="button" className="yw-go" onClick={toShape}>이 실로 모양 그리러 가기 →</button>
+          </div>
+        )}
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
           : <canvas ref={cv} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
         {empty && <div className="yw-empty"><i aria-hidden="true" /><p>모양을 그리면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}

@@ -15,6 +15,7 @@ export interface ShapeSpec {
   button: boolean; buttonX?: number; buttonY?: number; buttonSizeCm?: number; buttonColor?: string;
   zipper?: boolean; label?: boolean;
   bodyColor?: string; colorName?: string;
+  profile?: number[]; rounded?: boolean; flapColor?: string; handleColor?: string;
   summary?: string;
 }
 
@@ -40,6 +41,10 @@ export function readSpec(o: unknown): ShapeSpec | null {
     bodyColor: typeof x.bodyColor === "string" && HEX.test(x.bodyColor) ? x.bodyColor.toUpperCase() : undefined,
     colorName: typeof x.colorName === "string" ? x.colorName.slice(0, 20) : undefined,
     summary: typeof x.summary === "string" ? x.summary.slice(0, 200) : undefined,
+    profile: Array.isArray(x.profile) && x.profile.length >= 3 && x.profile.every(v => typeof v === "number" && v > 0 && v < 3) ? (x.profile as number[]).slice(0, 12) : undefined,
+    rounded: x.rounded === true,
+    flapColor: typeof x.flapColor === "string" && HEX.test(x.flapColor) ? x.flapColor.toUpperCase() : undefined,
+    handleColor: typeof x.handleColor === "string" && HEX.test(x.handleColor) ? x.handleColor.toUpperCase() : undefined,
   };
 }
 
@@ -47,13 +52,20 @@ export function readSpec(o: unknown): ShapeSpec | null {
  *  what is sewn on, the colour */
 export function specToDraft(d: Draft, s: ShapeSpec): Draft {
   const id: ItemId = s.kind === "pouch" ? "pouch" : s.kind === "basket" ? "basket" : s.kind === "coaster" ? (s.bottom === "oval" ? "placemat" : "coaster") : "minibag";
-  const it = ITEM[id], r = it.range, shape = (it.shapes ?? ["circle"]).includes(s.bottom) ? s.bottom : (it.shapes ?? ["circle"])[0];
+  // a soft, rounded piece has no square corners (Kim: a crocheted hobo is no box): a rect bottom becomes an oval
+  const want: Shape = s.rounded && s.bottom === "rect" ? "oval" : s.bottom;
+  const it = ITEM[id], r = it.range, shape = (it.shapes ?? ["circle"]).includes(want) ? want : (it.shapes ?? ["circle"])[0];
   const inR = (k: "a" | "b" | "h", v: number) => { const rr = r[k]; return rr ? clamp(Math.round(v), rr[0], rr[1]) : Math.round(v); };
-  const a = inR("a", s.widthCm), b = shape === "circle" ? a : Math.min(inR("b", s.depthCm), Math.max(4, a - 2)), h = it.kind === "base-body" ? inR("h", s.heightCm) : 0;
   const bag = it.kind === "base-body";
+  // a drawn silhouette (widths up the height, the widest 1): the bottom is as wide as its first width, and the
+  // rows follow the curve; a silhouette that is about straight is no silhouette
+  const pmax = s.profile ? Math.max(...s.profile) : 0, prof = bag && s.profile && pmax > 0 ? s.profile.map(v => Math.round(v / pmax * 1000) / 1000) : null;
+  const curved = !!prof && (Math.max(...prof) - Math.min(...prof) > .12);
+  const k0 = curved ? Math.max(.25, prof![0]) : 1;
+  const a = inR("a", s.widthCm * k0), b = shape === "circle" ? a : Math.min(inR("b", s.depthCm * (curved ? Math.max(.5, k0) : 1)), Math.max(4, a - 2)), h = bag ? inR("h", s.heightCm) : 0;
   // the numbers decide the direction (the words and the numbers have disagreed): top edge against bottom edge
   const ratio = s.topWidthCm && s.widthCm ? s.topWidthCm / s.widthCm : s.body === "wider" ? 1.3 : s.body === "narrower" ? .7 : 1;
-  const topA = !bag || Math.abs(ratio - 1) < .08 ? null : ratio > 1 ? clamp(Math.round(a * ratio), a + 1, a * 2) : clamp(Math.round(a * ratio), Math.ceil(a * .4), a - 1);
+  const topA = !bag || curved || Math.abs(ratio - 1) < .08 ? null : ratio > 1 ? clamp(Math.round(a * ratio), a + 1, a * 2) : clamp(Math.round(a * ratio), Math.ceil(a * .4), a - 1);
   const flapOn = bag && s.flap !== "none";
   const handles = it.handles ? s.handles : 0;
   const ex: NonNullable<Draft["extras"]> = {};
@@ -67,9 +79,11 @@ export function specToDraft(d: Draft, s: ShapeSpec): Draft {
   if (s.label) ex.label = true;
   return {
     ...d, item: id, object: ENGINE[it.kind], itemPicked: true, free: undefined, paint: undefined,
-    shape, a, b, h, topA,
+    shape, a, b, h, topA, profile: curved ? prof! : undefined,
+    flapColor: flapOn ? s.flapColor : undefined, handleColor: handles ? s.handleColor : undefined,
     flapCm: flapOn ? clamp(Math.round(s.flapCm ?? h * .45), 3, 40) : null, closure: flapOn ? "flap" : s.zipper ? "zipper" : "open", flapShape: flapOn ? (s.flap as "half" | "square" | "triangle") : undefined,
-    handle: handles ? "short" : "none", handleCm: handles ? clamp(Math.round(s.handleCm ?? (handles === 1 ? 40 : 45)), 10, 150) : null, handleCount: handles ? (handles as 1 | 2) : undefined,
+    handle: handles ? "short" : "none", // one handle across the top has to clear the opening (an AI guess of 16cm over a 15cm opening hid it): at least 1.8 times the opening's width
+    handleCm: handles ? clamp(Math.round(Math.max(s.handleCm ?? (handles === 1 ? 40 : 45), handles === 1 ? (curved ? (a / k0) * prof![prof!.length - 1] : topA ?? a) * 1.8 : 0)), 10, 150) : null, handleCount: handles ? (handles as 1 | 2) : undefined,
     extras: ex,
     ...(s.bodyColor ? { color: s.bodyColor, colorName: s.colorName } : {}),
   };

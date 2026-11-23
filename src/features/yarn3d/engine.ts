@@ -64,9 +64,11 @@ export interface YarnPattern {
   strapW?: number;
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼), with where and how big (Kim): `buttonAt` /
    *  `labelAt` = [across the front -1..1, up 0..1, size in cm]; `zipOpen` 0 closed .. 1 open; the button's colour */
-  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string };
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass" };
+  /** a handle (strap) in its own colour, when it differs from the body */
+  strapColor?: string;
   /** a bag's flap (덮개): worked from the back of the opening, over the top and down the front (Kim: it has to show) */
-  flap?: { cm: number; shape: "half" | "square" | "triangle" };
+  flap?: { cm: number; shape: "half" | "square" | "triangle"; color?: string };
   /** the crochet stitch's height against single crochet (긴뜨기 ~1.6, 한길긴뜨기 ~2.2) */
   stitchH?: number;
 }
@@ -553,7 +555,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     });
     strapH = 0;
     if (pat.strap !== "none" && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
-      const L = D.C[D.C.length - 1].idx, c = L.length, color = colorOf(D.C[D.C.length - 1].ci); let ry = 0, cx = 0, cz = 0, rr = 0;
+      const L = D.C[D.C.length - 1].idx, c = L.length, color = pat.strapColor ?? colorOf(D.C[D.C.length - 1].ci); let ry = 0, cx = 0, cz = 0, rr = 0;
       L.forEach(n => { const q = D.P[n]; ry += q.y; cx += q.x; cz += q.z; }); ry /= c; cx /= c; cz /= c; L.forEach(n => { rr += Math.hypot(D.P[n].x - cx, D.P[n].z - cz); }); rr /= c;
       const at = (f: number) => { const q = D.P[L[((Math.round(f * c - .5) % c) + c) % c]].clone(); q.y = ry; return q; };
       // the strap's height from its length (cm): an arc of that length over the gap between its ends
@@ -583,7 +585,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const top = D.C[D.C.length - 1]; if (!top || !top.closed || top.idx.length < 6) return null;
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, ry = 0;
     top.idx.forEach(i => { const q = D.P[i]; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); ry += q.y; }); ry /= top.idx.length;
-    const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2 * .94, lift = R * 2.2, out = R * 3.4, drop = f.cm * 10 / MM, color = colorOf(top.ci);
+    const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2 * .94, lift = R * 2.2, out = R * 3.4, drop = f.cm * 10 / MM, color = f.color ?? colorOf(top.ci);
     // the centre line in (z, y): a low dome from the back edge to the front edge, then straight down the front
     const line: [number, number, number][] = []; // z, y, share of the drop (-1 on the top)
     const nTop = 24; for (let i = 0; i <= nTop; i++) { const t = i / nTop; line.push([z0 - out * (1 - t) * .3 + (z1 + out - z0) * t, ry + lift + Math.sin(Math.PI * t) * lift * 1.5, -1]); }
@@ -673,8 +675,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); tg.setIndex(idx); tg.computeVertexNormals();
       const tm = std(0x8e7b6b, .9); tm.side = THREE.DoubleSide; put(new THREE.Mesh(tg, tm));
       // 지퍼 잠그기 (Kim): closed up to the pull, the rest open - its two rows of teeth apart
-      const open = Math.max(0, Math.min(1, ex.zipOpen ?? 0)), shut = Math.round(N * (1 - open)), gap = .55 * U;
-      const teeth = new THREE.InstancedMesh(new THREE.BoxGeometry(.2 * U, .18 * U, .26 * U), std(0xc9b37a, .35, .8), N * 2), m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
+      const zc = ex.zipColor === "silver" ? 0xc9cbd0 : ex.zipColor === "brass" ? 0xb08d4a : 0xd4af37, open = Math.max(0, Math.min(1, ex.zipOpen ?? 0)), shut = Math.round(N * (1 - open)), gap = .55 * U;
+      const teeth = new THREE.InstancedMesh(new THREE.BoxGeometry(.2 * U, .18 * U, .26 * U), std(zc, .35, .85), N * 2), m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
       let k4 = 0;
       for (let i = 0; i < N; i++) {
         const q = sp[i], t = cv.getTangent(i / N), nr = new THREE.Vector3(q.x - cx, 0, q.z - cz).normalize(); q4.setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(t.x, 0, t.z).normalize());
@@ -683,8 +685,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       }
       teeth.count = k4; put(teeth);
       const sq = sp[Math.min(N - 1, shut)], st0 = cv.getTangent(Math.min(N - 1, shut) / N), pull = new THREE.Group();
-      pull.add(new THREE.Mesh(new THREE.BoxGeometry(.5 * U, .45 * U, .5 * U), std(0xc9b37a, .3, .85)));
-      const tab = new THREE.Mesh(new THREE.BoxGeometry(.32 * U, 1.1 * U, .08 * U), std(0xc9b37a, .3, .85)); tab.position.set(0, -.7 * U, .3 * U); pull.add(tab);
+      pull.add(new THREE.Mesh(new THREE.BoxGeometry(.5 * U, .45 * U, .5 * U), std(zc, .3, .85)));
+      const tab = new THREE.Mesh(new THREE.BoxGeometry(.32 * U, 1.1 * U, .08 * U), std(zc, .3, .85)); tab.position.set(0, -.7 * U, .3 * U); pull.add(tab);
       const pn = new THREE.Vector3(sq.x - cx, 0, sq.z - cz).normalize(); face(pull, pn); pull.position.set(sq.x, sq.y + R * .4, sq.z); void st0; put(pull);
     }
   }

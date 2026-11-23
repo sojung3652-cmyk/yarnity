@@ -29,7 +29,8 @@ export function TitleCover({ month }: { month: string }) {
   );
 }
 
-export function TitlePage({ name, onName, onEnter, progress }: { name: string; onName: (v: string) => void; onEnter: () => void; progress: React.ReactNode }) {
+/** `before`: what comes ahead of the name (새 도안: start fresh or go on with something - StartChoice) */
+export function TitlePage({ name, onName, onEnter, progress, before }: { name: string; onName: (v: string) => void; onEnter: () => void; progress: React.ReactNode; before?: React.ReactNode }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const [fit, setFit] = useState({ size: BIG, rows: 1 });
   // fit the name: shrink first, then allow a second line
@@ -48,6 +49,7 @@ export function TitlePage({ name, onName, onEnter, progress }: { name: string; o
   return (
     <div className="tp">
       <div className="tp-progress">{progress}</div>
+      {before}
       <div className="tp-name">
         <p className="tp-ask">이 작품의 이름을 지어 주십시오</p>
         <div className="tp-label">
