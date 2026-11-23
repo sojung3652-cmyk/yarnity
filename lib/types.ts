@@ -40,6 +40,8 @@ export interface Draft {
   hairK?: number;
   /** a shape drawn by the reader (web: 직접 그리기); the rounds follow it (lib/pattern.ts planFree) */
   free?: import("./pattern").FreeShape;
+  /** 직접 그리기 · 자유롭게 (Kim): the painted picture, worked flat in rows (lib/pattern planPaint) */
+  paint?: import("./pattern").PaintShape;
   /** web, the 3D only: strands in the handle (1-5; 3 when missing), and 단추 / 라벨 / 지퍼 tried on */
   handleW?: number;
   extras?: { button?: boolean; label?: boolean; zipper?: boolean };

@@ -59,7 +59,7 @@ export function DrawPad({ value, base, onChange, info }: { value: FreeShape | un
   const [slots, setSlots] = useState<string[]>(() => fromBands(value?.bands));
   const [hCm, setHCm] = useState(value?.hCm ?? 10);
   const [ink, setInk] = useState<string>(COLORS[1]?.[1] ?? "#F0C1CA");
-  const raw = useRef<Pt[]>([]), down = useRef(false), y0 = useRef(0), slotsNow = useRef(slots);
+  const raw = useRef<Pt[]>([]), rawScr = useRef<Pt[]>([]), down = useRef(false), y0 = useRef(0), slotsNow = useRef(slots);
   const emit = (p: Pt[] | null, sl: string[], h: number) => onChange(p ? { pts: toShape(p), hCm: h, bands: toBands(sl) } : undefined);
 
   // the pad: the shape filled round by round in its colours, mirrored about the middle; the line being drawn
@@ -79,7 +79,8 @@ export function DrawPad({ value, base, onChange, info }: { value: FreeShape | un
     }
     x.setLineDash([4, 4]); x.strokeStyle = "#B5A894"; x.lineWidth = 1; x.beginPath(); x.moveTo(cx, 8); x.lineTo(cx, N - 8); x.stroke(); x.setLineDash([]);
     x.fillStyle = "#7A6F68"; x.font = '12px "Noto Serif KR", serif'; x.fillText("가운데", cx + 6, 20);
-    if (down.current && mode === "shape" && raw.current.length > 1) { x.strokeStyle = "#C0787E"; x.lineWidth = 2.5; x.beginPath(); raw.current.forEach(([px, py], i) => (i ? x.lineTo(sx(px, 1), py) : x.moveTo(sx(px, 1), py))); x.stroke(); }
+    // the line being drawn, under the pen (and its mirror, lighter, on the other side)
+    if (down.current && mode === "shape" && rawScr.current.length > 1) for (const m of [false, true]) { x.strokeStyle = m ? "rgba(192,120,126,.35)" : "#C0787E"; x.lineWidth = 2.5; x.lineCap = "round"; x.lineJoin = "round"; x.beginPath(); rawScr.current.forEach(([px, py], i) => { const q = m ? N - px : px; if (i) x.lineTo(q, py); else x.moveTo(q, py); }); x.stroke(); }
   };
   useEffect(draw); // every render: the state is small and the pad is cheap to draw
 
@@ -90,11 +91,11 @@ export function DrawPad({ value, base, onChange, info }: { value: FreeShape | un
     if (!pts) return; const { yb, h } = span(pts), a = Math.max(0, Math.min(SLOTS - 1, Math.floor((yb - Math.max(ya, yb2)) / h * SLOTS))), b = Math.max(0, Math.min(SLOTS - 1, Math.floor((yb - Math.min(ya, yb2)) / h * SLOTS)));
     const n = slotsNow.current.slice(); for (let i = a; i <= b; i++) n[i] = ink; slotsNow.current = n; setSlots(n);
   };
-  const onDown = (e: React.PointerEvent) => { e.preventDefault(); cv.current!.setPointerCapture(e.pointerId); down.current = true; const p = pos(e); if (mode === "shape") raw.current = [px(p)]; else { y0.current = p[1]; paint(p[1], p[1]); } draw(); };
-  const onMove = (e: React.PointerEvent) => { if (!down.current) return; const p = pos(e); if (mode === "shape") { raw.current.push(px(p)); draw(); } else paint(y0.current, p[1]); };
+  const onDown = (e: React.PointerEvent) => { e.preventDefault(); cv.current!.setPointerCapture(e.pointerId); down.current = true; const p = pos(e); if (mode === "shape") { raw.current = [px(p)]; rawScr.current = [p]; } else { y0.current = p[1]; paint(p[1], p[1]); } draw(); };
+  const onMove = (e: React.PointerEvent) => { if (!down.current) return; const p = pos(e); if (mode === "shape") { raw.current.push(px(p)); rawScr.current.push(p); draw(); } else paint(y0.current, p[1]); };
   const onUp = () => {
     if (!down.current) return; down.current = false;
-    if (mode === "shape") { const t = tidy(raw.current); raw.current = []; if (t) { setPts(t); emit(t, slots, hCm); } else draw(); }
+    if (mode === "shape") { const t = tidy(raw.current); raw.current = []; rawScr.current = []; if (t) { setPts(t); emit(t, slots, hCm); } else draw(); }
     else emit(pts, slotsNow.current, hCm);
   };
   const berry = () => { const p = fromShape(BERRY.pts), sl = fromBands(BERRY.bands); slotsNow.current = sl; setPts(p); setSlots(sl); setHCm(BERRY.hCm); emit(p, sl, BERRY.hCm); };

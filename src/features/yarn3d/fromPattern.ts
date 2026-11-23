@@ -6,7 +6,7 @@
 //   back and forth            n stitches x the "rows" rows         -> "rows" (목도리: knitted, Kim)
 //   tube                      n stitches x the "rounds" rounds     -> "tube"
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
-import type { Plan, PlanInput } from "@/lib/pattern";
+import { paintMask, paintSize, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
 import type { YarnMaterial, YarnPattern, YarnShape } from "./engine";
@@ -48,7 +48,12 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   if (!yarn3dSupported(p) || !pp.rows.length) return null;
   const counts = (...parts: string[]) => pp.rows.filter(r => parts.includes(r.part)).map(r => Math.max(1, Math.round(r.n)));
   let shape: YarnShape, rowColors: (string | undefined)[] | null = null;
-  if (p.free) {
+  if (p.paint) {
+    // a painted picture: its stitches as the pattern counts them, holes and colours as painted
+    const { W, H } = paintSize(p.paint, pp.g);
+    shape = { kind: "grid", W, H, wCm: p.paint.wCm, hCm: p.paint.hCm, cells: paintMask(p.paint, W, H), pieces: p.paint.pieces ?? 1 };
+    rowColors = p.paint.palette.length ? p.paint.palette : null;
+  } else if (p.free) {
     // a drawn shape: its rounds as they are, each in the colour drawn at its height
     const rr = pp.rows.filter(r => r.part === "bottom" || r.part === "body"); if (!rr.length) return null;
     shape = { kind: "round", counts: rr.map(r => Math.max(1, Math.round(r.n))), flat: pp.bottomRounds }; rowColors = rr.map(r => r.color);

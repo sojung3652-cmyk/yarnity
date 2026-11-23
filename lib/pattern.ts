@@ -46,6 +46,8 @@ export interface PlanInput {
   closure?: string | null;
   /** a shape the reader drew (web: 직접 그리기); when set, the rounds follow it (planFree) */
   free?: FreeShape | null;
+  /** a picture painted freely (web: 직접 그리기 · 자유롭게, Kim) - worked flat in rows, the unpainted spots as holes */
+  paint?: PaintShape | null;
   measuredH?: number | null; // stitch height from the 3rd-round measurement (cm)
   measuredW?: number | null; // stitch width from the 5-row measurement (rows / tube only, cm)
 }
@@ -53,6 +55,26 @@ export interface PlanInput {
 /** A drawn shape: its side profile from the bottom up, smoothed - [radius, height], both as shares of the
  *  piece's height - the height in cm, and the colours by height ([from this share of the height, colour]). */
 export interface FreeShape { pts: [number, number][]; hCm: number; bands?: [number, string][] }
+/** A painted picture (Kim: "like a paint program"): a gw x gh grid, row-major from the top row; each cell "."
+ *  (nothing - the paper, a hole in the piece) or a palette index in base 36. The piece is wCm wide and hCm
+ *  tall, worked flat in rows from the bottom; `pieces` 2 = the same shape twice (a bag's front and back). */
+export interface PaintShape { gw: number; gh: number; cells: string; palette: string[]; wCm: number; hCm: number; pieces?: 1 | 2 }
+
+/** The painted picture sampled at a piece's own stitches and rows: W x H, row-major from the bottom row;
+ *  -1 = a hole, else the palette index. (The 3D and the pattern sample it the same way.) */
+export function paintMask(f: PaintShape, W: number, H: number): number[] {
+  const out: number[] = new Array(W * H);
+  for (let r = 0; r < H; r++) {
+    const gy = f.gh - 1 - Math.min(f.gh - 1, Math.floor((r + .5) / H * f.gh));
+    for (let i = 0; i < W; i++) {
+      const gx = Math.min(f.gw - 1, Math.floor((i + .5) / W * f.gw)), ch = f.cells[gy * f.gw + gx];
+      out[r * W + i] = !ch || ch === "." ? -1 : parseInt(ch, 36);
+    }
+  }
+  return out;
+}
+/** stitches across and rows up for a painted piece (the gauge of its yarn and hook) */
+export const paintSize = (f: PaintShape, g: Gauge) => ({ W: clamp(rnd(f.wCm / g.w), 2, 600), H: clamp(rnd(f.hCm / g.h), 2, 800) });
 
 export interface Gauge { h: number; w: number; measured: boolean }
 
@@ -150,7 +172,36 @@ export function planFree(p: PlanInput): Plan {
   return { g, c: 0, rows, bottomRounds, bodyRows: rows.length - bottomRounds, last: rows[rows.length - 1].n };
 }
 
+/** A painted picture as rows (Kim: draw it freely, holes and all). Worked flat from the bottom: each row in
+ *  single crochet over its painted stitches, a chain over each hole (the next row works into the chain), a
+ *  colour change where the picture changes colour. Rows with nothing painted are left out. */
+export function planPaint(p: PlanInput): Plan {
+  const g = gauge(p), f = p.paint as PaintShape, { W, H } = paintSize(f, g), m = paintMask(f, W, H), multi = f.palette.length > 1;
+  const rows: Row[] = []; let span = 0, first = true, last = 0;
+  for (let rr = 0; rr < H; rr++) {
+    const row = m.slice(rr * W, rr * W + W), a = row.findIndex(c => c >= 0); if (a < 0) continue;
+    let b = W - 1; while (row[b] < 0) b--;
+    const parts: string[] = []; let n = 0, cnt: Record<number, number> = {};
+    for (let i = a; i <= b;) {
+      let j = i; while (j + 1 <= b && row[j + 1] === row[i]) j++;
+      const len = j - i + 1;
+      if (row[i] < 0) parts.push(`사슬 ${len}코 (구멍)`);
+      else { parts.push(`${multi ? `색 ${row[i] + 1}로 ` : ""}짧은뜨기 ${len}`); n += len; cnt[row[i]] = (cnt[row[i]] ?? 0) + len; }
+      i = j + 1;
+    }
+    const top = Number(Object.entries(cnt).sort((x, y) => y[1] - x[1])[0][0]);
+    if (first) { span = b - a + 1; rows.push({ part: "start", n: span + 1, how: `사슬 ${span + 1}코`, why: `첫 단의 폭 ${span}코, 기둥 사슬 1코 더` + (f.pieces === 2 ? " · 같은 모양으로 2장을 떠서 옆과 아래를 잇습니다" : ""), inc: 0 } as Row); }
+    const lead = first ? "" : `${a + 1}번째 코부터: `;
+    rows.push({ part: "rows", n, how: (first ? "두 번째 사슬부터 " : `사슬 1, 뒤집어서 ${lead}`) + parts.join(", "), why: `이 단 ${n}코`, inc: 0, ...(f.palette[top] ? { color: f.palette[top] } : {}) } as Row);
+    first = false; last = n;
+  }
+  if (!rows.length) rows.push({ part: "start", n: 2, how: "사슬 2코", why: "그린 곳이 없습니다", inc: 0 } as Row);
+  labelFlat(rows);
+  return { g, c: span + 1, rows, bottomRounds: 0, bodyRows: rows.filter(x => x.part === "rows").length, last };
+}
+
 export function plan(p: PlanInput): Plan {
+  if (p.paint) return planPaint(p);
   if (p.free) return planFree(p);
   if (p.object === "rows") return planRows(p);
   if (p.object === "tube") return planTube(p);

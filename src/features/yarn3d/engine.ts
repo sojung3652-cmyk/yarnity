@@ -36,7 +36,10 @@ export type YarnShape =
   | { kind: "oval"; chain: number; bottom: number[]; body: number[] }        // around a base chain, then a body (wall)
   | { kind: "rect"; chain: number; bottom: number[]; body: number[] }
   | { kind: "rows"; W: number; H: number; wCm: number; hCm: number; knit: boolean; stitch?: string } // back and forth (knit: its stitch pattern, lib/knit.ts)
-  | { kind: "tube"; W: number; H: number; circCm: number; hCm: number };   // in the round, no bottom
+  | { kind: "tube"; W: number; H: number; circCm: number; hCm: number }    // in the round, no bottom
+  // a painted picture (직접 그리기 · 자유롭게): W x H stitches, row-major from the bottom, -1 = a hole, else the
+  // colour's index in `colors`; it stands up facing you (two of it, front and back, for pieces 2)
+  | { kind: "grid"; W: number; H: number; wCm: number; hCm: number; cells: number[]; pieces?: 1 | 2 };
 export interface YarnPattern {
   shape: YarnShape;
   /** one colour per course, bottom first (a shorter list: its last colour goes on) */
@@ -140,6 +143,7 @@ export function hasWebGL(): boolean {
 export function stitchCount(s: YarnShape): number {
   if (s.kind === "round") return s.counts.reduce((a, b) => a + b, 0);
   if (s.kind === "oval" || s.kind === "rect") return s.chain + [...s.bottom, ...s.body].reduce((a, b) => a + b, 0);
+  if (s.kind === "grid") return s.cells.filter(c => c >= 0).length * (s.pieces ?? 1);
   return s.W * s.H;
 }
 
@@ -451,6 +455,32 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // the drawn row j stands for the pattern's rows j*k .. j*k+k-1: it takes the colour of the middle one
     const midCi = (k: number, H: number) => (j: number) => Math.min(H - 1, j * k + Math.floor(k / 2));
 
+    // a painted picture, standing up: only the painted stitches, a course for each run of one colour, joined
+    // to the stitch below where there is one (a hole leaves the gap open)
+    const grid = (g: Extract<YarnShape, { kind: "grid" }>, k: number) => {
+      const W = Math.max(2, Math.round(g.W / k)), H = Math.max(2, Math.round(g.H / k)), ex = g.wCm * 10 / MM / W, ey = g.hCm * 10 / MM / H;
+      const at = (i: number, j: number) => g.cells[Math.min(g.H - 1, Math.floor((j + .5) / H * g.H)) * g.W + Math.min(g.W - 1, Math.floor((i + .5) / W * g.W))];
+      const panels = g.pieces === 2 ? [ex * 1.6, -ex * 1.6] : [0];
+      panels.forEach(z0 => {
+        const id: number[] = new Array(W * H).fill(-1);
+        for (let j = 0; j < H; j++) {
+          let run: number[] = [], runC = -2;
+          const flush = () => { if (run.length) C.push({ idx: run, closed: false, bot: run.map(n => { const b = below.get(n); return (b != null ? [b, b, 0] : [n, n, 0]) as Bot; }), ci: runC }); run = []; };
+          for (let i = 0; i < W; i++) {
+            const c = at(i, j);
+            if (c < 0) { flush(); runC = -2; continue; }
+            if (c !== runC) { flush(); runC = c; }
+            const n = V((i - (W - 1) / 2) * ex, j * ey + ey / 2, z0); id[j * W + i] = n; run.push(n);
+            if (run.length > 1) E.push([run[run.length - 2], n, ex, 1]);
+            const b = j > 0 ? id[(j - 1) * W + i] : -1; if (b >= 0) { E.push([n, b, ey, 1]); below.set(n, b); }
+          }
+          flush();
+        }
+      });
+      return { ex, ey };
+    };
+    const below = new Map<number, number>();
+
     let knit: Knit | null = null, fixed = false, skip: ItemData["skip"] = null, rhOut = rh, swOut = sw;
     if (kk > 1) skip = { stitch: kk, row: kk };
     if (s.kind === "round") round(s.counts, s.flat);
@@ -461,6 +491,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       fixed = true; skip = k > 1 ? { stitch: k, row: k } : null; rhOut = ey; swOut = ex;
       rows(W, H, ex, ey, swap, midCi(k, s.H));
       if (s.knit) knit = { type: "flat", W, H, swap, wk: ex, rk: ey, rho: 0, R: 0 };
+    } else if (s.kind === "grid") {
+      const k = skipOf(s.W, s.H * (s.pieces ?? 1)), { ex, ey } = grid(s, k);
+      fixed = true; skip = k > 1 ? { stitch: k, row: k } : null; rhOut = ey; swOut = ex;
     } else {
       const k = skipOf(s.W, s.H), W = Math.max(6, Math.round(s.W / k)), H = Math.max(2, Math.round(s.H / k));
       const rho = s.circCm * 10 / MM / (2 * Math.PI), ey = s.hCm * 10 / MM / H;
@@ -502,7 +535,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     else D.C.forEach(c => {
       const tops = c.idx.map(n => D.P[n].clone()), saw: THREE.Vector3[] = [];
       if (c.bot) c.idx.forEach((n, i) => saw.push(D.P[n].clone(), lp(c.bot![i])));
-      [saw, tops].forEach((arr, ix) => {
+      [saw, tops].forEach((arr0, ix) => {
+        // points on the very same spot (a painted stitch with nothing painted under it: its "saw" goes down to
+        // itself) are left out; a line of zero length made degenerate geometry that reset the graphics driver
+        let arr = arr0.filter((q, i) => i === 0 || q.distanceToSquared(arr0[i - 1]) > 1e-10);
+        if (arr.length === 1 && arr0.length > 1 && ix === 0) return; // a saw with nothing below: no saw
+        if (!c.closed && arr.length && arr.length < 3) { const a0 = arr[0], a1 = arr[arr.length - 1], d = new THREE.Vector3(D.sw * .35, 0, 0); arr = arr.length === 1 ? [a0.clone().sub(d), a0, a0.clone().add(d)] : [a0, a0.clone().lerp(a1, .5), a1]; }
         if (arr.length < 3) return; const cv = new THREE.CatmullRomCurve3(arr, c.closed, "catmullrom", .5), Rr = ix ? R * .9 : R;
         const pts = cv.getSpacedPoints(Math.max(24, Math.ceil(cv.getLength() / (Rr * .75 * step))));
         const g = buildYarn(pts, Rr, { M, closed: c.closed, color: colorOf(c.ci) }), m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
@@ -616,6 +654,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       : k < .8 ? "바늘이 가늘어서 빡빡하고 단단한 편물이 됩니다." : k > 1.45 ? "바늘이 굵어서 성글고 부드러운 편물이 됩니다." : "실과 바늘이 잘 맞습니다.";
     const round = s.kind === "round" || s.kind === "tube";
     const h = s.kind === "tube" ? cm(my + D.rh) : my > D.rh * 2 ? cm(my) : null;
+    if (s.kind === "grid") { opts.onInfo({ round: false, widthCm: s.wCm, depthCm: s.hCm, heightCm: null, fit, skip: D.skip }); return { my, mr: Math.max(dx, my) / 2 }; }
     opts.onInfo({ round, widthCm: cm(Math.max(dx, dz)), depthCm: cm(Math.min(dx, dz)), heightCm: h, fit, skip: D.skip });
     return { my, mr: Math.max(dx, dz) / 2 };
   }

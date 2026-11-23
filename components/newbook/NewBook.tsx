@@ -26,6 +26,7 @@ import { CoverChoice } from "./CoverChoice";
 import { ColorStudio } from "./ColorStudio";
 import { ClosureSketch, SketchView } from "./ClosureSketch";
 import { DrawPad } from "./DrawPad";
+import { PaintPad } from "./PaintPad";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
 import { Head, PanelYarn, Slide, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
@@ -164,7 +165,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     if ((chat.applied ?? 0) === seenApplied.current) return;
     seenApplied.current = chat.applied ?? 0; setNums(numsOf(draft)); setRev(r => r + 1);
   }, [chat.applied, draft]);
-  const [drawOn, setDrawOn] = useState(false); // 직접 그리기: the pad instead of the item tiles
+  const [drawOn, setDrawOn] = useState(false), [drawKind, setDrawKind] = useState<"paint" | "half">("paint"); // 직접 그리기: the pad instead of the item tiles
   const [hRev, setHRev] = useState(0); // the handle length was dragged: its typed box takes the new value
   const [ownHandle, setOwnHandle] = useState(false); // handle: "직접 입력" picked (stays custom even on a preset value)
   const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(pos);
@@ -211,6 +212,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const fields = fieldsFor(item, draft.shape);
   const errors = useMemo(() => {
     const e: Partial<Record<FieldKey, string>> = {};
+    if (draft.paint) return e; // a painted piece: its size is set on the pad (the item's boxes are hidden)
     for (const f of fields) {
       const raw = nums[f.key].trim(), v = Number(raw);
       if (!raw) e[f.key] = "숫자를 적어 주십시오.";
@@ -218,7 +220,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       else if (v < f.min || v > f.max) e[f.key] = `${f.min}~${f.max}cm 사이로 적어 주십시오.`;
     }
     return e;
-  }, [nums, fields]);
+  }, [nums, fields, draft.paint]);
   const setNum = (k: FieldKey) => (raw: string) => {
     setNums(n => ({ ...n, [k]: raw }));
     const f = fields.find(x => x.key === k), v = Number(raw.trim());
@@ -232,8 +234,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, extras: draft.extras }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.extras]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
-  const itemLabel = draft.free ? "직접 그린 모양" : item.name;
-  const sizeCaption = draft.free ? `높이 ${draft.free.hCm}cm · 가장 넓은 곳 ${freeW}cm` : (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
+  const itemLabel = draft.free || draft.paint ? "직접 그린 모양" : item.name;
+  const sizeCaption = draft.paint ? `${draft.paint.wCm} × ${draft.paint.hCm}cm${draft.paint.pieces === 2 ? " · 2장" : ""}` : draft.free ? `높이 ${draft.free.hCm}cm · 가장 넓은 곳 ${freeW}cm` : (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
     : (input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`) + (input.object === "bag" && input.h ? ` · 높이 ${input.h}cm` : ""))
     + (item.handles && draft.handle !== "none" && handleCmOf(draft) ? ` · 손잡이 ${handleCmOf(draft)}cm` : "");
   // 작업 화면으로 크게 on the left page (web): the 3D work screen, its panels change this draft (the yarn, the
@@ -381,12 +383,27 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // 직접 그리기 (Kim): the last tile opens a pad; what is drawn becomes the pattern's rounds and the 3D at once
     const setFree = (f: Draft["free"]) => {
       if (!f) { setDrawOn(true); patch({ free: undefined, itemPicked: false }); return; }
-      const d: Draft = { ...draft, free: f, item: "basket", object: ENGINE[ITEM.basket.kind], shape: "circle", handle: "none", handleCm: null, topA: null, flapCm: null, itemPicked: true };
+      const d: Draft = { ...draft, free: f, paint: undefined, item: "basket", object: ENGINE[ITEM.basket.kind], shape: "circle", handle: "none", handleCm: null, topA: null, flapCm: null, itemPicked: true };
       setDraft(d);
     };
-    const listOrDraw = drawOn || draft.free ? (
+    // 자유롭게 (Kim: like a paint program, holes and all): a flat piece in rows, as wide and tall as set on the pad
+    const setPaint = (f: Draft["paint"]) => {
+      if (!f) { setDrawOn(true); patch({ paint: undefined, itemPicked: false }); return; }
+      setDraft({ ...draft, paint: f, free: undefined, item: "dishcloth", object: ENGINE[ITEM.dishcloth.kind], shape: "rect", a: f.wCm, b: f.hCm, h: 0, handle: "none", handleCm: null, topA: null, flapCm: null, itemPicked: true });
+    };
+    const drawInfo = draft.free || draft.paint ? `전체 ${pp.rows.filter(r => r.part !== "start").length}단 · 가장 넓은 단 ${Math.max(...pp.rows.map(r => r.n))}코` : undefined;
+    const kindNow = draft.free ? "half" : draft.paint ? "paint" : drawKind;
+    const listOrDraw = drawOn || draft.free || draft.paint ? (
       <div className="nb-web">
-        <DrawPad value={draft.free} base={draft.color || "#EFE6D4"} onChange={setFree} info={draft.free ? `전체 ${pp.rows.length}단 · 가장 넓은 단 ${Math.max(...pp.rows.map(r => r.n))}코` : undefined} />
+        {/* the paint program first; drawing half a side view (turned into a round piece) is the other way */}
+        <Tiles label="그리는 방식" value={kindNow} cols={2} onPick={v => {
+          setDrawKind(v as "paint" | "half");
+          if (v === "paint" && draft.free) patch({ free: undefined, itemPicked: false });
+          if (v === "half" && draft.paint) patch({ paint: undefined, itemPicked: false });
+        }} options={[["paint", "자유롭게 그리기", "그림판처럼"], ["half", "옆모습 반쪽", "좌우 대칭 · 둥글게"]]} />
+        {kindNow === "paint"
+          ? <PaintPad value={draft.paint ?? undefined} base={draft.color || "#EFE6D4"} onChange={setPaint} info={draft.paint ? drawInfo : undefined} />
+          : <DrawPad value={draft.free ?? undefined} base={draft.color || "#EFE6D4"} onChange={setFree} info={draft.free ? drawInfo : undefined} />}
       </div>
     ) : (
       <WebItems value={picked ? item.id : ""} onPick={pickItem} tried={tried} hint={big3d.open ? undefined : <AskAiLine which="item" />} />
@@ -394,8 +411,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // 직접 그리기 from the start (Kim): the two ways side by side over the list
     const itemsPanel = (
       <>
-        <Tiles label="고르는 방법" value={drawOn || draft.free ? "draw" : "list"} cols={2}
-          onPick={v => { if (v === "draw") setDrawOn(true); else { setDrawOn(false); if (draft.free) patch({ free: undefined, itemPicked: false }); } }}
+        <Tiles label="고르는 방법" value={drawOn || draft.free || draft.paint ? "draw" : "list"} cols={2}
+          onPick={v => { if (v === "draw") setDrawOn(true); else { setDrawOn(false); if (draft.free || draft.paint) patch({ free: undefined, paint: undefined, itemPicked: false }); } }}
           options={[["list", "목록에서 고르기"], ["draw", "직접 그리기"]]} />
         {listOrDraw}
       </>
@@ -591,12 +608,13 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             <p className="nb-help">{`가장 넓은 곳은 약 ${freeW}cm입니다. 모양은 품목 단계의 종이에서 다시 그릴 수 있습니다.`}</p>
           </div>
         )}
-        {!draft.free && shapes.length > 1 && (
+        {draft.paint && <div className="nb-wg"><Head note="직접 그린 모양">크기</Head><p className="nb-help">{`가로 ${draft.paint.wCm}cm · 세로 ${draft.paint.hCm}cm입니다. 크기는 그리는 종이 아래에서 바꿉니다.`}</p></div>}
+        {!draft.free && !draft.paint && shapes.length > 1 && (
           <div className="nb-wg"><Head>{item.kind === "flat-round" ? "모양" : "바닥 모양"}</Head>
             <Tiles label="모양" value={draft.shape} cols={3} onPick={v => pickShape(v as Shape)} options={shapes.map(s => [s, SHAPE_KO[s]])} />
           </div>
         )}
-        <div className="nb-wg" style={draft.free ? { display: "none" } : undefined}><Head note={item.name}>크기</Head>
+        <div className="nb-wg" style={draft.free || draft.paint ? { display: "none" } : undefined}><Head note={item.name}>크기</Head>
           <div className="nb-two nb-wtwo">
             {fields.map(sizeInput)}
           </div>
@@ -659,7 +677,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const checkRows = [
       { k: "실", v: <>{ucolors[0]?.hex && <i className="nb-swatch" style={{ background: ucolors[0].hex }} />}{yarnBits || "고르지 않음"}</>, fix: () => fixAt(0) },
       { k: "바늘", v: Number.isFinite(hookMm) ? hookLabel(hookMm) : "고르지 않음", fix: () => fixAt(1) },
-      { k: "크기", v: draft.free ? sizeCaption : sizeText.replace("cm", "cm") + (input.object === "bag" && draft.h ? ` · 높이 ${draft.h}cm` : ""), fix: () => fixAt(1) },
+      { k: "크기", v: draft.free || draft.paint ? sizeCaption : sizeText.replace("cm", "cm") + (input.object === "bag" && draft.h ? ` · 높이 ${draft.h}cm` : ""), fix: () => fixAt(1) },
       ...(isKnit({ item: item.id }) ? [{ k: "무늬", v: stitchOf(draft.stitch).ko, fix: () => fixAt(2) }] : []),
       ...(isBag(item) ? [{ k: "모양", v: [draft.topA ? `위로 넓어지는 (입구 ${draft.topA}cm)` : "일자형", closureText, item.handles ? `손잡이 ${handleText(draft)}` : ""].filter(Boolean).join(" · "), fix: () => fixAt(2) },
         ...(closureNow === "sketch" && draft.closureSketch ? [{ k: "입구 그림", v: <SketchView d={draft.closureSketch} />, fix: () => fixAt(2) }] : [])] : []),
@@ -727,7 +745,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       // the web from step 2 (Kim): the left page is the 3D; at its foot 이전 and the work screen (full screen).
       // Nothing picked yet: where the piece will stand, empty
       <section className="nb-page nb-left nb-3dleft" aria-label="3D 미리 보기">
-        {step === 2 && !picked
+        {/* while the work screen covers the book its page's own 3D is let go (it would rebuild unseen on every
+            change, a third WebGL scene next to the book's and the work screen's: drawing there made the book's
+            context get lost, which dropped the 3D book and the work screen with it) */}
+        {big3d.open ? <div className="y3-page" aria-hidden="true" /> : step === 2 && !picked
           ? <div className="y3-page-empty"><i aria-hidden="true" /><p>오른쪽에서 고르면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>
           : <YarnPagePreview source={yarnSrc} plan={pp} fabric={knitNow && step === 3 && sheet === 2} caption={sizeCaption} />}
         <div className="nb-foot">
