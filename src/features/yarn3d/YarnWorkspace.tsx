@@ -94,6 +94,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const [intro, setIntro] = useState(!!extra?.intro);
   // a piece made from a drawing shows at once, beside it (Kim): the yarn check steps aside
   useEffect(() => { const f = () => setIntro(false); window.addEventListener("yw:shape", f); return () => window.removeEventListener("yw:shape", f); }, []);
+  // the yarn again (Kim: from the shape too): the yarn check on the stage, the yarn's section on the right
+  useEffect(() => {
+    const f = () => { setIntro(true); root.current?.querySelector("#yw-yarn")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
+    window.addEventListener("yw:yarncheck", f); return () => window.removeEventListener("yw:yarncheck", f);
+  }, []);
   // the stage dark by default (Kim), and light by itself when the yarn picked is dark (it would sink into the
   // dark); the reader can still pick either, until the yarn's colour changes again
   const yarnDark = lum(pattern.colors?.[0]) < .22;

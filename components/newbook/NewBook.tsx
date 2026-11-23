@@ -18,7 +18,7 @@ import { drawing } from "@/lib/drawing";
 import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, LEN_RANGE, type FieldKey, type Item, type ItemId } from "@/lib/items";
 import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
-import { BUTTONS, LABEL_GROUPS } from "@/lib/extras";
+import { BUTTONS, LABEL_GROUPS, extraPic } from "@/lib/extras";
 import { ExtraPicker } from "./ExtraPicker";
 import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
@@ -52,7 +52,7 @@ import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import { PATTERN_BY_ID, chartNameOf } from "@/lib/stitchPatterns";
 import { autoName, bodyOf, bodyPatch, bodyWidth, partLines, scaleDraft } from "@/lib/assemble";
-import { AskStart } from "./AskStart";
+import { AskStart, NameStart } from "./AskStart";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -210,7 +210,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const [asmPart, setAsmPart] = useState("bottom"), [shapeMode, setShapeMode] = useState<"asm" | "draw">("asm"), [asked, setAsked] = useState(false);
   // the yarn first (Kim): the work screen opens on the yarn check; what to make is asked once the yarn is set
   // (모양 만들기 on the yarn check). The yarn can still be changed afterwards (its sections, 실 확인 on the top).
-  const [yarnSet, setYarnSet] = useState(false);
+  const [yarnSet, setYarnSet] = useState(false), [named, setNamed] = useState(false);
   useEffect(() => { const f = () => setYarnSet(true); window.addEventListener("yw:yarnset", f); return () => window.removeEventListener("yw:yarnset", f); }, []);
 
   // a new item starts from its own defaults (no values carried over from the previous item)
@@ -314,22 +314,26 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     );
   };
   const extrasGroup = (
-    <div className="nb-wg"><Head note="3D로만 달아 봅니다">달아 보기</Head>
-      <div className="nb-tiles nb-tiles-3" role="group" aria-label="달아 보기">
-        {([["button", "단추"], ["label", "라벨"], ["zipper", "지퍼"]] as const).map(([k, t]) => <button key={k} type="button" className="nb-tile" aria-pressed={!!exNow[k]} onClick={() => setEx({ [k]: !exNow[k] })}>{t}</button>)}
-      </div>
-      {(exNow.button || exNow.label) && <p className="nb-help">3D에서 단추와 라벨을 끌어서 옮길 수 있습니다.</p>}
+    <div className="nb-wg"><Head note="3D로만 달아 봅니다">단추·라벨</Head>
+      {/* 단추와 라벨 (Kim: 한 카테고리에): every picture in one place; a button and a label can both be on */}
+      <ExtraPicker label="단추·라벨 고르기" groups={[["단추", BUTTONS], ...LABEL_GROUPS.map(([g, l]): [string, typeof l] => [g + " 라벨", l])]} wide
+        value={[exNow.button ? exNow.buttonPic : undefined, exNow.label ? exNow.labelPic : undefined]}
+        onPick={p => p.id.startsWith("b-")
+          ? setEx(exNow.button && exNow.buttonPic === p.id ? { button: false } : { button: true, buttonPic: p.id, buttonAt: [exNow.buttonAt?.[0] ?? 0, exNow.buttonAt?.[1] ?? .72, p.cm] })
+          : setEx(exNow.label && exNow.labelPic === p.id ? { label: false } : { label: true, labelPic: p.id, labelAt: [exNow.labelAt?.[0] ?? .5, exNow.labelAt?.[1] ?? .34, p.cm] })} />
+      {(exNow.button || exNow.label) && <p className="nb-help">3D에서 끌어서 옮길 수 있습니다. 같은 그림을 한 번 더 누르면 뺍니다.</p>}
       {exNow.button && <>
-        <p className="nb-wsubhead">단추{draft.flapCm && !exNow.buttonAt ? " · 지금은 덮개 끝에 있습니다" : ""}<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ button: false, buttonAt: undefined })}>빼기</button></p>
-        {/* Kim's buttons: the picked one's own size to start with */}
-        <ExtraPicker label="단추 고르기" groups={[["", BUTTONS]]} value={exNow.buttonPic} onPick={p => setEx({ buttonPic: p.id, buttonAt: [exNow.buttonAt?.[0] ?? 0, exNow.buttonAt?.[1] ?? .72, p.cm] })} />
+        <p className="nb-wsubhead">단추{exNow.buttonPic ? ` · ${extraPic(exNow.buttonPic)?.name ?? ""}` : ""}<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ button: false, buttonAt: undefined })}>빼기</button></p>
         {placeSliders("buttonAt", [0, .72, 1.9], "지름", 5)}
       </>}
-      {exNow.label && <><p className="nb-wsubhead">라벨<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ label: false, labelAt: undefined })}>빼기</button></p>
-        <ExtraPicker label="라벨 고르기" groups={LABEL_GROUPS} wide value={exNow.labelPic} onPick={p => setEx({ labelPic: p.id, labelAt: [exNow.labelAt?.[0] ?? .5, exNow.labelAt?.[1] ?? .34, p.cm] })} />
-        {placeSliders("labelAt", [.5, .34, 2.8], "가로", 7)}</>}
+      {exNow.label && <>
+        <p className="nb-wsubhead">라벨{exNow.labelPic ? ` · ${extraPic(exNow.labelPic)?.name ?? ""}` : ""}<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ label: false, labelAt: undefined })}>빼기</button></p>
+        {placeSliders("labelAt", [.5, .34, 2.8], "가로", 7)}
+      </>}
+      <p className="nb-wsubhead">지퍼{exNow.zipper
+        ? <button type="button" className="nb-link nb-exdel" onClick={() => setEx({ zipper: false })}>빼기</button>
+        : <button type="button" className="nb-link nb-exdel" onClick={() => setEx({ zipper: true })}>달기</button>}</p>
       {exNow.zipper && <>
-        <p className="nb-wsubhead">지퍼<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ zipper: false })}>빼기</button></p>
         <Tiles label="지퍼 색" value={exNow.zipColor ?? "gold"} cols={3} onPick={v => setEx({ zipColor: v as "gold" | "silver" | "brass" })} options={[["gold", "금색"], ["silver", "은색"], ["brass", "황동색"]]} />
         <Slide label="잠그기" min={0} max={1} step={.05} value={1 - (exNow.zipOpen ?? 0)} onChange={x => setEx({ zipOpen: Math.round((1 - x) * 100) / 100 })} text={(exNow.zipOpen ?? 0) <= .02 ? "잠김" : (exNow.zipOpen ?? 0) >= .98 ? "열림" : `${Math.round((1 - (exNow.zipOpen ?? 0)) * 100)}% 잠김`} />
       </>}
@@ -885,6 +889,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     );
     oneAsm = (
       <div className="nb-web">
+        <button type="button" className="nb-link asm-yarn" onClick={() => window.dispatchEvent(new Event("yw:yarncheck"))}>실 다시 정하기 · 실 확인 보기</button>
         <div className="nb-needle asm-mode" role="radiogroup" aria-label="모양을 만드는 방법">
           {([["asm", "조립하기"], ["draw", "그리기"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={shapeMode === k} onClick={() => setShapeMode(k)}>{t}</button>)}
         </div>
@@ -936,9 +941,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const swatchSrc = { ...yarnSrc, craft: swatchKnit ? "knit" as const : "crochet" as const, object: "rows" as const, item: swatchKnit ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
   const making = web && (step === 2 || step === 3) ? {
     sections: [
-      // the colour before the yarn's material (Kim)
-      { id: "color", title: "색", body: <ColorStudio draft={draft} patch={patch} /> },
-      { id: "yarn", title: "실", body: oneYarn },
+      // the colour is part of the yarn (Kim): one 실 section, its colour first, then thickness and material
+      { id: "yarn", title: "실", body: <><ColorStudio draft={draft} patch={patch} /><div className="yw-sub">{oneYarn}</div></> },
       { id: "needle", title: "바늘", body: oneHook },
       { id: "stitch", title: "무늬", note: (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit" ? "대바늘" : "코바늘", body: oneStitch },
       { id: "draw", title: "모양", note: picked ? itemLabel : undefined, body: oneAsm },
@@ -952,7 +956,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
     // 조립하기: what to make, asked first (Kim); the 크기 틀 dragged on the 3D
-    ask: big3d.open && yarnSet && !picked && !asked && !editId ? <AskStart draft={draft} onName={v => patch({ name: v })} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
+    ask: big3d.open && !picked && !editId && !named ? <NameStart name={draft.name} onName={v => patch({ name: v })} onNext={() => setNamed(true)} />
+      : big3d.open && yarnSet && !picked && !asked && !editId ? <AskStart draft={draft} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
       onApply={d => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); window.dispatchEvent(new Event("yw:shape")); }} /> : undefined,
     onResize: picked && !draft.free && !draft.paint ? (fx, fy) => {
       if (fx !== 1 && fx === fy) { apply(scaleDraft(draft, fx)); return; }

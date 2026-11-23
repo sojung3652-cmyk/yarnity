@@ -3,15 +3,16 @@
 // groups (원단, 가죽, 금속, 자개). The 3D puts the picked picture on the piece.
 import { extraSrc, type ExtraPic } from "@/lib/extras";
 
-export function ExtraPicker({ label, groups, value, onPick, wide }: { label: string; groups: [string, ExtraPic[]][]; value?: string; onPick: (p: ExtraPic) => void; wide?: boolean }) {
+export function ExtraPicker({ label, groups, value, onPick, wide }: { label: string; groups: [string, ExtraPic[]][]; value?: string | (string | undefined)[]; onPick: (p: ExtraPic) => void; wide?: boolean }) {
+  const many = Array.isArray(value); // several on at once (a button and a label): pressed buttons, not radios
   return (
-    <div className="xp" role="radiogroup" aria-label={label}>
+    <div className="xp" role={many ? "group" : "radiogroup"} aria-label={label}>
       {groups.map(([g, list]) => (
         <div key={g} className="xp-group">
           {g && <p className="xp-head">{g}</p>}
           <div className={"xp-grid" + (wide ? " is-wide" : "")}>
             {list.map(p => (
-              <button key={p.id} type="button" role="radio" aria-checked={value === p.id} className="xp-tile" title={p.name} aria-label={p.name} onClick={() => onPick(p)}>
+              <button key={p.id} type="button" role={many ? undefined : "radio"} aria-checked={many ? undefined : value === p.id} aria-pressed={many ? value.includes(p.id) : undefined} className="xp-tile" title={p.name} aria-label={p.name} onClick={() => onPick(p)}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={extraSrc(p.id)} alt="" loading="lazy" />
               </button>

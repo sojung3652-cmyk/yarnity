@@ -322,3 +322,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-frame i{position:absolute;width:13px;height:13px;margin:-7px;background:#FFFDF8;border:1.5px solid var(--gold,#B99447);pointer-events:auto;touch-action:none}
 .yw-frame .h-l{left:0;top:50%;cursor:ew-resize}.yw-frame .h-r{left:100%;top:50%;cursor:ew-resize}.yw-frame .h-t{left:50%;top:0;cursor:ns-resize}.yw-frame .h-tl{left:0;top:0;cursor:nwse-resize}.yw-frame .h-tr{left:100%;top:0;cursor:nesw-resize}
 .yw-frame b{position:absolute;left:50%;top:100%;transform:translate(-50%,8px);white-space:nowrap;background:#FFFDF8;border:1px solid #CDBFB4;padding:3px 9px;font-size:12px;font-weight:600;color:#3A322D}
+
+/* the yarn's own part under its colour (one 실 section) */
+.yw-sub{margin-top:18px;padding-top:16px;border-top:1px solid rgba(181,168,148,.4)}
+.asm-yarn{display:inline-block;margin:0 0 12px}
