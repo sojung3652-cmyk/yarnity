@@ -1114,6 +1114,20 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const k = (1 + s * (.07 * Math.sin(Math.PI * Math.min(1, t * 1.1)) - .055 * t * t) * (.6 + .4 * slim)) * (1 + s * .04 * t * (Math.sin(2 * th + .6) + .5 * Math.sin(3 * th + 2.1)));
       p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; p.y -= s * .075 * t * t * H * (.6 + .4 * slim);
     }
+    // a soft yarn's bag rounds at its bottom (Kim): the bottom's edge comes up and the wall's foot comes in - a U
+    // seen from the front, not a box's square corners; the firmer the yarn, the less
+    const soft = Math.max(0, s - .25) / .75;
+    if (soft > 0) {
+      const hx = (b.x1 - b.x0) / 2 || 1, hz = (b.z1 - b.z0) / 2 || 1, foot = Math.min(H * .24, Math.min(hx, hz) * .7), lift = soft * Math.min(foot * .6, Math.min(hx, hz) * .22);
+      for (const p of D.P) {
+        const r = Math.min(1.2, Math.hypot((p.x - cx) / hx, (p.z - cz) / hz));
+        // the bottom: its middle stays down, its edge comes up; the wall's foot comes up and in with it
+        const q = p.y <= D.rh * .5 ? Math.min(1, r) ** 3 : p.y < foot ? (1 - p.y / foot) ** 2 : 0;
+        if (!q) continue;
+        const kin = 1 - soft * .1 * q;
+        p.y += lift * q; p.x = cx + (p.x - cx) * kin; p.z = cz + (p.z - cz) * kin;
+      }
+    }
   }
   // how firmly the yarn holds a shape, 0-1 (Kim: nylon and cord stand, then cotton; the others are limp)
   const firm = () => (st.preset === "cord" ? .92 : st.preset === "raffia" || st.preset === "jute" ? .8 : st.preset === "cotton" || st.preset === "linen" || st.preset === "tshirt" ? .5 : Math.max(.06, .3 - st.soft * .3));
