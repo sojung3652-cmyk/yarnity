@@ -387,6 +387,13 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     if (!webStart) { if (phone) store.set("iyarn.go3d", 0); return; }
     const t = setTimeout(() => { store.set("iyarn.go3d", 0); next(); }, 700); return () => clearTimeout(t);
   }, [ready, step, webStart]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 고치기 (Kim: straight into the 3D work screen): a work opened to be changed goes on to its shape at once
+  useEffect(() => {
+    if (!ready || !editId || !store.get<number>("iyarn.edit3d", 0)) return;
+    if (!(web && inBook != null && big3d.supported)) { if (phone) store.set("iyarn.edit3d", 0); return; }
+    const t = setTimeout(() => { store.set("iyarn.edit3d", 0); setNamed(true); setYarnSet(true); bookPause.set(true); big3d.show(); setSheet(3, 0); go(3); setTimeout(() => window.dispatchEvent(new Event("yw:shape")), 400); }, 500);
+    return () => clearTimeout(t);
+  }, [ready, editId, web, inBook, big3d.supported]); // eslint-disable-line react-hooks/exhaustive-deps
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
