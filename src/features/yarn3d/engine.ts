@@ -25,6 +25,7 @@
 //    phones and on the book's page (`detail: "page"`)
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { ellipseRing, roundSection, type Outline } from "@/lib/outline";
 import { stitchOf } from "@/lib/knit";
 
 export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal"
@@ -64,6 +65,8 @@ export interface YarnPattern {
   depth?: number[];
   /** a firm edging round the opening (the last round worked as a thicker border) */
   rim?: boolean;
+  /** a drawn body's own outline (lib/outline): every round is laid on it, so the 3D's front view is the drawing */
+  outline?: Outline;
   /** a closed, stuffed piece (a drawn shape that ends on its centre line): it keeps its shape, no slump */
   firm?: boolean;
   /** how many strands side by side a strap is (1-5; 3 when missing) */
@@ -812,6 +815,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         else { const u = Math.max(0, (t - .7) / .3), f = u * u * (3 - 2 * u), th = Math.atan2(p.z - cz, p.x - cx), k = 1 - f * (.2 + .03 * Math.sin(9 * th)); p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; }
       }
     }
+    // a drawn body: its rounds laid on the drawing's own outline - nothing else bends it afterwards
+    if (pat.outline && layOnOutline(D, pat.outline, b.x1 - b.x0 >= b.z1 - b.z0, cx, cz)) return;
     if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
     const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
     if (s < .03) return;
@@ -832,6 +837,30 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const k = (1 + s * (.07 * Math.sin(Math.PI * Math.min(1, t * 1.1)) - .055 * t * t) * (.6 + .4 * slim)) * (1 + s * .04 * t * (Math.sin(2 * th + .6) + .5 * Math.sin(3 * th + 2.1)));
       p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; p.y -= s * .075 * t * t * H * (.6 + .4 * slim);
     }
+  }
+  // Every round on the drawn outline (lib/outline): the round's own place among the pattern's rounds gives its
+  // width, depth and height; its stitches are spaced evenly round that ellipse, starting where the settled
+  // round started and going the way it went (so the stitches still stand over one another).
+  function layOnOutline(D: ItemData, o: Outline, longX: boolean, cx: number, cz: number) {
+    const cs = D.C.filter(c => c.closed && c.idx.length >= 3); if (cs.length < 3 || o.prof.length < 2 || !(o.prof[0] > 0)) return false;
+    const U = 10 / MM, ciMax = Math.max(...cs.map(c => c.ci)), ciMin = Math.min(...cs.map(c => c.ci));
+    let turn = 0;
+    for (const c of cs) {
+      const r = ciMax === ciMin ? 0 : (c.ci - ciMin) / (ciMax - ciMin) * (o.rounds - 1), s = roundSection(o, Math.round(r));
+      const n = c.idx.length, p0 = D.P[c.idx[0]], p1 = D.P[c.idx[1]];
+      const ang = (p: THREE.Vector3) => longX ? Math.atan2(p.z - cz, p.x - cx) : Math.atan2(p.x - cx, p.z - cz);
+      const a0 = ang(p0); let da = ang(p1) - a0; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
+      if (!turn) turn = da < 0 ? -1 : 1;
+      const M = Math.max(n * 4, 96), ring = ellipseRing(s.hw * U, s.hd * U, M), k0 = ((Math.round(a0 / (Math.PI * 2) * M) % M) + M) % M;
+      // the settled round's first stitch at its own angle: the ring's point nearest that angle
+      let best = k0, bd = 1e9; for (let k = 0; k < M; k++) { const [x, z] = ring[k]; let d = Math.abs(Math.atan2(z, x) - a0); if (d > Math.PI) d = Math.PI * 2 - d; if (d < bd) { bd = d; best = k; } }
+      for (let i = 0; i < n; i++) {
+        const [u, v] = ring[(((best + turn * Math.round(i * M / n)) % M) + M) % M], q = D.P[c.idx[i]];
+        if (longX) { q.x = cx + u; q.z = cz + v; } else { q.z = cz + u; q.x = cx + v; }
+        q.y = s.y * U;
+      }
+    }
+    return true;
   }
   // the body pressed to a depth (YarnPattern.depth): at each height its section now (half-width a, half-depth b,
   // read off the stitches there) becomes an ellipse of the asked depth : width with the same round length
@@ -1009,7 +1038,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
       if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; }
-      const retop = p.top !== pat.top; // another kind of piece: the camera starts over
+      const retop = p.top !== pat.top || JSON.stringify(p.outline ?? null) !== JSON.stringify(pat.outline ?? null) || JSON.stringify(p.depth ?? null) !== JSON.stringify(pat.depth ?? null); // another kind of piece: the camera starts over
       pat = p;
       if (mat) Object.assign(st, presetOf(p.material));
       if (reshape) startItem();

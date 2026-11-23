@@ -95,5 +95,6 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper || p.extras.tab) ? { extras: p.extras } : {}),
     // a drawn silhouette (lib/sketchMeasure): pressed to its depth, its opening edged
-    ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true } : {}) };
+    ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true,
+      ...(p.profile[0] > 0 && p.h ? { outline: { prof: p.profile, a: p.a, h: p.h, depth: p.depthProfile ?? DEPTH_DEFAULT, bottom: pp.bottomRounds, rounds: pp.bottomRounds + pp.bodyRows } } : {}) } : {}) };
 }
