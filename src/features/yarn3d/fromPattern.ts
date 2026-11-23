@@ -19,7 +19,7 @@ export interface YarnSource extends PlanInput {
   crochetChart?: ChartKey | null;
   /** a named pattern drawn from its recipe (lib/stitchCharts), for either needle, and the other yarns' colours */
   chartName?: string | null;
-  moreColors?: { hex?: string }[] | null;
+  moreColors?: { hex?: string; material?: string; held?: boolean }[] | null;
   flapShape?: "half" | "square" | "triangle";
   handleCount?: 1 | 2;
   flapColor?: string;
@@ -38,7 +38,6 @@ export interface YarnSource extends PlanInput {
   handleStyle?: "flat-chain" | "flat-rows" | "tube" | null;
   handleWcm?: number | null;
   topGapCm?: number | null;
-  color2?: string | null;
   topFold?: "spread" | "tuck";
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; tab?: boolean; items?: { pic: string; at: [number, number, number] }[] } | null;
   /** a band handle's rows of 짧은뜨기 on its chain; the piece left to its own weight (the 3D only) */
@@ -61,7 +60,7 @@ export const DEFAULT_COLOR = "#EFE6D4";
 const MAT: Record<string, YarnMaterial> = {
   코튼: "cotton", 울: "wool", 메리노: "wool", 캐시미어: "cashmere", 아크릴: "wool", 알파카: "alpaca", 모헤어: "mohair", 앙고라: "angora",
   수면사: "sleep", 부클레: "boucle", 수세미실: "scrub", 패브릭얀: "tshirt", 리본얀: "ribbon", 황마: "jute",
-  리넨: "linen", 실크: "silk", 대나무: "silk", 나일론: "cord", 폴리에스터: "silk", "벨벳(셔닐)": "chenille",
+  리넨: "linen", 실크: "silk", 대나무: "cotton", 나일론: "silk", 폴리에스터: "cotton", "벨벳(셔닐)": "chenille",
   라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈릭: "metal",
 };
 
@@ -113,14 +112,15 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
   const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
   // a chart's other colours: the other yarns picked, or a lighter and a darker of the main one
-  const more = (p.moreColors ?? []).map(c => c?.hex).filter((h): h is string => !!h && /^#[0-9a-f]{6}$/i.test(h));
+  const more = (p.moreColors ?? []).filter(c => !c?.held).map(c => c?.hex).filter((h): h is string => !!h && /^#[0-9a-f]{6}$/i.test(h));
   const colors = rowColors ? rowColors.map(c => c ?? color) : shape.kind === "chart" ? [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] : [color];
   return { shape, colors, yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
     ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
     ...(p.free ? {} : p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
     // with a flap the top closes to the gap asked (2cm when not said)
-    ...(p.color2 && /^#[0-9a-f]{6}$/i.test(p.color2) ? { marl: p.color2 } : {}),
+    // 합사 (Kim): the first added yarn held together with the main one - its colour twists in, its fibres show
+    ...((h => h ? { marl: h.hex, ...(h.material && MAT[h.material] ? { marlMat: MAT[h.material] } : {}) } : {})((p.moreColors ?? []).find(c => c?.held && !!c.hex && /^#[0-9a-f]{6}$/i.test(c.hex)))),
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
     // a handle is flat or a tube (Kim: no strands): flat when not said
     ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),

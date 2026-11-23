@@ -85,6 +85,8 @@ export interface YarnPattern {
   topGap?: number;
   /** 합사: a second yarn's colour held together with the first - their plies twist round each other (marled) */
   marl?: string;
+  /** the held yarn's material: its hairs show too (a wool with angora held in is hairy) */
+  marlMat?: YarnMaterial;
   /** closing the top: "spread" the sides go out (the round's length kept), "tuck" the width kept and the sides
    *  folded in at the top (as a paper bag's) */
   topFold?: "spread" | "tuck";
@@ -161,24 +163,24 @@ interface Preset { plies: number; twist: number; fuzz: number; depth: number; br
 const P0 = { braid: false, sheen: 0, metal: 0, halo: 0, flat: 1, slub: 0, fill: 1.3, hair: 1, glint: 0, soft: .5 };
 export const PRE: Record<YarnMaterial, Preset> = {
   cotton: { ...P0, plies: 4, twist: 1, fuzz: .04, depth: .3, rough: .82, ao: .3, soft: .4 },
-  wool: { ...P0, plies: 3, twist: .7, fuzz: .5, depth: .22, rough: .92, ao: .24, sheen: .55, halo: .18, soft: .6 },
-  mohair: { ...P0, plies: 2, twist: .45, fuzz: 1.7, depth: .12, rough: 1, ao: .16, sheen: .4, halo: .5, fill: 1.05, soft: .85 },
+  wool: { ...P0, plies: 3, twist: .7, fuzz: .5, depth: .22, rough: .92, ao: .24, sheen: 0, halo: .18, soft: .6 },
+  mohair: { ...P0, plies: 2, twist: .45, fuzz: 1.7, depth: .12, rough: 1, ao: .16, sheen: 0, halo: .5, fill: 1.05, soft: .85 },
   linen: { ...P0, plies: 2, twist: .55, fuzz: .08, depth: .2, rough: .9, ao: .3, slub: .38, soft: .45 },
   silk: { ...P0, plies: 3, twist: .9, fuzz: 0, depth: .18, rough: .38, ao: .22, sheen: .7, soft: .75 },
-  chenille: { ...P0, plies: 1, twist: 0, fuzz: .15, depth: 0, rough: 1, ao: .1, sheen: .9, halo: .3, fill: 1.75, soft: .7 },
+  chenille: { ...P0, plies: 1, twist: 0, fuzz: .15, depth: 0, rough: 1, ao: .1, sheen: 0, halo: .3, fill: 1.75, soft: .7 },
   raffia: { ...P0, plies: 1, twist: .25, fuzz: 0, depth: 0, rough: .58, ao: .22, flat: 3.4, fill: 1.15, soft: .2 },
-  cord: { ...P0, plies: 8, twist: 1.3, fuzz: 0, depth: .2, braid: true, rough: .66, ao: .28, sheen: .25, soft: .1 },
+  cord: { ...P0, plies: 8, twist: 1.3, fuzz: 0, depth: .2, braid: true, rough: .92, ao: .28, sheen: 0, soft: .1 },
   fur: { ...P0, plies: 2, twist: .6, fuzz: 1, depth: .12, rough: 1, ao: .14, halo: .85, fill: 1, hair: 3.4, soft: .7 },
   metal: { ...P0, plies: 3, twist: 1.5, fuzz: 0, depth: .3, rough: .3, ao: .3, metal: .85, soft: .35 },
   // more yarns to tell apart in the 3D (Kim: as many as can be shown)
-  cashmere: { ...P0, plies: 3, twist: .6, fuzz: .7, depth: .16, rough: .95, ao: .2, sheen: .7, halo: .32, soft: .8 },
-  alpaca: { ...P0, plies: 2, twist: .5, fuzz: 1.15, depth: .14, rough: 1, ao: .18, sheen: .5, halo: .42, hair: 1.25, fill: 1.15, soft: .8 },
-  angora: { ...P0, plies: 2, twist: .4, fuzz: 2.3, depth: .08, rough: 1, ao: .12, sheen: .35, halo: .72, hair: 1.5, fill: 1, soft: .9 },
-  sleep: { ...P0, plies: 1, twist: 0, fuzz: .9, depth: 0, rough: 1, ao: .08, sheen: .6, halo: .7, hair: 1.2, fill: 1.8, soft: .85 },     // 수면사: a thick, very soft pile yarn
-  boucle: { ...P0, plies: 2, twist: .35, fuzz: .45, depth: .26, rough: 1, ao: .26, sheen: .3, halo: .34, slub: .95, fill: 1.4, soft: .65 }, // loops along the strand
+  cashmere: { ...P0, plies: 3, twist: .6, fuzz: .7, depth: .16, rough: .95, ao: .2, sheen: 0, halo: .32, soft: .8 },
+  alpaca: { ...P0, plies: 2, twist: .5, fuzz: 1.15, depth: .14, rough: 1, ao: .18, sheen: 0, halo: .42, hair: 1.25, fill: 1.15, soft: .8 },
+  angora: { ...P0, plies: 2, twist: .4, fuzz: 2.3, depth: .08, rough: 1, ao: .12, sheen: 0, halo: .72, hair: 1.5, fill: 1, soft: .9 },
+  sleep: { ...P0, plies: 1, twist: 0, fuzz: .9, depth: 0, rough: 1, ao: .08, sheen: 0, halo: .7, hair: 1.2, fill: 1.8, soft: .85 },     // 수면사: a thick, very soft pile yarn
+  boucle: { ...P0, plies: 2, twist: .35, fuzz: .45, depth: .26, rough: 1, ao: .26, sheen: 0, halo: .34, slub: .95, fill: 1.4, soft: .65 }, // loops along the strand
   scrub: { ...P0, plies: 1, twist: .3, fuzz: 1.25, depth: 0, rough: .4, ao: .16, sheen: .8, metal: .18, halo: .4, hair: 2.2, glint: .4, fill: .95, soft: .5 }, // 수세미실: shiny tinsel
   tshirt: { ...P0, plies: 1, twist: .12, fuzz: 0, depth: 0, rough: .95, ao: .2, flat: 2.3, fill: 1.5, soft: .5 },                         // 패브릭얀: a jersey tape
-  ribbon: { ...P0, plies: 1, twist: .4, fuzz: 0, depth: 0, rough: .36, ao: .2, sheen: .75, flat: 4.2, fill: 1.2, soft: .55 },
+  ribbon: { ...P0, plies: 1, twist: .4, fuzz: 0, depth: 0, rough: .9, ao: .2, sheen: 0, flat: 4.2, fill: 1.2, soft: .55 },
   jute: { ...P0, plies: 3, twist: 1.15, fuzz: .7, depth: .32, rough: 1, ao: .36, slub: .3, hair: .8, soft: .2 },                           // 황마: rough, hairy, stiff
 };
 const presetOf = (m: YarnMaterial) => { const p = PRE[m] ?? PRE.cotton; return { ...p, preset: m, fur: p.hair >= 2 }; };
@@ -276,6 +278,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
 
   let pat = first;
   const st = { thick: 1, ...presetOf(pat.material) };
+  // a held yarn (합사) brings its own hairs: the hairier of the two (Kim: 갈색 울 + 흰색 앙고라)
+  const withHeld = () => { if (!pat.marlMat) return; const h = presetOf(pat.marlMat); st.fuzz = Math.max(st.fuzz, h.fuzz); st.halo = Math.max(st.halo, h.halo); st.hair = Math.max(st.hair, h.hair); };
+  withHeld();
   const IT = { view: "yarn" as "yarn" | "holo", data: null as ItemData | null };
   const colorOf = (ci: number) => pat.colors[Math.max(0, Math.min(ci, pat.colors.length - 1))] || "#EFE6D4";
 
@@ -293,7 +298,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
 
   function yarnMat(R: number) {
     // sheen: the soft light along fibres (wool, chenille, silk), the colour stays the yarn's own
-    const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: st.rough, metalness: st.metal, envMap: st.metal || st.preset === "silk" ? ENV : null, envMapIntensity: st.metal ? 1.25 : .35,
+    // dry (Kim): only silk and nylon (drawn as silk), the tinsel and metal shine; the rest takes little light
+    const shiny = st.preset === "silk" || st.preset === "scrub" || st.metal > .5;
+    const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: shiny ? st.rough : Math.max(.94, st.rough), specularIntensity: shiny ? 1 : .25, metalness: st.metal, envMap: st.metal || st.preset === "silk" ? ENV : null, envMapIntensity: st.metal ? 1.25 : .35,
       bumpMap: FTEX, bumpScale: R * (st.preset === "raffia" ? .14 : .05), sheen: st.sheen, sheenRoughness: st.preset === "silk" ? .28 : .6, sheenColor: new THREE.Color(.34, .33, .32) });
     return m;
   }
@@ -368,7 +375,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     geos.forEach(g => {
       const fr = g.userData.frames, R = g.userData.R, count = Math.floor(per(g) * scale);
       // fur: the proper colour; the light fuzz: the prototype used the sRGB numbers as linear (lighter), so do the same
-      cc.set(g.userData.color); if (!st.fur) { cc.convertLinearToSRGB(); cc.lerp(WH, fluffy ? .12 : .35); }
+      // the hairs in the yarn's own colour (Kim), barely lighter; with a held yarn, half of them in its colour
+      cc.set(g.userData.color); if (!st.fur) { cc.convertLinearToSRGB(); cc.lerp(WH, .04); }
+      const c2 = pat.marl && g.userData.color === pat.colors[0] ? new THREE.Color(pat.marl).convertLinearToSRGB().lerp(WH, .04) : null;
       for (let k = 0; k < count; k++) {
         const f = fr[Math.random() * fr.length | 0], ph = Math.random() * 6.283, c = Math.cos(ph), s = Math.sin(ph);
         d.set(0, 0, 0).addScaledVector(f.n, c).addScaledVector(f.b, s); p.copy(f.p).addScaledVector(d, R * .8);
@@ -377,7 +386,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         v.push(p.x, p.y, p.z, p.x + d.x * L, p.y + d.y * L, p.z + d.z * L);
         const br = st.fur ? .75 + Math.random() * .25 : 1, k0 = st.fur ? .8 : .9;
         if (st.glint > 0 && Math.random() < st.glint) col.push(.92, .92, .9, 1, 1, 1); // tinsel: a fibre that catches the light
-        else col.push(cc.r * br * k0, cc.g * br * k0, cc.b * br * k0, cc.r * br, cc.g * br, cc.b * br);
+        else { const h = c2 && Math.random() < .5 ? c2 : cc; col.push(h.r * br * k0, h.g * br * k0, h.b * br * k0, h.r * br, h.g * br, h.b * br); }
       }
     });
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
@@ -1409,8 +1418,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; }
       const zk = (q: YarnPattern) => JSON.stringify([q.topFold ?? null, q.topGap ?? null, !!q.extras?.zipper, q.extras?.zipOpen ?? 0, !!q.flap]);
       const retop = zk(p) !== zk(pat) || p.top !== pat.top || p.gravity !== pat.gravity || JSON.stringify(p.outline ?? null) !== JSON.stringify(pat.outline ?? null) || JSON.stringify(p.depth ?? null) !== JSON.stringify(pat.depth ?? null); // another kind of piece: the camera starts over
+      const heldCh = p.marlMat !== pat.marlMat;
       pat = p;
-      if (mat) Object.assign(st, presetOf(p.material));
+      if (mat || heldCh) { Object.assign(st, presetOf(p.material)); withHeld(); }
       if (reshape) startItem();
       else if (IT.data?.done) { if (mat || retop) soften(IT.data); showItem(); if (refocus) frameOn(IT.data); else if (opts.fit && framed && needsFit(IT.data) && !(pat.focus === "fabric" && IT.data.knit)) fitAll(IT.data, viewDir()); } // colour, material or stitch pattern: the yarn again, the shape as it is (a softer yarn gives more)
     },

@@ -198,7 +198,12 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
     else patch({ yarnMm: null, yarnMode: "mm" });
   };
   const mats = draft.materials ?? [];
-  const toggleMat = (m: string) => patch({ materials: mats.includes(m) ? mats.filter(x => x !== m) : [...mats, m], ...(m === "혼방" && mats.includes(m) ? { blend: "" } : {}) });
+  // 수세미실 is 1mm thin as a rule (Kim): picked, the thickness becomes 1mm
+  const toggleMat = (m: string) => {
+    const on = !mats.includes(m);
+    if (m === "수세미실" && on) { setMmRaw("1"); patch({ materials: [...mats, m], yarnMm: 1, weight: weightFromMm(1), yarnMode: "mm" }); return; }
+    patch({ materials: on ? [...mats, m] : mats.filter(x => x !== m), ...(m === "혼방" && !on ? { blend: "" } : {}) });
+  };
   const listed = more ? MATERIALS_WEB : WEB_MATERIALS, customMats = mats.filter(m => !MATERIALS_WEB.includes(m));
   const addOwn = () => { const c = clean(own); if (c && !mats.includes(c)) patch({ materials: [...mats, c] }); setOwn(""); setAdding(false); };
   const preset = draft.color ? COLORS.find(([n, hex]) => hex === draft.color && n === draft.colorName) : undefined;
@@ -254,21 +259,6 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
         )}
       </div>}
 
-      {/* 합사 (Kim): another colour's yarn held together with this one - one row, a colour when it is on */}
-      <div className="nb-wg">
-        <Head note="다른 색 실과 두 가닥 같이 뜰 때">합사</Head>
-        <div className="nb-dots nb-wdots" role="radiogroup" aria-label="함께 뜨는 실 색">
-          <button type="button" role="radio" aria-checked={!draft.color2} className="nb-tile nb-tile-inline" onClick={() => patch({ color2: undefined })}>안 함</button>
-          {COLORS.filter(([, hex]) => hex !== draft.color).map(([n, hex]) => (
-            <button key={n} type="button" role="radio" aria-checked={draft.color2 === hex} aria-label={n} title={n} className="nb-dot-color" style={{ background: hex }} onClick={() => patch({ color2: draft.color2 === hex ? undefined : hex })} />
-          ))}
-          <label className={"nb-picker" + (draft.color2 && !COLORS.some(([, h]) => h === draft.color2) ? " is-own" : "")} title="팔레트에서 색 고르기">
-            <span className="nb-picker-dot" aria-hidden="true">{draft.color2 && !COLORS.some(([, h]) => h === draft.color2) ? <i style={{ background: draft.color2 }} /> : <i className="nb-wheel" />}</span>
-            <input type="color" aria-label="함께 뜨는 실 색 직접 고르기" value={draft.color2 ?? "#9BB7D4"} onChange={e => patch({ color2: e.target.value })} />
-          </label>
-        </div>
-      </div>
-
       <div className="nb-wg">
         <Head note={<><button type="button" className="nb-link" disabled={!mats.length} onClick={() => patch({ materials: [], blend: "" })}>초기화</button><button type="button" className="nb-link" onClick={() => setMore(m => !m)}>{more ? "접기" : "더 보기"}</button>{!adding && <button type="button" className="nb-link" onClick={() => setAdding(true)}>직접 입력</button>}</>}>재질 <em className="nb-wsoft">여러 개 고를 수 있습니다</em></Head>
         <div className={"nb-matbox" + (more ? "" : " is-short")}>
@@ -291,6 +281,31 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
             <span className="nb-box nb-box-text"><input id="yBlend" maxLength={MAX_TEXT} placeholder="혼방 비율 (예: 코튼 60 · 아크릴 40)" value={draft.blend ?? ""} onChange={e => patch({ blend: e.target.value })} onBlur={e => patch({ blend: clean(e.target.value) })} /></span></div>
         )}
       </div>
+
+      {/* 실 추가 (Kim: 갈색 울 + 흰색 앙고라): another yarn - its colour and material - held together with the main
+          one (합사) or worked on its own for stripes and colourwork (배색) */}
+      {noColor && <div className="nb-wg">
+        <Head note={extra.length < 4 && <button type="button" className="nb-link" onClick={() => { patch({ moreColors: [...extra, { held: true }] }); toggle("y" + extra.length); }}>+ 실 추가</button>}>더 쓰는 실</Head>
+        {!extra.length && <p className="nb-help">한 가지 실로만 뜹니다.</p>}
+        {extra.length > 0 && <div className="nb-folds nb-wextra">
+          {extra.map((c, i) => {
+            const set = (nc: Partial<typeof c>) => { const m = [...extra]; m[i] = { ...c, ...nc }; patch({ moreColors: m }); };
+            return (
+              <Fold key={i} label={`실 ${i + 2}`} open={open === "y" + i} onToggle={() => toggle("y" + i)}
+                value={<>{c.hex && <i className="nb-swatch" style={{ background: c.hex }} />}{[c.material, c.held ? "합사" : "배색"].filter(Boolean).join(" · ")}</>}>
+                <Tiles label="쓰는 방법" value={c.held ? "held" : "own"} cols={2} onPick={v => set({ held: v === "held" })}
+                  options={[["held", "합사", "본 실과 같이 뜨기"], ["own", "배색", "따로 바꿔 뜨기"]]} />
+                <ColorEditor c={c} i={i + 1} onChange={nc => set(nc)} />
+                <p className="nb-wsubhead">재질</p>
+                <div className="nb-tiles nb-tiles-4" role="radiogroup" aria-label={`실 ${i + 2} 재질`}>
+                  {WEB_MATERIALS.slice(0, 12).map(m => <button key={m} type="button" role="radio" aria-checked={c.material === m} className="nb-tile" onClick={() => set({ material: c.material === m ? undefined : m })}>{m}</button>)}
+                </div>
+                <button type="button" className="nb-link nb-color-del" onClick={() => { patch({ moreColors: extra.filter((_, j) => j !== i) }); toggle("y" + i); }}>이 실 빼기</button>
+              </Fold>
+            );
+          })}
+        </div>}
+      </div>}
 
       {/* 내 실 사진 is left out for now (Kim) */}
 

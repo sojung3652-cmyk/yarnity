@@ -64,8 +64,6 @@ export interface Draft {
   flapShape?: "half" | "square" | "triangle";
   /** how far a bag's top stays open, cm (Kim: with a flap the top closes to this; 0 shut as a zipper's) */
   topGapCm?: number | null;
-  /** 합사 (Kim): a second yarn in another colour held together with the first, worked as one strand */
-  color2?: string;
   /** how the top closes (Kim): "spread" the sides go out; "tuck" the width kept, the sides folded in */
   topFold?: "spread" | "tuck";
   handleCount?: 1 | 2;
@@ -104,7 +102,9 @@ export interface Draft {
   depth?: number;
 }
 
-export interface YarnColor { hex?: string; name?: string; no?: string; lot?: string }
+export interface YarnColor { hex?: string; name?: string; no?: string; lot?: string;
+  /** an added yarn (Kim: 실 추가): its material, and whether it is held together with the main yarn (합사) */
+  material?: string; held?: boolean }
 
 export interface Project extends Draft {
   id: string;
