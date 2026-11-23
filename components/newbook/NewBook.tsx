@@ -33,7 +33,7 @@ import { DrawPad } from "./DrawPad";
 import { PaintPad } from "./PaintPad";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
-import { Head, PanelYarn, Slide, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
+import { Head, PanelYarn, Slide, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebStitchByNeedle, WebYarn } from "./WebPages";
 import { isKnit, stitchOf } from "@/lib/knit";
 import { yarnUse } from "@/lib/yarnUse";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
@@ -723,11 +723,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         <WebHook draft={draft} patch={patch} tried={tried} />
       </div>
     );
-    oneStitch = knitNow ? <WebStitch draft={draft} patch={patch} n={pp.last} /> : (
-      <div className="nb-web"><div className="nb-wg"><Head note={CROCHET[draft.crochetStitch ?? "sc"].note}>코바늘 무늬</Head>
-        <Tiles label="코바늘 무늬" value={draft.crochetStitch ?? "sc"} cols={4} onPick={v => patch({ crochetStitch: v === "sc" ? undefined : v as CrochetStitch })}
-          options={(Object.keys(CROCHET) as CrochetStitch[]).map(k => [k, CROCHET[k].ko])} /></div></div>
-    );
+    // 무늬 by the needle (Kim): the needle picked here or under 바늘 is the same choice
+    oneStitch = <WebStitchByNeedle draft={draft} patch={patch} n={pp.last} craft={craftNow} flatOnly={craftNow === "knit" && !knitNow} />;
     oneSize = (
       <div className="nb-web">
         {draft.free && <div className="nb-wg"><Head note="직접 그린 모양">높이</Head>
@@ -783,13 +780,14 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the work screen (3D로 보면서 만들기, Kim: "all of this is deciding the shape"): every section on one screen -
   // 뜰 것, 색, 실, 바늘과 크기, then the bag's shape and opening (or the knitted stitch) - and one way on, to 확인
   // the yarn-check swatch: a small piece in the picked yarn, hook and stitch, seen close up
-  const swatchSrc = { ...yarnSrc, object: "rows" as const, item: knitNow ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
+  const swatchKnit = (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit";
+  const swatchSrc = { ...yarnSrc, craft: swatchKnit ? "knit" as const : "crochet" as const, object: "rows" as const, item: swatchKnit ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
   const making = web && (step === 2 || step === 3) ? {
     sections: [
       { id: "yarn", title: "실", body: oneYarn },
       { id: "color", title: "색", body: <ColorStudio draft={draft} patch={patch} /> },
       { id: "needle", title: "바늘", body: oneHook },
-      { id: "stitch", title: "무늬", body: oneStitch },
+      { id: "stitch", title: "무늬", note: (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit" ? "대바늘" : "코바늘", body: oneStitch },
       { id: "draw", title: "모양 그리기", note: picked ? itemLabel : undefined, body: oneDraw },
       ...(picked ? [
         { id: "size", title: "크기", body: oneSize },

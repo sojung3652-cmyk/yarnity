@@ -858,3 +858,16 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .sk-tool kbd{position:static;margin-left:1px;font-size:10px;color:#A89A8E}
 .nb-wg.yp-row,.yw-mkbody .nb-wg.yp-row{display:flex;flex-direction:row}
 .yp-row .yp-up{flex:none;width:auto}
+
+/* 무늬 by the needle (web): the needle as one joined woven strip, then that needle's chart tiles */
+.nb-needle{display:inline-flex;border-radius:4px;background:#FFFDF8;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4}
+.nb-needle button{position:relative;min-width:92px;height:40px;padding:0 18px;border:0;background:none;font:inherit;font-size:14px;color:#3A322D;cursor:pointer}
+.nb-needle button:first-child{border-radius:4px 0 0 4px}.nb-needle button:last-child{border-radius:0 4px 4px 0}
+.nb-needle button + button::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:1px;background:#E1D5C9}
+.nb-needle button:hover{background:rgba(224,170,174,.14)}
+.nb-needle button[aria-checked="true"]{background:#F4E0DF;box-shadow:inset 0 0 0 1.5px #B99447;font-weight:600;z-index:1}
+.nb-needle button[aria-checked="true"]::before,.nb-needle button[aria-checked="true"] + button::before{display:none}
+.nb-needle button:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
+.nb-needle-note{margin:-6px 0 14px}
+.nb-stitches .nb-stitch[aria-checked="true"] .nb-chart{box-shadow:0 0 0 1px #B99447}
+.nb-needle{width:max-content;max-width:100%}

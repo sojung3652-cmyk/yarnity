@@ -11,7 +11,7 @@
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { keepYarnPhoto, useYarnPhoto, yarnPhoto } from "@/src/features/yarn3d/yarnPhoto";
 import type { Draft } from "@/lib/types";
-import { YARN_KO, type Weight } from "@/lib/pattern";
+import { CROCHET, YARN_KO, type CrochetStitch, type Weight } from "@/lib/pattern";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
 import { GROUPS, ITEM, ITEMS, type Item, type ItemId } from "@/lib/items";
@@ -360,6 +360,56 @@ export function StitchChart({ s, cells = 8 }: { s: KnitStitch; cells?: number })
     <svg className="nb-chart" viewBox="0 0 100 100" aria-hidden="true">
       <rect width="100" height="100" fill="#FFFDF8" />{purl}<path d={lines.join("")} stroke="#CDBFB4" strokeWidth=".6" fill="none" />
     </svg>
+  );
+}
+
+/** A crochet stitch as a small chart in the usual symbols, four stitches over three rows: 짧은뜨기 an X,
+ *  이랑뜨기 the X with the arc under it (back loop only), 긴뜨기 a T, 한길긴뜨기 a T crossed once - each row as tall
+ *  as the stitch makes it, so the tiles also show how fast each grows. */
+export function CrochetChart({ k }: { k: CrochetStitch }) {
+  const h = 22 * CROCHET[k].h, rows = Math.max(2, Math.min(4, Math.floor(96 / h))), top = 100 - rows * h, sym: ReactNode[] = [];
+  for (let r = 0; r < rows; r++) for (let i = 0; i < 4; i++) {
+    const cx = 14 + i * 24, y1 = 100 - r * h - 4, y0 = y1 - h + 8, m = (y0 + y1) / 2, key = r + "-" + i;
+    if (k === "sc" || k === "blo") sym.push(<g key={key}><path d={`M${cx - 6} ${m - 6}L${cx + 6} ${m + 6}M${cx + 6} ${m - 6}L${cx - 6} ${m + 6}`} />{k === "blo" && <path d={`M${cx - 6} ${y1 + 1}Q${cx} ${y1 + 5} ${cx + 6} ${y1 + 1}`} />}</g>);
+    else sym.push(<g key={key}><path d={`M${cx - 7} ${y0}H${cx + 7}M${cx} ${y0}V${y1}`} />{k === "dc" && <path d={`M${cx - 5} ${m + 3}L${cx + 5} ${m - 3}`} />}</g>);
+  }
+  return (
+    <svg className="nb-chart" viewBox="0 0 100 100" aria-hidden="true">
+      <rect width="100" height="100" fill="#FFFDF8" />
+      {Array.from({ length: rows + 1 }, (_, r) => <path key={r} d={`M0 ${100 - r * h}H100`} stroke="#E4D8CC" strokeWidth=".8" />)}
+      {top > 0 && <rect width="100" height={top} fill="#F6F0E6" />}
+      <g stroke="#6E5350" strokeWidth="2" fill="none" strokeLinecap="round">{sym}</g>
+    </svg>
+  );
+}
+/** 무늬 by the needle (Kim: 코바늘, 대바늘 별로): the needle as a joined choice first, then that needle's own
+ *  stitches as chart tiles. The pick is kept for each needle (Draft.crochetStitch, Draft.stitch), so trying the
+ *  other needle and coming back keeps it. `flatOnly`: knitting is worked out for flat pieces only - said so. */
+export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly }: { draft: Draft; patch: Patch; n: number; craft: "crochet" | "knit"; flatOnly?: boolean }) {
+  const cs = draft.crochetStitch ?? "sc", keys = Object.keys(CROCHET) as CrochetStitch[];
+  return (
+    <div className="nb-web">
+      <div className="nb-wg">
+        <Head note="바늘마다 고를 수 있는 무늬가 다릅니다">바늘</Head>
+        <div className="nb-needle" role="radiogroup" aria-label="바늘">
+          {([["crochet", "코바늘"], ["knit", "대바늘"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={craft === k} onClick={() => patch({ craft: k })}>{t}</button>)}
+        </div>
+      </div>
+      {craft === "crochet" ? (
+        <div className="nb-wg">
+          <Head note={CROCHET[cs].note}>코바늘 무늬</Head>
+          <div className="nb-tiles nb-tiles-4 nb-stitches" role="radiogroup" aria-label="코바늘 무늬">
+            {keys.map(k => <button key={k} type="button" role="radio" aria-checked={cs === k} className="nb-tile nb-stitch" onClick={() => patch({ crochetStitch: k === "sc" ? undefined : k })}><CrochetChart k={k} />{CROCHET[k].ko}</button>)}
+          </div>
+          <p className="nb-wnote">칸 높이는 한 단의 높이입니다. 키가 큰 무늬일수록 같은 높이를 적은 단으로 뜹니다.</p>
+        </div>
+      ) : (
+        <>
+          {flatOnly && <p className="nb-help nb-needle-note">대바늘 도안은 목도리처럼 평평하게 뜨는 편물에서 만들어집니다. 이 모양의 도안은 코바늘로 계산하고, 무늬는 3D 실 확인에서 볼 수 있습니다.</p>}
+          <WebStitch draft={draft} patch={patch} n={n} />
+        </>
+      )}
+    </div>
   );
 }
 
