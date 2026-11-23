@@ -19,6 +19,9 @@ export interface YarnSource extends PlanInput {
   materials?: string[];
   /** a knitted item's stitch pattern (lib/knit.ts) */
   stitch?: string | null;
+  /** how hairy the yarn is drawn (the reader's own 털 양 / 털 길이; 1 = the material's own) */
+  fuzzK?: number | null;
+  hairK?: number | null;
 }
 
 // no thickness typed (only thin / medium / thick picked): the middle of each level in lib/yarn.ts
@@ -28,7 +31,8 @@ const LEVEL_MM: Record<string, number> = { thin: 2, medium: 3, thick: 5 };
 export const DEFAULT_COLOR = "#EFE6D4";
 // the pattern's yarn material (lib/yarn.ts MATERIALS) -> the engine's look; anything else stays cotton
 const MAT: Record<string, YarnMaterial> = {
-  코튼: "cotton", 울: "wool", 메리노: "wool", 캐시미어: "wool", 아크릴: "wool", 알파카: "mohair", 모헤어: "mohair",
+  코튼: "cotton", 울: "wool", 메리노: "wool", 캐시미어: "cashmere", 아크릴: "wool", 알파카: "alpaca", 모헤어: "mohair", 앙고라: "angora",
+  수면사: "sleep", 부클레: "boucle", 수세미실: "scrub", 패브릭얀: "tshirt", 리본얀: "ribbon", 황마: "jute",
   리넨: "linen", 실크: "silk", 대나무: "silk", 나일론: "silk", 폴리에스터: "silk", "벨벳(셔닐)": "chenille",
   라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈릭: "metal",
 };
@@ -57,6 +61,8 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   const color = /^#[0-9a-f]{6}$/i.test(p.color ?? "") ? p.color! : DEFAULT_COLOR;
   const handleCm = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25;
   const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : handleCm >= 60 ? "long" : "two";
-  const material = (p.materials ?? []).map(m => MAT[m]).find(Boolean) ?? "cotton";
-  return { shape, colors: [color], yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material };
+  // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
+  const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
+  return { shape, colors: [color], yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
+    ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}) };
 }

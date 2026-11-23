@@ -11,7 +11,7 @@
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import type { Draft } from "@/lib/types";
 import { YARN_KO, type Weight } from "@/lib/pattern";
-import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
+import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
 import { GROUPS, ITEM, ITEMS, type Item, type ItemId } from "@/lib/items";
 import { Fold, useOneOpen } from "./Fold";
@@ -97,7 +97,22 @@ export function WebItems({ value, onPick, tried, hint, extra }: { value: ItemId 
 }
 
 // the materials shown at once (the rest under 더 보기); the 3D draws each of them its own way
-const WEB_MATERIALS = ["코튼", "울", "메리노", "알파카", "모헤어", "아크릴", "리넨", "실크", "벨벳(셔닐)", "라피아", "코드사", "메탈릭"];
+const WEB_MATERIALS = ["코튼", "울", "알파카", "모헤어", "앙고라", "수면사", "벨벳(셔닐)", "부클레", "페이크퍼", "수세미실", "리넨", "실크", "라피아", "패브릭얀", "코드사", "메탈릭"];
+
+/** One slider with its name and value (털 양, 털 길이, 굵기): the 3D follows while it is dragged. */
+function Slide({ label, min, max, step, value, onChange, text }: { label: string; min: number; max: number; step: number; value: number; onChange: (v: number) => void; text: string }) {
+  return <label className="nb-slide"><span>{label}</span><input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} /><output>{text}</output></label>;
+}
+/** 털 양 / 털 길이 (Kim: turned while looking): only how the 3D draws the yarn, the pattern's counts stay. */
+function HairSliders({ draft, patch }: { draft: Draft; patch: Patch }) {
+  const f = draft.fuzzK ?? 1, h = draft.hairK ?? 1;
+  return (
+    <div className="nb-sliders">
+      <Slide label="털 양" min={0} max={3} step={0.1} value={f} onChange={v => patch({ fuzzK: v })} text={f === 0 ? "없음" : `${Math.round(f * 100)}%`} />
+      <Slide label="털 길이" min={0.3} max={3} step={0.1} value={h} onChange={v => patch({ hairK: v })} text={`${Math.round(h * 100)}%`} />
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------- the work screen's 실 panel (크게 보기)
 /** The yarn in the 3D work screen's narrow column: thickness, colour, material - the same values as the
@@ -118,6 +133,7 @@ export function PanelYarn({ draft, patch }: { draft: Draft; patch: Patch }) {
           <span className="nb-box"><input inputMode="decimal" autoComplete="off" aria-label="실 굵기 (mm)" aria-invalid={mmRaw.trim() !== "" && !good(mm)} value={mmRaw} onChange={e => setMm(e.target.value)} placeholder="예: 3.2" /><span>mm</span></span>
           {good(mm) && <span className="nb-wtag">{YARN_KO[weightFromMm(Math.round(mm * 10) / 10)]} 굵기</span>}
         </div>
+        <Slide label="굵기" min={1} max={10} step={0.5} value={good(mm) ? mm : 3} onChange={v => setMm(String(v))} text={good(mm) ? `${mm}mm` : "—"} />
       </div>
       <div className="nb-wg">
         <Head>색</Head>
@@ -138,6 +154,7 @@ export function PanelYarn({ draft, patch }: { draft: Draft; patch: Patch }) {
         <div className="nb-tiles nb-tiles-3" role="group" aria-label="재질 (여러 개)">
           {WEB_MATERIALS.map(m => <button key={m} type="button" className="nb-tile" aria-pressed={mats.includes(m)} onClick={() => toggleMat(m)}>{m === "벨벳(셔닐)" ? "셔닐" : m}</button>)}
         </div>
+        <HairSliders draft={draft} patch={patch} />
       </div>
     </div>
   );
@@ -160,7 +177,7 @@ export function WebYarn({ draft, patch, tried }: { draft: Draft; patch: Patch; t
   };
   const mats = draft.materials ?? [];
   const toggleMat = (m: string) => patch({ materials: mats.includes(m) ? mats.filter(x => x !== m) : [...mats, m], ...(m === "혼방" && mats.includes(m) ? { blend: "" } : {}) });
-  const listed = more ? MATERIALS : WEB_MATERIALS, customMats = mats.filter(m => !MATERIALS.includes(m));
+  const listed = more ? MATERIALS_WEB : WEB_MATERIALS, customMats = mats.filter(m => !MATERIALS_WEB.includes(m));
   const addOwn = () => { const c = clean(own); if (c && !mats.includes(c)) patch({ materials: [...mats, c] }); setOwn(""); setAdding(false); };
   const preset = draft.color ? COLORS.find(([n, hex]) => hex === draft.color && n === draft.colorName) : undefined;
   const extra = draft.moreColors ?? [];
@@ -175,6 +192,7 @@ export function WebYarn({ draft, patch, tried }: { draft: Draft; patch: Patch; t
           <div className="nb-wrow">
             <span className="nb-box"><input id="yMm" inputMode="decimal" autoComplete="off" aria-labelledby="wMmLbl" aria-invalid={showErr} aria-describedby={showErr ? "yMmErr" : undefined} value={mmRaw} onChange={e => setMm(e.target.value)} placeholder="예: 3.2" /><span>mm</span></span>
             {!mmErr && <span className="nb-wtag">{YARN_KO[weightFromMm(Math.round(mm * 10) / 10)]} 굵기</span>}
+            {!mmErr && <label className="nb-slide nb-slide-in"><span className="sr">굵기 조절</span><input type="range" min={1} max={10} step={0.5} value={mm} onChange={e => setMm(e.target.value)} /></label>}
             <button type="button" className="nb-link nb-wright" onClick={() => patch({ yarnMode: "level" })}>잘 모르겠습니다</button>
           </div>
         ) : (
@@ -219,6 +237,7 @@ export function WebYarn({ draft, patch, tried }: { draft: Draft; patch: Patch; t
           {listed.map(m => <button key={m} type="button" className="nb-tile" aria-pressed={mats.includes(m)} onClick={() => toggleMat(m)}>{m}</button>)}
           {customMats.map(m => <button key={m} type="button" className="nb-tile" aria-pressed="true" aria-label={`${m} 지우기`} onClick={() => toggleMat(m)}>{m}<small>지우기 ×</small></button>)}
         </div>
+        <HairSliders draft={draft} patch={patch} />
         {adding && (
           <div className="nb-wrow nb-wsub">
             <span className="nb-box nb-box-text"><input autoFocus aria-label="재질 직접 입력" maxLength={MAX_TEXT} value={own} onChange={e => setOwn(e.target.value)}

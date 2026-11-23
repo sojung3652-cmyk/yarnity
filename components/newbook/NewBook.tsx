@@ -38,6 +38,7 @@ import { AiTab } from "@/components/AiTab";
 import { LaceButton } from "@/components/diary/Diary";
 import { partsOf, useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
+import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import "./newbook.css";
 
@@ -223,7 +224,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch]);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const sizeCaption = (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
     : (input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`) + (input.object === "bag" && input.h ? ` · 높이 ${input.h}cm` : ""))
@@ -245,9 +246,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       </section>
     </>
   );
-  const big3d = useYarn3D(yarnSrc, pp, { title: item.name, sub: draft.name.trim() || NO_NAME, caption: sizeCaption, panel: workPanel, backLabel: "← 책으로",
-    dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
-    parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1) });
+  // the work screen itself is drawn at the end of this render (big3d.render): in 3D로 보면서 만들기 its right
+  // column is this wizard's own step
+  const big3d = useYarn3D(yarnSrc, pp);
+  // 3D로 보면서 만들기 (Kim): wide screens with the 3D book - after the name, the steps are made in the work
+  // screen over the whole window, and the last page (확인) is in the book again
+  const canMake = () => web && inBook != null && big3d.supported && matchMedia("(min-width: 901px)").matches;
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
@@ -293,21 +297,27 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     } else {
       addProject({ id: "p" + Date.now().toString(36), ...JSON.parse(JSON.stringify(d)), measuredH: null, current: 0, created: Date.now(), updatedAt: Date.now(), status: "knitting" });
       store.set(STEP_KEY, 1);
-      // 완성 도안 (web and phone) then offers the book covers once (components/diary/CoverPicker.tsx)
+      // 완성 도안 (web and phone) then shows its links once (the cover is picked before, on 확인, or given at random)
       try { sessionStorage.setItem("m.justMade", "1"); } catch {}
     }
     // wide screens, in the 3D book (Kim): done, the book sinks and you are back where it rose (the new pattern
     // waits in 나의 도안집); the next 새 도안 starts clean. Phones and the one-page /new go to 완성 도안 as before.
-    if (inBook && !phone) { if (!editId) setDraft(freshDraft()); book.sinkAway(); return; }
+    // wide screens, in the 3D book: the book sinks and the finished pattern is shown (Kim: 완성 · 최종 도안 보기
+    // used to put the book away and show nothing); the next 새 도안 starts clean
+    if (inBook && !phone) { if (!editId) setDraft(freshDraft()); book.sinkTo("/pattern"); return; }
     router.push("/pattern");
   };
   // the web's step 3, spread by spread: the yarn needs only its thickness; the hook-and-size spread its
   // hook and sizes (the bag's shape spread follows); the last spread everything (stepOk)
   const sheetOk = !(web && step === 3) ? stepOk : sheet === 0 ? yarnThickOk(draft) : sheet === 1 && sheets3 === 3 ? yarnStepOk(draft) && Object.keys(errors).length === 0 : stepOk;
   const next = () => {
-    if (!sheetOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.nb-book [aria-invalid="true"], .mw-form [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
+    if (!sheetOk) { setTried(true); requestAnimationFrame(() => ((document.querySelector('.yw [aria-invalid="true"]') ?? document.querySelector('.nb-book [aria-invalid="true"], .mw-form [aria-invalid="true"]')) as HTMLElement | null)?.focus()); return; }
     if (web && step === 3 && sheet < sheets3 - 1) { setSheet(3, sheet + 1); return; }
     if (web && step === 2) setSheet(3, 0);
+    // the name is set: on into the work screen (the book waits under it, its pages swapping without a turn)
+    if (step === 1 && canMake()) { bookPause.set(true); big3d.show(); }
+    // everything is set there: back to the book for the last check
+    if (step === 3 && big3d.open) big3d.close();
     if (step < 4) go((step + 1) as Step); else save();
   };
   const back = () => {
@@ -332,7 +342,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
 
 
   const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: web ? (["어떤 실로 뜨시겠습니까?", "바늘과 크기를 정합니다", bagNow ? "가방 모양을 정합니다" : "어떤 무늬로 뜨시겠습니까?"][sheet]) : "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
-  const nextLabel: Record<Step, string> = { 1: "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : web && sheet === 1 && bagNow ? "다음 · 가방 모양 →" : web && sheet === 1 && knitNow ? "다음 · 무늬 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
+  const nextLabel: Record<Step, string> = { 1: web && inBook != null && big3d.supported ? "3D로 보면서 만들기 →" : "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : web && sheet === 1 && bagNow ? "다음 · 가방 모양 →" : web && sheet === 1 && knitNow ? "다음 · 무늬 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
   // folios (web): 1-2 이름, 3-4 품목, then two pages per spread of step 3 (실, 바늘과 크기, 가방 모양), then 확인;
   // four spreads on the one-page book
   const folio = web ? (step <= 2 ? step * 2 - 1 : step === 3 ? 5 + sheet * 2 : 5 + sheets3 * 2) : step * 2 - 1;
@@ -428,7 +438,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       </div>
     );
     // the web (Kim: like Photoshop's new-document window): every item at once as tiles, kinds as tabs
-    rightWeb = <WebItems value={picked ? item.id : ""} onPick={pickItem} tried={tried} hint={<AskAiLine which="item" />} />;
+    rightWeb = <WebItems value={picked ? item.id : ""} onPick={pickItem} tried={tried} hint={big3d.open ? undefined : <AskAiLine which="item" />} />;
   } else {
     // ③ all the inputs: the yarn and hook (page 5), the shape and size (page 6)
     // ④ the check before the pattern: the supplies with the yarn amount, now that the size is known
@@ -594,6 +604,16 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     nextText: phoneNext[step], blocked: blockNext || (step === 3 && !stepOk), final: step === 4, next,
   } : undefined;
 
+  // the work screen: while making (steps 2 and 3) its right column is this step; on 확인 the yarn and size panels
+  const making = web && (step === 2 || step === 3) ? {
+    tabs: ["품목", "실", "바늘과 크기", ...(picked && sheets3 === 3 ? [bagNow ? "가방 모양" : "무늬"] : [])], cur: step === 2 ? 0 : 1 + sheet, title: titles[step], body: rightWeb,
+    back: step === 3 ? back : undefined, next, nextLabel: step === 2 ? "다음 · 실 →" : sheet < sheets3 - 1 ? nextLabel[3] : "책으로 돌아가 확인 →", blocked: step === 2 ? !picked : !sheetOk,
+  } : undefined;
+  const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, sub: picked ? item.name : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
+    empty: !picked && step <= 2,
+    dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
+    parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1) }) : null;
+
   return {
     ready, formRef, onSubmit, onKeyDown, phone: phoneStep,
     // 3D로 보기 on every step (Kim: from the start and between steps), the pattern so far; hidden while the
@@ -617,10 +637,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           : <YarnPagePreview source={yarnSrc} plan={pp} fabric={knitNow && step === 3 && sheet === 2} caption={sizeCaption} />}
         <div className="nb-foot">
           <ClothLabel side="back" type="button" onClick={back}>← 이전</ClothLabel>
-          {big3d.supported && !(step === 2 && !picked) && <ClothLabel side="next" type="button" onClick={big3d.show}>작업 화면으로 크게</ClothLabel>}
+          {big3d.supported && <ClothLabel side="next" type="button" onClick={big3d.show}>{step === 4 ? "다시 3D로 고치기" : "3D로 보면서 만들기"}</ClothLabel>}
           <span className="nb-folio">{folio}</span>
         </div>
-        {big3d.node}
       </section>
     ) : (
       <section className="nb-page nb-left" aria-labelledby="nbTitle">
@@ -645,9 +664,11 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>
             {subSteps}
             {step === 3 && sheet === 0 && <AskAiLine which="yarn" />}
-            {rightWeb}
+            {/* while the work screen is open its right column holds this step: one copy of the inputs */}
+            {big3d.open && step < 4 ? null : rightWeb}
           </> : right}
         </div>
+        {workNode}
         <div className="nb-foot">
           <span className="nb-folio">{folio + 1}</span>
           {step === 4

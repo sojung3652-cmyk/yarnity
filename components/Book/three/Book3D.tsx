@@ -637,6 +637,10 @@ function Scene({ want, shown, setShown, instant, onOpen, reduce, layer, web, ris
   useEffect(() => () => { leaf.front.dispose(); leaf.back.dispose(); }, [leaf]);
   const phoneW = useThree(s => s.size.width) <= PHONE_MAX;
   useSpreads({ want, shown, setShown, instant, reduce, anim, layer, m, leaf, phone: phoneW });
+  // the 3D work screen covered the book and steps were made there (the canvas did not draw meanwhile):
+  // once it is gone, draw the spread the book is on now
+  const covered = useSyncExternalStore(bookPause.subscribe, bookPause.get, () => false), inval = useThree(s => s.invalidate);
+  useEffect(() => { if (covered) return; inval(); const a = requestAnimationFrame(() => inval()), t = setTimeout(() => inval(), 120); return () => { cancelAnimationFrame(a); clearTimeout(t); }; }, [covered, inval]);
   useEffect(() => {
     // test hook: ?debug lets screenshots freeze the animation at a given progress
     if (!location.search.includes("debug")) return;
@@ -760,9 +764,12 @@ export default function Book3D({ onFail }: { onFail: (why?: string) => void }) {
   const [ready, setReady] = useState(false);
   const [phoneGL] = useState(() => matchMedia("(max-width: 767.98px)").matches);
   const [gen, setGen] = useState(0);
-  const reduce = useReducedMotion();
+  const reduceMotion = useReducedMotion();
   // the yarn 3D preview covers the screen: the book stops drawing until it closes
   const paused = useSyncExternalStore(bookPause.subscribe, bookPause.get, () => false);
+  // while the 3D work screen covers the book (3D로 보면서 만들기) the canvas does not draw: a step made there
+  // swaps the book's pages at once, with no turn nobody would see
+  const reduce = reduceMotion || paused;
   const cssHost = useRef<HTMLDivElement>(null), flatHost = useRef<HTMLDivElement>(null);
   const [layer] = useState<CssLayer>(() => {
     const mk = (id: string) => { const el = document.createElement("div"); el.id = id; el.style.opacity = "0"; el.inert = true; return el; };

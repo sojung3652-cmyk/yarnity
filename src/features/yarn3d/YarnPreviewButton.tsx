@@ -46,8 +46,12 @@ export function useYarn3D(source: YarnSource | null | undefined, pp?: Plan | nul
   // focus goes back to what opened it (when it is still on the screen)
   const close = useCallback(() => { setOpen(false); ex.current?.onClosed?.(); requestAnimationFrame(() => { if (back.current?.isConnected) back.current.focus({ preventScroll: true }); }); }, []);
   const parts = useMemo(() => (thePlan ? partsOf(thePlan) : []), [thePlan]);
-  const node: ReactNode = !open || !pattern ? null : open === "wide" ? <YarnWorkspace pattern={pattern} onClose={close} extra={{ parts, ...extra }} /> : <YarnPreview pattern={pattern} onClose={close} />;
-  return { supported: !!pattern, show, node };
+  /** the overlay with what the screen knows only later in its render (도안 만들기: its steps as the panel) */
+  const render = (e?: WorkExtra): ReactNode => {
+    ex.current = e ?? extra;
+    return !open || !pattern ? null : open === "wide" ? <YarnWorkspace pattern={pattern} onClose={close} extra={{ parts, ...(e ?? extra) }} /> : <YarnPreview pattern={pattern} onClose={close} />;
+  };
+  return { supported: !!pattern, show, close, open: open === "wide", render, get node() { return render(); } };
 }
 
 /** look: "label" the book's cloth label, "ps" the pattern sheet's labels (도안 보기 / 따라 뜨기),

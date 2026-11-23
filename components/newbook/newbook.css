@@ -670,3 +670,16 @@ button.nb-ribbon:hover,button.nb-ribbon:focus-visible{transform:scale(1.1)}
 .nb-cover-img,.nb-cover-blank{flex:none;width:40px;height:54px;border-radius:2px 4px 4px 2px;box-shadow:-1.5px 2px 3px rgba(90,62,44,.18)}
 .nb-cover-img{object-fit:cover}
 .nb-cover-blank{box-sizing:border-box;border:1.5px dashed #D8CABD;box-shadow:none}
+
+/* ---- sliders (web): 털 양, 털 길이, 굵기 - the 3D follows while they are dragged */
+.nb-slide{display:flex;align-items:center;gap:10px;min-width:0;font-size:13.5px;color:#4A3D38}
+.nb-slide input[type="range"]{flex:1 1 auto;min-width:70px;height:28px;margin:0;accent-color:#B9858A;cursor:pointer}
+.nb-slide output{flex:none;min-width:40px;text-align:right;font-size:13px;color:#6B5C55;font-variant-numeric:tabular-nums}
+.nb-slide-in{flex:1 1 110px}
+.nb-sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 22px;margin-top:2px}
+.nb-slide input[type="range"]{-webkit-appearance:none;appearance:none;background:transparent}
+.nb-slide input[type="range"]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:#DCCFC3}
+.nb-slide input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-6px;border:0;border-radius:50%;background:#B9858A;box-shadow:-1px 2px 3px -1px rgba(70,50,30,.5)}
+.nb-slide input[type="range"]::-moz-range-track{height:4px;border-radius:2px;background:#DCCFC3}
+.nb-slide input[type="range"]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:#B9858A}
+.nb-slide input[type="range"]:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
