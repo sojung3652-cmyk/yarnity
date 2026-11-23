@@ -68,6 +68,8 @@ export interface Draft {
   profile?: number[];
   /** a drawn bag's depth against its width at the same heights (its side view; none: a round handbag's) */
   depthProfile?: number[];
+  /** 조립하기: the body's form as dragged (lib/assemble BodyForm); topA / profile are made from it */
+  asm?: { top: number; belly: number; round: number };
   /** the needle (Kim: 바늘에 따라 무늬): 코바늘 or 대바늘; none = the item's own (목도리 knitted, the rest crocheted) */
   craft?: "crochet" | "knit";
   flapColor?: string;

@@ -297,3 +297,28 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-x button:hover,.yw-x button:focus-visible{background:rgba(185,148,71,.12)}
 /* the stretch note on the bottom line: small, cut short if the line is narrow */
 .yw-stretch{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:#7A6A63}
+
+/* 조립하기의 첫 창 (Kim): what to make, asked over the whole work screen - a stitched cream card */
+.yw .ask{grid-column:1/-1;grid-row:2/3;z-index:30;display:grid;place-items:center;background:rgba(58,46,41,.34);padding:24px;overflow:auto}
+.ask-box{width:min(620px,100%);background:var(--paper,#FFFDF8);background-image:var(--weave);border:1px solid #CDBFB4;outline:1px dashed #CDBFB4;outline-offset:-7px;padding:28px 34px 24px;box-shadow:-8px 10px 0 rgba(58,46,41,.2);color:var(--ink,#3A322D)}
+.ask-box h2{margin:0 0 4px;font-size:21px;font-weight:700;display:flex;align-items:baseline;gap:10px}.ask-box h2 small{font-size:13px;font-weight:400;color:#7A6660}
+.ask-lead{margin:0 0 14px;font-size:13px;line-height:1.7;color:#6B5C55}
+.ask-f{display:block;margin-top:14px}.ask-f>span{display:block;font-size:14px;font-weight:700;margin-bottom:6px}.ask-f small{font-weight:400;font-size:12px;color:#7A6660;margin-left:8px}
+.ask-f input,.ask-f textarea{width:100%;border:1px solid #CDBFB4;background:#F9F4EA;padding:10px 12px;font:inherit;font-size:14px;line-height:1.6;color:inherit;border-radius:0;resize:none}
+.ask-f input:focus-visible,.ask-f textarea:focus-visible{outline:2px solid var(--gold,#B99447);outline-offset:1px}
+.ask-quick{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}.ask-quick button{border:1px solid #CDBFB4;background:#FFFDF8;padding:5px 11px;font:inherit;font-size:13px;color:inherit;cursor:pointer;border-radius:0}
+.ask-quick button:hover{background:var(--rose,#F4E0DF)}.ask-quick span{font-size:12px;color:#7A6660;margin-left:4px}
+.ask-err{margin:10px 0 0;font-size:13px;color:#A0524A}
+.ask-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:22px}.ask-foot .cloth-back{margin-right:auto}.ask-skipnote{font-size:12px;color:#7A6660;order:-1;margin-right:auto}.ask-skipnote+.cloth-back{margin-right:0}
+.ask-say{display:flex;gap:10px;margin:10px 0 8px;padding:10px 12px;background:#F6F0E6;border:1px solid #E4D8CC;font-size:13px;line-height:1.65}.ask-say b{color:#8E6B66;white-space:nowrap}
+.ask-list{list-style:none;margin:0;padding:0}.ask-list li{border-bottom:1px solid #EDE3D5;font-size:13px}
+.ask-list li.is-fixed,.ask-list label{display:grid;grid-template-columns:20px 70px 1fr;gap:8px;align-items:center;padding:8px 0}.ask-list label{cursor:pointer}
+.ask-list b{font-size:14px}.ask-list span{color:#5E554E}.ask-list i{width:7px;height:7px;background:var(--gold,#B99447);margin-left:5px}
+.ask-list input{width:16px;height:16px;accent-color:#B9858A;margin:0}
+.ask-note{margin:10px 0 0;font-size:12px;color:#7A6660}
+
+/* 크기 틀 (Kim: Ctrl+T처럼): the piece's box, its handles dragged */
+.yw-frame{position:absolute;border:1.5px solid var(--gold,#B99447);pointer-events:none;z-index:6}.yw-frame.is-pull{border-style:dashed;background:rgba(185,148,71,.07)}
+.yw-frame i{position:absolute;width:13px;height:13px;margin:-7px;background:#FFFDF8;border:1.5px solid var(--gold,#B99447);pointer-events:auto;touch-action:none}
+.yw-frame .h-l{left:0;top:50%;cursor:ew-resize}.yw-frame .h-r{left:100%;top:50%;cursor:ew-resize}.yw-frame .h-t{left:50%;top:0;cursor:ns-resize}.yw-frame .h-tl{left:0;top:0;cursor:nwse-resize}.yw-frame .h-tr{left:100%;top:0;cursor:nesw-resize}
+.yw-frame b{position:absolute;left:50%;top:100%;transform:translate(-50%,8px);white-space:nowrap;background:#FFFDF8;border:1px solid #CDBFB4;padding:3px 9px;font-size:12px;font-weight:600;color:#3A322D}

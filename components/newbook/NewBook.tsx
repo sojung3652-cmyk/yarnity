@@ -51,6 +51,8 @@ import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
 import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import { PATTERN_BY_ID, chartNameOf } from "@/lib/stitchPatterns";
+import { autoName, bodyOf, bodyPatch, bodyWidth, partLines, scaleDraft } from "@/lib/assemble";
+import { AskStart } from "./AskStart";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -202,6 +204,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
 
   const item: Item = ITEM[itemIdOf(draft)];
   const patch = (p: Partial<Draft>) => setDraft({ ...draft, ...p });
+  /** a change that also moves the typed size boxes (조립하기's sliders, the 크기 틀) */
+  const apply = (p: Partial<Draft>) => { const nd = { ...draft, ...p }; setDraft(nd); setNums(numsOf(nd)); };
+  // 조립하기 (Kim): the part being changed, 조립하기 or 그리기, and whether the first window has been answered
+  const [asmPart, setAsmPart] = useState("bottom"), [shapeMode, setShapeMode] = useState<"asm" | "draw">("asm"), [asked, setAsked] = useState(false);
 
   // a new item starts from its own defaults (no values carried over from the previous item)
   const pickItem = (id: ItemId) => {
@@ -385,7 +391,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
 
   const save = () => {
     const e = engineInput(draft);
-    const d: Draft = { ...draft, shape: e.shape, a: e.a, b: e.b as number, h: e.h as number, object: e.object, handle: e.handle as Handle, handleCm: e.handleCm ?? null, topA: e.topA ?? null, flapCm: e.flapCm ?? null, name: draft.name.trim() || NO_NAME, item: item.id };
+    const d: Draft = { ...draft, shape: e.shape, a: e.a, b: e.b as number, h: e.h as number, object: e.object, handle: e.handle as Handle, handleCm: e.handleCm ?? null, topA: e.topA ?? null, flapCm: e.flapCm ?? null, name: draft.name.trim() || autoName(draft) || NO_NAME, item: item.id };
     if (d.object === "bag" && d.shape !== "circle" && d.b >= d.a) d.b = Math.max(4, d.a - 2); // as the old form did
     setDraft({ ...d, name: draft.name });
     if (editId) {
@@ -439,7 +445,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the web's right page from step 2 on: everything that was on the left page (the 3D is there now)
   let rightWeb: ReactNode = null;
   // the work screen's sections (3D로 보면서 만들기: everything on one screen, Kim), filled where they are built
-  let oneYarn: ReactNode = null, oneSize: ReactNode = null, oneShape: ReactNode = null, oneHook: ReactNode = null, oneStitch: ReactNode = null, oneDraw: ReactNode = null;
+  let oneAsm: ReactNode = null, oneYarn: ReactNode = null, oneSize: ReactNode = null, oneShape: ReactNode = null, oneHook: ReactNode = null, oneStitch: ReactNode = null, oneDraw: ReactNode = null;
     // the web (Kim: like Photoshop's new-document window): every item at once as tiles, kinds as tabs
     // 직접 그리기 (Kim): the last tile opens a pad; what is drawn becomes the pattern's rounds and the 3D at once
     const setFree = (f: Draft["free"]) => {
@@ -783,6 +789,104 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     );
     // 입혀 보기: the bag's body, opening, flap, handles and what is sewn on; other pieces what is sewn on
     oneShape = bagNow ? webBag : <div className="nb-web">{extrasGroup}</div>;
+    // 조립하기 (Kim: 조립식으로, 슬라이더로 자유롭게): the parts in one row, the picked part's sliders under it.
+    // Everything lands in the draft's own sizes, so the counts and the 3D follow at once.
+    const base = item.kind === "base-body" && item.id !== "beanie" && !draft.free && !draft.paint, form = bodyOf(draft);
+    const rng = (k: "a" | "b" | "h", d: [number, number]) => item.range[k] ?? d;
+    const hasFlap = !!draft.flapCm, flapNow = draft.flapCm ?? 0;
+    const railParts: [string, string, boolean][] = base
+      ? [["bottom", "바닥", true], ["body", "몸통", true], ...(item.handles ? [["handle", "손잡이", draft.handle !== "none"] as [string, string, boolean]] : []), ...(bagNow ? [["top", "입구·덮개", hasFlap || closureNow !== "open"] as [string, string, boolean]] : []), ["extra", "달기", !!(exNow.button || exNow.label || exNow.zipper)]]
+      : [["size", "크기", true], ["extra", "달기", !!(exNow.button || exNow.label || exNow.zipper)]];
+    const partNow = railParts.some(([k]) => k === asmPart) ? asmPart : railParts[0][0];
+    const setBody = (f: Partial<typeof form>) => apply(bodyPatch(draft, { ...form, ...f }));
+    const setBottom = (k: "a" | "b" | "h", v: number) => { const nd = { ...draft, [k]: v }; apply({ [k]: v, ...(draft.asm && (draft.asm.belly >= .03 || k === "a") ? bodyPatch(nd, draft.asm.belly < .03 && draft.topA == null ? { ...draft.asm, top: nd.a } : draft.asm) : {}) }); };
+    const ra = rng("a", [6, 40]), rb = rng("b", [4, 30]), rh = rng("h", [5, 40]);
+    const widest = base ? Math.round(Math.max(...[0, .25, .5, .75, 1].map(t => bodyWidth(draft.a, form, t))) * 10) / 10 : 0;
+    const asmPanel = !picked ? (
+      <div className="nb-web">
+        <div className="asm-none"><p>조립할 부품이 아직 없습니다.</p>
+          <button type="button" className="nb-tile" onClick={() => setAsked(false)}>얀이에게 말로 설명하기</button></div>
+        <WebItems value="" onPick={pickItem} tried={tried} />
+      </div>
+    ) : (draft.free || draft.paint) ? (
+      <div className="nb-web"><p className="nb-help">직접 그린 모양입니다. 부품으로 조립하려면 아래에서 뜰 것을 다시 정해 주십시오.</p>
+        <button type="button" className="nb-tile" onClick={() => { patch({ free: undefined, paint: undefined, itemPicked: false }); setAsked(false); }}>부품으로 다시 시작하기</button></div>
+    ) : (
+      <div className="nb-web asm">
+        {draft.a > 0 && <div className="asm-all">
+          <Slide label="전체 크기" min={ra[0]} max={ra[1]} step={.5} value={Math.min(ra[1], Math.max(ra[0], draft.a))} onChange={v => apply(scaleDraft(draft, v / draft.a))} text={`폭 ${draft.a}cm`} />
+          <p className="nb-help">전체를 같은 비율로 키우거나 줄입니다. 화면 위 "크기 틀"(Ctrl+T)로 3D에서 바로 끌어도 됩니다.</p>
+        </div>}
+        <div className="asm-rail" role="tablist" aria-label="부품">
+          {railParts.map(([k, t, on]) => <button key={k} type="button" role="tab" aria-selected={partNow === k} className={on ? "" : "is-off"} onClick={() => setAsmPart(k)}>{on ? t : "+ " + t}</button>)}
+        </div>
+        <div className="asm-card" role="tabpanel">
+          {partNow === "size" && <>
+            <h3>크기<small>{item.name}</small></h3>
+            {shapes.length > 1 && <Tiles label="모양" value={draft.shape} cols={3} onPick={v => pickShape(v as Shape)} options={shapes.map(sh => [sh, SHAPE_KO[sh]])} />}
+            <div className="nb-two nb-wtwo">{fields.map(sizeInput)}</div>
+            {item.note && <p className="nb-help">{item.note}</p>}
+          </>}
+          {partNow === "bottom" && <>
+            <h3>바닥<small>여기서부터 뜹니다</small></h3>
+            {shapes.length > 1 && <Tiles label="바닥 모양" value={draft.shape} cols={3} onPick={v => pickShape(v as Shape)} options={shapes.map(sh => [sh, SHAPE_KO[sh]])} />}
+            <div className="nb-sliders nb-sliders-1">
+              <Slide label={draft.shape === "circle" ? "지름" : "가로"} min={ra[0]} max={ra[1]} step={.5} value={draft.a} onChange={v => setBottom("a", v)} text={`${draft.a}cm`} />
+              {draft.shape !== "circle" && <Slide label="세로" min={rb[0]} max={Math.min(rb[1], Math.max(rb[0], draft.a - 1))} step={.5} value={draft.b} onChange={v => setBottom("b", v)} text={`${draft.b}cm`} />}
+            </div>
+            <p className="nb-help">{draft.shape === "circle" ? "원 바닥은 통처럼 둥근 몸통이 됩니다." : draft.shape === "oval" ? "타원 바닥은 납작하고 부드러운 가방이 됩니다." : "네모 바닥은 각이 잡힌 몸통이 됩니다."}</p>
+          </>}
+          {partNow === "body" && <>
+            <h3>몸통<small>{`가장 넓은 곳 ${widest}cm`}</small></h3>
+            <div className="nb-sliders nb-sliders-1">
+              <Slide label="높이" min={rh[0]} max={rh[1]} step={.5} value={draft.h} onChange={v => setBottom("h", v)} text={`${draft.h}cm`} />
+              <Slide label="위 너비" min={Math.max(3, Math.round(draft.a * .4))} max={Math.round(draft.a * 2)} step={.5} value={form.top} onChange={v => setBody({ top: v })} text={`${form.top}cm`} />
+              <Slide label="배 부푼 정도" min={0} max={1} step={.05} value={form.belly} onChange={v => setBody({ belly: v })} text={form.belly < .03 ? "없음" : form.belly < .35 ? "조금" : form.belly < .7 ? "볼록" : "아주 볼록"} />
+              {form.belly >= .03 && <Slide label="둥근 정도" min={0} max={1} step={.05} value={form.round} onChange={v => setBody({ round: v })} text={form.round < .35 ? "뾰족하게" : form.round < .7 ? "부드럽게" : "공처럼"} />}
+            </div>
+            <p className="nb-help">{form.belly >= .03 ? "옆선이 부풀었다가 입구로 모입니다. 단마다 코를 늘리고 줄여서 뜹니다." : Math.abs(form.top - draft.a) < .5 ? "바닥에서 곧게 올라갑니다." : form.top > draft.a ? "위로 갈수록 넓어집니다." : "위로 갈수록 좁아집니다."}</p>
+            <button type="button" className="nb-link" onClick={() => apply({ asm: undefined, profile: undefined, depthProfile: undefined, topA: null })}>일자 몸통으로 되돌리기</button>
+          </>}
+          {partNow === "handle" && (draft.handle === "none" ? <>
+            <h3>손잡이</h3><p className="nb-help">손잡이가 없습니다.</p>
+            <button type="button" className="nb-tile asm-add" onClick={() => patch({ handle: "short", handleCm: draft.handleCm || 45, handleCount: draft.handleCount ?? 2 })}>+ 손잡이 넣기</button>
+          </> : <>
+            <h3>손잡이<button type="button" className="nb-link asm-del" onClick={() => patch({ handle: "none" })}>이 부품 빼기</button></h3>
+            <Tiles label="손잡이 수" value={String(draft.handleCount ?? (handleCmOf(draft) >= 60 ? 1 : 2))} cols={2} onPick={v => patch({ handleCount: Number(v) as 1 | 2 })} options={[["1", "1개", "위로 가로질러"], ["2", "2개", "앞뒤로"]]} />
+            {handleMake}
+            {handleSliders}
+            <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다.</p>
+          </>)}
+          {partNow === "top" && <>
+            <h3>입구와 덮개</h3>
+            <Tiles label="입구" value={closureNow === "flap" || closureNow === "drawstring" ? closureNow : "open"} cols={3} onPick={v => {
+              const c = v as "open" | "flap" | "drawstring";
+              patch({ closure: c, flapCm: c === "flap" ? (draft.flapCm ?? Math.max(4, Math.round(draft.h * .5))) : null });
+            }} options={[["open", "열린 채로"], ["flap", "덮개"], ["drawstring", "끈으로 조이기"]]} />
+            {hasFlap && <>
+              <Tiles label="덮개 모양" value={draft.flapShape ?? "half"} cols={3} onPick={v => patch({ flapShape: v as "half" | "square" | "triangle" })} options={[["half", "반달"], ["square", "네모"], ["triangle", "세모"]]} />
+              <div className="nb-sliders nb-sliders-1"><Slide label="덮개 길이" min={3} max={Math.max(8, Math.round(draft.h))} step={.5} value={Math.min(flapNow, Math.max(8, Math.round(draft.h)))} onChange={v => patch({ flapCm: v })} text={`${flapNow}cm`} /></div>
+              <button type="button" className="nb-link asm-del" onClick={() => patch({ closure: "open", flapCm: null })}>덮개 빼기</button>
+            </>}
+            {closureNow === "drawstring" && <p className="nb-help">입구 아래에 끈 구멍 단을 한 단 더 뜨고, 사슬로 뜬 끈을 꿰어 조입니다.</p>}
+            <p className="nb-help">지퍼와 단추는 "달기"에서 붙입니다.</p>
+          </>}
+          {partNow === "extra" && extrasGroup}
+        </div>
+        <div className="asm-sum"><h3>지금 조립된 것</h3>
+          <ul>{partLines(draft).map(([a, b]) => <li key={a}><b>{a}</b><span>{b}</span></li>)}</ul>
+          <button type="button" className="nb-link" onClick={() => setAsked(false)}>얀이에게 다시 말로 설명하기</button>
+        </div>
+      </div>
+    );
+    oneAsm = (
+      <div className="nb-web">
+        <div className="nb-needle asm-mode" role="radiogroup" aria-label="모양을 만드는 방법">
+          {([["asm", "조립하기"], ["draw", "그리기"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={shapeMode === k} onClick={() => setShapeMode(k)}>{t}</button>)}
+        </div>
+        {shapeMode === "asm" ? asmPanel : <>{drawPanel}{picked && (draft.free || draft.paint) && oneSize}</>}
+      </div>
+    );
     // 확인: short rows with 고치기, the yarn amount, the counts as small cards
     const hookMm = draft.hook ? hookMmOf(draft) : NaN;
     const ucolors = [{ hex: draft.color, name: draft.colorName }, ...(draft.moreColors ?? [])].filter(c => c.hex || c.name);
@@ -833,11 +937,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       { id: "yarn", title: "실", body: oneYarn },
       { id: "needle", title: "바늘", body: oneHook },
       { id: "stitch", title: "무늬", note: (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit" ? "대바늘" : "코바늘", body: oneStitch },
-      { id: "draw", title: "모양 그리기", note: picked ? itemLabel : undefined, body: oneDraw },
-      ...(picked ? [
-        { id: "size", title: "크기", body: oneSize },
-        { id: "dress", title: "입혀 보기", body: oneShape },
-      ] : []),
+      { id: "draw", title: "모양", note: picked ? itemLabel : undefined, body: oneAsm },
     ],
     done: () => {
       if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.yw [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
@@ -847,6 +947,17 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   } : undefined;
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
+    // 조립하기: what to make, asked first (Kim); the 크기 틀 dragged on the 3D
+    ask: big3d.open && !picked && !asked && !editId ? <AskStart draft={draft} onName={v => patch({ name: v })} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
+      onApply={d => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); window.dispatchEvent(new Event("yw:shape")); }} /> : undefined,
+    onResize: picked && !draft.free && !draft.paint ? (fx, fy) => {
+      if (fx !== 1 && fx === fy) { apply(scaleDraft(draft, fx)); return; }
+      const lim = (k: "a" | "b" | "h", v: number) => { const r = item.range[k]; const x = Math.round(v * 2) / 2; return r ? Math.min(r[1], Math.max(r[0], x)) : x; };
+      const up: "h" | "b" = input.object === "bag" || input.object === "tube" ? "h" : "b", p: Partial<Draft> = {};
+      if (fx !== 1) { p.a = lim("a", draft.a * fx); if (draft.shape === "circle" && item.kind !== "base-body") p.b = p.a; }
+      if (fy !== 1) { if (draft.shape === "circle" && item.kind === "flat-round") p.a = lim("a", draft.a * fy); else p[up] = lim(up, draft[up] * fy); }
+      const nd = { ...draft, ...p }; apply({ ...p, ...(draft.asm ? bodyPatch(nd, draft.asm) : {}) });
+    } : undefined,
     // the first thing on the stage (Kim): the yarn as it will look, before any shape
     intro: <YarnCheck source={swatchSrc} plan={plan(swatchSrc)} big />,
     dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,

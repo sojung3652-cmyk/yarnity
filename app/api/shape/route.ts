@@ -44,6 +44,9 @@ const TOOL: Anthropic.Tool = {
       label: { type: "boolean" },
       bodyColor: { type: "string", description: "the yarn colour as #RRGGBB (from the note or the drawing; omit if none)" },
       colorName: { type: "string", description: "the colour's name in Korean" },
+      item: { type: "string", enum: ["minibag", "bucket", "pouch", "basket", "planter", "pencil", "cupholder", "coaster", "scrubber", "trivet", "placemat", "rug", "scarf", "neckwarmer", "headband", "dishcloth", "bookmark", "blanket", "beanie"],
+        description: "only when the maker DESCRIBES the piece in words (no drawing): the closest thing this app makes - minibag (a handbag, tote or shoulder bag), bucket (a bucket or drawstring bag), pouch, basket, planter (plant pot cover), pencil (pen holder), cupholder, coaster, scrubber (수세미), trivet (냄비받침), placemat, rug, scarf (목도리), neckwarmer, headband, dishcloth (행주), bookmark, blanket, beanie (모자)" },
+      handleStyle: { type: "string", enum: ["cord", "flat", "tube"], description: "how the handle is made when said: cord (thin strands), flat (a wide flat band), tube (a round tube)" },
       summary: { type: "string", description: "one short Korean sentence in 합니다체 describing what was read" },
     },
     required: ["kind", "bottom", "widthCm", "depthCm", "heightCm", "body", "flap", "handles", "button", "summary"],
@@ -58,12 +61,32 @@ The picture may hold several views side by side, named 앞면 (front), 옆면 (s
 Colours: a part filled or drawn in a colour is that part's colour; a black line is only an outline.
 Use the maker's note for colours and materials when given. Answer only by calling the tool. The summary is Korean in 합니다체.`;
 
+const WORD_RULES = `Someone describes in words a piece they want to crochet or knit. Choose the closest thing the app makes (item) and lay out its parts for a beginner: the bottom's outline and size, the body's height and silhouette, handles (how many, how long, how made), a flap, a button, a zipper, a label.
+Use usual sizes for that kind of piece when none is given, and what they said when they did. A soft round bag gets a profile that swells and gathers and rounded true. One shoulder or cross-body strap is handles 1 (70 to 120cm); two hand handles are handles 2 (about 45cm).
+For flat pieces (scarf, blanket, dishcloth, bookmark) widthCm is the width and heightCm the length; for a neckwarmer or headband widthCm is the circumference and heightCm its height.
+Only what was asked for: no flap, button, zipper or label unless they mention one. Answer only by calling the tool. The summary is one or two short Korean sentences in 합니다체 saying what you prepared and why.`;
+
 export function GET() { return Response.json({ available: !!process.env.ANTHROPIC_API_KEY }); }
 
 export async function POST(req: Request) {
   if (!process.env.ANTHROPIC_API_KEY) return Response.json({ error: "not_configured" }, { status: 503 });
-  let body: { image?: { mediaType: string; data: string }; note?: string };
+  let body: { image?: { mediaType: string; data: string }; note?: string; text?: string };
   try { body = await req.json(); } catch { return Response.json({ error: "bad_request" }, { status: 400 }); }
+  // 조립하기: the piece described in words - the same answer, without a picture
+  if (typeof body.text === "string" && !body.image) {
+    const text = body.text.replace(/[<>]/g, "").trim().slice(0, 400);
+    if (!text) return Response.json({ error: "bad_request" }, { status: 400 });
+    try {
+      const res = await new Anthropic().messages.create({ model: MODEL, max_tokens: MAX_TOKENS, system: WORD_RULES, tools: [TOOL], tool_choice: { type: "tool", name: "shape" },
+        messages: [{ role: "user", content: `만들고 싶은 것: ${text}` }] });
+      const use = res.content.find(c => c.type === "tool_use");
+      if (!use || use.type !== "tool_use") return Response.json({ error: "no_shape" }, { status: 502 });
+      return Response.json({ shape: use.input });
+    } catch (e) {
+      const code = e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError ? "not_granted" : e instanceof Anthropic.RateLimitError ? "rate_limited" : "failed";
+      return Response.json({ error: code }, { status: 502 });
+    }
+  }
   const img = body.image;
   if (!img || !MEDIA.has(img.mediaType) || typeof img.data !== "string" || !img.data || img.data.length > MAX_IMAGE_B64) return Response.json({ error: "image_rejected" }, { status: 400 });
   const note = typeof body.note === "string" ? body.note.replace(/[<>]/g, "").slice(0, 200) : "";

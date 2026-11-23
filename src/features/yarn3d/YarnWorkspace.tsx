@@ -37,6 +37,11 @@ export interface WorkExtra {
   making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean };
   /** 단추 / 라벨 dragged on the 3D and let go: where (Kim: moved freely) */
   onExtraMove?: (kind: "button" | "label", across: number, up: number) => void;
+  /** 크기 틀 (Kim: Ctrl+T처럼): the frame's edge or corner dragged and let go - the piece that much wider (fx)
+   *  and taller (fy); a corner gives the same for both */
+  onResize?: (fx: number, fy: number) => void;
+  /** a window over the whole screen (조립하기: what to make, asked first) */
+  ask?: ReactNode;
   /** nothing to draw yet (no item picked): the stage says so instead of showing a piece nobody chose */
   empty?: boolean;
   /** shown on the stage first (도안 만들기: the yarn check, Kim), until the reader goes on to the shape */
@@ -63,6 +68,23 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const shown = useRef<YarnPattern>(pattern), latest = useRef(pattern); latest.current = pattern;
   const moveEx = useRef(extra?.onExtraMove); moveEx.current = extra?.onExtraMove;
   const [tool, setTool] = useState<Tool>("rotate"), [ruler, setRuler] = useState(false);
+  // 크기 틀: the piece's box on the screen, and the pull on it while a handle is dragged
+  const [frameOn, setFrameOn] = useState(false), [box, setBox] = useState<[number, number, number, number] | null>(null), [pull, setPull] = useState<{ fx: number; fy: number } | null>(null);
+  const resize = useRef(extra?.onResize); resize.current = extra?.onResize;
+  const toggleFrame = () => { const on = !frameOn; setFrameOn(on); viewer.current?.setFrame(on); if (!on) { setBox(null); setPull(null); } };
+  // Ctrl+T (Cmd+T is the browser's own): the frame on and off, as in drawing tools
+  useEffect(() => { if (!extra?.onResize) return; const f = (e: KeyboardEvent) => { if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === "t") { e.preventDefault(); toggleFrame(); } }; window.addEventListener("keydown", f); return () => window.removeEventListener("keydown", f); });
+  const grab = (hx: -1 | 0 | 1, hy: -1 | 0 | 1) => (e: React.PointerEvent) => {
+    if (!box) return; e.preventDefault(); e.stopPropagation();
+    const [l, t, r, b] = box, cx = (l + r) / 2, w = (r - l) / 2, h = b - t, sx = e.clientX, sy = e.clientY; let cur = { fx: 1, fy: 1 };
+    const move = (m: PointerEvent) => {
+      const fx = hx ? Math.max(.4, Math.min(2.5, (w + (m.clientX - sx) * hx) / w)) : 1, fy = hy ? Math.max(.4, Math.min(2.5, (h - (m.clientY - sy)) / h)) : 1;
+      cur = hx && hy ? { fx: Math.max(fx, fy) === 1 ? Math.min(fx, fy) : (Math.abs(fx - 1) > Math.abs(fy - 1) ? fx : fy), fy: 0 } : { fx, fy };
+      if (hx && hy) cur.fy = cur.fx; setPull(cur); void cx;
+    };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); setPull(null); if (Math.abs(cur.fx - 1) > .02 || Math.abs(cur.fy - 1) > .02) resize.current?.(cur.fx, cur.fy); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+  };
   const [view, setView] = useState<"yarn" | "holo">("yarn");
   const [mat, setMat] = useState<YarnMaterial | null>(null); // another yarn to look at (read-only screens)
   const [info, setInfo] = useState<YarnInfo | null>(null);
@@ -109,7 +131,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     import("./engine").then(({ createYarnViewer, hasWebGL }) => {
       if (gone || !cv.current) return;
       const p = latest.current;
-      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onRuler: setRules, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y) }) : null;
+      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y) }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
     });
@@ -162,6 +184,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             <div className="yw-acts" role="group" aria-label="도구">
               {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => setIntro(v => !v)}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
               <button type="button" className="yw-act" aria-pressed={ruler} onClick={toggleRuler}><Ic s={18} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />재기</button>
+              {extra?.onResize && !empty && <button type="button" className="yw-act" aria-pressed={frameOn} title="크기 틀 (Ctrl+T)" onClick={toggleFrame}><Ic s={18} d="M5 5h14v14H5zM3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4z" />크기 틀</button>}
               <button type="button" className="yw-act" onClick={() => viewer.current?.playDraw()}><Ic s={18} d="M7 4.5v15l12-7.5z" />뜨는 순서</button>
             </div>
           </div>
@@ -176,13 +199,23 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           <div className="yw-intro">
             {extra.intro}
             <h2>실 확인<small>오른쪽에서 실을 바꾸면 바로 바뀝니다</small></h2>
-            <span className="yw-go"><ClothLabel side="next" type="button" onClick={toShape}>모양 그리기 →</ClothLabel></span>
+            <span className="yw-go"><ClothLabel side="next" type="button" onClick={toShape}>모양 만들기 →</ClothLabel></span>
           </div>
         )}
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
           : <canvas ref={cv} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
-        {!noGL && !empty && !intro && <p className="yw-hint">{ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
+        {!noGL && !empty && !intro && <p className="yw-hint">{frameOn ? "틀의 옆 손잡이는 가로, 위 손잡이는 높이, 모서리는 전체 크기를 바꿉니다" : ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
         {empty && <div className="yw-empty"><i aria-hidden="true" /><p>모양을 그리면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
+        {box && frameOn && !empty && !intro && (() => {
+          const [l, t, r, b] = box, cx = (l + r) / 2, w = (r - l) / 2 * (pull?.fx ?? 1), h = (b - t) * (pull?.fy ?? 1), st = { left: cx - w, top: b - h, width: w * 2, height: h };
+          return (
+            <div className={"yw-frame" + (pull ? " is-pull" : "")} style={st}>
+              <i className="h-l" onPointerDown={grab(-1, 0)} title="가로" /><i className="h-r" onPointerDown={grab(1, 0)} title="가로" /><i className="h-t" onPointerDown={grab(0, 1)} title="높이" />
+              <i className="h-tl" onPointerDown={grab(-1, 1)} title="전체 크기" /><i className="h-tr" onPointerDown={grab(1, 1)} title="전체 크기" />
+              {pull && <b>{pull.fx !== 1 && pull.fy !== 1 ? `전체 ${Math.round(pull.fx * 100)}%` : pull.fx !== 1 ? `가로 ${Math.round(pull.fx * 100)}%` : `높이 ${Math.round(pull.fy * 100)}%`}</b>}
+            </div>
+          );
+        })()}
         {rules && ruler && !empty && (
           <svg className="yw-rules" aria-hidden="true">
             {rules.map((r, i) => {
@@ -236,6 +269,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       </div>
       )}
 
+      {extra?.ask}
       <div className="yw-stat" aria-live="polite">
         <span>{empty ? "뜰 것을 고르면 3D로 보여 드립니다." : <>{size ? <b>{size}</b> : "모양을 계산하고 있습니다."}{info && <>{info.fit}</>}</>}</span>
         {/* Kim: the made piece is knitted fabric - it stretches, so it will not keep exactly this shape and size */}

@@ -112,6 +112,8 @@ export interface YarnViewer {
   setTool(t: YarnTool): void;
   /** 재기: the piece's width and height (or depth) as lines on the screen (opts.onRuler) */
   setRuler(on: boolean): void;
+  /** 크기 틀: the piece's box on the screen (opts.onFrame), on or off */
+  setFrame(on: boolean): void;
   dispose(): void;
 }
 export type YarnLook = "front" | "side" | "top" | "inside";
@@ -123,7 +125,9 @@ export interface YarnRule { x1: number; y1: number; x2: number; y2: number; cm: 
  *  framing (phones) stays as it was */
 export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: boolean; onInfo: (i: YarnInfo | null) => void; onBuilt?: (ms: number) => void; onRuler?: (r: YarnRule[] | null) => void;
   /** 단추 / 라벨 dragged on the piece (Kim: moved freely): where it was let go, [across -1..1, up 0..1] */
-  onExtraMove?: (kind: "button" | "label", across: number, up: number) => void }
+  onExtraMove?: (kind: "button" | "label", across: number, up: number) => void;
+  /** 크기 틀 (Kim: Ctrl+T처럼 화면 안에서): the piece's outline on the screen as a box [left, top, right, bottom] in px */
+  onFrame?: (r: [number, number, number, number] | null) => void }
 
 // how each yarn looks (Kim: the material has to show, also at the size of the book's page):
 //  plies / twist / depth  the twisted strands and how deep the grooves between them are
@@ -1195,7 +1199,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const settling = !!IT.data && !IT.data.done;
     tickItem();
     const moved = ctl.update();
-    renderer.render(scene, cam); rules();
+    renderer.render(scene, cam); rules(); frameBox();
     if (settling || moved || anim) kick();
   }
   function kick() { if (alive && !raf) raf = requestAnimationFrame(frame); }
@@ -1212,6 +1216,15 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     else out.push(line([b.x1 + e + g, 0, b.z0 - ez], [b.x1 + e + g, 0, b.z1 + ez], b.z1 - b.z0 + ez * 2));
     const key = out.map(o => [o.x1, o.y1, o.x2, o.y2, o.cm].map(Math.round).join()).join(";");
     if (key !== lastRule) { lastRule = key; opts.onRuler(out); }
+  }
+  // ---------- 크기 틀: the box round the piece's body as the screen shows it (its handles are drawn by the page)
+  let boxOn = false, lastFrame = "";
+  function frameBox() {
+    const D = IT.data; if (!boxOn || !opts.onFrame || !D || !D.done) { if (lastFrame) { lastFrame = ""; opts.onFrame?.(null); } return; }
+    const b = boxOf(D), v = new THREE.Vector3(); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const x of [b.x0, b.x1]) for (const y of [0, b.my]) for (const z of [b.z0, b.z1]) { v.set(x, y, z).project(cam); const sx = (v.x + 1) / 2 * lastW, sy = (1 - v.y) / 2 * lastH; x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy); }
+    const out: [number, number, number, number] = [Math.round(x0), Math.round(y0), Math.round(x1), Math.round(y1)], key = out.join();
+    if (key !== lastFrame) { lastFrame = key; opts.onFrame(out); }
   }
   let lastW = 0, lastH = 0;
   const resize = () => {
@@ -1293,6 +1306,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       ctl.touches.ONE = t === "pan" ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
     },
     setRuler(on) { rulerOn = on; kick(); },
+    setFrame(on) { boxOn = on; kick(); },
     dispose() {
       alive = false; cancelAnimationFrame(raf); ro.disconnect(); clearGroup(); ctl.dispose();
       canvas.removeEventListener("pointerdown", exDown, true); canvas.removeEventListener("pointermove", exMove); canvas.removeEventListener("pointerup", exUp); canvas.removeEventListener("pointercancel", exUp);

@@ -21,6 +21,9 @@ export interface ShapeSpec {
   /** measured, not from the AI: depth against width, bottom to top (lib/sketchMeasure, from the side view) */
   depthProfile?: number[];
   summary?: string;
+  /** from words (조립하기, app/api/shape with `text`): the app's own item, and how the handle is made */
+  item?: ItemId;
+  handleStyle?: "cord" | "flat" | "tube";
 }
 
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -47,6 +50,8 @@ export function readSpec(o: unknown): ShapeSpec | null {
     summary: typeof x.summary === "string" ? x.summary.slice(0, 200) : undefined,
     profile: Array.isArray(x.profile) && x.profile.length >= 3 && x.profile.every(v => typeof v === "number" && v > 0 && v < 3) ? (x.profile as number[]).slice(0, 12) : undefined,
     rounded: x.rounded === true,
+    item: typeof x.item === "string" && x.item in ITEM ? (x.item as ItemId) : undefined,
+    handleStyle: x.handleStyle === "flat" || x.handleStyle === "tube" || x.handleStyle === "cord" ? x.handleStyle : undefined,
     flapColor: typeof x.flapColor === "string" && HEX.test(x.flapColor) ? x.flapColor.toUpperCase() : undefined,
     handleColor: typeof x.handleColor === "string" && HEX.test(x.handleColor) ? x.handleColor.toUpperCase() : undefined,
   };
@@ -55,7 +60,8 @@ export function readSpec(o: unknown): ShapeSpec | null {
 /** the spec as a draft: which item, its bottom and sizes (inside the item's ranges), the body, flap, handles,
  *  what is sewn on, the colour */
 export function specToDraft(d: Draft, s: ShapeSpec): Draft {
-  const id: ItemId = s.kind === "pouch" ? "pouch" : s.kind === "basket" ? "basket" : s.kind === "coaster" ? (s.bottom === "oval" ? "placemat" : "coaster") : "minibag";
+  if (s.item && ITEM[s.item].kind !== "base-body" && ITEM[s.item].kind !== "flat-round") return wordsToFlat(d, s);
+  const id: ItemId = s.item ?? (s.kind === "pouch" ? "pouch" : s.kind === "basket" ? "basket" : s.kind === "coaster" ? (s.bottom === "oval" ? "placemat" : "coaster") : "minibag");
   // a soft, rounded piece has no square corners (Kim: a crocheted hobo is no box): a rect bottom becomes an oval
   const want: Shape = s.rounded && s.bottom === "rect" ? "oval" : s.bottom;
   const it = ITEM[id], r = it.range, shape = (it.shapes ?? ["circle"]).includes(want) ? want : (it.shapes ?? ["circle"])[0];
@@ -93,7 +99,19 @@ export function specToDraft(d: Draft, s: ShapeSpec): Draft {
     flapCm: flapOn ? clamp(Math.round(s.flapCm ?? h * .45), 3, 40) : null, closure: flapOn ? "flap" : s.zipper ? "zipper" : "open", flapShape: flapOn ? (s.flap as "half" | "square" | "triangle") : undefined,
     handle: handles ? "short" : "none", // one handle across the top has to clear the opening (an AI guess of 16cm over a 15cm opening hid it): at least 1.8 times the opening's width
     handleCm: handles ? clamp(Math.round(Math.max(s.handleCm ?? (handles === 1 ? 40 : 45), handles === 1 ? (curved ? (a / k0) * prof![prof!.length - 1] : topA ?? a) * 1.8 : 0)), 10, 150) : null, handleCount: handles ? (handles as 1 | 2) : undefined,
-    extras: ex,
+    extras: ex, asm: undefined,
+    ...(handles && s.handleStyle ? { handleStyle: s.handleStyle === "flat" ? "flat-chain" as const : s.handleStyle === "tube" ? "tube" as const : undefined, handleWcm: s.handleStyle === "flat" ? 3 : 2 } : {}),
     ...(s.bodyColor ? { color: s.bodyColor, colorName: s.colorName } : {}),
   };
+}
+
+/** a piece worked flat or as a tube, from words (a scarf, a blanket, a headband): the item's own sizes, the
+ *  ones said taken where they fit its ranges */
+function wordsToFlat(d: Draft, s: ShapeSpec): Draft {
+  const it = ITEM[s.item!], dv = it.defaults, inR = (k: "a" | "b" | "h", v: number | undefined, def: number) => { const r = it.range[k]; return r && v && v >= r[0] && v <= r[1] ? Math.round(v) : def; };
+  const ex: NonNullable<Draft["extras"]> = {}; if (s.button) ex.button = true; if (s.label) ex.label = true;
+  return { ...d, item: it.id, object: ENGINE[it.kind], itemPicked: true, free: undefined, paint: undefined, asm: undefined, profile: undefined, depthProfile: undefined,
+    shape: dv.shape ?? "rect", a: inR("a", s.widthCm, dv.a), b: inR("b", s.heightCm, dv.b ?? dv.a), h: inR("h", s.heightCm, dv.h ?? 0),
+    handle: "none", handleCm: null, topA: null, flapCm: null, closure: "open", circ: dv.circ, depth: dv.depth, extras: ex,
+    ...(s.bodyColor ? { color: s.bodyColor, colorName: s.colorName } : {}) };
 }
