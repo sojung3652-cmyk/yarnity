@@ -55,6 +55,8 @@ export interface YarnPattern {
   /** how the opening is finished (Kim: a pouch is not an open tub): "pinch" - the two long sides meet along
    *  the top, as a zipped pouch lies; "cinch" - drawn in a little, a bucket bag's gathered top */
   top?: "pinch" | "cinch";
+  /** a closed, stuffed piece (a drawn shape that ends on its centre line): it keeps its shape, no slump */
+  firm?: boolean;
   /** how many strands side by side a strap is (1-5; 3 when missing) */
   strapW?: number;
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼) */
@@ -649,7 +651,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         else { const u = Math.max(0, (t - .7) / .3), f = u * u * (3 - 2 * u), th = Math.atan2(p.z - cz, p.x - cx), k = 1 - f * (.2 + .03 * Math.sin(9 * th)); p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; }
       }
     }
-    const s = opts.phone ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
+    const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
     if (s < .03) return;
     if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
       for (const p of D.P) { const k = (Math.hypot(p.x - cx, p.z - cz) / rm) ** 2.4; p.y += s * D.rh * .7 * k * (.5 + .5 * Math.sin(3 * Math.atan2(p.z - cz, p.x - cx) + 1.3)); }

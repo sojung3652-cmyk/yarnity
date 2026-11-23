@@ -42,9 +42,15 @@ export interface PlanInput {
   topA?: number | null;
   /** bag flap (cover) length in cm, worked back and forth over the back half of the opening; unset = none */
   flapCm?: number | null;
+  /** a shape the reader drew (web: 직접 그리기); when set, the rounds follow it (planFree) */
+  free?: FreeShape | null;
   measuredH?: number | null; // stitch height from the 3rd-round measurement (cm)
   measuredW?: number | null; // stitch width from the 5-row measurement (rows / tube only, cm)
 }
+
+/** A drawn shape: its side profile from the bottom up, smoothed - [radius, height], both as shares of the
+ *  piece's height - the height in cm, and the colours by height ([from this share of the height, colour]). */
+export interface FreeShape { pts: [number, number][]; hCm: number; bands?: [number, string][] }
 
 export interface Gauge { h: number; w: number; measured: boolean }
 
@@ -57,6 +63,8 @@ export interface Row {
   idx: number;
   no?: number;
   label: string;
+  /** a drawn shape's round in its own colour (unset: the pattern's yarn colour) */
+  color?: string;
 }
 
 export interface Plan {
@@ -108,7 +116,40 @@ export function planBottom(p: PlanInput, g: Gauge): { rows: RawRow[]; c: number 
   return { rows, c };
 }
 
+/** A drawn shape as rounds (web: 직접 그리기 - Kim: the reader's outline, tidied, made into a crochet formula).
+ *  The profile is walked from the bottom one round's height at a time; each round has the stitches its
+ *  circumference needs (never more than double, never less than half the round before, so every round can
+ *  be worked). A profile that starts on the centre line starts with a magic ring; rounds lying on the ground
+ *  are the bottom, the rest the body. A round takes the colour drawn at its height. */
+export function planFree(p: PlanInput): Plan {
+  const g = gauge(p), f = p.free as FreeShape, H = Math.max(1, f.hCm);
+  const pts = (f.pts.length >= 2 ? f.pts : [[0, 0], [0.3, 0], [0.3, 1]] as [number, number][]).map(([r, y]) => [Math.max(0, r) * H, y * H]);
+  const acc = [0]; for (let i = 1; i < pts.length; i++) acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L = acc[acc.length - 1], R = clamp(rnd(L / g.h), 3, 400);
+  const at = (s: number) => { let i = 1; while (i < acc.length - 1 && acc[i] < s) i++; const t = (s - acc[i - 1]) / Math.max(1e-9, acc[i] - acc[i - 1]); return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t]; };
+  const closed = pts[0][0] < g.w * 1.2, bands = (f.bands ?? []).slice().sort((a, b) => a[0] - b[0]);
+  const colorAt = (y: number) => { let c: string | undefined; for (const [from, hex] of bands) if (y / H >= from - 1e-6) c = hex; return c || undefined; };
+  const rows: Row[] = []; let prev = 0, lastColor: string | undefined, bottomRounds = 0;
+  for (let k = 1; k <= R; k++) {
+    const [r, y] = at(L * k / R), [, ym] = at(L * (k - .5) / R);
+    let n = Math.max(4, Math.round(2 * Math.PI * r / g.w));
+    if (k === 1) n = closed ? 6 : Math.max(8, n); else n = clamp(n, Math.ceil(prev / 2), prev * 2);
+    const inc = k === 1 ? 0 : n - prev, d = -inc;
+    const how = k === 1 ? (closed ? "매직링에 짧은뜨기 6코" : `사슬 ${n}코로 고리를 만들고 짧은뜨기 ${n}코`)
+      : inc > 0 ? (inc === prev ? "모든 코에 늘림" : prev % inc === 0 ? `(짧은뜨기 ${prev / inc - 1}, 늘림 1) × ${inc}` : `짧은뜨기 ${n}코 (늘림 ${inc}코를 고르게 나눠서)`)
+      : inc < 0 ? (prev % d === 0 && prev / d >= 2 ? (prev / d === 2 ? `줄임 ${d}번` : `(짧은뜨기 ${prev / d - 2}, 줄임 1) × ${d}`) : `짧은뜨기 ${n}코 (줄임 ${d}번을 고르게 나눠서)`)
+      : `늘림 없이 짧은뜨기 ${n}코`;
+    const color = colorAt(ym), swap = k > 1 && color !== lastColor;
+    const part: Part = y < g.h * .6 && bottomRounds === k - 1 ? "bottom" : "body"; if (part === "bottom") bottomRounds = k;
+    const why = (k === 1 ? "시작" : inc > 0 ? `${prev} + 늘림 ${inc} = ${n}` : inc < 0 ? `${prev} - 줄임 ${d} = ${n}` : `${n}코 그대로`) + (swap ? " · 여기서 실 색을 바꿉니다" : "") + (k === R && r < g.w * 1.5 ? " · 남은 코를 돌려 조여 마무리" : "");
+    rows.push({ part, n, how, why, inc, idx: k - 1, label: `${k}단`, ...(part === "bottom" ? { no: k } : {}), ...(color ? { color } : {}) });
+    prev = n; lastColor = color;
+  }
+  return { g, c: 0, rows, bottomRounds, bodyRows: rows.length - bottomRounds, last: rows[rows.length - 1].n };
+}
+
 export function plan(p: PlanInput): Plan {
+  if (p.free) return planFree(p);
   if (p.object === "rows") return planRows(p);
   if (p.object === "tube") return planTube(p);
   const g = gauge(p);

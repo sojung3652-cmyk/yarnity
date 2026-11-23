@@ -47,8 +47,12 @@ export function yarn3dSupported(p: PlanInput): boolean {
 export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   if (!yarn3dSupported(p) || !pp.rows.length) return null;
   const counts = (...parts: string[]) => pp.rows.filter(r => parts.includes(r.part)).map(r => Math.max(1, Math.round(r.n)));
-  let shape: YarnShape;
-  if (p.object === "rows") {
+  let shape: YarnShape, rowColors: (string | undefined)[] | null = null;
+  if (p.free) {
+    // a drawn shape: its rounds as they are, each in the colour drawn at its height
+    const rr = pp.rows.filter(r => r.part === "bottom" || r.part === "body"); if (!rr.length) return null;
+    shape = { kind: "round", counts: rr.map(r => Math.max(1, Math.round(r.n))), flat: pp.bottomRounds }; rowColors = rr.map(r => r.color);
+  } else if (p.object === "rows") {
     const rows = counts("rows"); if (!rows.length) return null;
     shape = { kind: "rows", W: rows[0], H: rows.length, wCm: p.a, hCm: p.b ?? p.a, knit: isKnit(p), stitch: p.stitch ?? undefined };
   } else if (p.object === "tube") {
@@ -66,8 +70,9 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : handleCm >= 60 ? "long" : "two";
   // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
   const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
-  return { shape, colors: [color], yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
+  return { shape, colors: rowColors ? rowColors.map(c => c ?? color) : [color], yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
     ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
-    ...(p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
+    ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
+    ...(p.free ? {} : p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper) ? { extras: p.extras } : {}) };
 }
