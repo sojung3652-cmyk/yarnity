@@ -287,14 +287,15 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       <div className="nb-tiles nb-tiles-3" role="group" aria-label="달아 보기">
         {([["button", "단추"], ["label", "라벨"], ["zipper", "지퍼"]] as const).map(([k, t]) => <button key={k} type="button" className="nb-tile" aria-pressed={!!exNow[k]} onClick={() => setEx({ [k]: !exNow[k] })}>{t}</button>)}
       </div>
+      {(exNow.button || exNow.label) && <p className="nb-help">3D에서 단추와 라벨을 끌어서 옮길 수 있습니다.</p>}
       {exNow.button && <>
-        <p className="nb-wsubhead">단추{draft.flapCm && !exNow.buttonAt ? " · 지금은 덮개 끝에 있습니다" : ""}</p>
+        <p className="nb-wsubhead">단추{draft.flapCm && !exNow.buttonAt ? " · 지금은 덮개 끝에 있습니다" : ""}<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ button: false, buttonAt: undefined })}>빼기</button></p>
         <Tiles label="단추 색" value={exNow.buttonColor === "gold" ? "gold" : "wood"} cols={3} onPick={v => setEx({ buttonColor: v === "gold" ? "gold" : undefined })} options={[["wood", "나무"], ["gold", "금색"]]} />
         {placeSliders("buttonAt", [0, .72, 1.9], "지름", 5)}
       </>}
-      {exNow.label && <><p className="nb-wsubhead">라벨</p>{placeSliders("labelAt", [.5, .34, 2.8], "가로", 7)}</>}
+      {exNow.label && <><p className="nb-wsubhead">라벨<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ label: false, labelAt: undefined })}>빼기</button></p>{placeSliders("labelAt", [.5, .34, 2.8], "가로", 7)}</>}
       {exNow.zipper && <>
-        <p className="nb-wsubhead">지퍼</p>
+        <p className="nb-wsubhead">지퍼<button type="button" className="nb-link nb-exdel" onClick={() => setEx({ zipper: false })}>빼기</button></p>
         <Tiles label="지퍼 색" value={exNow.zipColor ?? "gold"} cols={3} onPick={v => setEx({ zipColor: v as "gold" | "silver" | "brass" })} options={[["gold", "금색"], ["silver", "은색"], ["brass", "황동색"]]} />
         <Slide label="잠그기" min={0} max={1} step={.05} value={1 - (exNow.zipOpen ?? 0)} onChange={x => setEx({ zipOpen: Math.round((1 - x) * 100) / 100 })} text={(exNow.zipOpen ?? 0) <= .02 ? "잠김" : (exNow.zipOpen ?? 0) >= .98 ? "열림" : `${Math.round((1 - (exNow.zipOpen ?? 0)) * 100)}% 잠김`} />
       </>}
@@ -320,6 +321,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // screen over the whole window, and the last page (확인) is in the book again
   const canMake = () => web && inBook != null && big3d.supported && matchMedia("(min-width: 901px)").matches;
   const webStart = web && inBook != null && big3d.supported && !editId;
+  useEffect(() => {
+    if (!ready || step !== 1 || !store.get<number>("iyarn.go3d", 0)) return;
+    // the 3D comes a moment after the page (inBook, WebGL): wait for it; phones keep the first page
+    if (!webStart) { if (phone) store.set("iyarn.go3d", 0); return; }
+    const t = setTimeout(() => { store.set("iyarn.go3d", 0); next(); }, 700); return () => clearTimeout(t);
+  }, [ready, step, webStart]); // eslint-disable-line react-hooks/exhaustive-deps
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
@@ -695,7 +702,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             patch({ closure: c, flapCm: c === "flap" ? (draft.flapCm ?? Math.max(4, Math.round(draft.h * 0.6))) : null,
               // the zipper and the button also go on the 3D (달아 보기)
               extras: { ...ex, zipper: c === "zipper" ? true : closureNow === "zipper" ? false : ex.zipper, button: c === "button" ? true : closureNow === "button" ? false : ex.button } });
-          }} options={[["open", "열린 채로"], ["flap", "덮개"], ["drawstring", "끈으로 조이기"], ["zipper", "지퍼"], ["button", "단추"]]} />
+          }} options={[["open", "열린 채로"], ["flap", "덮개"], ["drawstring", "끈으로 조이기"]]} />
+          {/* the zipper and the button are put on under 달아 보기 (Kim) */}
           {closureNow === "flap" && <div className="nb-wsub">
             <Tiles label="덮개 모양" value={draft.flapShape ?? "half"} cols={3} onPick={v => patch({ flapShape: v as "half" | "square" | "triangle" })} options={[["half", "반달"], ["square", "네모"], ["triangle", "세모"]]} />
             <CmInput label="덮개 길이 (cm)" value={draft.flapCm || null} range={LEN_RANGE} onValue={v => patch({ flapCm: v ?? 0 })} />
@@ -795,8 +803,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const swatchSrc = { ...yarnSrc, object: "rows" as const, item: knitNow ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
   const making = web && (step === 2 || step === 3) ? {
     sections: [
-      { id: "yarn", title: "실", body: oneYarn },
+      // the colour before the yarn's material (Kim)
       { id: "color", title: "색", body: <ColorStudio draft={draft} patch={patch} /> },
+      { id: "yarn", title: "실", body: oneYarn },
       { id: "needle", title: "바늘", body: oneHook },
       { id: "stitch", title: "무늬", body: oneStitch },
       { id: "draw", title: "모양 그리기", note: picked ? itemLabel : undefined, body: oneDraw },
@@ -816,7 +825,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // the first thing on the stage (Kim): the yarn as it will look, before any shape
     intro: <YarnCheck source={swatchSrc} plan={plan(swatchSrc)} big />,
     dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
-    parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1) }) : null;
+    parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1),
+    // 단추 / 라벨 dragged on the 3D (Kim): kept where they were let go, their size as it was
+    onExtraMove: (k, x, y) => { const key = k === "button" ? "buttonAt" : "labelAt", old = exNow[key]; setEx({ [key]: [x, y, old?.[2] ?? (k === "button" ? 1.9 : 2.8)] }); } }) : null;
 
   return {
     ready, formRef, onSubmit, onKeyDown, phone: phoneStep,

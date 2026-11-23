@@ -35,6 +35,8 @@ export interface WorkExtra {
   /** 3D로 보면서 만들기 (도안 만들기, Kim): the wizard's own step in the right column - where you are among the
    *  steps, the step's question and inputs, 이전 / 다음 at the foot. Enter goes on, as in the book. */
   making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean };
+  /** 단추 / 라벨 dragged on the 3D and let go: where (Kim: moved freely) */
+  onExtraMove?: (kind: "button" | "label", across: number, up: number) => void;
   /** nothing to draw yet (no item picked): the stage says so instead of showing a piece nobody chose */
   empty?: boolean;
   /** shown on the stage first (도안 만들기: the yarn check, Kim), until the reader goes on to the shape */
@@ -55,6 +57,7 @@ const Opt = ({ on, onClick, children }: { on?: boolean; onClick: () => void; chi
 export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: YarnPattern; onClose: () => void; extra?: WorkExtra }) {
   const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), backRef = useRef<HTMLSpanElement>(null), viewer = useRef<YarnViewer | null>(null);
   const shown = useRef<YarnPattern>(pattern), latest = useRef(pattern); latest.current = pattern;
+  const moveEx = useRef(extra?.onExtraMove); moveEx.current = extra?.onExtraMove;
   const [tool, setTool] = useState<Tool>("rotate"), [ruler, setRuler] = useState(false);
   const [view, setView] = useState<"yarn" | "holo">("yarn");
   const [mat, setMat] = useState<YarnMaterial | null>(null); // another yarn to look at (read-only screens)
@@ -102,7 +105,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     import("./engine").then(({ createYarnViewer, hasWebGL }) => {
       if (gone || !cv.current) return;
       const p = latest.current;
-      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onRuler: setRules }) : null;
+      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onRuler: setRules, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y) }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
     });

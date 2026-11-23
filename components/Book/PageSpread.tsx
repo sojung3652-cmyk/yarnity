@@ -89,6 +89,10 @@ export function RightPage({ onClose }: { onClose: () => void }) {
             <button type="button" className="pg-link pg-link-sub pg-link-apricot" onClick={e => { e.stopPropagation(); startNew(); }}>
               <span className="pg-link-text"><span className="pg-link-title">새 도안 만들기</span><span className="pg-link-desc">처음부터 시작합니다</span></span>
             </button>
+            {/* 3D로 만들어보기 (Kim): a new pattern, straight into the 3D work screen (wide screens; elsewhere the first page) */}
+            <button type="button" className="pg-link pg-link-sub pg-link-lav" onClick={e => { e.stopPropagation(); store.set("iyarn.go3d", 1); startNew(); }}>
+              <span className="pg-link-text"><span className="pg-link-title">3D로 만들어보기</span><span className="pg-link-desc">그리면서 바로 실로 떠 봅니다</span></span>
+            </button>
             <button type="button" className="pg-link pg-link-sub pg-link-lilac" disabled={!hasDraft} onClick={e => { e.stopPropagation(); book.startWizard(saved); }}>
               <span className="pg-link-text"><span className="pg-link-title">이어서 만들기</span>
                 <span className="pg-link-desc">{hasDraft ? `${draft.name.trim() || "이름 없는 작품"} · ${STEP_NAME[saved]}부터` : "이어서 만들 도안이 없습니다"}</span></span>

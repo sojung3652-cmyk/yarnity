@@ -103,7 +103,9 @@ export interface YarnRule { x1: number; y1: number; x2: number; y2: number; cm: 
 /** `fit` (the web's page and work screen): the camera is set so the whole piece - straps and most of its
  *  shadow included - is in view and in the middle, whatever the canvas's shape; without it the first
  *  framing (phones) stays as it was */
-export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: boolean; onInfo: (i: YarnInfo | null) => void; onBuilt?: (ms: number) => void; onRuler?: (r: YarnRule[] | null) => void }
+export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: boolean; onInfo: (i: YarnInfo | null) => void; onBuilt?: (ms: number) => void; onRuler?: (r: YarnRule[] | null) => void;
+  /** 단추 / 라벨 dragged on the piece (Kim: moved freely): where it was let go, [across -1..1, up 0..1] */
+  onExtraMove?: (kind: "button" | "label", across: number, up: number) => void }
 
 // how each yarn looks (Kim: the material has to show, also at the size of the book's page):
 //  plies / twist / depth  the twisted strands and how deep the grooves between them are
@@ -187,6 +189,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.ShadowMaterial({ color: lin(0x5a4632), opacity: .2 }));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -.3; ground.receiveShadow = true; scene.add(ground);
   const group = new THREE.Group(); scene.add(group);
+  // 단추 / 라벨 that can be dragged over the piece (Kim): the sewn-on things, and how to put one at a place
+  let exObjs: THREE.Object3D[] = [], exPlace: ((o: THREE.Object3D, across: number, up: number) => void) | null = null;
   // the light, its shadow box and the ground grow with the piece (the prototype's wider camera / shadow range)
   function setShadow(half: number) {
     sc.left = -half; sc.right = half; sc.top = half; sc.bottom = -half; sc.far = Math.max(40, half * 4.5);
@@ -674,6 +678,11 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       return { p: best.clone(), n };
     };
     const face = (o: THREE.Object3D, n: THREE.Vector3) => o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+    // a dragged one follows the pointer over the front wall (pieces with walls only)
+    if (wall) exPlace = (o, across, up) => {
+      const { p, n } = at(up, across * Math.PI * .42); face(o, n);
+      o.position.copy(p).addScaledVector(n, R * 1.5 + (o.userData.extra === "button" ? .16 : .05) * U);
+    };
     // 단추 고리 (Kim's round handbag): a short crocheted strap from inside the opening, over the rim at the front's
     // middle and down the front wall, its end where the button sits
     let tabTip: { p: THREE.Vector3; n: THREE.Vector3 } | null = null;
@@ -707,6 +716,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         for (const [hx, hy] of [[-.28, .28], [.28, .28], [-.28, -.28], [.28, -.28]]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(.13 * U, .13 * U, .36 * U, 10), std(0x4a372a, .9)); h.rotation.x = Math.PI / 2; h.position.set(hx * r, hy * r, 0); g.add(h); }
       }
       face(g, n); g.position.copy(p).addScaledVector(n, R * 1.5 + .16 * U); put(g);
+      if (wall && !tabTip && !(flapTip && !ba)) { g.userData.extra = "button"; exObjs.push(g); }
     }
     if (ex.label) {
       const la = ex.labelAt;
@@ -717,6 +727,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const bar = new THREE.Mesh(new THREE.BoxGeometry(w * .42, h * .1, .02 * U), std(0x9c5d63, .9)); bar.position.z = .045 * U; g.add(bar);
       if (wall) face(g, n); else { g.rotation.x = -Math.PI / 2; g.rotation.z = -.3; }
       g.position.copy(p).addScaledVector(n, R * 1.5 + .05 * U); if (!wall) { g.position.x -= w * .3; g.position.z -= h * .6; } put(g);
+      if (wall) { g.userData.extra = "label"; exObjs.push(g); }
     }
     const top = D.C[D.C.length - 1];
     if (ex.zipper && wall && top && top.closed && top.idx.length > 8) {
@@ -782,7 +793,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (anim) { cancelAnimationFrame(anim); anim = 0; }
     group.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | THREE.Material[] | undefined; if (mt) (Array.isArray(mt) ? mt : [mt]).forEach(x => x.dispose()); });
     while (group.children.length) group.remove(group.children[0]);
-    meshes = []; halos = []; fz = null; holo = null;
+    meshes = []; halos = []; fz = null; holo = null; exObjs = []; exPlace = null;
   }
   function showItem() {
     const D = IT.data!; clearGroup();
@@ -997,6 +1008,41 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     lastW = w; lastH = h; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); kick();
     if (opts.fit && !touched && IT.data && !(pat.focus === "fabric" && IT.data.knit)) fitAll(IT.data, viewDir());
   };
+  // ---------- dragging 단추 / 라벨 (Kim: moved freely on the piece). Pressed on one, the camera holds still and
+  // the thing follows the pointer: the stitch nearest the pointer on the side facing the camera says where.
+  // Only the thing moves while dragging (the yarn is not built again); where it was let go goes back to the
+  // page (onExtraMove), which puts it there for good.
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  const ndcOf = (e: PointerEvent) => { const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); };
+  const hitExtra = (e: PointerEvent) => { if (!exObjs.length) return null; ndcOf(e); ray.setFromCamera(ndc, cam); const h = ray.intersectObjects(exObjs, true)[0]; let o: THREE.Object3D | null = h?.object ?? null; while (o && !o.userData.extra) o = o.parent; return o; };
+  const spotOf = (e: PointerEvent): [number, number] | null => {
+    const D = IT.data; if (!D?.P.length) return null; ndcOf(e);
+    const b = boxOf(D), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, v = new THREE.Vector3(); let best: THREE.Vector3 | null = null, bd = 1e9;
+    for (const q of D.P) {
+      // the side facing the camera only
+      if ((q.x - cx) * (cam.position.x - q.x) + (q.z - cz) * (cam.position.z - q.z) <= 0) continue;
+      v.copy(q).project(cam); const d = (v.x - ndc.x) ** 2 + (v.y - ndc.y) ** 2; if (d < bd) { bd = d; best = q; }
+    }
+    if (!best || !b.my) return null;
+    const a = Math.atan2(best.x - cx, best.z - cz) / (Math.PI * .42);
+    return [Math.max(-1, Math.min(1, a)), Math.max(.05, Math.min(1, best.y / b.my))];
+  };
+  let dragO: THREE.Object3D | null = null, dragAt: [number, number] | null = null;
+  const exDown = (e: PointerEvent) => {
+    if (!opts.onExtraMove || e.button !== 0) return; const o = hitExtra(e); if (!o || !exPlace) return;
+    e.stopImmediatePropagation(); e.preventDefault(); dragO = o; dragAt = null; ctl.enabled = false; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = "grabbing";
+  };
+  const exMove = (e: PointerEvent) => {
+    if (!dragO) { if (opts.onExtraMove && e.buttons === 0) canvas.style.cursor = hitExtra(e) ? "grab" : ""; return; }
+    const s = spotOf(e); if (!s || !exPlace) return; dragAt = s; exPlace(dragO, s[0], s[1]); kick();
+  };
+  const exUp = (e: PointerEvent) => {
+    if (!dragO) return; const k = dragO.userData.extra as "button" | "label", at = dragAt;
+    dragO = null; dragAt = null; ctl.enabled = true; canvas.style.cursor = ""; try { canvas.releasePointerCapture(e.pointerId); } catch { /* gone */ }
+    if (at) opts.onExtraMove?.(k, Math.round(at[0] * 100) / 100, Math.round(at[1] * 100) / 100);
+  };
+  canvas.addEventListener("pointerdown", exDown, true); canvas.addEventListener("pointermove", exMove); canvas.addEventListener("pointerup", exUp); canvas.addEventListener("pointercancel", exUp);
+
   const ro = new ResizeObserver(resize); ro.observe(canvas); resize();
   ctl.target.set(0, 0, 0); fit();
   startItem();
@@ -1037,6 +1083,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     setRuler(on) { rulerOn = on; kick(); },
     dispose() {
       alive = false; cancelAnimationFrame(raf); ro.disconnect(); clearGroup(); ctl.dispose();
+      canvas.removeEventListener("pointerdown", exDown, true); canvas.removeEventListener("pointermove", exMove); canvas.removeEventListener("pointerup", exUp); canvas.removeEventListener("pointercancel", exUp);
       scene.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | undefined; if (mt) mt.dispose(); });
       FTEX.dispose(); HTEX.dispose(); envSrc.dispose(); ENV.dispose(); sun.shadow.map?.dispose();
       renderer.dispose(); renderer.forceContextLoss();

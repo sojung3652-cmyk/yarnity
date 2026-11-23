@@ -15,6 +15,37 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
   const works = [...projects].sort((a, b) => (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created)).slice(0, 6);
   if (!hasDraft && !works.length && !always) return null;
   const day = (t: number) => new Date(t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
+  if (always) return (
+    <div className="st st-big">
+      <p className="st-kicker" lang="en">new pattern</p>
+      <p className="st-ask">어디서부터 시작하시겠습니까?</p>
+      <span className="st-rule" aria-hidden="true" />
+      <div className="st-labels" role="group" aria-label="시작">
+        <button type="button" className="tp-label st-label" aria-pressed={mode === "new"} onClick={() => { onMode("new"); onFresh(); }}>
+          <span className="tp-label-top" lang="en">from scratch</span><b>새로 시작</b><span className="st-desc">빈 종이에서</span>
+        </button>
+        <button type="button" className="tp-label st-label st-label-b" aria-pressed={mode === "go"} aria-expanded={mode === "go"} onClick={() => onMode("go")}>
+          <span className="tp-label-top" lang="en">continue</span><b>이어서 하기</b><span className="st-desc">만들던 것 불러오기</span>
+        </button>
+      </div>
+      {mode === "go" && !hasDraft && !works.length && <p className="nb-help st-none">이어서 할 것이 아직 없습니다. 새로 시작해 주십시오.</p>}
+      {mode === "go" && (hasDraft || !!works.length) && (
+        <ul className="st-list">
+          {hasDraft && (
+            <li><button type="button" onClick={onDraft}>
+              <b>{draft.name.trim() || "이름 없는 도안"}</b><span>만들던 도안{draft.itemPicked ? ` · ${draft.free || draft.paint ? "직접 그린 모양" : ITEM[itemIdOf(draft)].name}` : ""}</span>
+            </button></li>
+          )}
+          {works.map(p => (
+            <li key={p.id}><button type="button" onClick={() => onOpen(p.id)}>
+              <b>{p.name}</b><span>{ITEM[itemIdOf(p)].name} · {day(p.updatedAt ?? p.created)}</span>
+            </button></li>
+          ))}
+        </ul>
+      )}
+      <p className="st-foot" lang="en">with love · yarnity</p>
+    </div>
+  );
   return (
     <div className="st nb-web">
       <p className="st-ask">어디서부터 시작하시겠습니까?</p>

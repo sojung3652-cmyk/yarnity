@@ -884,3 +884,28 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .sk-pop-paper .sk-pad{width:auto;height:100%;max-width:100%;aspect-ratio:1;box-shadow:0 2px 10px -4px rgba(60,40,20,.4)}
 .sk-pop-side{display:flex;flex-direction:column;gap:14px;padding:14px;background:#FFFDF8;border-left:1px solid #E0D5C7;overflow:auto}
 .sk-pop-side .sk-inks{flex-wrap:wrap}
+
+/* 재질: two rows, the next one showing faintly under them (Kim) */
+.nb-matbox{position:relative}
+.nb-matbox.is-short{max-height:112px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent)}
+.nb-matmore{position:absolute;left:0;right:0;bottom:0;height:26px;border:0;background:transparent;cursor:pointer;color:transparent;font-size:0}
+.nb-link:disabled{opacity:.4;cursor:default;text-decoration:none}
+.nb-exdel{margin-left:10px;font-size:12.5px}
+/* the first page: where to start, on woven labels (Kim) */
+.st-big{display:flex;flex-direction:column;align-items:center;width:min(100%,420px);margin:auto;padding:0;gap:0}
+.st-kicker{margin:0 0 8px;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:11px;letter-spacing:.42em;padding-left:.42em;text-transform:uppercase;color:#9A8778}
+.st-big .st-ask{margin:0;font-family:"Noto Serif KR",serif;font-size:19px;font-weight:500;color:#3E3430}
+.st-rule{width:36px;height:1px;background:#C9B48A;margin:16px 0 26px}
+.st-labels{display:flex;flex-direction:column;align-items:center;gap:20px;width:100%}
+.st-label{width:min(100%,330px);padding:18px 46px 15px;border-left:0;border-right:0;font:inherit;cursor:pointer;color:#3E3430}
+.st-label b{font-family:"Noto Serif KR",serif;font-size:18px;font-weight:500}
+.st-label .st-desc{font-size:13px;color:#7A6A63}
+.st-label-b{transform:rotate(.5deg)}
+.st-label:hover,.st-label:focus-visible{transform:rotate(0) translateY(-1px)}
+.st-label[aria-pressed="true"]{box-shadow:0 1px 2px rgba(70,50,40,.14),0 6px 16px rgba(70,50,40,.08),inset 0 0 0 1.5px #D9A9B2}
+.st-big .st-list{width:100%;margin-top:18px}
+.st-foot{margin:28px 0 0;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-style:italic;font-size:13px;color:#9A8778}
+.tp-start{display:flex;flex-direction:column;justify-content:center;min-height:100%}
+/* 그림판 열기 as a light label button (readable on the column) */
+.sk-card .sk-open{background:#FFFDF8;color:#3A322D;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #B9A58E}
+.sk-card .sk-open:hover{box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px #B99447}

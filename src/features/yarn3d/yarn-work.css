@@ -188,3 +188,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 /* the first page: only where to start */
 .tp-start{justify-content:center}
 .st-none{margin-top:10px}
+.yw-name.yw-name-in{display:flex;align-items:center;gap:10px;overflow:visible;flex:none}
+.yw-name-in input{width:160px}
+.yw-name-in small{margin:0;white-space:nowrap}
+.yw-name-in small{max-width:110px;overflow:hidden;text-overflow:ellipsis}
