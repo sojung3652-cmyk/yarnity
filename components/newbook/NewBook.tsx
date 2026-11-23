@@ -24,7 +24,7 @@ import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
-import { Head, Tiles, WebCheck, WebHook, WebStitch, WebYarn } from "./WebPages";
+import { Head, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
 import { isKnit, stitchOf } from "@/lib/knit";
 import { yarnUse } from "@/lib/yarnUse";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
@@ -404,7 +404,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         <p className="nb-help">고르면 여기에 소개가 나옵니다.</p>
       </div>
     );
-    rightWeb = <>{left}{picked && <p className="nb-help nb-pickline" key={item.id}>{item.desc} · 난이도 {item.level} · {item.time}</p>}{item.note && picked && <p className="nb-help">{item.note}</p>}</>;
+    // the web (Kim: like Photoshop's new-document window): every item at once as tiles, kinds as tabs
+    rightWeb = <WebItems value={picked ? item.id : ""} onPick={pickItem} tried={tried} hint={<AskAiLine which="item" />} />;
   } else {
     // ③ all the inputs: the yarn and hook (page 5), the shape and size (page 6)
     // ④ the check before the pattern: the supplies with the yarn amount, now that the size is known
@@ -561,6 +562,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} />;
   }
 
+  // the left page's one line under the 3D (web): the size the pattern is made for
+  const sizeCaption = (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
+    : (input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`) + (input.object === "bag" && input.h ? ` · 높이 ${input.h}cm` : ""))
+    + (item.handles && draft.handle !== "none" && handleCmOf(draft) ? ` · 손잡이 ${handleCmOf(draft)}cm` : "");
   const phoneNext: Record<Step, string> = { 1: "다음 · 품목 ↑", 2: "다음 · 실과 바늘 ↑", 3: "다음 · 준비물 확인 ↑", 4: "완성 · 최종 도안 보기" };
   const phoneStep: PhoneStep | undefined = phone ? {
     step, title: titles[step], ask: step === 2 ? "item" : step === 3 ? "yarn" : null, body: phoneBody,
@@ -583,12 +588,15 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       </button>
     ),
     left: web && step > 1 ? (
-      // the web from step 2 (Kim): the left page is the 3D alone; at its foot 이전 and 크게 보기 (the full screen)
+      // the web from step 2 (Kim): the left page is the 3D; at its foot 이전 and the work screen (full screen).
+      // Nothing picked yet: where the piece will stand, empty
       <section className="nb-page nb-left nb-3dleft" aria-label="3D 미리 보기">
-        <YarnPagePreview source={yarnSrc} plan={pp} fabric={knitNow && step === 3 && sheet === 2} />
+        {step === 2 && !picked
+          ? <div className="y3-page-empty"><i aria-hidden="true" /><p>오른쪽에서 고르면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>
+          : <YarnPagePreview source={yarnSrc} plan={pp} fabric={knitNow && step === 3 && sheet === 2} caption={sizeCaption} />}
         <div className="nb-foot">
           <ClothLabel side="back" type="button" onClick={back}>← 이전</ClothLabel>
-          {big3d.supported && <ClothLabel side="next" type="button" onClick={big3d.show}>크게 보기</ClothLabel>}
+          {big3d.supported && !(step === 2 && !picked) && <ClothLabel side="next" type="button" onClick={big3d.show}>작업 화면으로 크게</ClothLabel>}
           <span className="nb-folio">{folio}</span>
         </div>
         {big3d.node}
@@ -615,7 +623,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           {web && step > 1 ? <>
             <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>
             {subSteps}
-            {step === 2 && <AskAiLine which="item" />}{step === 3 && sheet === 0 && <AskAiLine which="yarn" />}
+            {step === 3 && sheet === 0 && <AskAiLine which="yarn" />}
             {rightWeb}
           </> : right}
         </div>

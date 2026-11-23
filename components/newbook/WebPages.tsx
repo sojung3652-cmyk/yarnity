@@ -13,7 +13,9 @@ import type { Draft } from "@/lib/types";
 import { YARN_KO, type Weight } from "@/lib/pattern";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
+import { GROUPS, ITEM, ITEMS, type Item, type ItemId } from "@/lib/items";
 import { Fold, useOneOpen } from "./Fold";
+import { ItemArt } from "./ItemArt";
 import { COLORS, ColorEditor } from "./YarnStep";
 
 type Patch = (p: Partial<Draft>) => void;
@@ -41,6 +43,58 @@ export function Tiles<T extends string>({ label, value, options, onPick, cols = 
 export const Head = ({ id, children, note }: { id?: string; children: ReactNode; note?: ReactNode }) => (
   <div className="nb-wh"><span id={id}>{children}</span>{note && <small>{note}</small>}</div>
 );
+
+// ---------------------------------------------------------------- 무엇을 뜰지 (Kim: like Photoshop's new-document
+// window - kinds as tabs, every preset as a tile with its usual size, the picked one's details under them)
+/** an item's usual size in a few characters, for its tile */
+export function sizeHint(i: Item): string {
+  const d = i.defaults;
+  if (i.id === "beanie") return `머리 ${d.circ}cm`;
+  if (i.kind === "tube") return `둘레 ${d.a}cm`;
+  if (i.kind === "flat-rows") return `${d.a} × ${d.b}cm`;
+  if (d.shape === "circle") return `지름 ${d.a}cm`;
+  return i.kind === "base-body" ? `${d.a} × ${d.h}cm` : `${d.a} × ${d.b}cm`;
+}
+/** `hint`: shown under the tiles while nothing is picked; `extra`: one more tile at the end (직접 그리기) */
+export function WebItems({ value, onPick, tried, hint, extra }: { value: ItemId | ""; onPick: (id: ItemId) => void; tried: boolean; hint?: ReactNode; extra?: ReactNode }) {
+  const [tab, setTab] = useState<string>("전체");
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const list = ITEMS.filter(i => tab === "전체" || i.group === tab), idx = Math.max(0, list.findIndex(i => i.id === value));
+  const key = (e: KeyboardEvent, k: number) => {
+    const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : e.key === "ArrowDown" ? 5 : e.key === "ArrowUp" ? -5 : 0;
+    if (!d) return;
+    e.preventDefault(); const j = Math.min(list.length - 1, Math.max(0, k + d)); onPick(list[j].id); refs.current[j]?.focus();
+  };
+  const it = value ? ITEM[value] : null;
+  return (
+    <div className="nb-web nb-pick">
+      <div className="nb-tabs" role="tablist" aria-label="종류">
+        {["전체", ...GROUPS].map(g => <button key={g} type="button" role="tab" aria-selected={tab === g} onClick={() => setTab(g)}>{g}</button>)}
+      </div>
+      {tried && !it && <p className="nb-err" role="alert">뜨고 싶은 것을 하나 골라 주십시오.</p>}
+      <div className="nb-pre" role="radiogroup" aria-label="뜰 것">
+        {list.map((i, k) => (
+          <button key={i.id} ref={el => { refs.current[k] = el; }} type="button" role="radio" aria-checked={i.id === value} tabIndex={k === idx ? 0 : -1} className="nb-pre-t" onClick={() => onPick(i.id)} onKeyDown={e => key(e, k)}>
+            <ItemArt id={i.id} tile />
+            <span>{i.name}{i.beta && <em className="nb-beta">베타</em>}</span>
+            <small>{sizeHint(i)}</small>
+          </button>
+        ))}
+        {tab === "전체" && extra}
+      </div>
+      <div className="nb-det" aria-live="polite">
+        {it ? (
+          <>
+            <h3>{it.name}<small>{it.group}</small></h3>
+            <p>{it.desc}</p>
+            <dl><div><dt>난이도</dt><dd>{it.level}</dd></div><div><dt>시간</dt><dd>{it.time}</dd></div><div><dt>순서</dt><dd>{it.method}</dd></div></dl>
+            {it.note && <p className="nb-help">{it.note}</p>}
+          </>
+        ) : <>{hint}<p className="nb-help">칸에 적힌 크기는 흔히 뜨는 값입니다. 다음 장에서 바꿀 수 있습니다.</p></>}
+      </div>
+    </div>
+  );
+}
 
 // the materials shown at once (the rest under 더 보기); the 3D draws each of them its own way
 const WEB_MATERIALS = ["코튼", "울", "메리노", "알파카", "모헤어", "아크릴", "리넨", "실크", "벨벳(셔닐)", "라피아", "코드사", "메탈릭"];

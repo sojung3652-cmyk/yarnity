@@ -55,9 +55,26 @@ export interface YarnViewer {
   setMaterial(m: YarnMaterial): void;
   setView(v: "yarn" | "holo"): void;
   playDraw(): void;
+  /** nearer (f < 1) or further (f > 1) */
+  zoom(f: number): void;
+  /** the first angle again, the whole piece in view */
+  home(): void;
+  /** look from the front, the side, straight above or down into it */
+  look(v: YarnLook): void;
+  /** what dragging does: turn it, move it across the screen, or zoom */
+  setTool(t: YarnTool): void;
+  /** 재기: the piece's width and height (or depth) as lines on the screen (opts.onRuler) */
+  setRuler(on: boolean): void;
   dispose(): void;
 }
-export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; onInfo: (i: YarnInfo | null) => void; onBuilt?: (ms: number) => void }
+export type YarnLook = "front" | "side" | "top" | "inside";
+export type YarnTool = "rotate" | "pan" | "zoom";
+/** a measuring line on the screen, in the canvas's own pixels */
+export interface YarnRule { x1: number; y1: number; x2: number; y2: number; cm: number }
+/** `fit` (the web's page and work screen): the camera is set so the whole piece - straps and most of its
+ *  shadow included - is in view and in the middle, whatever the canvas's shape; without it the first
+ *  framing (phones) stays as it was */
+export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: boolean; onInfo: (i: YarnInfo | null) => void; onBuilt?: (ms: number) => void; onRuler?: (r: YarnRule[] | null) => void }
 
 // how each yarn looks (Kim: the material has to show, also at the size of the book's page):
 //  plies / twist / depth  the twisted strands and how deep the grooves between them are
@@ -530,6 +547,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     opts.onInfo(null); t0 = performance.now(); IT.data = makeItem(); lodFor(IT.data.knit ? IT.data.knit.W * IT.data.knit.H * 1.6 : IT.data.P.length);
     if (IT.data.fixed) IT.data.iter = 1e9; // a known shape: nothing to settle
     showItem();
+    // the shape while it settles (its gold lines) is in view as well: it used to fill the page, cut off
+    if (opts.fit) { strapH = 0; fitAll(IT.data, viewDir()); }
   }
   function fit() { const k = Math.max(1, (cam.aspect < .8 ? .95 : 1.45) / cam.aspect); cam.position.sub(ctl.target).multiplyScalar(k).add(ctl.target); ctl.update(); }
   // the prototype: 8 passes a frame for 150 frames (1200 passes). Past ~40k springs that took 150ms a frame
@@ -547,9 +566,43 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       frameOn(D); opts.onBuilt?.(performance.now() - t0);
     }
   }
+  // ---------- the whole piece in view (opts.fit)
+  const HOME = new THREE.Vector3(0, .63, .77).normalize();
+  let touched = false; // the reader moved the camera: a resize leaves it alone
+  const viewDir = () => { const d = cam.position.clone().sub(ctl.target); return d.lengthSq() > 1e-6 ? d.normalize() : HOME.clone(); };
+  function boxOf(D: ItemData) {
+    let my = 0, x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+    D.P.forEach(q => { if (q.y > my) my = q.y; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); });
+    return { my, x0, x1, z0, z1 };
+  }
+  /** The camera along `dir`, as near as shows every corner of the piece's box (straps included) and the
+   *  shadow its body throws to the lower left, with the box in the middle of the canvas. */
+  function fitAll(D: ItemData, dir: THREE.Vector3) {
+    const b = boxOf(D), pad = Math.max(D.rh, D.sw) * .8, top = b.my + strapH + pad, pts: THREE.Vector3[] = [];
+    for (const x of [b.x0 - pad, b.x1 + pad]) for (const z of [b.z0 - pad, b.z1 + pad]) for (const y of [-.3, top]) pts.push(new THREE.Vector3(x, y, z));
+    // the light comes from (7, 9, 10): a point at height h throws its shadow (7/9 h, 10/9 h) away from it
+    const sh = b.my * .7; if (sh > D.rh * 2) for (const [x, z] of [[b.x0, b.z0], [b.x1, b.z0], [b.x0, b.z1]]) pts.push(new THREE.Vector3(x - sh * 7 / 9, -.3, z - sh * 10 / 9));
+    const d = dir.clone().normalize(); if (Math.abs(d.y) > .999) d.set(0, 1, .03).normalize();
+    const f = d.clone().negate(), r = new THREE.Vector3().crossVectors(f, new THREE.Vector3(0, 1, 0)).normalize(), u = new THREE.Vector3().crossVectors(r, f);
+    const m = page ? .88 : .8, tv = Math.tan(cam.fov * Math.PI / 360) * m, th = tv * cam.aspect;
+    const c = new THREE.Vector3((b.x0 + b.x1) / 2, top / 2, (b.z0 + b.z1) / 2), q = new THREE.Vector3(); let dist = 10;
+    for (let it = 0; it < 4; it++) {
+      dist = 0; for (const p of pts) { q.subVectors(p, c); const dz = q.dot(f); dist = Math.max(dist, Math.abs(q.dot(r)) / th - dz, Math.abs(q.dot(u)) / tv - dz); }
+      let ax = 1e9, bx = -1e9, ay = 1e9, by = -1e9;
+      for (const p of pts) { q.subVectors(p, c); const dep = dist + q.dot(f), nx = q.dot(r) / (dep * th), ny = q.dot(u) / (dep * tv); ax = Math.min(ax, nx); bx = Math.max(bx, nx); ay = Math.min(ay, ny); by = Math.max(by, ny); }
+      c.addScaledVector(r, (ax + bx) / 2 * th * dist).addScaledVector(u, (ay + by) / 2 * tv * dist);
+    }
+    const ext = Math.max(b.x1 - b.x0, b.z1 - b.z0, top);
+    ctl.target.copy(c); cam.position.copy(c).addScaledVector(d, dist); ctl.minDistance = Math.min(3, dist * .2); ctl.maxDistance = Math.max(40, dist * 2.4);
+    setShadow(Math.max(10, ext * 1.4)); ctl.update(); kick();
+  }
   /** the camera on the finished piece (or, `focus: "fabric"`, near enough to read a knitted fabric's stitches) */
   let wasFab = false;
   function frameOn(D: ItemData) {
+    if (opts.fit && !(pat.focus === "fabric" && D.knit)) {
+      sizeInfo(D); const dir = wasFab ? HOME.clone() : viewDir(); wasFab = false;
+      fitAll(D, dir); return;
+    }
     {
       const z = sizeInfo(D);
       const tot = z.my + strapH, ext = Math.max(z.mr * 2, tot);
@@ -595,16 +648,30 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const settling = !!IT.data && !IT.data.done;
     tickItem();
     const moved = ctl.update();
-    renderer.render(scene, cam);
+    renderer.render(scene, cam); rules();
     if (settling || moved || anim) kick();
   }
   function kick() { if (alive && !raf) raf = requestAnimationFrame(frame); }
-  ctl.addEventListener("change", kick); ctl.addEventListener("start", kick);
+  ctl.addEventListener("change", kick); ctl.addEventListener("start", () => { touched = true; kick(); });
+  // ---------- 재기: the width along the front edge, the height (or, for a flat piece, the depth) at the right
+  let rulerOn = false, lastRule = "";
+  function rules() {
+    const D = IT.data; if (!rulerOn || !opts.onRuler || !D || !D.done) { if (lastRule) { lastRule = ""; opts.onRuler?.(null); } return; }
+    const b = boxOf(D), g = Math.max(D.rh, D.sw) * 1.6, e = D.fixed ? D.sw / 2 : 0, ez = D.fixed ? D.rh / 2 : 0, cm = (v: number) => Math.round(v * MM) / 10;
+    const px = (x: number, y: number, z: number) => { const v = new THREE.Vector3(x, y, z).project(cam); return [(v.x + 1) / 2 * lastW, (1 - v.y) / 2 * lastH]; };
+    const line = (a: number[], c: number[], n: number): YarnRule => { const [x1, y1] = px(a[0], a[1], a[2]), [x2, y2] = px(c[0], c[1], c[2]); return { x1, y1, x2, y2, cm: cm(n) }; };
+    const out = [line([b.x0 - e, 0, b.z1 + ez + g], [b.x1 + e, 0, b.z1 + ez + g], b.x1 - b.x0 + e * 2)];
+    if (b.my > D.rh * 2) out.push(line([b.x1 + g, 0, b.z1], [b.x1 + g, b.my, b.z1], b.my + (pat.shape.kind === "tube" ? D.rh : 0)));
+    else out.push(line([b.x1 + e + g, 0, b.z0 - ez], [b.x1 + e + g, 0, b.z1 + ez], b.z1 - b.z0 + ez * 2));
+    const key = out.map(o => [o.x1, o.y1, o.x2, o.y2, o.cm].map(Math.round).join()).join(";");
+    if (key !== lastRule) { lastRule = key; opts.onRuler(out); }
+  }
   let lastW = 0, lastH = 0;
   const resize = () => {
     // the book's pages are zoomed (CSS zoom): the drawn size is the box on the screen
     const r = canvas.getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height); if (!w || !h || (w === lastW && h === lastH)) return;
     lastW = w; lastH = h; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); kick();
+    if (opts.fit && !touched && IT.data && !(pat.focus === "fabric" && IT.data.knit)) fitAll(IT.data, viewDir());
   };
   const ro = new ResizeObserver(resize); ro.observe(canvas); resize();
   ctl.target.set(0, 0, 0); fit();
@@ -628,6 +695,19 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     },
     setView(v) { IT.view = v; if (IT.data) showItem(); },
     playDraw,
+    zoom(f) { const v = cam.position.clone().sub(ctl.target), l = Math.min(ctl.maxDistance, Math.max(ctl.minDistance, v.length() * f)); cam.position.copy(ctl.target).addScaledVector(v.normalize(), l); touched = true; ctl.update(); kick(); },
+    home() { touched = false; if (IT.data) { cam.position.copy(ctl.target).addScaledVector(HOME, 10); wasFab = false; if (opts.fit) fitAll(IT.data, HOME.clone()); else frameOn(IT.data); } },
+    look(v) {
+      if (!IT.data) return; touched = false;
+      const d = v === "front" ? new THREE.Vector3(0, .1, 1) : v === "side" ? new THREE.Vector3(1, .1, 0) : v === "top" ? new THREE.Vector3(0, 1, .03) : new THREE.Vector3(0, .9, .45);
+      fitAll(IT.data, d.normalize());
+    },
+    setTool(t) {
+      ctl.enablePan = t === "pan"; ctl.screenSpacePanning = true;
+      ctl.mouseButtons.LEFT = t === "pan" ? THREE.MOUSE.PAN : t === "zoom" ? THREE.MOUSE.DOLLY : THREE.MOUSE.ROTATE;
+      ctl.touches.ONE = t === "pan" ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
+    },
+    setRuler(on) { rulerOn = on; kick(); },
     dispose() {
       alive = false; cancelAnimationFrame(raf); ro.disconnect(); clearGroup(); ctl.dispose();
       scene.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | undefined; if (mt) mt.dispose(); });
