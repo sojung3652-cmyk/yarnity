@@ -22,6 +22,7 @@ import type { Draft } from "@/lib/types";
 import { ItemArt } from "./ItemArt";
 import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
+import { CoverChoice } from "./CoverChoice";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
 import { Head, PanelYarn, Slide, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
@@ -324,7 +325,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     } else {
       addProject({ id: "p" + Date.now().toString(36), ...JSON.parse(JSON.stringify(d)), measuredH: null, current: 0, created: Date.now(), updatedAt: Date.now(), status: "knitting" });
       store.set(STEP_KEY, 1);
-      // 완성 도안 (web and phone) then offers the book covers once (components/diary/CoverPicker.tsx)
+      // 완성 도안 (web and phone) then shows its links once (the cover is picked before, on 확인, or given at random)
       try { sessionStorage.setItem("m.justMade", "1"); } catch {}
     }
     // wide screens, in the 3D book (Kim): done, the book sinks and you are back where it rose (the new pattern
@@ -542,8 +543,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       left = <YarnPage draft={draft} patch={patch} tried={tried} />;
       right = <section className="nb-sec" aria-labelledby="secSize"><h2 className="nb-sec-title" id="secSize">모양과 크기</h2><AskAiLine which="size" />{sizePage}</section>;
     } else {
-      left = <SuppliesPage draft={draft} item={item} pp={pp} stitchMm={g.h * 10}
-        measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 재서 정확하게 맞춥니다."} />;
+      // the cover first (Kim: picked before the pattern is made), then the supplies
+      left = <><CoverChoice draft={draft} patch={patch} /><SuppliesPage draft={draft} item={item} pp={pp} stitchMm={g.h * 10}
+        measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 재서 정확하게 맞춥니다."} /></>;
       right = previewPage;
     }
     if (phone) phoneBody = <>{left}<div className="mw-split" aria-hidden="true" />{right}</>;
@@ -616,9 +618,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const skeinText = draft.skeinG && draft.skeinM ? `한 타래 ${draft.skeinG}g · ${draft.skeinM}m 기준` : draft.skeinG ? `한 타래 ${draft.skeinG}g 기준` : draft.skeinM ? `한 타래 ${draft.skeinM}m 기준` : "";
     rightWeb = step === 3
       ? [<WebYarn key="y" draft={draft} patch={patch} tried={tried} />, webSize, bagNow ? webBag : <WebStitch key="s" draft={draft} patch={patch} n={pp.last} />][sheet]
-      : <WebCheck draft={draft} itemName={item.name} rows={checkRows} facts={facts}
+      // the cover first (Kim: picked before the pattern is made; none = a random one), then the check
+      : <><CoverChoice draft={draft} patch={patch} /><WebCheck draft={draft} itemName={item.name} rows={checkRows} facts={facts}
           use={{ g: use.g, m: use.m, skeins: use.skeins ?? null, short: !!use.short, labelOdd: !!use.labelOdd, perColor: !!use.perColor, colors: ucolors.length, per100: use.per100, basis, skeinText }}
-          measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} />;
+          measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} /></>;
   }
 
   const phoneNext: Record<Step, string> = { 1: "다음 · 품목 ↑", 2: "다음 · 실과 바늘 ↑", 3: "다음 · 준비물 확인 ↑", 4: "완성 · 최종 도안 보기" };

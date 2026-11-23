@@ -9,7 +9,6 @@ import { MobilePatternScreen } from "@/components/mobile/MobilePatternScreen";
 import { useRouter } from "next/navigation";
 import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
 import { Fragment, useEffect, useState } from "react";
-import { CoverPicker } from "@/components/diary/CoverPicker";
 import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { CopyLot } from "@/components/YarnInfo";
@@ -39,9 +38,8 @@ export function PatternScreen() {
   const book = useBook();
   const router = useRouter();
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
-  // just made (NewBook save): the book covers, once, while the work has none
-  const [picking, setPicking] = useState(false);
-  useEffect(() => { try { if (sessionStorage.getItem("m.justMade")) { sessionStorage.removeItem("m.justMade"); setPicking(true); } } catch {} }, []);
+  // just made (NewBook save): the cover is picked on 도안 만들기's last step now, or given at random; nothing to ask here - Kim)
+  useEffect(() => { try { sessionStorage.removeItem("m.justMade"); } catch {} }, []);
   if (!ready || !p) return <main id="view-pattern" />;
 
   const pp = shownPlan(p), it = ITEM[itemIdOf(p)];
@@ -71,7 +69,6 @@ export function PatternScreen() {
 
   return (
     <main id="view-pattern" className="ps-main">
-      {picking && (!p.cover || p.coverAuto) && <CoverPicker first p={p} onPick={id => { updateProject(p.id, { cover: id, coverAuto: false }); setPicking(false); }} onClose={() => setPicking(false)} />}
       <div className="ps-actions">
         <div className="steps"><span>준비물과 모양</span><span className="on">도안</span><span>따라 뜨기</span></div>
         <div className="ps-btns">

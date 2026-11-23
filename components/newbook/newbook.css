@@ -662,6 +662,14 @@ button.nb-ribbon:hover,button.nb-ribbon:focus-visible{transform:scale(1.1)}
 .nb-det dt,.nb-det dd{display:inline;margin:0}.nb-det dt{margin-right:6px;color:#6B5C55}
 .nb-det .ask-line{margin:0 0 8px}
 @media (prefers-reduced-motion:reduce){.nb-pre-t{transition:none}}
+/* 확인: the work's book cover, picked before the pattern is made (CoverChoice) - the small book, a line, the label */
+.nb-cover{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding-bottom:10px;border-bottom:1px solid var(--line,#EADFD6)}
+.nb-cover .mm-cover{flex:none}
+.nb-cover-text{flex:1;min-width:0}
+.nb-cover-text .nb-help{margin:2px 0 0}
+.nb-cover-img,.nb-cover-blank{flex:none;width:40px;height:54px;border-radius:2px 4px 4px 2px;box-shadow:-1.5px 2px 3px rgba(90,62,44,.18)}
+.nb-cover-img{object-fit:cover}
+.nb-cover-blank{box-sizing:border-box;border:1.5px dashed #D8CABD;box-shadow:none}
 
 /* ---- sliders (web): 털 양, 털 길이, 굵기 - the 3D follows while they are dragged */
 .nb-slide{display:flex;align-items:center;gap:10px;min-width:0;font-size:13.5px;color:#4A3D38}

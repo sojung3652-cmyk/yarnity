@@ -60,6 +60,16 @@ html body .tp-label>*{flex:none}
 html body .tp-label .tp-input,html body .mfw .tp-label .tp-input{font-size:20px!important;line-height:24px;min-height:0;height:25px;margin:0;padding:0;overflow:hidden;white-space:nowrap}
 html body .tp-label .tp-label-top,html body .mfw .tp-label .tp-label-top{font-size:9.5px;line-height:1.1;margin:0}
 html body .tp-label .tp-label-bottom,html body .mfw .tp-label .tp-label-bottom{font-size:11px;line-height:1.15;margin:0}
+/* web (Kim): the name on the plain linen label (the cream patch every cloth label uses), a size bigger than
+   the lace tag it was; phones keep the lace tag */
+@media (min-width:768px){
+  html body .nb-page .tp-label{--pw:18px;width:440px;max-width:100%;aspect-ratio:auto;height:auto;overflow:visible;padding:18px 40px 16px;gap:4px;
+    border-style:solid;border-width:var(--pw);border-image-source:url(/mobile/diary/patch_cream.webp);border-image-slice:62 fill;border-image-repeat:stretch;
+    background:none;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.16))}
+  html body .nb-page .tp-label .tp-input{font-size:24px!important;line-height:30px;height:31px}
+  html body .nb-page .tp-label .tp-label-top{font-size:11px}
+  html body .nb-page .tp-label .tp-label-bottom{font-size:13px}
+}
 
 /* a page's name on a thin ivory lace label (Kim: 나의 도안집 and 뜨개 용어집, in place of their wordmark pictures),
    web nav, phone bar and the glossary head alike; room above and below it */

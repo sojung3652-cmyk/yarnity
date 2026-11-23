@@ -19,7 +19,6 @@ import { isKnit, partName, shownPlan } from "@/lib/knit";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { yarnUse } from "@/lib/yarnUse";
 import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
-import { CoverPicker } from "@/components/diary/CoverPicker";
 import { MobileTopBar, MoreButton } from "./MobileTopBar";
 import { MoreSheet } from "./MoreSheet";
 import { useNewDraft } from "./useNewDraft";
@@ -33,10 +32,9 @@ export function MobilePatternScreen() {
   const [renaming, setRenaming] = useState(false), [name, setName] = useState("");
   const [justMade, setJustMade] = useState(false);
   // just made: the + 새 도안 · 나의 도안집 links, and the book cover to pick (once, if it has none yet)
-  const [picking, setPicking] = useState(false);
   // 3D로 보기 in the ··· sheet
   const y3 = useYarn3D(p);
-  useEffect(() => { try { if (sessionStorage.getItem(JUST_MADE_KEY)) { sessionStorage.removeItem(JUST_MADE_KEY); setJustMade(true); setPicking(true); } } catch {} }, []);
+  useEffect(() => { try { if (sessionStorage.getItem(JUST_MADE_KEY)) { sessionStorage.removeItem(JUST_MADE_KEY); setJustMade(true); } } catch {} }, []);
   useEffect(() => { if (ready && !p) router.replace("/mine"); }, [ready, p, router]);
   if (!ready || !p) return <main id="view-pattern" className="ms-screen" />;
 
@@ -152,7 +150,6 @@ export function MobilePatternScreen() {
         </div>
       </div>
 
-      {picking && (!p.cover || p.coverAuto) && <CoverPicker first p={p} onPick={id => { updateProject(p.id, { cover: id, coverAuto: false }); setPicking(false); }} onClose={() => setPicking(false)} />}
       {more && (
         <MoreSheet title={p.name} onClose={() => setMore(false)} items={[
           { key: "edit", icon: "pen", label: "고치기", sub: "마법사로 돌아갑니다", onClick: () => { setMore(false); book.editHere(p.id); } },
