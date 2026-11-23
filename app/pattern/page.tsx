@@ -73,8 +73,9 @@ export function PatternScreen() {
   return (
     <main id="view-pattern" className="ps-main">
       <div className="ps-actions">
-        {/* the way back, top left (Kim) */}
-        <span className="ps-back"><ClothLabel side="back" type="button" onClick={() => (history.length > 1 ? router.back() : router.push("/my"))}>← 뒤로</ClothLabel></span>
+        {/* the way back, top left (Kim): to 나의 도안집 - going back in the history reopened the book a just-made
+            pattern came from, over this page */}
+        <span className="ps-back"><ClothLabel side="back" type="button" onClick={() => router.push("/my")}>← 뒤로</ClothLabel></span>
         <div className="ps-btns">
           {/* Girl's Diary (components/diary): two round cloth buttons and the lavender lace tag */}
           <StitchButton icon={DiaryIcon.pen} patch="/brand/btn_edit.webp" label="고치기" onClick={() => { startEdit3d(); book.editHere(p.id); }} />
