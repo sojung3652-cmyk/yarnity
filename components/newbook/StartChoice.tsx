@@ -47,7 +47,7 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
           <span className="tp-label-top" lang="en">continue</span><b>이어서 하기</b><span className="st-desc">만들던 것 불러오기</span>
         </button>
       </div>
-      {mode === "go" && !hasDraft && !undo && <p className="nb-help st-none">만들다 만 도안이 없습니다. 저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>}
+      {mode === "go" && !hasDraft && !undo && <p className="nb-help st-none">만들다 만 도안이 없습니다.<br />저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>}
       {mode === "go" && hasDraft && (
         <div className="st-go">
           {/* asked here, never with a browser dialog; the works can be brought back for a few seconds */}
@@ -84,7 +84,7 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
       <p className="st-ask">어디서부터 시작하시겠습니까?</p>
       <Tiles label="시작" value={mode ?? ""} cols={2} onPick={v => { onMode(v as "new" | "go"); if (v === "new") onFresh(); }}
         options={[["new", "새로 시작", "빈 종이에서"], ["go", "이어서 하기", "만들던 것 불러오기"]]} />
-      {mode === "go" && !hasDraft && <p className="nb-help st-none">만들다 만 도안이 없습니다. 저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>}
+      {mode === "go" && !hasDraft && <p className="nb-help st-none">만들다 만 도안이 없습니다.<br />저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>}
       {mode === "go" && hasDraft && (
         <ul className="st-list">
           {hasDraft && (
