@@ -52,6 +52,10 @@ export interface YarnPattern {
   /** the reader's own hairiness (Kim: 털 양, 털 길이 turned while looking): 1 is the material's own; 0 none */
   fuzzK?: number;
   hairK?: number;
+  /** how many strands side by side a strap is (1-5; 3 when missing) */
+  strapW?: number;
+  /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼) */
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean };
 }
 export interface YarnInfo { round: boolean; widthCm: number; depthCm: number; heightCm: number | null; fit: string; skip: { stitch: number; row: number } | null }
 export interface YarnViewer {
@@ -511,7 +515,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const A = at(a), B = at(b), w = new THREE.Vector3().subVectors(B, A).normalize(), nrm = new THREE.Vector3(-w.z, 0, w.x), mid = A.clone().add(B).multiplyScalar(.5);
         const H = Math.max(rr * .5, Math.sqrt(Math.max(0, (len / 2) ** 2 - (A.distanceTo(B) / 2) ** 2)) * .92); strapH = Math.max(strapH, H);
         if (nrm.x * (mid.x - cx) + nrm.z * (mid.z - cz) > 0) nrm.negate();
-        [-1, 0, 1].forEach(k => {
+        const sw = Math.max(1, Math.min(5, Math.round(pat.strapW ?? 3)));
+        Array.from({ length: sw }, (_, i) => i - (sw - 1) / 2).forEach(k => {
           const pts: THREE.Vector3[] = [];
           for (let i = 0; i <= 40; i++) { const t = i / 40, q = A.clone().lerp(B, t); q.y += H * Math.sin(Math.PI * t) - R * 1.2 * (1 - Math.sin(Math.PI * t)); q.addScaledVector(nrm, k * R * 1.75 + lean * rr * .12 * Math.sin(Math.PI * t)); pts.push(q); }
           const cv = new THREE.CatmullRomCurve3(pts), g = buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength() / (R * .6 * step))), R, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
@@ -519,6 +524,61 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       });
     }
     haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz);
+    if (!opts.phone) addExtras(D, R);
+  }
+  // ---------- 단추 / 라벨 / 지퍼 to try on (the 3D only; nothing of the pattern changes). On a piece with walls
+  // they sit on the front wall and round the opening; on a flat piece the button and label lie on top.
+  function addExtras(D: ItemData, R: number) {
+    const ex = pat.extras; if (!ex || !(ex.button || ex.label || ex.zipper) || !D.P.length) return;
+    const b = boxOf(D), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, wall = b.my > D.rh * 3, U = 10 / MM; // U: 1cm
+    const std = (color: number, rough = .8, metal = 0) => new THREE.MeshStandardMaterial({ color: lin(color), roughness: rough, metalness: metal, envMap: metal ? ENV : null });
+    const put = (m: THREE.Object3D) => { m.traverse(o => { (o as THREE.Mesh).castShadow = true; }); group.add(m); };
+    // the stitch at a height (a share of the piece's height) in the direction `a` from the middle (radians from
+    // the front, towards the right), and the wall's own outward direction there (from its neighbours: an
+    // oval's front wall faces the front, not away from the middle)
+    const at = (frac: number, a: number) => {
+      const y = b.my * frac, dx = Math.sin(a), dz = Math.cos(a); let best = D.P[0], sc = -1e9;
+      for (const q of D.P) { const l = Math.hypot(q.x - cx, q.z - cz) || 1, s = ((q.x - cx) * dx + (q.z - cz) * dz) / l - Math.abs(q.y - y) / (D.rh * 2); if (s > sc) { sc = s; best = q; } }
+      if (!wall) return { p: best.clone(), n: new THREE.Vector3(0, 1, 0) };
+      let n1: THREE.Vector3 | null = null, n2: THREE.Vector3 | null = null, d1 = 1e9, d2 = 1e9;
+      for (const q of D.P) { if (q === best || Math.abs(q.y - best.y) > D.rh * .6) continue; const d = q.distanceToSquared(best); if (d < d1) { d2 = d1; n2 = n1; d1 = d; n1 = q; } else if (d < d2) { d2 = d; n2 = q; } }
+      const n = new THREE.Vector3(best.x - cx, 0, best.z - cz).normalize();
+      if (n1 && n2) { const t = new THREE.Vector3().subVectors(n1, n2); t.y = 0; if (t.lengthSq() > 1e-8) { t.normalize(); const m = new THREE.Vector3(t.z, 0, -t.x); if (m.dot(n) < 0) m.negate(); if (m.dot(n) > .2) n.copy(m); } }
+      return { p: best.clone(), n };
+    };
+    const face = (o: THREE.Object3D, n: THREE.Vector3) => o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+    if (ex.button) {
+      const { p, n } = wall ? at(.72, 0) : { p: new THREE.Vector3(cx, b.my, cz), n: new THREE.Vector3(0, 1, 0) };
+      const g = new THREE.Group(), r = .95 * U, disc = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .16 * U * 2, 32), std(0xb88a5a, .62)); disc.rotation.x = Math.PI / 2; g.add(disc);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(r * .82, .05 * U * 2, 8, 32), std(0xa57848, .6)); rim.position.z = .15 * U; g.add(rim);
+      for (const [hx, hy] of [[-.28, .28], [.28, .28], [-.28, -.28], [.28, -.28]]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(.13 * U, .13 * U, .36 * U, 10), std(0x4a372a, .9)); h.rotation.x = Math.PI / 2; h.position.set(hx * r, hy * r, 0); g.add(h); }
+      face(g, n); g.position.copy(p).addScaledVector(n, R * 1.5 + .16 * U); put(g);
+    }
+    if (ex.label) {
+      const { p, n } = wall ? at(.34, .5) : at(1, .9);
+      const g = new THREE.Group(), w = 2.8 * U, h = 1.4 * U;
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, .07 * U), std(0xf4ebdd, .95)));
+      const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w * .86, h * .72)), new THREE.LineDashedMaterial({ color: lin(0xb99447), dashSize: .12 * U, gapSize: .1 * U })); edge.computeLineDistances(); edge.position.z = .045 * U; g.add(edge);
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(w * .42, h * .1, .02 * U), std(0x9c5d63, .9)); bar.position.z = .045 * U; g.add(bar);
+      if (wall) face(g, n); else { g.rotation.x = -Math.PI / 2; g.rotation.z = -.3; }
+      g.position.copy(p).addScaledVector(n, R * 1.5 + .05 * U); if (!wall) { g.position.x -= w * .3; g.position.z -= h * .6; } put(g);
+    }
+    const top = D.C[D.C.length - 1];
+    if (ex.zipper && wall && top && top.closed && top.idx.length > 8) {
+      // a tape round the opening, just inside it, its teeth along the top edge and a pull at the right
+      const pts = top.idx.map(i => { const q = D.P[i], n = new THREE.Vector3(q.x - cx, 0, q.z - cz).normalize(); return q.clone().addScaledVector(n, -R * 1.6); });
+      const cv = new THREE.CatmullRomCurve3(pts, true), N = Math.min(400, Math.max(48, Math.round(cv.getLength() / (.3 * U)))), sp = cv.getSpacedPoints(N), hb = .9 * U;
+      const pos: number[] = [], idx: number[] = [];
+      sp.forEach((q, i) => { pos.push(q.x, q.y + R * .4, q.z, q.x, q.y + R * .4 - hb, q.z); if (i < N) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); });
+      const tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); tg.setIndex(idx); tg.computeVertexNormals();
+      const tm = std(0x8e7b6b, .9); tm.side = THREE.DoubleSide; put(new THREE.Mesh(tg, tm));
+      const teeth = new THREE.InstancedMesh(new THREE.BoxGeometry(.2 * U, .18 * U, .26 * U), std(0xc9b37a, .35, .8), N), m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
+      for (let i = 0; i < N; i++) { const q = sp[i], t = cv.getTangent(i / N); q4.setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(t.x, 0, t.z).normalize()); m4.compose(new THREE.Vector3(q.x, q.y + R * .4, q.z), q4, one); teeth.setMatrixAt(i, m4); }
+      put(teeth);
+      const pull = new THREE.Group(), rt = at(1, Math.PI / 2); pull.add(new THREE.Mesh(new THREE.BoxGeometry(.5 * U, .45 * U, .5 * U), std(0xc9b37a, .3, .85)));
+      const tab = new THREE.Mesh(new THREE.BoxGeometry(.32 * U, 1.1 * U, .08 * U), std(0xc9b37a, .3, .85)); tab.position.set(0, -.7 * U, .3 * U); pull.add(tab);
+      face(pull, rt.n.clone().negate()); pull.position.copy(rt.p).addScaledVector(rt.n, -R * 1.6); pull.position.y += R * .4; put(pull);
+    }
   }
   // knitted stockinette: one row = one strand of joined loops (the prototype's buildKnit)
   function buildKnit(D: ItemData, R: number, mat: THREE.Material, geos: THREE.BufferGeometry[]) {
@@ -595,8 +655,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     opts.onInfo(null); t0 = performance.now(); IT.data = makeItem(); lodFor(IT.data.knit ? IT.data.knit.W * IT.data.knit.H * 1.6 : IT.data.P.length);
     if (IT.data.fixed) IT.data.iter = 1e9; // a known shape: nothing to settle
     showItem();
-    // the shape while it settles (its gold lines) is in view as well: it used to fill the page, cut off
-    if (opts.fit) { strapH = 0; fitAll(IT.data, viewDir()); }
+    // the shape while it settles (its gold lines) is in view as well: it used to fill the page, cut off.
+    // Later changes (a size dragged larger, a strap made longer) leave the camera where the reader has it,
+    // so the piece is seen to grow (Kim) - unless it would leave the view or be lost in it
+    if (opts.fit) { strapH = 0; if (!framed || needsFit(IT.data)) fitAll(IT.data, viewDir()); }
   }
   function fit() { const k = Math.max(1, (cam.aspect < .8 ? .95 : 1.45) / cam.aspect); cam.position.sub(ctl.target).multiplyScalar(k).add(ctl.target); ctl.update(); }
   // the prototype: 8 passes a frame for 150 frames (1200 passes). Past ~40k springs that took 150ms a frame
@@ -645,12 +707,24 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     ctl.target.copy(c); cam.position.copy(c).addScaledVector(d, dist); ctl.minDistance = Math.min(3, dist * .2); ctl.maxDistance = Math.max(40, dist * 2.4);
     setShadow(Math.max(10, ext * 1.4)); ctl.update(); kick();
   }
+  /** Does the piece need the camera set again? Never once the reader has moved it (touched); otherwise when
+   *  a corner of its box is outside the view, or the whole piece has become small in it. */
+  let framed = false;
+  function needsFit(D: ItemData) {
+    if (touched) return false;
+    const b = boxOf(D), top = b.my + strapH, v = new THREE.Vector3(); let ax = 1e9, bx = -1e9, ay = 1e9, by = -1e9;
+    cam.updateMatrixWorld(); 
+    for (const x of [b.x0, b.x1]) for (const z of [b.z0, b.z1]) for (const y of [0, top]) { v.set(x, y, z).project(cam); ax = Math.min(ax, v.x); bx = Math.max(bx, v.x); ay = Math.min(ay, v.y); by = Math.max(by, v.y); }
+    return ax < -1 || bx > 1 || ay < -1 || by > 1 || Math.max(bx - ax, by - ay) < .7;
+  }
   /** the camera on the finished piece (or, `focus: "fabric"`, near enough to read a knitted fabric's stitches) */
   let wasFab = false;
   function frameOn(D: ItemData) {
     if (opts.fit && !(pat.focus === "fabric" && D.knit)) {
-      sizeInfo(D); const dir = wasFab ? HOME.clone() : viewDir(); wasFab = false;
-      fitAll(D, dir); return;
+      const z = sizeInfo(D), back = wasFab; wasFab = false;
+      if (!framed || back || needsFit(D)) { fitAll(D, back ? HOME.clone() : viewDir()); framed = true; }
+      else { const ext = Math.max(z.mr * 2, z.my + strapH); setShadow(Math.max(10, ext * 1.4)); ctl.maxDistance = Math.max(ctl.maxDistance, ext * 5); kick(); }
+      return;
     }
     {
       const z = sizeInfo(D);
@@ -728,14 +802,16 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
 
   // what changes the shape (counts, yarn and hook, strap): anything else is colour
   // the stitch pattern of a knitted piece changes its yarn, not its shape
-  const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm, p.strap, p.strapCm]);
+  // (a strap is put on with the yarn: its length and width do not settle the shape again)
+  const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm]);
   return {
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
+      if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; } // another kind of piece: the camera starts over
       pat = p;
       if (mat) Object.assign(st, presetOf(p.material));
       if (reshape) startItem();
-      else if (IT.data?.done) { if (mat) soften(IT.data); showItem(); if (refocus) frameOn(IT.data); } // colour, material or stitch pattern: the yarn again, the shape as it is (a softer yarn gives more)
+      else if (IT.data?.done) { if (mat) soften(IT.data); showItem(); if (refocus) frameOn(IT.data); else if (opts.fit && framed && needsFit(IT.data) && !(pat.focus === "fabric" && IT.data.knit)) fitAll(IT.data, viewDir()); } // colour, material or stitch pattern: the yarn again, the shape as it is (a softer yarn gives more)
     },
     setMaterial(m) {
       if (m === st.preset) return;
@@ -745,7 +821,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     setView(v) { IT.view = v; if (IT.data) showItem(); },
     playDraw,
     zoom(f) { const v = cam.position.clone().sub(ctl.target), l = Math.min(ctl.maxDistance, Math.max(ctl.minDistance, v.length() * f)); cam.position.copy(ctl.target).addScaledVector(v.normalize(), l); touched = true; ctl.update(); kick(); },
-    home() { touched = false; if (IT.data) { cam.position.copy(ctl.target).addScaledVector(HOME, 10); wasFab = false; if (opts.fit) fitAll(IT.data, HOME.clone()); else frameOn(IT.data); } },
+    home() { touched = false; framed = true; if (IT.data) { cam.position.copy(ctl.target).addScaledVector(HOME, 10); wasFab = false; if (opts.fit) fitAll(IT.data, HOME.clone()); else frameOn(IT.data); } },
     look(v) {
       if (!IT.data) return; touched = false;
       const d = v === "front" ? new THREE.Vector3(0, .1, 1) : v === "side" ? new THREE.Vector3(1, .1, 0) : v === "top" ? new THREE.Vector3(0, 1, .03) : new THREE.Vector3(0, .9, .45);

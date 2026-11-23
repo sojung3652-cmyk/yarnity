@@ -92,3 +92,6 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-empty p{margin:0;font-size:15px;line-height:1.7;color:#6B5C55}
 .yw-pan .nb-sliders{grid-template-columns:minmax(0,1fr)}
 .yw-pan .nb-slide{font-size:13px}
+.yw-mkbody .nb-sliders{grid-template-columns:minmax(0,1fr)}
+.yw .nb-slide>span{white-space:nowrap}
+.yw-mkbody .nb-mm{display:flex;align-items:center;gap:8px}.yw-mkbody .nb-mm .nb-input{flex:1 1 auto;min-width:0}.yw-mkbody .nb-web .nb-mm>.nb-unit{padding-bottom:0}

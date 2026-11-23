@@ -100,7 +100,7 @@ export function WebItems({ value, onPick, tried, hint, extra }: { value: ItemId 
 const WEB_MATERIALS = ["코튼", "울", "알파카", "모헤어", "앙고라", "수면사", "벨벳(셔닐)", "부클레", "페이크퍼", "수세미실", "리넨", "실크", "라피아", "패브릭얀", "코드사", "메탈릭"];
 
 /** One slider with its name and value (털 양, 털 길이, 굵기): the 3D follows while it is dragged. */
-function Slide({ label, min, max, step, value, onChange, text }: { label: string; min: number; max: number; step: number; value: number; onChange: (v: number) => void; text: string }) {
+export function Slide({ label, min, max, step, value, onChange, text }: { label: string; min: number; max: number; step: number; value: number; onChange: (v: number) => void; text: string }) {
   return <label className="nb-slide"><span>{label}</span><input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} /><output>{text}</output></label>;
 }
 /** 털 양 / 털 길이 (Kim: turned while looking): only how the 3D draws the yarn, the pattern's counts stay. */

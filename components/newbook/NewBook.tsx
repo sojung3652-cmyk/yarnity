@@ -25,7 +25,7 @@ import { ClothLabel } from "./ClothLabel";
 import { CoverChoice } from "./CoverChoice";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
-import { Head, PanelYarn, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
+import { Head, PanelYarn, Slide, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
 import { isKnit, stitchOf } from "@/lib/knit";
 import { yarnUse } from "@/lib/yarnUse";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
@@ -161,6 +161,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     if ((chat.applied ?? 0) === seenApplied.current) return;
     seenApplied.current = chat.applied ?? 0; setNums(numsOf(draft)); setRev(r => r + 1);
   }, [chat.applied, draft]);
+  const [hRev, setHRev] = useState(0); // the handle length was dragged: its typed box takes the new value
   const [ownHandle, setOwnHandle] = useState(false); // handle: "직접 입력" picked (stays custom even on a preset value)
   const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(pos);
   // the saved step when the wizard opened: a draft already past step 2 has its item (older drafts carry no flag)
@@ -224,26 +225,53 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK]);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, extras: draft.extras }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.extras]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const sizeCaption = (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
     : (input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`) + (input.object === "bag" && input.h ? ` · 높이 ${input.h}cm` : ""))
     + (item.handles && draft.handle !== "none" && handleCmOf(draft) ? ` · 손잡이 ${handleCmOf(draft)}cm` : "");
   // 작업 화면으로 크게 on the left page (web): the 3D work screen, its panels change this draft (the yarn, the
   // size); back in the book the pages' own inputs start again from the draft (rev)
+  // web: a size is typed or dragged (Kim: 키우면서 보고, 숫자는 저절로 채워지게) - the slider runs over the
+  // item's usual sizes and further when the number typed is beyond them
+  const sizeInput = (f: (typeof fields)[number]) => {
+    const r = item.range[f.key] ?? [1, 100], v = Number(nums[f.key]), ok = nums[f.key].trim() !== "" && Number.isFinite(v) && v > 0;
+    const lo = ok ? Math.min(r[0], Math.floor(v)) : r[0], hi = ok ? Math.max(r[1], Math.ceil(v)) : r[1];
+    return (
+      <Field key={item.id + f.key + draft.shape} label={f.label} error={errors[f.key]}>
+        {(id, eb) => <>
+          <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={nums[f.key]} onChange={e => setNum(f.key)(e.target.value)} />
+          <input type="range" className="nb-range" aria-label={`${f.label} 조절`} min={lo} max={hi} step={0.5} value={ok ? v : lo} onChange={e => setNum(f.key)(e.target.value)} />
+        </>}
+      </Field>
+    );
+  };
+  // the handle's length and how many strands wide it is, dragged (the typed box beside it starts again: hRev)
+  const hasHandle = !!item.handles && draft.handle !== "none";
+  const handleSliders = hasHandle ? (
+    <div className="nb-sliders nb-sliders-1">
+      <Slide label="길이" min={15} max={Math.max(150, handleCmOf(draft))} step={1} value={handleCmOf(draft)} onChange={v => { setHRev(n => n + 1); patch({ handle: "short", handleCm: v }); }} text={`${handleCmOf(draft)}cm`} />
+      <Slide label="굵기" min={1} max={5} step={1} value={draft.handleW ?? 3} onChange={v => patch({ handleW: v })} text={`${draft.handleW ?? 3}가닥`} />
+    </div>
+  ) : null;
+  // 단추 / 라벨 / 지퍼: tried on in the 3D only
+  const exNow = draft.extras ?? {};
+  const extrasGroup = (
+    <div className="nb-wg"><Head note="3D로만 달아 봅니다">달아 보기</Head>
+      <div className="nb-tiles nb-tiles-3" role="group" aria-label="달아 보기">
+        {([["button", "단추"], ["label", "라벨"], ["zipper", "지퍼"]] as const).map(([k, t]) => <button key={k} type="button" className="nb-tile" aria-pressed={!!exNow[k]} onClick={() => patch({ extras: { ...exNow, [k]: !exNow[k] } })}>{t}</button>)}
+      </div>
+    </div>
+  );
   const workPanel = (
     <>
       <section className="yw-pan" aria-label="실"><h3>실</h3><PanelYarn draft={draft} patch={patch} /></section>
       <section className="yw-pan" aria-label="크기"><h3>크기<small>{item.name}</small></h3>
         <div className="nb-web"><div className="nb-two nb-wtwo">
-          {fields.map(f => (
-            <Field key={item.id + f.key + draft.shape} label={f.label} error={errors[f.key]}>
-              {(id, eb) => <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={nums[f.key]} onChange={e => setNum(f.key)(e.target.value)} />}
-            </Field>
-          ))}
-          {!!item.handles && draft.handle !== "none" && <CmInput label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} onValue={v => { if (v) patch({ handle: "short", handleCm: v }); }} />}
-        </div></div>
+          {fields.map(sizeInput)}
+        </div>{handleSliders && <div className="nb-wg"><Head>손잡이</Head>{handleSliders}</div>}</div>
       </section>
+      <section className="yw-pan" aria-label="달아 보기"><div className="nb-web">{extrasGroup}</div></section>
     </>
   );
   // the work screen itself is drawn at the end of this render (big3d.render): in 3D로 보면서 만들기 its right
@@ -532,14 +560,11 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         )}
         <div className="nb-wg"><Head note={item.name}>크기</Head>
           <div className="nb-two nb-wtwo">
-            {fields.map(f => (
-              <Field key={item.id + f.key + draft.shape} label={f.label} error={errors[f.key]}>
-                {(id, eb) => <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={nums[f.key]} onChange={e => setNum(f.key)(e.target.value)} />}
-              </Field>
-            ))}
+            {fields.map(sizeInput)}
           </div>
           {item.note && <p className="nb-help">{item.note}</p>}
         </div>
+        {!bagNow && extrasGroup}
         <AskAiLine which="size" />
       </div>
     );
@@ -564,10 +589,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
               else if (v === "own") patch({ handle: "short", handleCm: handleCmOf(draft) });
               else patch({ handle: "short", handleCm: Number(v) });
             }} options={[["none", "없음"], ...HANDLE_PRESETS.map(([n, v]): [string, ReactNode, ReactNode] => [String(v), n, `${v}cm`]), ["own", "직접", "cm"]]} />
-            {handlePick === "own" && <div className="nb-wsub"><CmInput label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} autoFocus={ownHandle} onValue={v => patch({ handle: "short", handleCm: v ?? 0 })} /></div>}
+            {handleSliders}
+            {handlePick === "own" && <div className="nb-wsub"><CmInput key={"wh" + hRev} label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} autoFocus={ownHandle} onValue={v => patch({ handle: "short", handleCm: v ?? 0 })} /></div>}
             <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다.</p>
           </div>
         )}
+        {extrasGroup}
       </div>
     );
     // 확인: short rows with 고치기, the yarn amount, the counts as small cards
