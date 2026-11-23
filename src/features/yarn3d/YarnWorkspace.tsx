@@ -52,7 +52,11 @@ const HINT = "드래그 돌리기 · 스크롤 확대 · 스페이스+드래그 
 /** how light a colour is, 0 (black) to 1 (white) */
 const lum = (h?: string) => { if (!h || !/^#[0-9a-f]{6}$/i.test(h)) return 1; const n = parseInt(h.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= .04 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
 
-const Opt = ({ on, onClick, children }: { on?: boolean; onClick: () => void; children: ReactNode }) => <button type="button" className="yw-opt" aria-pressed={on} onClick={onClick}>{children}</button>;
+const Opt = ({ on, onClick, children, label }: { on?: boolean; onClick: () => void; children: ReactNode; label?: string }) => <button type="button" className="yw-opt" aria-pressed={on} aria-label={label} title={label} onClick={onClick}>{children}</button>;
+/** one labelled control on the top bar: its name above, the choices joined in one woven strip under it */
+const Group = ({ name, children, plain }: { name: string; children: ReactNode; plain?: boolean }) => (
+  <div className={"yw-grp" + (plain ? " is-plain" : "")} role="group" aria-label={name}><span className="yw-grp-n" aria-hidden="true">{name}</span><span className="yw-seg">{children}</span></div>
+);
 
 export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: YarnPattern; onClose: () => void; extra?: WorkExtra }) {
   const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), backRef = useRef<HTMLSpanElement>(null), viewer = useRef<YarnViewer | null>(null);
@@ -125,6 +129,13 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const look = (v: YarnLook) => viewer.current?.look(v);
   const tryMat = (m: YarnMaterial) => { setMat(m); viewer.current?.setMaterial(m); };
   const mk = extra?.making, empty = !!extra?.empty;
+  // the index shows which section is being read (the column scrolls; the index stays)
+  const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0);
+  useEffect(() => {
+    const el = body.current; if (!el) return;
+    const f = () => { const secs = [...el.querySelectorAll<HTMLElement>(".yw-sec")], top = el.getBoundingClientRect().top + 24; let k = 0; secs.forEach((x, i) => { if (x.getBoundingClientRect().top <= top) k = i; }); if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4) k = secs.length - 1; setCur(k); };
+    f(); el.addEventListener("scroll", f, { passive: true }); return () => el.removeEventListener("scroll", f);
+  }, [mk?.sections.length]);
   const size = empty ? "" : extra?.caption ?? (!info ? "" : (info.round ? `지름 약 ${info.widthCm}cm` : `약 ${info.widthCm} × ${info.depthCm}cm`) + (info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : ""));
 
   return createPortal(<>
@@ -140,20 +151,21 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               {extra.sub && <small>{extra.sub}</small>}</label>
           : <p className="yw-name">{extra?.title ?? "3D 미리 보기"}{extra?.sub && <small>{extra.sub}</small>}</p>}
         {!noGL && <>
-          <span className="yw-sep" aria-hidden="true" />
-          <span className="yw-lb">보는 방향</span>
-          <span className="yw-opts" role="group" aria-label="보는 방향"><Opt onClick={() => look("front")}>앞</Opt><Opt onClick={() => look("side")}>옆</Opt><Opt onClick={() => look("top")}>위</Opt><Opt onClick={() => look("inside")}>안쪽</Opt></span>
-          <span className="yw-opts"><Opt onClick={() => viewer.current?.home()}>처음 각도로</Opt></span>
-          <span className="yw-sep" aria-hidden="true" />
-          <span className="yw-lb">보기</span>
-          <span className="yw-opts" role="group" aria-label="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></span>
-          <span className="yw-sep" aria-hidden="true" />
-          <span className="yw-lb">배경</span>
-          <span className="yw-opts" role="group" aria-label="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></span>
-          <span className="yw-sep" aria-hidden="true" />
-          {extra?.intro && <span className="yw-opts"><Opt on={intro} onClick={() => setIntro(v => !v)}>실 확인</Opt></span>}
-          <span className="yw-opts"><Opt on={ruler} onClick={toggleRuler}><Ic s={17} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />재기</Opt>
-            <Opt onClick={() => viewer.current?.playDraw()}><Ic s={17} d="M7 4.5v15l12-7.5z" />뜨는 순서</Opt></span>
+          <div className="yw-bar">
+            {/* how it is looked at: one-off moves (no state), then two either-or choices */}
+            <Group name="보는 방향" plain>
+              <Opt onClick={() => look("front")}>앞</Opt><Opt onClick={() => look("side")}>옆</Opt><Opt onClick={() => look("top")}>위</Opt><Opt onClick={() => look("inside")}>안쪽</Opt>
+              <Opt label="처음 각도로" onClick={() => viewer.current?.home()}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
+            </Group>
+            <Group name="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></Group>
+            <Group name="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></Group>
+            {/* tools: each on or off by itself (재기, 실 확인) or played once (뜨는 순서) */}
+            <div className="yw-acts" role="group" aria-label="도구">
+              {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => setIntro(v => !v)}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
+              <button type="button" className="yw-act" aria-pressed={ruler} onClick={toggleRuler}><Ic s={18} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />재기</button>
+              <button type="button" className="yw-act" onClick={() => viewer.current?.playDraw()}><Ic s={18} d="M7 4.5v15l12-7.5z" />뜨는 순서</button>
+            </div>
+          </div>
         </>}
       </div>
 
@@ -184,9 +196,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       {mk ? (
         <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); mk.done(); }}>
           <nav className="yw-index" aria-label="항목">
-            {mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} onClick={e => { e.preventDefault(); root.current?.querySelector("#yw-" + x.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><b>{i + 1}</b>{x.title}</a>)}
+            {mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); root.current?.querySelector("#yw-" + x.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><b>{i + 1}</b>{x.title}</a>)}
           </nav>
-          <div className="yw-mkbody">
+          <div className="yw-mkbody" ref={body}>
             {mk.sections.map((x, i) => (
               <section key={x.id} id={"yw-" + x.id} className="yw-sec" aria-labelledby={"yw-h-" + x.id}>
                 <h2 id={"yw-h-" + x.id}><b aria-hidden="true">{i + 1}</b>{x.title}{x.note && <small>{x.note}</small>}</h2>
@@ -195,7 +207,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             ))}
           </div>
           <div className="yw-mkfoot">
-            <span />
+            <span className="yw-mknote">{mk.blocked ? "정하지 않은 항목이 있습니다. 누르면 그곳으로 갑니다." : "다 정하셨으면 책으로 돌아가 확인합니다."}</span>
             <ClothLabel side="next" type="submit" blocked={mk.blocked}>{mk.doneLabel}</ClothLabel>
           </div>
         </form>

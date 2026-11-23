@@ -35,7 +35,7 @@ import { DrawPad } from "./DrawPad";
 import { PaintPad } from "./PaintPad";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
-import { Head, PanelYarn, Slide, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
+import { Head, PanelYarn, Slide, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebStitchByNeedle, WebYarn } from "./WebPages";
 import { isKnit, stitchOf } from "@/lib/knit";
 import { yarnUse } from "@/lib/yarnUse";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
@@ -50,6 +50,7 @@ import { partsOf, useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/Yar
 import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
 import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
+import { PATTERN_BY_ID } from "@/lib/stitchPatterns";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -239,7 +240,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, extras: draft.extras }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.extras]);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.extras, draft.crochetChart, draft.crochetStitch]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
   const itemLabel = draft.free || draft.paint ? "직접 그린 모양" : item.name;
@@ -764,11 +765,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         <WebHook draft={draft} patch={patch} tried={tried} />
       </div>
     );
-    oneStitch = knitNow ? <WebStitch draft={draft} patch={patch} n={pp.last} /> : (
-      <div className="nb-web"><div className="nb-wg"><Head note={CROCHET[draft.crochetStitch ?? "sc"].note}>코바늘 무늬</Head>
-        <Tiles label="코바늘 무늬" value={draft.crochetStitch ?? "sc"} cols={4} onPick={v => patch({ crochetStitch: v === "sc" ? undefined : v as CrochetStitch })}
-          options={(Object.keys(CROCHET) as CrochetStitch[]).map(k => [k, CROCHET[k].ko])} /></div></div>
-    );
+    // 무늬 by the needle (Kim): the needle picked here or under 바늘 is the same choice
+    oneStitch = <WebStitchByNeedle draft={draft} patch={patch} n={pp.last} craft={craftNow} flatOnly={craftNow === "knit" && !knitNow} />;
     oneSize = (
       <div className="nb-web">
         {draft.free && <div className="nb-wg"><Head note="직접 그린 모양">높이</Head>
@@ -796,7 +794,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       { k: "실", v: <>{ucolors[0]?.hex && <i className="nb-swatch" style={{ background: ucolors[0].hex }} />}{yarnBits || "고르지 않음"}</>, fix: () => fixAt(0) },
       { k: "바늘", v: Number.isFinite(hookMm) ? hookLabel(hookMm) : "고르지 않음", fix: () => fixAt(1) },
       { k: "크기", v: draft.free || draft.paint ? sizeCaption : sizeText.replace("cm", "cm") + (input.object === "bag" && draft.h ? ` · 높이 ${draft.h}cm` : ""), fix: () => fixAt(1) },
-      ...(isKnit({ item: item.id }) ? [{ k: "무늬", v: stitchOf(draft.stitch).ko, fix: () => fixAt(2) }] : []),
+      // the named pattern picked (lib/stitchPatterns), else a knitted piece's stitch
+      ...(draft.pattern && PATTERN_BY_ID[draft.pattern] ? [{ k: "무늬", v: `${PATTERN_BY_ID[draft.pattern].ko} (${PATTERN_BY_ID[draft.pattern].needle === "knit" ? "대바늘" : "코바늘"})`, fix: () => fixAt(2) }]
+        : isKnit({ item: item.id }) ? [{ k: "무늬", v: stitchOf(draft.stitch).ko, fix: () => fixAt(2) }] : []),
       ...(isBag(item) ? [{ k: "모양", v: [draft.topA ? `위로 넓어지는 (입구 ${draft.topA}cm)` : "일자형", closureText, item.handles ? `손잡이 ${handleText(draft)}` : ""].filter(Boolean).join(" · "), fix: () => fixAt(2) }] : []),
     ];
     const facts: [string, string][] = [["한 코", `약 ${Math.round(g.h * 10)}mm`]];
@@ -824,14 +824,15 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the work screen (3D로 보면서 만들기, Kim: "all of this is deciding the shape"): every section on one screen -
   // 뜰 것, 색, 실, 바늘과 크기, then the bag's shape and opening (or the knitted stitch) - and one way on, to 확인
   // the yarn-check swatch: a small piece in the picked yarn, hook and stitch, seen close up
-  const swatchSrc = { ...yarnSrc, object: "rows" as const, item: knitNow ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
+  const swatchKnit = (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit";
+  const swatchSrc = { ...yarnSrc, craft: swatchKnit ? "knit" as const : "crochet" as const, object: "rows" as const, item: swatchKnit ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
   const making = web && (step === 2 || step === 3) ? {
     sections: [
       // the colour before the yarn's material (Kim)
       { id: "color", title: "색", body: <ColorStudio draft={draft} patch={patch} /> },
       { id: "yarn", title: "실", body: oneYarn },
       { id: "needle", title: "바늘", body: oneHook },
-      { id: "stitch", title: "무늬", body: oneStitch },
+      { id: "stitch", title: "무늬", note: (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit" ? "대바늘" : "코바늘", body: oneStitch },
       { id: "draw", title: "모양 그리기", note: picked ? itemLabel : undefined, body: oneDraw },
       ...(picked ? [
         { id: "size", title: "크기", body: oneSize },

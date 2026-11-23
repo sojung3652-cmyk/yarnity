@@ -9,10 +9,13 @@
 import { CROCHET, paintMask, paintSize, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
+import { compileChart, type ChartKey } from "@/lib/crochetChart";
 import type { YarnMaterial, YarnPattern, YarnShape } from "./engine";
 
 /** the pattern's own fields the engine reads (Draft and Project both have them) */
 export interface YarnSource extends PlanInput {
+  /** a crochet stitch pattern drawn as a chart (lib/crochetChart: 부채모양뜨기...) on a flat crocheted piece */
+  crochetChart?: ChartKey | null;
   flapShape?: "half" | "square" | "triangle";
   handleCount?: 1 | 2;
   flapColor?: string;
@@ -31,6 +34,9 @@ export interface YarnSource extends PlanInput {
   handleStyle?: "flat-chain" | "flat-rows" | "tube" | null;
   handleWcm?: number | null;
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; tab?: boolean } | null;
+  /** a band handle's rows of 짧은뜨기 on its chain; the piece left to its own weight (the 3D only) */
+  handleRows?: number;
+  drape?: boolean;
   /** a drawn bag's depth against its width, bottom to top (from its side view) */
   depthProfile?: number[];
 }
@@ -48,7 +54,7 @@ export const DEFAULT_COLOR = "#EFE6D4";
 const MAT: Record<string, YarnMaterial> = {
   코튼: "cotton", 울: "wool", 메리노: "wool", 캐시미어: "cashmere", 아크릴: "wool", 알파카: "alpaca", 모헤어: "mohair", 앙고라: "angora",
   수면사: "sleep", 부클레: "boucle", 수세미실: "scrub", 패브릭얀: "tshirt", 리본얀: "ribbon", 황마: "jute",
-  리넨: "linen", 실크: "silk", 대나무: "silk", 나일론: "silk", 폴리에스터: "silk", "벨벳(셔닐)": "chenille",
+  리넨: "linen", 실크: "silk", 대나무: "silk", 나일론: "cord", 폴리에스터: "silk", "벨벳(셔닐)": "chenille",
   라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈릭: "metal",
 };
 
@@ -69,6 +75,12 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     // a drawn shape: its rounds as they are, each in the colour drawn at its height
     const rr = pp.rows.filter(r => r.part === "bottom" || r.part === "body"); if (!rr.length) return null;
     shape = { kind: "round", counts: rr.map(r => Math.max(1, Math.round(r.n))), flat: pp.bottomRounds }; rowColors = rr.map(r => r.color);
+  } else if (p.object === "rows" && p.crochetChart && !isKnit(p)) {
+    // a crochet stitch pattern: as many stitches across as the piece has (to the pattern's multiple), as many
+    // rows as reach its height, each stitch drawn from where it is worked into
+    const rows = counts("rows"), g = pp.g, hc = (p.b ?? p.a), k = p.crochetChart;
+    const ch = compileChart(k, Math.min(61, Math.max(7, rows[0] || Math.round(p.a / g.w))), Math.max(2, Math.min(14, Math.round(hc / (g.h * 2.05)))));
+    shape = { kind: "chart", chart: ch, wCm: ch.W * g.w, hCm: ch.H * g.h };
   } else if (p.object === "rows") {
     const rows = counts("rows"); if (!rows.length) return null;
     shape = { kind: "rows", W: rows[0], H: rows.length, wCm: p.a, hCm: p.b ?? p.a, knit: isKnit(p), stitch: p.stitch ?? undefined };
@@ -95,7 +107,9 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
+    ...(p.drape ? { gravity: true } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.handleStyle ? { strapStyle: p.handleStyle, strapWcm: p.handleWcm ?? 2.5 } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper || p.extras.tab) ? { extras: p.extras } : {}),
     // a drawn silhouette (lib/sketchMeasure): pressed to its depth, its opening edged
-    ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true } : {}) };
+    ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true,
+      ...(p.profile[0] > 0 && p.h ? { outline: { prof: p.profile, a: p.a, h: p.h, depth: p.depthProfile ?? DEPTH_DEFAULT, bottom: pp.bottomRounds, rounds: pp.bottomRounds + pp.bodyRows } } : {}) } : {}) };
 }

@@ -180,6 +180,93 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-stage.is-dark .sk-big .sk-side{color:#F3ECE2}
 .yw-intro .y3-page-tools{left:16px}
 
+/* =====================================================================================================
+   Design pass (Kim: 웹의 디자인에 맞게 - 라벨, 천의 질감, 가독성, 글씨 크기, 버튼과 토글). The rules above are
+   kept for what they place; the look is set here, once, for the whole screen:
+   - surfaces: the bars and the column are the book's cream weave (as the cloth labels), the stage plain ivory
+   - one kind of control per job: a choice of one (보기, 배경) is a joined woven strip, the picked part rose with
+     a gold edge; a move with no state (보는 방향) is the same strip, nothing stays picked; a tool that is on or
+     off by itself (실 확인, 재기) is a tile with its icon, rose with a gold edge while on; the way on and back
+     are the site's cloth labels; nothing round, no pills
+   - type: 14px words, 13px names and notes in a darker grey (#5E554E), 17px headings; never under 12px
+   ===================================================================================================== */
+.yw{--weave:repeating-linear-gradient(0deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.04) 0 1px,transparent 1px 3px);
+  --ink:#3A322D;--ink2:#5E554E;--line:#D9CCBF;--rose:#F4E0DF;--gold:#B99447;--paper:#FFFDF8;font-size:14px}
+.yw{grid-template-rows:68px minmax(0,1fr) 36px}
+/* the top bar: cream weave, a stitched seam under it */
+.yw-top{gap:16px;padding:0 20px 0 14px;background:var(--weave),#F8F2E7;box-shadow:none;position:relative}
+.yw-top::after{content:"";position:absolute;left:0;right:0;bottom:3px;border-bottom:1.5px dashed rgba(185,148,71,.45);pointer-events:none}
+.yw-top::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+.yw-name{display:flex;flex-direction:column;gap:1px;margin:0 0 0 6px;font-size:17px;line-height:1.3;color:var(--ink)}
+.yw-name small{margin:0;font-size:13px;color:var(--ink2)}
+.yw-bar{display:flex;align-items:flex-end;gap:22px;margin-left:auto;padding-bottom:2px}
+.yw-grp{display:flex;flex-direction:column;gap:4px}
+.yw-grp-n{font-size:12px;line-height:1;color:var(--ink2);letter-spacing:.02em}
+/* a joined strip of square choices */
+.yw-seg{display:flex;border-radius:4px;background:var(--paper);box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4}
+.yw .yw-opt{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:40px;height:34px;padding:0 12px;border:0;border-radius:0;background:none;box-shadow:none;font-size:14px;color:var(--ink);position:relative}
+.yw .yw-opt + .yw-opt::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:1px;background:#E1D5C9}
+.yw .yw-opt:first-child{border-radius:4px 0 0 4px}.yw .yw-opt:last-child{border-radius:0 4px 4px 0}
+.yw .yw-opt:hover{background:rgba(224,170,174,.14)}
+.yw .yw-opt[aria-pressed="true"]{background:var(--rose);box-shadow:inset 0 0 0 1.5px var(--gold);font-weight:600;z-index:1}
+.yw .yw-opt[aria-pressed="true"]::before,.yw .yw-opt[aria-pressed="true"] + .yw-opt::before{display:none}
+.yw-grp.is-plain .yw-opt:active{background:var(--rose)}
+/* tools: tiles with their icon, on or off */
+.yw-acts{display:flex;gap:6px;padding-left:18px;border-left:1px solid var(--line);align-self:stretch;align-items:flex-end}
+.yw-act{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 13px;border:0;border-radius:4px;background:var(--paper);font-size:14px;color:var(--ink);box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4}
+.yw-act svg{color:#8A6F4E}
+.yw-act:hover{box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #9C8E82}
+.yw-act[aria-pressed="true"]{background:var(--rose);box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px var(--gold);font-weight:600}
+.yw-act[aria-pressed="true"] svg{color:#9C5D63}
+.yw button:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
+/* the stage: plain ivory, its corner notes as small woven tags */
+.yw-stage{background:#F3ECE0}
+.yw-hint{right:18px;bottom:16px;padding:7px 12px;border-radius:2px;background:var(--weave),#F8F2E7;box-shadow:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.08);font-size:13px;color:var(--ink2)}
+.yw-intro h2{top:20px;left:24px;display:flex;align-items:baseline;gap:12px;font-size:19px;color:var(--ink)}
+.yw-intro h2 small{font-size:13.5px;color:var(--ink2)}
+.yw-intro .y3-page-tools{left:20px;bottom:20px}
+.yw .y3-page-tools{gap:0;border-radius:4px;background:var(--paper);box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4}
+.yw .y3-page-tools button{width:40px;height:40px;border-radius:0;background:none;box-shadow:none;position:relative}
+.yw .y3-page-tools button + button::before{content:"";position:absolute;top:0;left:8px;right:8px;height:1px;background:#E1D5C9}
+.yw .y3-page-tools button:hover{background:rgba(224,170,174,.14)}
+/* the column: cream weave, the index as a woven tape across its top, sections parted by a stitched seam */
+.yw-right,.yw-mkr{background:var(--weave),#FBF7EF;box-shadow:-1px 0 0 var(--line)}
+.yw-index{position:relative;gap:0;padding:0 22px;background:var(--weave),#F6EEE1;border-bottom:1px solid var(--line)}
+.yw-index a{position:relative;gap:6px;padding:15px 12px 13px;font-size:14px;color:var(--ink2)}
+.yw-index a:first-child{padding-left:2px}
+.yw-index a::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:transparent}
+.yw-index a:first-child::after{left:2px}
+.yw-index a[aria-current]{color:var(--ink);font-weight:600}
+.yw-index a[aria-current]::after{background:var(--gold)}
+.yw-index a:hover{text-decoration:none;color:var(--ink)}
+.yw-index b,.yw-sec h2 b{font-size:18px}
+.yw-mkbody{padding:0 28px 12px}
+.yw-sec{padding:26px 0 28px;border-bottom:1.5px dashed rgba(185,148,71,.35)}
+.yw-sec h2{gap:10px;margin:0 0 18px;font-size:17px}
+.yw-sec h2 small{font-size:13px;color:var(--ink2)}
+/* the wizard's inputs in the column: one readable size, 40px controls */
+.yw-mkbody .nb-web{font-size:14px}
+.yw-mkbody .nb-wh,.yw-mkbody .nb-help,.yw-mkbody .nb-hint,.yw-mkbody .nb-wnote{font-size:13px;color:var(--ink2)}
+.yw-mkbody .nb-wg{margin-bottom:20px}
+.yw-mkbody .nb-tiles{gap:7px}
+.yw-mkbody .nb-tile{min-height:40px;padding:4px;font-size:14px;border-radius:4px}
+.yw-mkbody .nb-tile small{font-size:12px}
+.yw-mkbody .nb-tile[aria-pressed="true"],.yw-mkbody .nb-tile[aria-checked="true"]{background:var(--rose);box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px var(--gold);font-weight:600}
+.yw-mkbody .nb-box{height:40px}.yw-mkbody .nb-box input{height:38px;font-size:15px}
+.yw-mkbody .nb-web .nb-field .nb-input{height:40px;font-size:15px}
+.yw-mkbody .nb-link{font-size:13px}
+.yw-mkbody .nb-slide{font-size:13.5px;color:var(--ink)}
+/* the foot: what is left to do, and the way on as the site's cloth label */
+.yw-mkfoot{height:70px;padding:0 26px;background:var(--weave),#F6EEE1;box-shadow:none;border-top:1px solid var(--line);position:relative}
+.yw-mkfoot::before{content:"";position:absolute;left:0;right:0;top:3px;border-top:1.5px dashed rgba(185,148,71,.45)}
+.yw-mknote{font-size:13px;color:var(--ink2);line-height:1.45;max-width:230px}
+.yw-mkfoot .cloth-face{height:42px;padding:0 26px;font-size:14.5px;font-weight:600}
+/* the status line */
+.yw-stat{padding:0 20px;background:var(--weave),#F8F2E7;box-shadow:none;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink2)}
+.yw-stat b{color:var(--ink)}
+/* the dark stage keeps the bars light */
+.yw-stage.is-dark .yw-hint{background:rgba(43,39,37,.9);box-shadow:inset 0 0 0 1px #5A514B;color:#E6DDD2}
+.yw-top .cloth-face{height:40px;padding:0 20px;font-size:14px}
 /* the name given on the work screen's top (Kim) */
 .yw-name-in{display:flex;align-items:baseline;gap:0}
 .yw-name-in input{width:220px;height:32px;padding:0 8px;border:0;border-radius:4px;background:transparent;font:inherit;font-size:16px;font-weight:600;color:inherit;box-shadow:inset 0 -1px 0 #CBBBA8}

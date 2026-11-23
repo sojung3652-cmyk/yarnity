@@ -26,6 +26,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { extraPic, extraSrc } from "@/lib/extras";
+import { ellipseRing, roundSection, type Outline } from "@/lib/outline";
+import type { Chart } from "@/lib/crochetChart";
 import { stitchOf } from "@/lib/knit";
 
 export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal"
@@ -40,7 +42,9 @@ export type YarnShape =
   | { kind: "tube"; W: number; H: number; circCm: number; hCm: number }    // in the round, no bottom
   // a painted picture (직접 그리기 · 자유롭게): W x H stitches, row-major from the bottom, -1 = a hole, else the
   // colour's index in `colors`; it stands up facing you (two of it, front and back, for pieces 2)
-  | { kind: "grid"; W: number; H: number; wCm: number; hCm: number; cells: number[]; pieces?: 1 | 2 };
+  | { kind: "grid"; W: number; H: number; wCm: number; hCm: number; cells: number[]; pieces?: 1 | 2 }
+  // a crochet stitch pattern (lib/crochetChart: shells, mesh...), lying flat: every stitch from its base to its top
+  | { kind: "chart"; chart: Chart; wCm: number; hCm: number };
 export interface YarnPattern {
   shape: YarnShape;
   /** one colour per course, bottom first (a shorter list: its last colour goes on) */
@@ -65,6 +69,14 @@ export interface YarnPattern {
   depth?: number[];
   /** a firm edging round the opening (the last round worked as a thicker border) */
   rim?: boolean;
+  /** a handle worked as a band (Kim): a chain from one side of the opening to the other, then this many rows of
+   *  짧은뜨기 along it, each row a little longer than the one inside it */
+  strapRows?: number;
+  /** set down and left to its own weight (Kim: a real bag is not rigid): the wall gives by how firm the yarn is -
+   *  cord and nylon stand, cotton sinks a little, soft yarns fold - and a soft handle falls to one side */
+  gravity?: boolean;
+  /** a drawn body's own outline (lib/outline): every round is laid on it, so the 3D's front view is the drawing */
+  outline?: Outline;
   /** a closed, stuffed piece (a drawn shape that ends on its centre line): it keeps its shape, no slump */
   firm?: boolean;
   /** how many strands side by side a strap is (1-5; 3 when missing) */
@@ -164,6 +176,7 @@ export function stitchCount(s: YarnShape): number {
   if (s.kind === "round") return s.counts.reduce((a, b) => a + b, 0);
   if (s.kind === "oval" || s.kind === "rect") return s.chain + [...s.bottom, ...s.body].reduce((a, b) => a + b, 0);
   if (s.kind === "grid") return s.cells.filter(c => c >= 0).length * (s.pieces ?? 1);
+  if (s.kind === "chart") return s.chart.st.length * 3 + s.chart.ch.length;
   return s.W * s.H;
 }
 
@@ -348,6 +361,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   }
 
   // ---------- pattern -> 3D: stitch = point, joins = springs (the shape comes from the counts alone)
+  // a chart's place on the table (set by makeItem for a chart: its x along, its y away, its height up)
+  let chartAt: ((x: number, y: number, up?: number) => THREE.Vector3) | null = null;
   function makeItem(): ItemData {
     // round / oval / rect past the stitch budget (sizes have no limit: a 3m rug is 100,000s of stitches): every
     // k-th round is drawn with 1/k of its stitches and the stitch k times as big, so the size and shape stay
@@ -528,6 +543,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       fixed = true; skip = k > 1 ? { stitch: k, row: k } : null; rhOut = ey; swOut = ex;
       rows(W, H, ex, ey, swap, midCi(k, s.H));
       if (s.knit) knit = { type: "flat", W, H, swap, wk: ex, rk: ey, rho: 0, R: 0 };
+    } else if (s.kind === "chart") {
+      // the chart lies flat, its rows going away from the viewer; its points only give the piece its size
+      const ex = s.wCm * 10 / MM / Math.max(1, s.chart.W), ey = s.hCm * 10 / MM / Math.max(1, s.chart.H);
+      const ca = (x: number, y: number, up = 0) => new THREE.Vector3((x - (s.chart.W - 1) / 2) * ex, up, -(y - s.chart.H / 2) * ey); chartAt = ca;
+      s.chart.st.forEach(c => { P.push(ca(c.b[0], c.b[1]), ca(c.t[0], c.t[1])); }); s.chart.ch.forEach(c => P.push(ca(c[0], c[1])));
+      fixed = true; rhOut = ey; swOut = ex; flat.push(...P.map((_, i) => i));
     } else if (s.kind === "grid") {
       const k = skipOf(s.W, s.H * (s.pieces ?? 1)), { ex, ey } = grid(s, k);
       fixed = true; skip = k > 1 ? { stitch: k, row: k } : null; rhOut = ey; swOut = ex;
@@ -553,7 +574,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const n = D.P.length, pos = new Float32Array(n * 3); const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     const ring: number[] = [], vert: number[] = []; D.E.forEach(e => { if (e[3] === 1) (Math.abs(e[2] - D.sw) < 1e-9 ? ring : vert).push(e[0], e[1]); });
     const mk = (idx: number[], color: number, op: number) => { const g = new THREE.BufferGeometry(); g.setAttribute("position", pg.getAttribute("position")); g.setIndex(idx); return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: lin(color), transparent: true, opacity: op })); };
-    const LC = D.C[D.C.length - 1], hi: number[] = []; for (let i = 0; i < LC.idx.length - (LC.closed ? 0 : 1); i++) hi.push(LC.idx[i], LC.idx[(i + 1) % LC.idx.length]);
+    const LC = D.C[D.C.length - 1] ?? { idx: [], closed: false }, hi: number[] = []; for (let i = 0; i < LC.idx.length - (LC.closed ? 0 : 1); i++) hi.push(LC.idx[i], LC.idx[(i + 1) % LC.idx.length]);
     const g = new THREE.Group(); g.add(mk(vert, 0xb99447, .28), mk(ring, 0xb08a3e, .9), mk(hi, 0xc0787e, 1), new THREE.Points(pg, new THREE.PointsMaterial({ color: lin(0xa8823a), size: .11, sizeAttenuation: true })));
     g.userData.pos = pg.getAttribute("position"); return g;
   }
@@ -568,6 +589,25 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   function buildItemYarn(D: ItemData) {
     const R = yarnR(D), geos: THREE.BufferGeometry[] = [];
     const mat = yarnMat(R), M = LOD.M, step = LOD.step, lp = (b: Bot) => D.P[b[0]].clone().lerp(D.P[b[1]], b[2]);
+    if (pat.shape.kind === "chart" && chartAt) {
+      // a crochet chart, stitch by stitch: each stitch's head lying on its top (a loop across the post), its post
+      // as two strands from the base up, and a long stitch's wrap round the middle; each chain its own loop
+      const s = pat.shape, at = chartAt, color = colorOf(0), add = (pts: THREE.Vector3[], closed: boolean, rad = R) => {
+        const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5), g = buildYarn(cv.getSpacedPoints(Math.max(16, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color });
+        const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
+      };
+      // loops lie in the fabric (an oval across, short along), just above it
+      const loop = (c: THREE.Vector3, ax: THREE.Vector3, al: THREE.Vector3, w: number, d: number, h: number) => { const pts: THREE.Vector3[] = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; pts.push(c.clone().addScaledVector(ax, Math.cos(a) * w).addScaledVector(al, Math.sin(a) * d).setY(h * (1 + .35 * Math.sin(a)))); } return pts; };
+      const X1 = new THREE.Vector3(1, 0, 0), Z1 = new THREE.Vector3(0, 0, 1), r = R * .82;
+      s.chart.ch.forEach(([x, y]) => add(loop(at(x, y), X1, Z1, D.sw * .4, D.rh * .2, r), true, r * .9));
+      s.chart.st.forEach(c => {
+        const b = at(c.b[0], c.b[1]), t = at(c.t[0], c.t[1]), dir = t.clone().sub(b), dn = dir.clone().normalize(), across = new THREE.Vector3(-dn.z, 0, dn.x), w = D.sw * .15;
+        add(loop(t, across, dn, D.sw * .44, D.rh * .2, r * 1.3), true, r);
+        for (const k of [-1, 1]) add([b.clone().addScaledVector(across, w * k).setY(r), b.clone().lerp(t, .5).addScaledVector(across, w * k * 1.35).setY(r * 2), t.clone().addScaledVector(across, w * k * .6).addScaledVector(dn, -D.rh * .2).setY(r * 1.3)], false, r);
+        if (c.type !== "sc") { const m1 = b.clone().lerp(t, .38), m2 = b.clone().lerp(t, .56); add([m1.clone().addScaledVector(across, -D.sw * .22).setY(r * 1.4), m1.clone().lerp(m2, .5).setY(r * 3), m2.clone().addScaledVector(across, D.sw * .22).setY(r * 1.4)], false, r * .95); }
+      });
+      haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz); strapH = 0; flapTip = null; return;
+    }
     if (D.knit) buildKnit(D, R, mat, geos);
     else D.C.forEach(c => {
       const tops = c.idx.map(n => D.P[n].clone()), saw: THREE.Vector3[] = [];
@@ -876,6 +916,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       : k < .8 ? "바늘이 가늘어서 빡빡하고 단단한 편물이 됩니다." : k > 1.45 ? "바늘이 굵어서 성글고 부드러운 편물이 됩니다." : "실과 바늘이 잘 맞습니다.";
     const round = s.kind === "round" || s.kind === "tube";
     const h = s.kind === "tube" ? cm(my + D.rh) : my > D.rh * 2 ? cm(my) : null;
+    if (s.kind === "chart") { opts.onInfo({ round: false, widthCm: s.wCm, depthCm: s.hCm, heightCm: null, fit, skip: null }); return { my: D.rh, mr: Math.max(dx, dz) / 2 }; }
     if (s.kind === "grid") { opts.onInfo({ round: false, widthCm: s.wCm, depthCm: s.hCm, heightCm: null, fit, skip: D.skip }); return { my, mr: Math.max(dx, my) / 2 }; }
     opts.onInfo({ round, widthCm: cm(Math.max(dx, dz)), depthCm: cm(Math.min(dx, dz)), heightCm: h, fit, skip: D.skip });
     return { my, mr: Math.max(dx, dz) / 2 };
@@ -914,6 +955,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         else { const u = Math.max(0, (t - .7) / .3), f = u * u * (3 - 2 * u), th = Math.atan2(p.z - cz, p.x - cx), k = 1 - f * (.2 + .03 * Math.sin(9 * th)); p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; }
       }
     }
+    // a drawn body: its rounds laid on the drawing's own outline - nothing else bends it afterwards
+    if (pat.outline && layOnOutline(D, pat.outline, b.x1 - b.x0 >= b.z1 - b.z0, cx, cz)) { if (pat.gravity) drape(D); return; }
     if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
     const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
     if (s < .03) return;
@@ -934,6 +977,48 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const k = (1 + s * (.07 * Math.sin(Math.PI * Math.min(1, t * 1.1)) - .055 * t * t) * (.6 + .4 * slim)) * (1 + s * .04 * t * (Math.sin(2 * th + .6) + .5 * Math.sin(3 * th + 2.1)));
       p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; p.y -= s * .075 * t * t * H * (.6 + .4 * slim);
     }
+  }
+  // how firmly the yarn holds a shape, 0-1 (Kim: nylon and cord stand, then cotton; the others are limp)
+  const firm = () => (st.preset === "cord" ? .92 : st.preset === "raffia" || st.preset === "jute" ? .8 : st.preset === "cotton" || st.preset === "linen" || st.preset === "tshirt" ? .5 : Math.max(.06, .3 - st.soft * .3));
+  // The piece under its own weight, as animation cloth is settled: every stitch is pulled down, kept at its
+  // distance from its neighbours (the fabric neither stretches nor shrinks: the wall has to fold or belly out),
+  // kept above the table, and drawn back towards the shape it was made in by as much as the yarn is firm.
+  function drape(D: ItemData) {
+    const n = D.P.length, G = D.P.map(p => p.clone()), f = firm(), rest = D.E.map(e => G[e[0]].distanceTo(G[e[1]])), d = new THREE.Vector3();
+    let H = 0; G.forEach(p => { if (p.y > H) H = p.y; }); if (H < D.rh * 3) return;
+    const g = H * .012 * (1 - f) ** 1.2, pull = .02 + .5 * f ** 2, IT_N = 160;
+    let cx = 0, cz = 0; G.forEach(p => { cx += p.x; cz += p.z; }); cx /= n; cz /= n;
+    for (let it = 0; it < IT_N; it++) {
+      for (let i = 0; i < n; i++) { const p = D.P[i], q = G[i]; if (q.y < D.rh * .5) continue; p.y -= g;
+        // a wall that is pushed down goes outwards rather than through itself; one side gives first
+        const k = g * .35 * (1 + .5 * Math.sin(3 * Math.atan2(q.z - cz, q.x - cx) + q.y)); p.x += (q.x - cx) / (Math.hypot(q.x - cx, q.z - cz) || 1) * k; p.z += (q.z - cz) / (Math.hypot(q.x - cx, q.z - cz) || 1) * k; }
+      for (let k = 0; k < 4; k++) for (let e = 0; e < D.E.length; e++) { const ed = D.E[e], a = D.P[ed[0]], b = D.P[ed[1]]; d.subVectors(b, a); const len = d.length() || 1e-6, c = (len - rest[e]) / len * .5; a.addScaledVector(d, c); b.addScaledVector(d, -c); }
+      for (let i = 0; i < n; i++) { const p = D.P[i], q = G[i]; p.lerp(q, pull * .12); const lo = q.y * (.42 + .58 * f); if (p.y < lo) p.y = lo; /* folded fabric piles up: it cannot lie thinner than that */ if (q.y < D.rh * .5) { p.y = q.y; } }
+    }
+  }
+  // Every round on the drawn outline (lib/outline): the round's own place among the pattern's rounds gives its
+  // width, depth and height; its stitches are spaced evenly round that ellipse, starting where the settled
+  // round started and going the way it went (so the stitches still stand over one another).
+  function layOnOutline(D: ItemData, o: Outline, longX: boolean, cx: number, cz: number) {
+    const cs = D.C.filter(c => c.closed && c.idx.length >= 3); if (cs.length < 3 || o.prof.length < 2 || !(o.prof[0] > 0)) return false;
+    const U = 10 / MM, ciMax = Math.max(...cs.map(c => c.ci)), ciMin = Math.min(...cs.map(c => c.ci));
+    let turn = 0;
+    for (const c of cs) {
+      const r = ciMax === ciMin ? 0 : (c.ci - ciMin) / (ciMax - ciMin) * (o.rounds - 1), s = roundSection(o, Math.round(r));
+      const n = c.idx.length, p0 = D.P[c.idx[0]], p1 = D.P[c.idx[1]];
+      const ang = (p: THREE.Vector3) => longX ? Math.atan2(p.z - cz, p.x - cx) : Math.atan2(p.x - cx, p.z - cz);
+      const a0 = ang(p0); let da = ang(p1) - a0; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
+      if (!turn) turn = da < 0 ? -1 : 1;
+      const M = Math.max(n * 4, 96), ring = ellipseRing(s.hw * U, s.hd * U, M), k0 = ((Math.round(a0 / (Math.PI * 2) * M) % M) + M) % M;
+      // the settled round's first stitch at its own angle: the ring's point nearest that angle
+      let best = k0, bd = 1e9; for (let k = 0; k < M; k++) { const [x, z] = ring[k]; let d = Math.abs(Math.atan2(z, x) - a0); if (d > Math.PI) d = Math.PI * 2 - d; if (d < bd) { bd = d; best = k; } }
+      for (let i = 0; i < n; i++) {
+        const [u, v] = ring[(((best + turn * Math.round(i * M / n)) % M) + M) % M], q = D.P[c.idx[i]];
+        if (longX) { q.x = cx + u; q.z = cz + v; } else { q.z = cz + u; q.x = cx + v; }
+        q.y = s.y * U;
+      }
+    }
+    return true;
   }
   // the body pressed to a depth (YarnPattern.depth): at each height its section now (half-width a, half-depth b,
   // read off the stitches there) becomes an ellipse of the asked depth : width with the same round length
@@ -1146,7 +1231,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
       if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; }
-      const retop = p.top !== pat.top; // another kind of piece: the camera starts over
+      const retop = p.top !== pat.top || p.gravity !== pat.gravity || JSON.stringify(p.outline ?? null) !== JSON.stringify(pat.outline ?? null) || JSON.stringify(p.depth ?? null) !== JSON.stringify(pat.depth ?? null); // another kind of piece: the camera starts over
       pat = p;
       if (mat) Object.assign(st, presetOf(p.material));
       if (reshape) startItem();
