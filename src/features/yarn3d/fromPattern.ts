@@ -28,8 +28,14 @@ export interface YarnSource extends PlanInput {
   hairK?: number | null;
   /** strands in a strap (1-5), and things to try on in the 3D */
   handleW?: number | null;
-  extras?: { button?: boolean; label?: boolean; zipper?: boolean } | null;
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean; tab?: boolean } | null;
+  /** a drawn bag's depth against its width, bottom to top (from its side view) */
+  depthProfile?: number[];
 }
+
+// a drawn, rounded bag with no side view: deep at its round bottom, flat higher up, as a round crocheted handbag
+// stands (Kim's guide: half-depth : half-width 0.18:0.35 at the bottom, 0.45:1.3 at the widest, 0.38:1.05 at the top)
+const DEPTH_DEFAULT = [.51, .42, .37, .35, .35, .35, .36];
 
 // no thickness typed (only thin / medium / thick picked): the middle of each level in lib/yarn.ts
 // YARN_MM_LEVELS (thin < 2.5mm, thick > 4mm)
@@ -87,5 +93,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
-    ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper) ? { extras: p.extras } : {}) };
+    ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper || p.extras.tab) ? { extras: p.extras } : {}),
+    // a drawn silhouette (lib/sketchMeasure): pressed to its depth, its opening edged
+    ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true } : {}) };
 }

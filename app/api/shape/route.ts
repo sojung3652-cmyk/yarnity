@@ -35,6 +35,7 @@ const TOOL: Anthropic.Tool = {
       handles: { type: "integer", enum: [0, 1, 2], description: "0 none, 1 one handle across the top, 2 two handles (front and back)" },
       handleCm: { type: "number", description: "the handle's length in cm" },
       button: { type: "boolean" },
+      tab: { type: "boolean", description: "a short narrow strap or loop coming over the rim at the front, its end held by the button (a tab closure); not a flap" },
       buttonX: { type: "number", description: "-1 left .. 0 middle .. 1 right, on the front" },
       buttonY: { type: "number", description: "0 bottom .. 1 top of the body" },
       buttonSizeCm: { type: "number" },

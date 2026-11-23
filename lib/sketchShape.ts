@@ -12,10 +12,14 @@ export interface ShapeSpec {
   body: "straight" | "wider" | "narrower"; topWidthCm?: number;
   flap: "none" | "half" | "square" | "triangle"; flapCm?: number;
   handles: 0 | 1 | 2; handleCm?: number;
+  /** a short strap over the rim holding the button (a tab closure) */
+  tab?: boolean;
   button: boolean; buttonX?: number; buttonY?: number; buttonSizeCm?: number; buttonColor?: string;
   zipper?: boolean; label?: boolean;
   bodyColor?: string; colorName?: string;
   profile?: number[]; rounded?: boolean; flapColor?: string; handleColor?: string;
+  /** measured, not from the AI: depth against width, bottom to top (lib/sketchMeasure, from the side view) */
+  depthProfile?: number[];
   summary?: string;
 }
 
@@ -37,7 +41,7 @@ export function readSpec(o: unknown): ShapeSpec | null {
     handles: ([0, 1, 2] as const).includes(x.handles as 0) ? (x.handles as 0 | 1 | 2) : 0, handleCm: typeof x.handleCm === "number" ? x.handleCm : undefined,
     button: x.button === true, buttonX: typeof x.buttonX === "number" ? x.buttonX : undefined, buttonY: typeof x.buttonY === "number" ? x.buttonY : undefined,
     buttonSizeCm: typeof x.buttonSizeCm === "number" ? x.buttonSizeCm : undefined, buttonColor: typeof x.buttonColor === "string" ? x.buttonColor : undefined,
-    zipper: x.zipper === true, label: x.label === true,
+    zipper: x.zipper === true, label: x.label === true, tab: x.tab === true,
     bodyColor: typeof x.bodyColor === "string" && HEX.test(x.bodyColor) ? x.bodyColor.toUpperCase() : undefined,
     colorName: typeof x.colorName === "string" ? x.colorName.slice(0, 20) : undefined,
     summary: typeof x.summary === "string" ? x.summary.slice(0, 200) : undefined,
@@ -68,8 +72,8 @@ export function specToDraft(d: Draft, s: ShapeSpec): Draft {
   const topA = !bag || curved || Math.abs(ratio - 1) < .08 ? null : ratio > 1 ? clamp(Math.round(a * ratio), a + 1, a * 2) : clamp(Math.round(a * ratio), Math.ceil(a * .4), a - 1);
   // a short "flap" (a tab with a button over the rim, as on Kim's test photo) is no flap: the 3D's flap is as wide as
   // the opening and reads as a lid. It becomes the button, high on the front
-  const tab = bag && s.flap !== "none" && (s.flapCm ?? 99) < s.heightCm * .3;
-  if (tab) { s = { ...s, flap: "none", button: true }; if (s.buttonY == null || s.buttonY < .6) s = { ...s, buttonX: s.buttonX ?? 0, buttonY: .82 }; }
+  const tab = bag && (s.tab === true || (s.flap !== "none" && (s.flapCm ?? 99) < s.heightCm * .3));
+  if (tab) s = { ...s, flap: "none", button: true, buttonX: undefined, buttonY: undefined };
   const flapOn = bag && s.flap !== "none";
   const handles = it.handles ? s.handles : 0;
   const ex: NonNullable<Draft["extras"]> = {};
@@ -79,11 +83,12 @@ export function specToDraft(d: Draft, s: ShapeSpec): Draft {
     if (!flapOn && s.buttonX != null && s.buttonY != null) ex.buttonAt = [clamp(s.buttonX, -1, 1), clamp(s.buttonY, 0, 1), clamp(s.buttonSizeCm ?? 1.9, .8, 5)];
     if (s.buttonColor) ex.buttonColor = /gold|금/i.test(s.buttonColor) ? "gold" : HEX.test(s.buttonColor) ? s.buttonColor : undefined;
   }
+  if (tab) ex.tab = true; // the button then sits on its end
   if (s.zipper) ex.zipper = true;
   if (s.label) ex.label = true;
   return {
     ...d, item: id, object: ENGINE[it.kind], itemPicked: true, free: undefined, paint: undefined,
-    shape, a, b, h, topA, profile: curved ? prof! : undefined,
+    shape, a, b, h, topA, profile: curved ? prof! : undefined, depthProfile: curved ? s.depthProfile : undefined,
     flapColor: flapOn ? s.flapColor : undefined, handleColor: handles ? s.handleColor : undefined,
     flapCm: flapOn ? clamp(Math.round(s.flapCm ?? h * .45), 3, 40) : null, closure: flapOn ? "flap" : s.zipper ? "zipper" : "open", flapShape: flapOn ? (s.flap as "half" | "square" | "triangle") : undefined,
     handle: handles ? "short" : "none", // one handle across the top has to clear the opening (an AI guess of 16cm over a 15cm opening hid it): at least 1.8 times the opening's width

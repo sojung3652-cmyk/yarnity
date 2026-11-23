@@ -91,10 +91,14 @@ export function measure(m: Mask): Measured | null {
   const bodyPx = bot - end + 1;
   if (bodyPx < 8 || wide < 8) return null;
   // the widths at 7 heights (each the mean of a few rows; the very bottom is a curve's tip, so it starts a little up)
+  // the top of the body without a handle's roots: where a handle joins, its legs widen the last rows, so those
+  // rows may not stand out more than a little past the body a sixth of its height lower
+  const refY = Math.min(bot, end + Math.round(bodyPx * .16)), ref = rows[refY], rl = ref.length ? ref[0][0] : 0, rr = ref.length ? ref[ref.length - 1][1] : m.w - 1, slack = W * .03;
+  const bodySpan = (y: number) => { const r = rows[y]; if (!r.length) return 0; if (y >= refY) return span(r); const l = Math.max(r[0][0], rl - slack), rt = Math.min(r[r.length - 1][1], rr + slack); return Math.max(0, rt - l + 1); };
   const prof: number[] = [];
   for (let i = 0; i < 7; i++) {
     const y = Math.round(bot - (.04 + .92 * i / 6) * (bodyPx - 1)); let s = 0, c = 0;
-    for (let d = -2; d <= 2; d++) { const yy = Math.min(bot, Math.max(end, y + d)), sp = span(rows[yy]); if (sp) { s += sp; c++; } }
+    for (let d = -2; d <= 2; d++) { const yy = Math.min(bot, Math.max(end, y + d)), sp = bodySpan(yy); if (sp) { s += sp; c++; } }
     prof.push(c ? s / c : 0);
   }
   const pm = Math.max(...prof) || 1, openPx = span(rows[end]);
@@ -121,7 +125,12 @@ export function withMeasure(s: ShapeSpec, front: Measured | null, side: Measured
   const out: ShapeSpec = { ...s, widthCm: W, heightCm: Math.max(2, Math.round(front.bodyPx * cm)), profile: front.profile };
   if (curved) { out.rounded = true; out.topWidthCm = undefined; out.body = "straight"; }
   // the side drawn as well: its depth against its own height, the height the front's
-  if (side && side.bodyPx > 0) out.depthCm = Math.max(2, Math.round(side.widePx * (out.heightCm / side.bodyPx)));
+  if (side && side.bodyPx > 0) {
+    const sk = out.heightCm / side.bodyPx; // the side's cm a pixel: its body as high as the front's
+    out.depthCm = Math.max(2, Math.round(side.widePx * sk));
+    // depth against width at each height, for the 3D to press the body to
+    out.depthProfile = front.profile.map((f, i) => Math.round(Math.max(.12, Math.min(1.2, (side.profile[i] * side.widePx * sk) / Math.max(1e-6, f * front.widePx * cm))) * 1000) / 1000);
+  }
   // a handle drawn makes it a bag (a "basket" or "pouch" has none to carry it by)
   if (front.handle) { out.handles = 1; out.handleCm = Math.round(front.handle.lenPx * cm); if (out.kind !== "bag") out.kind = "bag"; }
   return out;

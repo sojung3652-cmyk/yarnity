@@ -58,13 +58,19 @@ export interface YarnPattern {
   /** how the opening is finished (Kim: a pouch is not an open tub): "pinch" - the two long sides meet along
    *  the top, as a zipped pouch lies; "cinch" - drawn in a little, a bucket bag's gathered top */
   top?: "pinch" | "cinch";
+  /** a drawn, rounded bag (Kim's guide for a round crochet handbag): its depth against its width at evenly spaced
+   *  heights, bottom to top. The finished body is pressed flat to it, each height keeping its round's length (the
+   *  stitches are not squeezed: a round bag of soft fabric goes flat like this when its sides fall in) */
+  depth?: number[];
+  /** a firm edging round the opening (the last round worked as a thicker border) */
+  rim?: boolean;
   /** a closed, stuffed piece (a drawn shape that ends on its centre line): it keeps its shape, no slump */
   firm?: boolean;
   /** how many strands side by side a strap is (1-5; 3 when missing) */
   strapW?: number;
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼), with where and how big (Kim): `buttonAt` /
    *  `labelAt` = [across the front -1..1, up 0..1, size in cm]; `zipOpen` 0 closed .. 1 open; the button's colour */
-  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass" };
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean };
   /** a handle (strap) in its own colour, when it differs from the body */
   strapColor?: string;
   /** a bag's flap (덮개): worked from the back of the opening, over the top and down the front (Kim: it has to show) */
@@ -553,6 +559,14 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const g = buildYarn(pts, Rr, { M, closed: c.closed, color: colorOf(c.ci) }), m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
       });
     });
+    // the edging round the opening: the last round again, a little up and out, thicker
+    const lastC = D.C[D.C.length - 1];
+    if (pat.rim && !D.knit && lastC && lastC.closed && lastC.idx.length > 6 && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
+      let rx = 0, rz = 0; lastC.idx.forEach(n => { rx += D.P[n].x; rz += D.P[n].z; }); rx /= lastC.idx.length; rz /= lastC.idx.length;
+      const pts = lastC.idx.map(n => { const q = D.P[n].clone(), o = new THREE.Vector3(q.x - rx, 0, q.z - rz).normalize(); return q.addScaledVector(o, R * .45).setY(q.y + R * .9); });
+      const cv = new THREE.CatmullRomCurve3(pts, true, "catmullrom", .5), g = buildYarn(cv.getSpacedPoints(Math.max(48, Math.ceil(cv.getLength() / (R * .7 * step)))), R * 1.4, { M, closed: true, color: colorOf(lastC.ci) });
+      const m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
+    }
     strapH = 0;
     if (pat.strap !== "none" && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
       const L = D.C[D.C.length - 1].idx, c = L.length, color = pat.strapColor ?? colorOf(D.C[D.C.length - 1].ci); let ry = 0, cx = 0, cz = 0, rr = 0;
@@ -566,6 +580,27 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const H = Math.max(rr * .5, Math.sqrt(Math.max(0, (len / 2) ** 2 - (A.distanceTo(B) / 2) ** 2)) * .92); strapH = Math.max(strapH, H);
         if (nrm.x * (mid.x - cx) + nrm.z * (mid.z - cz) > 0) nrm.negate();
         const sw = Math.max(1, Math.min(5, Math.round(pat.strapW ?? 3)));
+        if (pat.strap === "long" && pat.strapCm < 70) {
+          // one handle over the opening (Kim's round handbag): a thick crocheted cord, its section a flattened
+          // ellipse (wide to the front), arching from the two sides - a little out first, then in to the top,
+          // as a handle stands - its ends sunk into the rim. Its strands wind slowly round it, as a cord's do.
+          const U = 10 / MM, hw = Math.max(sw * R * 1.75, 2.2 * U) / 2, ht = hw * .48, half = A.distanceTo(B) / 2;
+          const per = Math.PI * (3 * (hw + ht) - Math.sqrt((3 * hw + ht) * (hw + 3 * ht))), n = Math.max(8, Math.min(26, Math.round(per / (R * 2.1))));
+          const up = new THREE.Vector3(0, 1, 0), N = 72;
+          const mid0 = (t: number) => { const th = Math.PI * t, s = Math.sin(th), c = Math.cos(th); return mid.clone().addScaledVector(w, -half * c * (1 + .32 * s * c * c)).addScaledVector(up, H * s - D.rh * 1.3 * (1 - s) ** 3); };
+          const cl = Array.from({ length: N + 1 }, (_, i) => mid0(i / N)); let L = 0; for (let i = 1; i <= N; i++) L += cl[i].distanceTo(cl[i - 1]);
+          const turns = L / (hw * 9);
+          for (let j = 0; j < n; j++) {
+            const pts: THREE.Vector3[] = [];
+            for (let i = 0; i <= N; i++) {
+              const T = cl[Math.min(N, i + 1)].clone().sub(cl[Math.max(0, i - 1)]).normalize(), Q = new THREE.Vector3().crossVectors(T, nrm).normalize();
+              const ph = 2 * Math.PI * (j / n + turns * i / N);
+              pts.push(cl[i].clone().addScaledVector(nrm, hw * Math.cos(ph)).addScaledVector(Q, ht * Math.sin(ph)));
+            }
+            const cv = new THREE.CatmullRomCurve3(pts), g = buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength() / (R * .6 * step))), R, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
+          }
+          strapH = Math.max(strapH, H + ht); return;
+        }
         Array.from({ length: sw }, (_, i) => i - (sw - 1) / 2).forEach(k => {
           const pts: THREE.Vector3[] = [];
           for (let i = 0; i <= 40; i++) { const t = i / 40, q = A.clone().lerp(B, t); q.y += H * Math.sin(Math.PI * t) - R * 1.2 * (1 - Math.sin(Math.PI * t)); q.addScaledVector(nrm, k * R * 1.75 + lean * rr * .12 * Math.sin(Math.PI * t)); pts.push(q); }
@@ -621,7 +656,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // ---------- 단추 / 라벨 / 지퍼 to try on (the 3D only; nothing of the pattern changes). On a piece with walls
   // they sit on the front wall and round the opening; on a flat piece the button and label lie on top.
   function addExtras(D: ItemData, R: number) {
-    const ex = pat.extras; if (!ex || !(ex.button || ex.label || ex.zipper) || !D.P.length) return;
+    const ex = pat.extras; if (!ex || !(ex.button || ex.label || ex.zipper || ex.tab) || !D.P.length) return;
     const b = boxOf(D), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, wall = b.my > D.rh * 3, U = 10 / MM; // U: 1cm
     const std = (color: number, rough = .8, metal = 0) => new THREE.MeshStandardMaterial({ color: lin(color), roughness: rough, metalness: metal, envMap: metal ? ENV : null });
     const put = (m: THREE.Object3D) => { m.traverse(o => { (o as THREE.Mesh).castShadow = true; }); group.add(m); };
@@ -639,10 +674,28 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       return { p: best.clone(), n };
     };
     const face = (o: THREE.Object3D, n: THREE.Vector3) => o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+    // 단추 고리 (Kim's round handbag): a short crocheted strap from inside the opening, over the rim at the front's
+    // middle and down the front wall, its end where the button sits
+    let tabTip: { p: THREE.Vector3; n: THREE.Vector3 } | null = null;
+    if (ex.tab && wall && !flapTip) {
+      const top = at(1, 0), low = at(ex.buttonAt?.[1] ?? .74, 0), n0 = top.n, side = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), n0).normalize();
+      const path: THREE.Vector3[] = [
+        top.p.clone().addScaledVector(n0, -R * 3.5).setY(top.p.y - D.rh * 1.5),
+        top.p.clone().addScaledVector(n0, -R * 1.2).setY(top.p.y + R * 2.6),
+        top.p.clone().addScaledVector(n0, R * 2.2).setY(top.p.y + R * 1.6),
+      ];
+      const steps = 8; for (let i = 1; i <= steps; i++) { const y = top.p.y + (low.p.y - top.p.y) * i / steps, q = at(y / b.my, 0); path.push(q.p.clone().addScaledVector(q.n, R * 2.3).setY(y)); }
+      const cv = new THREE.CatmullRomCurve3(path), U2 = 10 / MM, tw = 1.5 * U2, k = Math.max(3, Math.round(tw / (R * 1.8))), color = colorOf(D.C[D.C.length - 1].ci), mat = yarnMat(R);
+      for (let j = 0; j < k; j++) {
+        const o = (j - (k - 1) / 2) * tw / (k - 1), sp = cv.getSpacedPoints(Math.max(24, Math.ceil(cv.getLength() / (R * .6)))).map(q => q.clone().addScaledVector(side, o));
+        const g = buildYarn(sp, R, { M: LOD.M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m);
+      }
+      const end = path[path.length - 1]; tabTip = { p: end.clone().setY(end.y + D.rh * .3).addScaledVector(low.n, R * .8), n: low.n };
+    }
     if (ex.button) {
       const ba = ex.buttonAt, gold = ex.buttonColor === "gold";
-      const { p, n } = ba ? (wall ? at(ba[1], ba[0] * Math.PI * .42) : { p: new THREE.Vector3(cx + ba[0] * (b.x1 - b.x0) / 2, b.my, cz - (ba[1] - .5) * (b.z1 - b.z0)), n: new THREE.Vector3(0, 1, 0) })
-        : flapTip ?? (wall ? at(.72, 0) : { p: new THREE.Vector3(cx, b.my, cz), n: new THREE.Vector3(0, 1, 0) });
+      const { p, n } = ba && !tabTip ? (wall ? at(ba[1], ba[0] * Math.PI * .42) : { p: new THREE.Vector3(cx + ba[0] * (b.x1 - b.x0) / 2, b.my, cz - (ba[1] - .5) * (b.z1 - b.z0)), n: new THREE.Vector3(0, 1, 0) })
+        : flapTip ?? tabTip ?? (wall ? at(.72, 0) : { p: new THREE.Vector3(cx, b.my, cz), n: new THREE.Vector3(0, 1, 0) });
       const r = (ba?.[2] ?? 1.9) / 2 * U, g = new THREE.Group();
       if (gold) {
         // a gold dome, as on a handbag's clasp
@@ -759,6 +812,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         else { const u = Math.max(0, (t - .7) / .3), f = u * u * (3 - 2 * u), th = Math.atan2(p.z - cz, p.x - cx), k = 1 - f * (.2 + .03 * Math.sin(9 * th)); p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; }
       }
     }
+    if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
     const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
     if (s < .03) return;
     if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
@@ -777,6 +831,23 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const t = p.y / H, th = Math.atan2(p.z - cz, p.x - cx);
       const k = (1 + s * (.07 * Math.sin(Math.PI * Math.min(1, t * 1.1)) - .055 * t * t) * (.6 + .4 * slim)) * (1 + s * .04 * t * (Math.sin(2 * th + .6) + .5 * Math.sin(3 * th + 2.1)));
       p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; p.y -= s * .075 * t * t * H * (.6 + .4 * slim);
+    }
+  }
+  // the body pressed to a depth (YarnPattern.depth): at each height its section now (half-width a, half-depth b,
+  // read off the stitches there) becomes an ellipse of the asked depth : width with the same round length
+  function pressFlat(D: ItemData, depth: number[], b: { x0: number; x1: number; z0: number; z1: number }, cx: number, cz: number, H: number) {
+    const longX = b.x1 - b.x0 >= b.z1 - b.z0, NB = 24, u0 = new Array(NB + 1).fill(1e9), u1 = new Array(NB + 1).fill(-1e9), v0 = new Array(NB + 1).fill(1e9), v1 = new Array(NB + 1).fill(-1e9);
+    const uv = (p: THREE.Vector3) => longX ? [p.x - cx, p.z - cz] : [p.z - cz, p.x - cx];
+    for (const p of D.P) { const k = Math.max(0, Math.min(NB, Math.round(p.y / H * NB))), [u, v] = uv(p); u0[k] = Math.min(u0[k], u); u1[k] = Math.max(u1[k], u); v0[k] = Math.min(v0[k], v); v1[k] = Math.max(v1[k], v); }
+    const A = u0.map((x, k) => u1[k] > x ? (u1[k] - x) / 2 : 0), B = v0.map((x, k) => v1[k] > x ? (v1[k] - x) / 2 : 0);
+    for (let k = 0; k <= NB; k++) if (!A[k]) { let j = 1; while (j <= NB && !A[k - j] && !A[k + j]) j++; A[k] = A[k - j] || A[k + j] || 0; B[k] = B[k - j] || B[k + j] || 0; }
+    const per = (a: number, c: number) => Math.PI * (3 * (a + c) - Math.sqrt((3 * a + c) * (a + 3 * c)));
+    const want = (t: number) => { const f = t * (depth.length - 1), i = Math.min(depth.length - 2, Math.floor(f)), r = f - i; return Math.max(.12, Math.min(1, depth[i] + (depth[i + 1] - depth[i]) * r)); };
+    for (const p of D.P) {
+      const t = Math.max(0, Math.min(1, p.y / H)), f = t * NB, i = Math.min(NB - 1, Math.floor(f)), r = f - i;
+      const a = A[i] + (A[i + 1] - A[i]) * r, c = B[i] + (B[i + 1] - B[i]) * r; if (a < 1e-6 || c < 1e-6) continue;
+      const k = want(t), a2 = per(a, c) / per(1, k), su = a2 / a, sv = k * a2 / c;
+      if (longX) { p.x = cx + (p.x - cx) * su; p.z = cz + (p.z - cz) * sv; } else { p.z = cz + (p.z - cz) * su; p.x = cx + (p.x - cx) * sv; }
     }
   }
   let t0 = 0;

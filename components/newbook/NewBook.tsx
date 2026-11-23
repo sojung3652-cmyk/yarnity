@@ -204,7 +204,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pickItem = (id: ItemId) => {
     if (id === item.id && !draft.free) { if (!draft.itemPicked) patch({ itemPicked: true }); return; }
     const it = ITEM[id], dv = it.defaults;
-    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, profile: undefined, flapColor: undefined, handleColor: undefined, circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined };
+    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined };
     setDraft(d); setNums(numsOf(d));
   };
   const pickShape = (s: Shape) => {
@@ -675,7 +675,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         <div className="nb-wg"><Head>몸통</Head>
           <Tiles label="몸통 모양" value={draft.profile ? "drawn" : draft.topA == null ? "straight" : draft.topA && draft.topA < draft.a ? "taper" : "flare"} cols={draft.profile ? 4 : 3}
             options={[...(draft.profile ? [["drawn", "그린 모양대로"] as [string, string]] : []), ["straight", "일자형"], ["flare", "위로 넓어지는"], ["taper", "위로 좁아지는"]]}
-            onPick={v => { if (v === "drawn") return; patch({ profile: undefined, topA: v === "flare" ? Math.round(draft.a * 1.3) : v === "taper" ? Math.max(3, Math.round(draft.a * .7)) : null }); }} />
+            onPick={v => { if (v === "drawn") return; patch({ profile: undefined, depthProfile: undefined, topA: v === "flare" ? Math.round(draft.a * 1.3) : v === "taper" ? Math.max(3, Math.round(draft.a * .7)) : null }); }} />
           {draft.topA != null && <div className="nb-wsub"><CmInput key={"top" + draft.shape + draft.a + (draft.topA < draft.a ? "t" : "f")} label={draft.shape === "circle" ? "입구 지름 (cm)" : "입구 가로 (cm)"} value={draft.topA || null}
             range={draft.topA < draft.a ? [Math.max(3, Math.ceil(draft.a * .4)), Math.floor(draft.a) - 1] : [Math.floor(draft.a) + 1, LEN_RANGE[1]]} onValue={v => patch({ topA: v ?? 0 })} /></div>}
         </div>
