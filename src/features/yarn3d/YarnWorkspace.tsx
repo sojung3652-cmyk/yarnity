@@ -109,7 +109,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   useEffect(() => { const f = () => setIntro(false); window.addEventListener("yw:shape", f); return () => window.removeEventListener("yw:shape", f); }, []);
   // the yarn again (Kim: from the shape too): the yarn check on the stage, the yarn's section on the right
   useEffect(() => {
-    const f = () => { setIntro(true); setTimeout(() => root.current?.querySelector("#yw-yarn")?.scrollIntoView({ block: "start" }), 60); };
+    const f = () => { setIntro(true); setTimeout(() => toSec("#yw-yarn"), 60); };
     window.addEventListener("yw:yarncheck", f); return () => window.removeEventListener("yw:yarncheck", f);
   }, []);
   // the stage dark by default (Kim), and light by itself when the yarn picked is dark (it would sink into the
@@ -120,12 +120,20 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const pickBg = (d: boolean) => setDark(d);
   // the yarn is set (Kim: the yarn first, then what to make): the page is told, and asks what to make
   const yarnSet = () => window.dispatchEvent(new Event("yw:yarnset"));
-  const toShape = () => { setIntro(false); yarnSet(); setTimeout(() => root.current?.querySelector("#yw-draw")?.scrollIntoView({ block: "start" }), 60); };
+  // a section brought into view inside the right column only (scrollIntoView moved the page under this screen too)
+  const toSec = (sel: string) => {
+    const col = root.current?.querySelector<HTMLElement>(".yw-mkbody"), el = root.current?.querySelector<HTMLElement>(sel); if (!col || !el) return;
+    col.scrollTo({ top: col.scrollTop + el.getBoundingClientRect().top - col.getBoundingClientRect().top, behavior: "smooth" });
+  };
+  const toShape = () => { setIntro(false); yarnSet(); setTimeout(() => toSec("#yw-draw"), 60); };
 
   // the book stops, the page stays still, the way back takes the focus; Esc closes, Tab stays inside
   useEffect(() => {
     bookPause.set(true);
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
+    // the page under this screen stays where it was (Kim: the book was left under the bar): going to a section here
+    // scrolls the page too, so its place is put back on the way out
+    const sx = window.scrollX, sy = window.scrollY;
     backRef.current?.querySelector("button")?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof Element && e.target.closest(".aic-root")) return;
@@ -143,7 +151,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     const spaceDown = (e: KeyboardEvent) => { if (e.code !== "Space" || typing(e.target)) return; e.preventDefault(); if (!e.repeat) { viewer.current?.setTool("pan"); setTool("pan"); } };
     const spaceUp = (e: KeyboardEvent) => { if (e.code !== "Space") return; viewer.current?.setTool("rotate"); setTool("rotate"); };
     window.addEventListener("keydown", onKey, true); window.addEventListener("keydown", spaceDown); window.addEventListener("keyup", spaceUp);
-    return () => { window.removeEventListener("keydown", onKey, true); window.removeEventListener("keydown", spaceDown); window.removeEventListener("keyup", spaceUp); document.body.style.overflow = prev; bookPause.set(false); };
+    return () => { window.removeEventListener("keydown", onKey, true); window.removeEventListener("keydown", spaceDown); window.removeEventListener("keyup", spaceUp); document.body.style.overflow = prev; bookPause.set(false); window.scrollTo(sx, sy); requestAnimationFrame(() => window.scrollTo(sx, sy)); };
   }, [onClose]);
 
   // the engine: made once, disposed on the way out
@@ -277,7 +285,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       {mk ? (
         <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); if (!mk.blocked && extra?.onShot) { const u = viewer.current?.snapshot(); if (u) extra.onShot(u); } mk.done(); }}>
           <nav className="yw-index" aria-label="항목">
-            {mk.tabs ? mk.tabs.map((t, i) => <a key={t.label} href="#" className="yw-tab" aria-current={t.on ? "step" : undefined} onClick={e => { e.preventDefault(); t.onClick(); }}><b>{i + 1}</b>{t.label}</a>) : mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); root.current?.querySelector("#yw-" + x.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><b>{i + 1}</b>{x.title}</a>)}
+            {mk.tabs ? mk.tabs.map((t, i) => <a key={t.label} href="#" className="yw-tab" aria-current={t.on ? "step" : undefined} onClick={e => { e.preventDefault(); t.onClick(); }}><b>{i + 1}</b>{t.label}</a>) : mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); toSec("#yw-" + x.id); }}><b>{i + 1}</b>{x.title}</a>)}
           </nav>
           <div className="yw-mkbody" ref={body}>
             {mk.sections.map((x, i) => (

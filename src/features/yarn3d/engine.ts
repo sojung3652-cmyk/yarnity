@@ -87,6 +87,8 @@ export interface YarnPattern {
   marl?: string;
   /** the held yarn's material: its hairs show too (a wool with angora held in is hairy) */
   marlMat?: YarnMaterial;
+  /** how much of the strand the held yarn is (Kim: by the two yarns' thicknesses) - 0..1 */
+  marlShare?: number;
   /** closing the top: "spread" the sides go out (the round's length kept), "tuck" the width kept and the sides
    *  folded in at the top (as a paper bag's) */
   topFold?: "spread" | "tuck";
@@ -312,7 +314,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const T = new THREE.Vector3(), Nv = new THREE.Vector3(), B = new THREE.Vector3(), tmp = new THREE.Vector3();
     let s = 0; const base = new THREE.Color(o.color), slub0 = Math.random() * 9;
     // 합사 (Kim): the main yarn and a second one held together - the plies take the two colours in turn, twisting
-    const base2 = pat.marl && o.color === pat.colors[0] ? new THREE.Color(pat.marl) : null, NP = Math.max(2, N); // already linear in r187 (no convertSRGBToLinear)
+    const base2 = pat.marl && o.color === pat.colors[0] ? new THREE.Color(pat.marl) : null, reps = Math.max(1, Math.floor(Math.max(2, N) / 2)), share = Math.max(.1, Math.min(.9, pat.marlShare ?? .5)); // already linear in r187 (no convertSRGBToLinear)
     for (let i = 0; i < n; i++) {
       T.copy(pts[Math.min(n - 1, i + 1)]).sub(pts[Math.max(0, i - 1)]).normalize();
       if (i === 0) { Nv.set(0, 0, 1); if (Math.abs(T.z) > .9) Nv.set(0, 1, 0); }
@@ -329,7 +331,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const fw = st.flat, rot = fw > 1 ? s / R * .12 : 0, a0 = Math.cos(ph) * r * Math.sqrt(fw), b0 = Math.sin(ph) * r / Math.sqrt(fw);
         const cx = a0 * Math.cos(rot) - b0 * Math.sin(rot), sx = a0 * Math.sin(rot) + b0 * Math.cos(rot);
         pos[k * 3] = pts[i].x + Nv.x * cx + B.x * sx; pos[k * 3 + 1] = pts[i].y + Nv.y * cx + B.y * sx; pos[k * 3 + 2] = pts[i].z + Nv.z * cx + B.z * sx;
-        const sh = 1 - st.ao + st.ao * f, cc = base2 && Math.floor((((ph - tau * s) / (Math.PI * 2) * NP) % NP + NP) % NP) % 2 ? base2 : base;
+        const sh = 1 - st.ao + st.ao * f, fr = (((ph - tau * s) / (Math.PI * 2) * reps) % 1 + 1) % 1, cc = base2 && fr < share ? base2 : base; // the held yarn's share of the twist, as thick as it is
         col[k * 3] = cc.r * sh; col[k * 3 + 1] = cc.g * sh; col[k * 3 + 2] = cc.b * sh;
         uv[k * 2] = s / (R * 7); uv[k * 2 + 1] = j / M * Math.max(1, N) - tau * s / (Math.PI * 2) * Math.max(1, N) * (st.braid ? 0 : 1);
       }
@@ -720,18 +722,32 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
             if (single) return mid.clone().addScaledVector(w, -half * c * (1 + .32 * s * c * c)).addScaledVector(up, H * s - D.rh * 1.3 * (1 - s) ** 3);
             const q = A.clone().lerp(B, t); q.y += H * s - D.rh * 1.2 * (1 - s) ** 2; return q.addScaledVector(nrm, lean * rr * .12 * s);
           });
-          // the ends go down the outside of the wall, flat on it, ~4cm, and the arch meets them there
-          const endDrop = Math.min(40 / MM, ry * .3), off = R * 2.6, dA = new THREE.Vector3(cl[0].x - cx, 0, cl[0].z - cz).normalize(), dB = new THREE.Vector3(cl[N].x - cx, 0, cl[N].z - cz).normalize();
+          // the ends go down the outside of the wall, flat on it, ~4cm, and the arch meets them right at the top round
+          const endDrop = Math.min(40 / MM, ry * .3), off = R * 2.6, belt = pat.strap === "long", y1 = cl[0].y;
+          // one handle (over the top, side to side): its ends on the side walls, out from the middle
           const wallAt = (dir: THREE.Vector3, y: number) => { let r = 0; for (const q of D.P) { if (Math.abs(q.y - y) > D.rh) continue; const d = (q.x - cx) * dir.x + (q.z - cz) * dir.z; if (d > r) r = d; } return new THREE.Vector3(cx, y, cz).addScaledVector(dir, (r || rr) + off); };
-          const y1 = cl[0].y, endA = Array.from({ length: 7 }, (_, j) => wallAt(dA, y1 - endDrop * (1 - j / 6))), endB = Array.from({ length: 7 }, (_, j) => wallAt(dB, y1 - endDrop * (1 - j / 6))).reverse();
-          const arch = cl.slice(1, -1).map((q, i) => { const t = (i + 1) / N, s = Math.sin(Math.PI * t); return q.clone().addScaledVector(t < .5 ? dA : dB, off * (1 - s) ** 2); });
-          // which way each point faces: the ends out from their wall (flat on it), the arch its own way, turning
-          // between them near the ends (two handles at a round bag's front sit at a slant: they must not stick out)
-          const faceA = endA.map(() => dA.clone()), faceB = endB.map(() => dB.clone());
-          const faceArch = arch.map((_, i) => { const t = (i + 1) / N, w0 = Math.min(1, Math.sin(Math.PI * t) * 2.2); return (t < .5 ? dA : dB).clone().lerp(nrm, w0).normalize(); });
+          // two handles (front and back): each end on its own wall straight out to the front (or back), where the
+          // end is across - so the band lies flat on that wall and faces one way all along (no twist)
+          const frontAt = (P0: THREE.Vector3, y: number) => {
+            const u0 = (P0.x - cx) * w.x + (P0.z - cz) * w.z; let best = -1e9;
+            for (const q of D.P) { if (Math.abs(q.y - y) > D.rh) continue; const u = (q.x - cx) * w.x + (q.z - cz) * w.z; if (Math.abs(u - u0) > D.sw * 1.2) continue; const d = (q.x - cx) * nrm.x + (q.z - cz) * nrm.z; if (d > best) best = d; }
+            if (best < -1e8) best = rr;
+            return new THREE.Vector3(cx, y, cz).addScaledVector(w, u0).addScaledVector(nrm, best + off);
+          };
+          const dA = new THREE.Vector3(cl[0].x - cx, 0, cl[0].z - cz).normalize(), dB = new THREE.Vector3(cl[N].x - cx, 0, cl[N].z - cz).normalize();
+          const end = (P0: THREE.Vector3, dir: THREE.Vector3) => Array.from({ length: 7 }, (_, j) => { const y = y1 - endDrop * (1 - j / 6); return belt ? wallAt(dir, y) : frontAt(P0, y); });
+          const endA = end(cl[0], dA), endB = end(cl[N], dB).reverse();
+          // the arch from where the ends stop (no step out, no lean: it does not float off the bag)
+          // two handles: the whole arch stands in the wall's own plane (out as far as its ends), leaning in only a little
+          // at its top - front and back never meet; one handle: from the side walls up over the top
+          const offA = new THREE.Vector3().subVectors(endA[6], cl[0]), offB = new THREE.Vector3().subVectors(endB[0], cl[N]);
+          const arch = cl.slice(1, -1).map((q, i) => { const t = (i + 1) / N, s = Math.sin(Math.PI * t);
+            const flat = q.clone(); if (belt) { const k = (1 - s) ** 2, e = t < .5 ? endA[6] : endB[0]; return flat.lerp(new THREE.Vector3(e.x, flat.y, e.z), k); }
+            flat.addScaledVector(nrm, -lean * rr * .12 * s); offA.y = 0; offB.y = 0;
+            return flat.add(offA.clone().lerp(offB, t).multiplyScalar(1 - .18 * s)); });
           const all = [...endA, ...arch, ...endB];
           strapEnds.push(endA[0].clone(), endB[endB.length - 1].clone());
-          const ht = strapBand(all, nrm, color, R, M, step, mat, geos, D.rh, single, single ? undefined : [...faceA, ...faceArch, ...faceB]);
+          const ht = strapBand(all, nrm, color, R, M, step, mat, geos, D.rh, belt);
           strapH = Math.max(strapH, H + ht); return;
         }
         if (pat.strap === "long" && pat.strapCm < 70) {

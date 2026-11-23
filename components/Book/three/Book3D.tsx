@@ -412,7 +412,12 @@ function CameraRig({ anim, layer, wizard, coverIn = 0 }: { anim: Anim; layer: Cs
   const v = useMemo(() => ({ pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dir: new THREE.Vector3(), up: new THREE.Vector3(), wTgt: new THREE.Vector3() }), []);
   // wizard: the top nav stays visible, so the book is fitted (and centred) in the space under it
   const [navH, setNavH] = useState(0);
-  useEffect(() => { setNavH(wizard ? Math.round(document.querySelector(".nav")?.getBoundingClientRect().bottom ?? 0) : 0); }, [size, wizard]);
+  // the bar is .ynav now (it was .nav: the book was fitted to the whole height and slid under it - Kim); measured
+  // again a moment later too, in case the bar comes in after the book
+  useEffect(() => {
+    const m = () => setNavH(wizard ? Math.max(0, Math.round(document.querySelector(".ynav, .nav")?.getBoundingClientRect().bottom ?? 0)) : 0);
+    m(); const t1 = setTimeout(m, 300), t2 = setTimeout(m, 1200); return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [size, wizard]);
   useFrame(() => {
     const cam = camera as THREE.PerspectiveCamera, aspect = size.width / size.height, e = anim.cam, we = anim.wcam;
     const cAnchor = anchor;
