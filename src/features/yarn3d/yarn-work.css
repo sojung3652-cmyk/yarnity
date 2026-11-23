@@ -373,3 +373,23 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw .yw-act{background:var(--weave),#FFFDF8;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #D9C9B2}
 .yw .nb-slide input[type="range"]::-webkit-slider-thumb{background:#C98C97}
 .yw .nb-link{color:var(--ink);text-decoration-color:var(--gold)}
+
+/* Yarni at the stage's lower right (Kim); her window above this screen */
+.yw-yarni{position:absolute;right:16px;bottom:14px;z-index:3;display:grid;place-items:center;width:58px;height:58px;padding:0;border:0;border-radius:50%;cursor:pointer;
+  background:radial-gradient(circle at 35% 30%,#FFFDF8,#F1E7D6);box-shadow:-2px 4px 10px -4px rgba(60,42,34,.45),inset 0 0 0 1.5px #D9C39A,inset 0 0 0 5px #FBF6EC,inset 0 0 0 6px #E8D9BF}
+.yw-yarni span{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-style:italic;font-weight:600;font-size:15px;color:#9C7A3C}
+.yw-yarni:hover{transform:translateY(-1px)}
+.yw .yw-hint{right:88px}
+body:has(.yw) .aic-root{z-index:460}
+.yw{--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E")}
+
+/* the parts as binder tabs on a grained card (Kim: 바인더처럼, 노이즈 배경) */
+.yw .asm-rail{display:flex;gap:3px;margin:0;padding:0 6px;border:0;background:none;box-shadow:none;position:relative;z-index:1}
+.yw .asm-rail button{flex:1 1 0;padding:9px 4px 8px;border:0;border-radius:8px 8px 0 0;background:var(--noise) repeat,#EFE5D5;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 1px #D9C9B2;font-size:13.5px;font-weight:600;color:#6A5B55;letter-spacing:.02em}
+.yw .asm-rail button.is-off{color:#9A8B80;font-weight:500}
+.yw .asm-rail button[aria-selected="true"]{background:var(--noise) repeat,#FFFDF8;box-shadow:inset 0 2px 0 var(--gold),inset 1px 0 0 #D9C9B2,inset -1px 0 0 #D9C9B2;color:#3E3430;padding-bottom:10px;margin-bottom:-2px}
+.yw .asm-card{margin-top:0;border-radius:0 0 6px 6px;background:var(--noise) repeat,#FFFDF8;box-shadow:inset 0 0 0 1px #D9C9B2}
+.yw .asm-card h3{font-size:16px;letter-spacing:.02em}
+.yw .asm-card h3 small{margin-left:8px;font-size:12px;font-weight:400;color:#8A7A72}
+/* 교체: the same kind's pictures under the tools */
+.yw-swap{position:absolute;left:0;top:calc(100% + 6px);width:300px;max-height:260px;overflow:auto;padding:10px;border-radius:4px;background:#FFFDF8;box-shadow:-2px 4px 12px -6px rgba(70,50,30,.5),inset 0 0 0 1px #D9CCBF;white-space:normal}

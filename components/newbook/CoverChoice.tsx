@@ -19,7 +19,7 @@ export function CoverChoice({ draft, patch }: { draft: Draft; patch: (p: Partial
       {chosen ? <img className="nb-cover-img" src={coverSrc(draft.cover!)} alt="" /> : <span className="nb-cover-blank" aria-hidden="true" />}
       <div className="nb-cover-text">
         <span className="nb-lbl">표지</span>
-        <p className="nb-help">{chosen ? "나의 도안집에 이 표지로 꽂힙니다." : "고르지 않으면 무작위로 정해집니다."}</p>
+        {!chosen && <p className="nb-help">고르지 않으면 무작위로 정해집니다.</p>}
       </div>
       <ClothLabel side="next" type="button" onClick={() => setOpen(true)}>{chosen ? "표지 바꾸기" : "표지 고르기"}</ClothLabel>
       {open && <CoverPicker p={{ ...asWork, cover: chosen ? draft.cover : undefined }} title="표지를 골라 주십시오"

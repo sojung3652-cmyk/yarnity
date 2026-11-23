@@ -83,6 +83,9 @@ export interface YarnPattern {
   /** how far the top stays open, cm (Kim: a flap's bag is closed to this at its top - 0 shut as a zipper's); a
    *  zipper closes it by itself (extras.zipOpen) */
   topGap?: number;
+  /** closing the top: "spread" the sides go out (the round's length kept), "tuck" the width kept and the sides
+   *  folded in at the top (as a paper bag's) */
+  topFold?: "spread" | "tuck";
   /** how many strands side by side a strap is (1-5; 3 when missing) */
   strapW?: number;
   /** a handle as it is made (Kim): flat in rows along it (a chain first, widened), flat in rows across it (worked
@@ -113,6 +116,8 @@ export interface YarnViewer {
   home(): void;
   /** look from the front, the side, straight above or down into it */
   look(v: YarnLook): void;
+  /** the piece from the front, the camera put back after: a JPEG data URL (null without a piece) */
+  snapshot(): string | null;
   /** what dragging does: turn it, move it across the screen, or zoom */
   setTool(t: YarnTool): void;
   /** 재기: the piece's width and height (or depth) as lines on the screen (opts.onRuler) */
@@ -133,6 +138,8 @@ export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: bo
   onExtraMove?: (kind: string, across: number, up: number) => void;
   /** a button or label pressed without dragging (Kim: 클릭해서 크기 조절): which, and where on the screen */
   onExtraPick?: (kind: string, x: number, y: number) => void;
+  /** the pointer resting on one: which, and where (its tools show there) */
+  onExtraHover?: (kind: string, x: number, y: number) => void;
   /** 크기 틀 (Kim: Ctrl+T처럼 화면 안에서): the piece's outline on the screen as a box [left, top, right, bottom] in px */
   onFrame?: (r: [number, number, number, number] | null) => void }
 
@@ -592,7 +599,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   }
   function updateHolo(D: ItemData) { const a = holo!.userData.pos as THREE.BufferAttribute; for (let i = 0; i < D.P.length; i++) a.setXYZ(i, D.P[i].x, D.P[i].y, D.P[i].z); a.needsUpdate = true; }
 
-  let halos: THREE.Mesh[] = [], meshes: THREE.Mesh[] = [], fz: THREE.LineSegments | null = null, anim = 0, strapH = 0;
+  let halos: THREE.Mesh[] = [], meshes: THREE.Mesh[] = [], fz: THREE.LineSegments | null = null, anim = 0, strapH = 0, strapEnds: THREE.Vector3[] = [];
   const yarnR = (D: ItemData) => {
     const R = pat.yarnMm / 2 / MM * st.thick * st.fill;
     // a big flat piece drawn every k-th stitch: its yarn stands for k strands
@@ -677,7 +684,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const cv = new THREE.CatmullRomCurve3(pts, true, "catmullrom", .5), g = buildYarn(cv.getSpacedPoints(Math.max(48, Math.ceil(cv.getLength() / (R * .7 * step)))), R * 1.4, { M, closed: true, color: colorOf(lastC.ci) });
       const m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
     }
-    strapH = 0;
+    strapH = 0; strapEnds = [];
     if (pat.strap !== "none" && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
       const L = D.C[D.C.length - 1].idx, c = L.length, color = pat.strapColor ?? colorOf(D.C[D.C.length - 1].ci); let ry = 0, cx = 0, cz = 0, rr = 0;
       L.forEach(n => { const q = D.P[n]; ry += q.y; cx += q.x; cz += q.z; }); ry /= c; cx /= c; cz /= c; L.forEach(n => { rr += Math.hypot(D.P[n].x - cx, D.P[n].z - cz); }); rr /= c;
@@ -704,7 +711,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           const wallAt = (dir: THREE.Vector3, y: number) => { let r = 0; for (const q of D.P) { if (Math.abs(q.y - y) > D.rh) continue; const d = (q.x - cx) * dir.x + (q.z - cz) * dir.z; if (d > r) r = d; } return new THREE.Vector3(cx, y, cz).addScaledVector(dir, (r || rr) + off); };
           const y1 = cl[0].y, endA = Array.from({ length: 7 }, (_, j) => wallAt(dA, y1 - endDrop * (1 - j / 6))), endB = Array.from({ length: 7 }, (_, j) => wallAt(dB, y1 - endDrop * (1 - j / 6))).reverse();
           const arch = cl.slice(1, -1).map((q, i) => { const t = (i + 1) / N, s = Math.sin(Math.PI * t); return q.clone().addScaledVector(t < .5 ? dA : dB, off * (1 - s) ** 2); });
-          const ht = strapBand([...endA, ...arch, ...endB], nrm, color, R, M, step, mat, geos, D.rh, single);
+          // which way each point faces: the ends out from their wall (flat on it), the arch its own way, turning
+          // between them near the ends (two handles at a round bag's front sit at a slant: they must not stick out)
+          const faceA = endA.map(() => dA.clone()), faceB = endB.map(() => dB.clone());
+          const faceArch = arch.map((_, i) => { const t = (i + 1) / N, w0 = Math.min(1, Math.sin(Math.PI * t) * 2.2); return (t < .5 ? dA : dB).clone().lerp(nrm, w0).normalize(); });
+          const all = [...endA, ...arch, ...endB];
+          strapEnds.push(endA[0].clone(), endB[endB.length - 1].clone());
+          const ht = strapBand(all, nrm, color, R, M, step, mat, geos, D.rh, single, single ? undefined : [...faceA, ...faceArch, ...faceB]);
           strapH = Math.max(strapH, H + ht); return;
         }
         if (pat.strap === "long" && pat.strapCm < 70) {
@@ -744,7 +757,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   //   flat-chain  a chain from end to end, widened by rows along it: its rows run the handle's length
   //   flat-rows   worked as wide as it should be, then row after row to its other end: its rows run across
   // A flat one is two layers of yarn thick, its stitches a little raised. Returns how far it stands out.
-  function strapBand(cl: THREE.Vector3[], nrm: THREE.Vector3, color: string, R: number, M: number, step: number, mat: THREE.Material, geos: THREE.BufferGeometry[], rh: number, belt = false) {
+  function strapBand(cl: THREE.Vector3[], nrm: THREE.Vector3, color: string, R: number, M: number, step: number, mat: THREE.Material, geos: THREE.BufferGeometry[], rh: number, belt = false, faces?: THREE.Vector3[]) {
     const U = 10 / MM, Wd = Math.max(.8, pat.strapWcm ?? 2.5) * U, N = cl.length - 1;
     const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + cl[i].distanceTo(cl[i - 1]));
     const L = cum[N];
@@ -753,7 +766,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const f = Math.max(0, Math.min(1, (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]))), P = cl[i - 1].clone().lerp(cl[i], f);
       // the width across: for two handles in the arch's own plane (their flat side to the front, on the front and
       // back walls); for one over the top, front to back - a belt, its flat side out, on the side walls
-      const T = cl[i].clone().sub(cl[i - 1]).normalize(), Q = belt ? nrm.clone().addScaledVector(T, -T.dot(nrm)).normalize() : new THREE.Vector3().crossVectors(T, nrm).normalize(), F = new THREE.Vector3().crossVectors(Q, T).normalize();
+      const fn = faces ? faces[i - 1].clone().lerp(faces[i], f).normalize() : nrm;
+      const T = cl[i].clone().sub(cl[i - 1]).normalize(), Q = belt ? nrm.clone().addScaledVector(T, -T.dot(nrm)).normalize() : new THREE.Vector3().crossVectors(T, fn).normalize(), F = new THREE.Vector3().crossVectors(Q, T).normalize();
       return { P, T, Q, F };
     };
     // one yarn for the whole handle (as it is worked: a spiral, or rows turning at their ends), its points made
@@ -772,10 +786,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const pts: THREE.Vector3[] = [];
     if (pat.strapStyle === "tube") {
       // worked round in a spiral: one turn a round, each round a row's height further along
-      const r = Wd / 2, n = Math.max(2, Math.round(L / rh)), k = Math.max(12, Math.round(2 * Math.PI * r / (R * .45))), nst = Math.max(6, Math.round(2 * Math.PI * r / sw));
+      const r = Wd / 2, n = Math.max(2, Math.round(L / rh)), k = Math.max(12, Math.round(2 * Math.PI * r / (R * .45))), nst = Math.max(6, Math.round(2 * Math.PI * r / sw)), endFlat = Math.min(L * .2, 40 / MM);
       for (let t = 0; t <= n * k; t++) {
-        const i = t % k, a = 2 * Math.PI * i / k, { P, Q, F } = frame(Math.max(0, Math.min(L, L * t / (n * k) + zz(i / k * nst))));
-        pts.push(P.addScaledVector(Q, r * Math.cos(a)).addScaledVector(F, r * Math.sin(a)));
+        const i2 = t % k, sAt = Math.max(0, Math.min(L, L * t / (n * k) + zz(i2 / k * nst))), a = 2 * Math.PI * i2 / k, { P, Q, F } = frame(sAt);
+        // near each end the tube opens out flat (its round's length kept: as wide as half its round), lying on the body
+        const e = Math.min(sAt, L - sAt) / endFlat, g = e >= 1 ? 1 : e * e * (3 - 2 * e), ra = r * (1 + .57 * (1 - g)), rb = r * Math.max(.12, g);
+        pts.push(P.addScaledVector(Q, ra * Math.cos(a)).addScaledVector(F, rb * Math.sin(a)));
       }
       add(pts); return r;
     }
@@ -804,7 +820,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const top = D.C[D.C.length - 1]; if (!top || !top.closed || top.idx.length < 6) return null;
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, ry = 0;
     top.idx.forEach(i => { const q = D.P[i]; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); ry += q.y; }); ry /= top.idx.length;
-    const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2 * .94, lift = R * 1.2, out = R * 2.4, drop = f.cm * 10 / MM, color = f.color ?? colorOf(top.ci);
+    const cx = (x0 + x1) / 2, hw0 = (x1 - x0) / 2 * .94, lift = R * 1.2, out = R * 2.4, drop = f.cm * 10 / MM, color = f.color ?? colorOf(top.ci);
+    // two handles: the flap as wide as fits between them (Kim: 손잡이 안쪽에 위치하는 너비)
+    const inner = pat.strap === "two" && strapEnds.length ? Math.min(...strapEnds.map(q => Math.abs(q.x - cx))) - Math.max(.8, pat.strapWcm ?? 2.5) * 10 / MM / 2 - R * 2.5 : Infinity;
+    const hw = Math.max(hw0 * .35, Math.min(hw0, inner));
     // the centre line in (z, y): on from the back wall's last round (it is worked from there), a low curve over
     // the top - as wide as the top is left open - then down the front
     const line: [number, number, number][] = []; // z, y, share of the drop (-1 on the top)
@@ -1019,18 +1038,34 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (want >= hd) return;
     const per = (a: number, c: number) => Math.PI * (3 * (a + c) - Math.sqrt((3 * a + c) * (a + 3 * c)));
     // each height's new half-width and half-depth, its length kept
-    const sa = new Array(NB + 1).fill(1), sb = new Array(NB + 1).fill(1);
+    const sa = new Array(NB + 1).fill(1), sb = new Array(NB + 1).fill(1), fk = new Array(NB + 1).fill(0), cw = new Array(NB + 1).fill(0), tuck = pat.topFold === "tuck";
     for (let k = 0; k <= NB; k++) {
       const a = ua[k], c = vb[k]; if (!a || !c) continue;
       const u = Math.max(0, Math.min(1, (k / NB - .05) / .95)), f = u ** 1.4; if (!f) continue; // from the round bottom up to the closed top, little by little (Kim's sketch)
       const c2 = c - (c - Math.min(c, want)) * f, L = per(a, c); let a2 = a;
+      if (tuck) { fk[k] = f; cw[k] = c2; continue; } // folded in: worked out per stitch below
       for (let i = 0; i < 24; i++) a2 *= L / per(a2, c2);
       sa[k] = a2 / a; sb[k] = c2 / c;
     }
     for (const p of D.P) {
       // between two heights' measures, smoothly (no steps from one band to the next)
-      const fk = Math.max(0, Math.min(NB, p.y / H * NB)), k0 = Math.floor(fk), k1 = Math.min(NB, k0 + 1), t = fk - k0;
-      const [u, v] = uv(p), u2 = u * (sa[k0] + (sa[k1] - sa[k0]) * t), v2 = v * (sb[k0] + (sb[k1] - sb[k0]) * t);
+      const fb = Math.max(0, Math.min(NB, p.y / H * NB)), k0 = Math.floor(fb), k1 = Math.min(NB, k0 + 1), t = fb - k0;
+      const [u, v] = uv(p);
+      let u2: number, v2: number;
+      if (tuck) {
+        // folded in (as a paper bag's sides): the front and the back stay as wide as the round (a), and what is left
+        // of the round's length past them goes in at each side as a V, its point where the side's middle was
+        const kk = t < .5 ? k0 : k1, a = ua[kk], c = vb[kk], f = fk[kk];
+        if (!a || !c || !f) { u2 = u; v2 = v; }
+        else {
+          const Lq = per(a, c) / 4, c2 = cw[kk], phi = Math.atan2(Math.abs(v) / c, Math.abs(u) / a); // 0 at the side, pi/2 at the front's middle
+          const fromFront = Lq * (1 - phi / (Math.PI / 2)), leg = Math.max(1e-6, Lq - a);
+          let tu: number, tv: number;
+          if (fromFront <= a || Lq <= a) { tu = Math.min(a, fromFront); tv = c2; }
+          else { const l = Math.min(leg, fromFront - a); tu = a - l; tv = c2 * (1 - l / leg); }
+          u2 = u + (Math.sign(u || 1) * tu - u) * f; v2 = v + (Math.sign(v || 1) * tv - v) * f;
+        }
+      } else { u2 = u * (sa[k0] + (sa[k1] - sa[k0]) * t); v2 = v * (sb[k0] + (sb[k1] - sb[k0]) * t); }
       if (wide) { p.x = cx + u2; p.z = cz + v2; } else { p.z = cz + u2; p.x = cx + v2; }
     }
   }
@@ -1319,13 +1354,17 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const a = Math.atan2(best.x - cx, best.z - cz) / (Math.PI * .42);
     return [Math.max(-1, Math.min(1, a)), Math.max(.05, Math.min(1, best.y / b.my))];
   };
+  let hoverK: string | null = null;
   let dragO: THREE.Object3D | null = null, dragAt: [number, number] | null = null, downXY: [number, number] = [0, 0];
   const exDown = (e: PointerEvent) => {
     if (!opts.onExtraMove || e.button !== 0) return; const o = hitExtra(e); if (!o || !exPlace) return;
     e.stopImmediatePropagation(); e.preventDefault(); dragO = o; dragAt = null; downXY = [e.clientX, e.clientY]; ctl.enabled = false; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = "grabbing";
   };
   const exMove = (e: PointerEvent) => {
-    if (!dragO) { if (opts.onExtraMove && e.buttons === 0) canvas.style.cursor = hitExtra(e) ? "grab" : ""; return; }
+    if (!dragO) {
+      if (opts.onExtraMove && e.buttons === 0) { const o = hitExtra(e); canvas.style.cursor = o ? "grab" : ""; if (o && o.userData.extra !== hoverK) opts.onExtraHover?.(o.userData.extra, e.clientX, e.clientY); hoverK = o ? o.userData.extra : null; }
+      return;
+    }
     if (!dragAt && Math.hypot(e.clientX - downXY[0], e.clientY - downXY[1]) < 4) return; // a press, not yet a drag
     const s = spotOf(e); if (!s || !exPlace) return; dragAt = s; exPlace(dragO, s[0], s[1]); kick();
   };
@@ -1349,7 +1388,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
       if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; }
-      const zk = (q: YarnPattern) => JSON.stringify([q.topGap ?? null, !!q.extras?.zipper, q.extras?.zipOpen ?? 0, !!q.flap]);
+      const zk = (q: YarnPattern) => JSON.stringify([q.topFold ?? null, q.topGap ?? null, !!q.extras?.zipper, q.extras?.zipOpen ?? 0, !!q.flap]);
       const retop = zk(p) !== zk(pat) || p.top !== pat.top || p.gravity !== pat.gravity || JSON.stringify(p.outline ?? null) !== JSON.stringify(pat.outline ?? null) || JSON.stringify(p.depth ?? null) !== JSON.stringify(pat.depth ?? null); // another kind of piece: the camera starts over
       pat = p;
       if (mat) Object.assign(st, presetOf(p.material));
@@ -1365,6 +1404,16 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     playDraw,
     zoom(f) { const v = cam.position.clone().sub(ctl.target), l = Math.min(ctl.maxDistance, Math.max(ctl.minDistance, v.length() * f)); cam.position.copy(ctl.target).addScaledVector(v.normalize(), l); touched = true; ctl.update(); kick(); },
     home() { touched = false; framed = true; if (IT.data) { cam.position.copy(ctl.target).addScaledVector(HOME, 10); wasFab = false; if (opts.fit) fitAll(IT.data, HOME.clone()); else frameOn(IT.data); } },
+    snapshot() {
+      const D = IT.data; if (!D?.done) return null;
+      const pos = cam.position.clone(), tgt = ctl.target.clone();
+      fitAll(D, new THREE.Vector3(0, .1, 1)); renderer.render(scene, cam);
+      const big = renderer.domElement, k = Math.min(1, 560 / Math.max(big.width, big.height)), c = document.createElement("canvas");
+      c.width = Math.round(big.width * k); c.height = Math.round(big.height * k);
+      const x = c.getContext("2d")!; x.fillStyle = "#F6F0E4"; x.fillRect(0, 0, c.width, c.height); x.drawImage(big, 0, 0, c.width, c.height);
+      cam.position.copy(pos); ctl.target.copy(tgt); ctl.update(); kick();
+      return c.toDataURL("image/jpeg", .86);
+    },
     look(v) {
       if (!IT.data) return; touched = false;
       const d = v === "front" ? new THREE.Vector3(0, .1, 1) : v === "side" ? new THREE.Vector3(1, .1, 0) : v === "top" ? new THREE.Vector3(0, 1, .03) : new THREE.Vector3(0, .9, .45);

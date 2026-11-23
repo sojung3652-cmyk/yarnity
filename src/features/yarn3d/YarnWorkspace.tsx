@@ -13,6 +13,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ClothLabel } from "@/components/newbook/ClothLabel";
+import { useApp } from "@/components/AppProvider";
+import { ExtraPicker } from "@/components/newbook/ExtraPicker";
+import { BUTTONS, LABEL_GROUPS } from "@/lib/extras";
 import type { YarnInfo, YarnLook, YarnMaterial, YarnPattern, YarnRule, YarnViewer } from "./engine";
 import { bookPause } from "./pause";
 import "./yarn-work.css";
@@ -39,8 +42,10 @@ export interface WorkExtra {
     tabs?: { label: string; on: boolean; onClick: () => void }[] };
   /** 단추 / 라벨 dragged on the 3D and let go: where (Kim: moved freely) */
   onExtraMove?: (kind: string, across: number, up: number) => void;
+  /** the piece from the front, taken as the work is finished here (확인하기) */
+  onShot?: (url: string) => void;
   /** a button or label pressed on the 3D (Kim: 클릭해서 크기 조절): its name, bigger or smaller, taken off */
-  extraTools?: { name: (kind: string) => string; size: (kind: string, f: number) => void; remove: (kind: string) => void };
+  extraTools?: { name: (kind: string) => string; size: (kind: string, f: number) => void; remove: (kind: string) => void; replace: (kind: string, pic: string) => void; isButton: (kind: string) => boolean; current: (kind: string) => string | undefined };
   /** 크기 틀 (Kim: Ctrl+T처럼): the frame's edge or corner dragged and let go - the piece that much wider (fx)
    *  and taller (fy); a corner gives the same for both */
   onResize?: (fx: number, fy: number) => void;
@@ -71,7 +76,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), backRef = useRef<HTMLSpanElement>(null), viewer = useRef<YarnViewer | null>(null);
   const shown = useRef<YarnPattern>(pattern), latest = useRef(pattern); latest.current = pattern;
   const moveEx = useRef(extra?.onExtraMove); moveEx.current = extra?.onExtraMove;
-  const [pickEx, setPickEx] = useState<{ k: string; x: number; y: number } | null>(null);
+  const [pickEx, setPickEx] = useState<{ k: string; x: number; y: number } | null>(null), [swap, setSwap] = useState(false);
+  const { setChat } = useApp();
   const [tool, setTool] = useState<Tool>("rotate"), [ruler, setRuler] = useState(false);
   // 크기 틀: the piece's box on the screen, and the pull on it while a handle is dragged
   const [frameOn, setFrameOn] = useState(false), [box, setBox] = useState<[number, number, number, number] | null>(null), [pull, setPull] = useState<{ fx: number; fy: number } | null>(null);
@@ -120,6 +126,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
     backRef.current?.querySelector("button")?.focus();
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof Element && e.target.closest(".aic-root")) return;
       const pop = root.current?.querySelector<HTMLElement>(".sk-pop");
       if (e.key === "Escape") { if (pop) return; e.preventDefault(); e.stopPropagation(); onClose(); return; }
       if (e.key !== "Tab" || !root.current) return;
@@ -144,7 +151,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       if (gone || !cv.current) return;
       const p = latest.current;
       const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y),
-        onExtraPick: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) setPickEx({ k, x: x - r.left, y: y - r.top }); } }) : null;
+        onExtraPick: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) { setSwap(false); setPickEx({ k, x: x - r.left, y: y - r.top }); } },
+        // the pointer on one (Kim: 위치에 커서를 올리면 조절 옵션): its tools show beside it
+        onExtraHover: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) setPickEx(p => p?.k === k ? p : (setSwap(false), { k, x: x - r.left, y: y - r.top })); } }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
     });
@@ -208,26 +217,32 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           <div className="yw-intro">
             {extra.intro}
             <h2>실 확인<small>오른쪽에서 실을 바꾸면 바로 바뀝니다</small></h2>
-            <span className="yw-go"><ClothLabel side="next" type="button" onClick={toShape}>모양 만들기 →</ClothLabel></span>
           </div>
         )}
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
-          : <canvas ref={cv} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
+          : <canvas ref={cv} onPointerDown={() => setPickEx(null)} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
         {/* a picked button or label (Kim: 클릭해서 크기를 조절하거나 옮기기): its size and 빼기, beside it */}
         {pickEx && extra?.extraTools && (
           <div className="yw-pick" style={{ left: pickEx.x, top: pickEx.y }} role="group" aria-label="고른 장식">
             <b>{extra.extraTools.name(pickEx.k)}</b>
             <button type="button" aria-label="작게" onClick={() => extra.extraTools!.size(pickEx.k, 1 / 1.15)}>−</button>
             <button type="button" aria-label="크게" onClick={() => extra.extraTools!.size(pickEx.k, 1.15)}>+</button>
+            <button type="button" aria-expanded={swap} onClick={() => setSwap(v => !v)}>교체</button>
             <button type="button" onClick={() => { extra.extraTools!.remove(pickEx.k); setPickEx(null); }}>빼기</button>
             <button type="button" aria-label="닫기" onClick={() => setPickEx(null)}>×</button>
+            {/* 교체 (Kim): another picture of the same kind in its place */}
+            {swap && <div className="yw-swap"><ExtraPicker label="다른 것으로 교체" wide={!extra.extraTools.isButton(pickEx.k)}
+              groups={extra.extraTools.isButton(pickEx.k) ? [["단추", BUTTONS]] : LABEL_GROUPS.map(([g, l]): [string, typeof l] => [g + " 라벨", l])}
+              value={extra.extraTools.current(pickEx.k)} onPick={p => { extra.extraTools!.replace(pickEx.k, p.id); setSwap(false); }} /></div>}
           </div>
         )}
+        {/* Yarni, called from the stage's lower right (Kim) */}
+        <button type="button" className="yw-yarni" aria-label="Yarni에게 물어보기" title="Yarni에게 물어보기" onClick={() => setChat(c => ({ ...c, open: true }))}><span aria-hidden="true">Yarni</span></button>
         {/* 보는 방향 on the stage itself, top right (Kim) */}
-        {!noGL && !empty && !intro && (
+        {!noGL && !empty && (
           <div className="yw-views" role="group" aria-label="보는 방향">
-            <Opt onClick={() => look("front")}>앞</Opt><Opt onClick={() => look("side")}>옆</Opt><Opt onClick={() => look("top")}>위</Opt><Opt onClick={() => look("inside")}>안쪽</Opt>
-            <Opt label="처음 각도로" onClick={() => viewer.current?.home()}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
+            <Opt onClick={() => { setIntro(false); look("front"); }}>앞</Opt><Opt onClick={() => { setIntro(false); look("side"); }}>옆</Opt><Opt onClick={() => { setIntro(false); look("top"); }}>위</Opt><Opt onClick={() => { setIntro(false); look("inside"); }}>안쪽</Opt>
+            <Opt label="처음 각도로" onClick={() => { setIntro(false); viewer.current?.home(); }}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
           </div>
         )}
         {!noGL && !empty && !intro && <p className="yw-hint">{frameOn ? "틀의 옆 손잡이는 가로, 위 손잡이는 높이, 모서리는 전체 크기를 바꿉니다" : ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
@@ -254,7 +269,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       </div>
 
       {mk ? (
-        <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); mk.done(); }}>
+        <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); if (!mk.blocked && extra?.onShot) { const u = viewer.current?.snapshot(); if (u) extra.onShot(u); } mk.done(); }}>
           <nav className="yw-index" aria-label="항목">
             {mk.tabs ? mk.tabs.map((t, i) => <a key={t.label} href="#" className="yw-tab" aria-current={t.on ? "step" : undefined} onClick={e => { e.preventDefault(); t.onClick(); }}><b>{i + 1}</b>{t.label}</a>) : mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); root.current?.querySelector("#yw-" + x.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><b>{i + 1}</b>{x.title}</a>)}
           </nav>

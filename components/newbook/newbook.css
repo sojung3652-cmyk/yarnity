@@ -986,3 +986,5 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .ex-placed li{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:4px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #E0D5C7;font-size:13px}
 .ex-placed b{flex:1 1 auto;font-weight:600;color:#3A322D}.ex-placed span{color:#7A6A63;font-variant-numeric:tabular-nums}
 .ex-placed .nb-link{min-width:18px;text-align:center}
+/* the cover on 확인: bigger (Kim) */
+.nb-cover-img,.nb-cover-blank{width:72px;height:98px}

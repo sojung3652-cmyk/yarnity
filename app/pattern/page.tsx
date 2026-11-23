@@ -14,11 +14,11 @@ import { useBook } from "@/components/Book/BookProvider";
 import { CopyLot } from "@/components/YarnInfo";
 import { GlossText } from "@/components/glossary/GlossText";
 import { drawing } from "@/lib/drawing";
+import { shots } from "@/lib/shots";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
 import { isKnit, partName, shownPlan } from "@/lib/knit";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
-import { yarnUse } from "@/lib/yarnUse";
 import { WorkMore } from "@/components/WorkMore";
 import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import "./pattern.css";
@@ -40,6 +40,9 @@ export function PatternScreen() {
   useEffect(() => { if (ready && !p) router.replace("/new"); }, [ready, p, router]);
   // just made (NewBook save): the cover is picked on 도안 만들기's last step now, or given at random; nothing to ask here - Kim)
   useEffect(() => { try { sessionStorage.removeItem("m.justMade"); } catch {} }, []);
+  // the 3D's front view, taken when the work was finished on the work screen (lib/shots; this browser only)
+  const [shot, setShot] = useState<string | null>(null);
+  useEffect(() => { setShot(p ? shots.get(p.id) : null); }, [p]);
   if (!ready || !p) return <main id="view-pattern" />;
 
   const pp = shownPlan(p), it = ITEM[itemIdOf(p)];
@@ -64,7 +67,6 @@ export function PatternScreen() {
     : `${SHAPE_KO[p.shape]} ${p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`}${p.object === "bag" ? ` · 높이 ${p.h}cm` : ""}`;
   const colors = [{ hex: p.color, name: p.colorName, no: p.colorNo, lot: p.lot }, ...(p.moreColors ?? [])].filter(c => c.hex || c.name);
   const mm = hookMmOf(p);
-  const use = yarnUse(pp, { weight: p.weight, yarnMm: p.yarnMm, yarnMode: p.yarnMode, skeinG: p.skeinG, skeinM: p.skeinM, colors: Math.max(1, colors.length), materials: p.materials });
   const made = new Date(p.created).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 
   return (
@@ -93,7 +95,10 @@ export function PatternScreen() {
           {/* the finished shape on graph paper (drawing() only interpolates numbers, fixed labels and hex colours) */}
           <div className="ps-box ps-shape">
             <h2 className="ps-box-title">완성 모양</h2>
-            <div className="ps-grid drawing" id="drawing" aria-label="완성 모양 도면" dangerouslySetInnerHTML={{ __html: drawing(p, pp, p.color, p.moreColors?.map(c => c.hex)) }} />
+            {shot
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img className="ps-shot" src={shot} alt="완성 모양 (3D, 앞에서 본 모습)" />
+              : <div className="ps-grid drawing" id="drawing" aria-label="완성 모양 도면" dangerouslySetInnerHTML={{ __html: drawing(p, pp, p.color, p.moreColors?.map(c => c.hex)) }} />}
           </div>
           <div className="ps-box">
             <h2 className="ps-box-title">준비물</h2>
@@ -103,7 +108,7 @@ export function PatternScreen() {
               {colors.length > 0 && <div><dt>색</dt><dd>{colors.map((c, i) => (
                 <span key={i} className="ps-color">{c.hex && <i style={{ background: c.hex }} />}{c.name || "직접 고른 색"}{c.no ? ` ${c.no}` : ""}{c.lot && <small>LOT {c.lot} <CopyLot lot={c.lot} /></small>}</span>
               ))}</dd></div>}
-              <div><dt>실 양</dt><dd><b>약 {use.g}g</b><small>{use.skeins != null ? `${use.skeins}타래 · ` : ""}길이 약 {use.m}m</small></dd></div>
+              {/* 실 양: left out until its reckoning is settled (Kim) */}
             </dl>
           </div>
           <div className="ps-box">

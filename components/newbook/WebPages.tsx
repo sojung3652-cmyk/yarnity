@@ -354,15 +354,6 @@ export function WebCheck({ draft, itemName, rows, use, facts, measureNote }: {
       <dl className="nb-wsum">
         {rows.map(r => <div key={r.k}><dt>{r.k}</dt><dd>{r.v}</dd><dd className="nb-wfix"><button type="button" className="nb-link" onClick={r.fix}>고치기</button></dd></div>)}
       </dl>
-      <div className="nb-sup-use">
-        <span className="nb-sup-use-lbl">예상 실 양</span>
-        <p className="nb-sup-use-num">약 <b>{use.g}g</b><span className="nb-wlen">길이로는 약 {use.m}m</span></p>
-        {use.perColor && <p className="nb-sup-use-sub">색마다 약 {Math.ceil(use.g / Math.max(1, use.colors))}g</p>}
-        {use.skeins != null && <p className="nb-sup-use-sub">{use.skeinText}으로 <b>{use.skeins}타래</b>{draft.skeins ? ` · 가지고 있는 ${draft.skeins}타래` : ""}</p>}
-        {use.short && <p className="nb-warn" role="status">가지고 있는 실이 조금 모자랄 수 있습니다. 같은 LOT로 한 타래 더 준비해 두십시오.</p>}
-        {use.labelOdd && <p className="nb-warn" role="status">적어 주신 라벨 정보({draft.skeinG}g · {draft.skeinM}m)는 실 한 타래로 보기 어려워서 빼고 계산했습니다.</p>}
-        <p className="nb-help">여유 10%를 넣은 어림값입니다 ({use.basis} 기준 100g에 약 {use.per100}m).{use.basis !== "실 라벨" ? " 실 라벨의 무게와 길이를 적으면 타래 수도 알려 드립니다." : ""}</p>
-      </div>
       <div className="nb-wfacts">{facts.map(([k, v]) => <div key={k}><span>{k}</span>{v}</div>)}</div>
       <p className="nb-help">{measureNote}</p>
     </div>

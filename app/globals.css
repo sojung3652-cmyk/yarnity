@@ -432,3 +432,15 @@ body:has(.hero-desk.is-overlay) .wrap > footer{display:none}
 
 /* the metal X (components/GoldX) on every close button, app and web (Kim): one default size; the book ribbons size theirs */
 .gold-x{display:block;width:18px;height:18px;margin:auto;flex:none}
+
+/* popups in the work screen's look (Kim: cream linen + cloth labels) - a linen card with a stitched inner edge,
+   its choices as woven labels with lavender stitches at the ends; the first choice in rose */
+.leave{background:repeating-linear-gradient(0deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.04) 0 1px,transparent 1px 3px),#F6EFE2;
+  border:1px solid #E6DAC6;outline:1.5px dashed #EEBEC7;outline-offset:-8px;border-radius:3px;box-shadow:-4px 10px 26px -10px rgba(60,42,34,.4)}
+.leave h2{color:#3E3430}
+.leave-btns .btn{position:relative;min-height:44px;border:0;border-radius:2px;font:600 14px "Noto Serif KR",serif;color:#3E3430;
+  background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),#FFFDF8;box-shadow:0 1px 2px rgba(70,50,40,.14),inset 0 0 0 1px #E0D2BE}
+.leave-btns .btn::before,.leave-btns .btn::after{content:"";position:absolute;top:8px;bottom:8px;border-left:1.5px dashed #EEBEC7}
+.leave-btns .btn::before{left:9px}.leave-btns .btn::after{right:9px}
+.leave-btns .btn-primary{background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),#F4E0DF;box-shadow:0 1px 2px rgba(70,50,40,.16),inset 0 0 0 1.5px #B99447}
+.leave-btns .btn:hover{transform:translateY(-1px)}

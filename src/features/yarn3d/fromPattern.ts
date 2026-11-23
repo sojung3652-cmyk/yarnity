@@ -38,6 +38,7 @@ export interface YarnSource extends PlanInput {
   handleStyle?: "flat-chain" | "flat-rows" | "tube" | null;
   handleWcm?: number | null;
   topGapCm?: number | null;
+  topFold?: "spread" | "tuck";
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; tab?: boolean; items?: { pic: string; at: [number, number, number] }[] } | null;
   /** a band handle's rows of 짧은뜨기 on its chain; the piece left to its own weight (the 3D only) */
   handleRows?: number;
@@ -118,7 +119,9 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
     ...(p.free ? {} : p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
     // with a flap the top closes to the gap asked (2cm when not said)
-    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { topGap: p.topGapCm ?? 2 } : {}),
+    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
+    // a handle is flat or a tube (Kim: no strands): flat when not said
+    ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
