@@ -986,7 +986,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // the opening first: a pouch's long sides come together along the top (its ends spread a little, the
     // same fabric lying flatter); a bucket bag's top is gathered in
     if (pat.top && H > D.rh * 3) {
-      const longX = b.x1 - b.x0 >= b.z1 - b.z0;
+      const longX = wideX(b);
       for (const p of D.P) {
         if (p.y <= D.rh * .5) continue;
         const t = Math.min(1, p.y / H);
@@ -995,7 +995,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       }
     }
     // a drawn body: its rounds laid on the drawing's own outline - nothing else bends it afterwards
-    if (pat.outline && layOnOutline(D, pat.outline, b.x1 - b.x0 >= b.z1 - b.z0, cx, cz)) { if (pat.gravity) drape(D); return; }
+    if (pat.outline && layOnOutline(D, pat.outline, wideX(b), cx, cz)) { if (pat.gravity) drape(D); return; }
     if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
     // every yarn a notch softer than its own measure (Kim: 좀만 더 흐물거리게); a stiff one (cord, raffia, jute) stays stiff
     const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * 1.25 * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
@@ -1063,7 +1063,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // the body pressed to a depth (YarnPattern.depth): at each height its section now (half-width a, half-depth b,
   // read off the stitches there) becomes an ellipse of the asked depth : width with the same round length
   function pressFlat(D: ItemData, depth: number[], b: { x0: number; x1: number; z0: number; z1: number }, cx: number, cz: number, H: number) {
-    const longX = b.x1 - b.x0 >= b.z1 - b.z0, NB = 24, u0 = new Array(NB + 1).fill(1e9), u1 = new Array(NB + 1).fill(-1e9), v0 = new Array(NB + 1).fill(1e9), v1 = new Array(NB + 1).fill(-1e9);
+    const longX = wideX(b), NB = 24, u0 = new Array(NB + 1).fill(1e9), u1 = new Array(NB + 1).fill(-1e9), v0 = new Array(NB + 1).fill(1e9), v1 = new Array(NB + 1).fill(-1e9);
     const uv = (p: THREE.Vector3) => longX ? [p.x - cx, p.z - cz] : [p.z - cz, p.x - cx];
     for (const p of D.P) { const k = Math.max(0, Math.min(NB, Math.round(p.y / H * NB))), [u, v] = uv(p); u0[k] = Math.min(u0[k], u); u1[k] = Math.max(u1[k], u); v0[k] = Math.min(v0[k], v); v1[k] = Math.max(v1[k], v); }
     const A = u0.map((x, k) => u1[k] > x ? (u1[k] - x) / 2 : 0), B = v0.map((x, k) => v1[k] > x ? (v1[k] - x) / 2 : 0);
@@ -1109,6 +1109,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const HOME = new THREE.Vector3(0, .63, .77).normalize();
   let touched = false; // the reader moved the camera: a resize leaves it alone
   const viewDir = () => { const d = cam.position.clone().sub(ctl.target); return d.lengthSq() > 1e-6 ? d.normalize() : HOME.clone(); };
+  /** which way the piece is wide (its face to the front, where the handle's arch and the flap are): a round bottom
+   *  is as wide one way as the other, so a hair's difference must not turn it - it always faces front (x); other
+   *  shapes take their longer side, x when the two are within 2% */
+  const wideX = (b: { x0: number; x1: number; z0: number; z1: number }) => pat.shape.kind === "round" || b.x1 - b.x0 >= (b.z1 - b.z0) * .98;
   function boxOf(D: ItemData) {
     let my = 0, x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
     D.P.forEach(q => { if (q.y > my) my = q.y; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); });
