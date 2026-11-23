@@ -38,6 +38,9 @@ export interface Draft {
   /** how hairy the 3D draws the yarn (web: 털 양 / 털 길이 on the 실 page; 1 = the material's own). Only a look. */
   fuzzK?: number;
   hairK?: number;
+  /** web, the 3D only: strands in the handle (1-5; 3 when missing), and 단추 / 라벨 / 지퍼 tried on */
+  handleW?: number;
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean };
   yarnMode?: "mm" | "level";
   skeinG?: number | null;
   skeinM?: number | null;

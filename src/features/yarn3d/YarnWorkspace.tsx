@@ -92,7 +92,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   // the pattern changed in a panel: colour and material at once, the shape after 0.2s of quiet
   useEffect(() => {
     const v = viewer.current; if (!v || pattern === shown.current) return;
-    const key = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm, p.strap, p.strapCm]);
+    const key = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm]);
     if (key(pattern) === key(shown.current)) { v.setPattern(pattern); shown.current = pattern; setMat(null); return; }
     const t = setTimeout(() => { v.setPattern(pattern); shown.current = pattern; setMat(null); }, 200);
     return () => clearTimeout(t);

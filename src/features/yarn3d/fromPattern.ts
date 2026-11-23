@@ -22,6 +22,9 @@ export interface YarnSource extends PlanInput {
   /** how hairy the yarn is drawn (the reader's own 털 양 / 털 길이; 1 = the material's own) */
   fuzzK?: number | null;
   hairK?: number | null;
+  /** strands in a strap (1-5), and things to try on in the 3D */
+  handleW?: number | null;
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean } | null;
 }
 
 // no thickness typed (only thin / medium / thick picked): the middle of each level in lib/yarn.ts
@@ -64,5 +67,6 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
   const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
   return { shape, colors: [color], yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
-    ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}) };
+    ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
+    ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper) ? { extras: p.extras } : {}) };
 }

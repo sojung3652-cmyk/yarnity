@@ -14,7 +14,7 @@ import { bookPause } from "./pause";
 import "./yarn3d-place.css";
 
 const I = ({ d }: { d: string }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
-const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm, p.strap, p.strapCm]);
+const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm]);
 
 /** `fabric`: the 무늬 page - close enough to read the stitches of a knitted piece */
 export function YarnPagePreview({ source, plan, fabric, caption }: { source: YarnSource; plan: Plan; fabric?: boolean; caption?: string }) {
