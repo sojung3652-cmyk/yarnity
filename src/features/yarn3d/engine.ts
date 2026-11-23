@@ -256,7 +256,15 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
 
   // ---------- pattern -> 3D: stitch = point, joins = springs (the shape comes from the counts alone)
   function makeItem(): ItemData {
-    const s = pat.shape, rh = (pat.yarnMm + pat.hookMm) / MM, sw = 2 * Math.PI * rh / 6;
+    // round / oval / rect past the stitch budget (sizes have no limit: a 3m rug is 100,000s of stitches): every
+    // k-th round is drawn with 1/k of its stitches and the stitch k times as big, so the size and shape stay
+    const s0 = pat.shape, sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
+    const total = s0.kind === "round" ? sum(s0.counts) : s0.kind === "oval" || s0.kind === "rect" ? sum(s0.bottom) + sum(s0.body) : 0;
+    const kk = total > DRAW_STITCHES ? Math.ceil(Math.sqrt(total / DRAW_STITCHES)) : 1;
+    const pick = (a: number[]) => { const o: number[] = []; for (let i = kk - 1; i < a.length; i += kk) o.push(Math.max(3, Math.round(a[i] / kk))); if (!o.length && a.length) o.push(Math.max(3, Math.round(a[a.length - 1] / kk))); return o; };
+    const s: YarnShape = kk === 1 ? s0 : s0.kind === "round" ? { kind: "round", counts: pick(s0.counts), flat: s0.flat ? Math.max(1, Math.round(s0.flat / kk)) : 0 }
+      : s0.kind === "oval" || s0.kind === "rect" ? { ...s0, chain: Math.max(2, Math.round(s0.chain / kk)), bottom: pick(s0.bottom), body: pick(s0.body) } : s0;
+    const rh = (pat.yarnMm + pat.hookMm) / MM * kk, sw = 2 * Math.PI * rh / 6;
     const P: THREE.Vector3[] = [], E: Edge[] = [], C: Course[] = [], flat: number[] = [];
     const V = (x: number, y: number, z: number) => { P.push(new THREE.Vector3(x, y + (Math.random() - .5) * .01, z)); return P.length - 1; };
     const dist = (a: number, b: number) => P[a].distanceTo(P[b]);
@@ -289,6 +297,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       });
     };
     let ci = 0;
+    const nextCi = () => { const v = ci + (kk >> 1); ci += kk; return v; }; // a drawn course stands for k of the pattern's: the middle one's colour
     // worked in the round from a magic ring (bottom rounds kept flat)
     const round = (counts: number[], flatN: number) => {
       const cen = V(0, 0, 0); flat.push(cen); let rho = 0, y = 0, prev: number[] | null = null;
@@ -303,7 +312,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         let bot: Bot[];
         if (!prev) { idx.forEach(n => E.push([n, cen, Math.max(cr, .2), 1])); bot = idx.map(n => [cen, n, .25] as Bot); }
         else bot = linkFrac(idx, prev);
-        C.push({ idx, closed: true, bot, ci: ci++ }); prev = idx;
+        C.push({ idx, closed: true, bot, ci: nextCi() }); prev = idx;
       });
       return prev!;
     };
@@ -341,7 +350,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       let prev = sp, pcl = false;
       counts.forEach((c, r) => {
         const idx = outline((n - 1) * sw, (r + 1) * rh, c).map(([x, z]) => V(x, 0, z)); flat.push(...idx);
-        ring(idx, true); C.push({ idx, closed: true, bot: linkNear(idx, prev, pcl), ci: ci++ }); prev = idx; pcl = true;
+        ring(idx, true); C.push({ idx, closed: true, bot: linkNear(idx, prev, pcl), ci: nextCi() }); prev = idx; pcl = true;
       });
       return prev;
     };
@@ -353,7 +362,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         prev.forEach(n => { cx += P[n].x; cz += P[n].z; }); cx /= pc; cz /= pc; prev.forEach(n => { mr += Math.hypot(P[n].x - cx, P[n].z - cz); }); mr /= pc;
         const k = c / pc, dr = Math.max(-rh * .98, Math.min(rh * .98, mr * (k - 1))), yy = P[prev[0]].y + Math.sqrt(rh * rh - dr * dr), poly = prev.map(n => [cx + (P[n].x - cx) * k, cz + (P[n].z - cz) * k]), idx: number[] = [];
         for (let i = 0; i < c; i++) { const f = (i + .5) / c * pc - .5, a = Math.floor(f), t = f - a, A = poly[((a % pc) + pc) % pc], B = poly[(((a + 1) % pc) + pc) % pc]; idx.push(V(A[0] + (B[0] - A[0]) * t, yy, A[1] + (B[1] - A[1]) * t)); }
-        ring(idx, true); C.push({ idx, closed: true, bot: linkFrac(idx, prev), ci: ci++ }); prev = idx;
+        ring(idx, true); C.push({ idx, closed: true, bot: linkFrac(idx, prev), ci: nextCi() }); prev = idx;
       });
     };
     // flat rows (W x H drawn, `ex` / `ey` apart), lying on the ground; long pieces lie along x
@@ -391,6 +400,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const midCi = (k: number, H: number) => (j: number) => Math.min(H - 1, j * k + Math.floor(k / 2));
 
     let knit: Knit | null = null, fixed = false, skip: ItemData["skip"] = null, rhOut = rh, swOut = sw;
+    if (kk > 1) skip = { stitch: kk, row: kk };
     if (s.kind === "round") round(s.counts, s.flat);
     else if (s.kind === "oval" || s.kind === "rect") { const b = aroundChain(s.chain, s.bottom, s.kind === "oval" ? stad : rectPath); if (s.body.length) wall(b, s.body); }
     else if (s.kind === "rows") {
@@ -529,7 +539,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       // the angle the reader turned it to stays; the distance follows the piece. The target sits a little
       // below the middle so the piece stands clear of the labels along the bottom
       const dir = cam.position.clone().sub(ctl.target).normalize(); ctl.target.set(0, tot * .32, 0);
-      const dist = (ext * (st.fur ? 2.3 : z.my < D.rh * 3 ? 1.55 : 2) + 2) * (page ? .92 : 1.15); cam.position.copy(ctl.target).addScaledVector(dir, dist); ctl.maxDistance = Math.max(40, dist * 2.2);
+      const dist = (ext * (st.fur ? 2.3 : z.my < D.rh * 3 ? 1.55 : 2) + 2) * (page ? (z.my < D.rh * 3 ? 1.12 : .92) : 1.15); // a flat piece is as wide as the page: a little further back cam.position.copy(ctl.target).addScaledVector(dir, dist); ctl.maxDistance = Math.max(40, dist * 2.2);
       setShadow(Math.max(10, ext * 1.4)); fit(); opts.onBuilt?.(performance.now() - t0);
     }
   }

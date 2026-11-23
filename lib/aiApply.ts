@@ -3,7 +3,7 @@
 // unknown item, a shape the item does not offer, a size outside the item's range, a yarn / hook outside the
 // ranges, a colour that is not plain hex - each is dropped. The user applies the result with "책에 적용"
 // (never applied by itself).
-import { ITEM, itemIdOf, type FieldKey, type ItemId } from "./items";
+import { ITEM, itemIdOf, LEN_RANGE, type FieldKey, type ItemId } from "./items";
 import { ENGINE } from "./items";
 import { SHAPE_KO, type Handle, type Shape } from "./pattern";
 import type { Draft } from "./types";
@@ -39,7 +39,7 @@ export function proposalFrom(set: Record<string, unknown> | undefined, draft: Dr
   const shape = (patch.shape ?? cur.shape) as Shape;
   for (const k of ["a", "b", "h", "circ", "depth"] as FieldKey[]) {
     const v = num(set[k]), r = it.range[k];
-    if (!r || !Number.isFinite(v) || v < r[0] || v > r[1]) continue;
+    if (!r || !Number.isFinite(v) || v < LEN_RANGE[0] || v > LEN_RANGE[1]) continue; // the item has this field; any length
     if (k === "b" && shape === "circle") continue;
     (patch as Record<string, number>)[k] = round1(v);
     labels.push(`${k === "a" && shape === "circle" ? "지름" : FIELD_KO[k]} ${round1(v)}cm`);
@@ -48,13 +48,13 @@ export function proposalFrom(set: Record<string, unknown> | undefined, draft: Dr
   // bags: a wider opening, a flap, the handle
   if (it.group === "가방") {
     const a = (patch.a ?? cur.a) as number, top = num(set.topA), flap = num(set.flapCm);
-    if (Number.isFinite(top) && top > a && top <= a * 2) { patch.topA = round1(top); labels.push(`입구 ${round1(top)}cm`); }
-    if (Number.isFinite(flap) && flap >= 3 && flap <= 40) { patch.flapCm = round1(flap); labels.push(`덮개 ${round1(flap)}cm`); }
+    if (Number.isFinite(top) && top > a && top <= LEN_RANGE[1]) { patch.topA = round1(top); labels.push(`입구 ${round1(top)}cm`); }
+    if (Number.isFinite(flap) && flap >= LEN_RANGE[0] && flap <= LEN_RANGE[1]) { patch.flapCm = round1(flap); labels.push(`덮개 ${round1(flap)}cm`); }
   }
   if (it.handles) {
     const hc = num(set.handleCm);
     if (set.handle === "none") { patch.handle = "none" as Handle; labels.push("손잡이 없음"); }
-    else if (Number.isFinite(hc) && hc >= 10 && hc <= 200) { patch.handle = "short"; patch.handleCm = Math.round(hc); labels.push(`손잡이 ${Math.round(hc)}cm`); }
+    else if (Number.isFinite(hc) && hc >= LEN_RANGE[0] && hc <= LEN_RANGE[1]) { patch.handle = "short"; patch.handleCm = Math.round(hc); labels.push(`손잡이 ${Math.round(hc)}cm`); }
   }
 
   // yarn and hook

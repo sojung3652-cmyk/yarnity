@@ -17,6 +17,9 @@ export type ItemId =
   | "dishcloth" | "bookmark" | "blanket" | "beanie";
 export type FieldKey = "a" | "b" | "h" | "circ" | "depth";
 export interface Field { key: FieldKey; label: string; min: number; max: number }
+/** Any length may be typed (Kim: no limits on sizes): from 1cm, and up to 30m only so that a slip of the
+ *  finger (15000 for 150) is caught. An item's `range` is its usual size, told to the AI as a hint only. */
+export const LEN_RANGE: [number, number] = [1, 3000];
 
 export interface Item {
   id: ItemId; name: string; group: string; kind: ItemKind;
@@ -93,8 +96,7 @@ export const itemIdOf = (p: { item?: string; object: ObjectKind }): ItemId =>
 
 /** The input fields of an item for a bottom shape, with their labels and ranges. */
 export function fieldsFor(item: Item, shape: Shape): Field[] {
-  const r = (k: FieldKey): [number, number] => item.range[k] as [number, number];
-  const f = (key: FieldKey, label: string): Field => ({ key, label, min: r(key)[0], max: r(key)[1] });
+  const f = (key: FieldKey, label: string): Field => ({ key, label, min: LEN_RANGE[0], max: LEN_RANGE[1] });
   switch (item.kind) {
     case "flat-rows": return [f("a", "폭 (cm)"), f("b", "길이 (cm)")];
     case "tube": return [f("a", "둘레 (cm)"), f("h", item.id === "headband" ? "폭 (cm)" : "높이 (cm)")];

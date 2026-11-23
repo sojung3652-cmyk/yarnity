@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
-import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, type FieldKey, type Item, type ItemId } from "@/lib/items";
+import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, LEN_RANGE, type FieldKey, type Item, type ItemId } from "@/lib/items";
 import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
 import type { Draft } from "@/lib/types";
@@ -50,7 +50,7 @@ const handleText = (d: Draft) => {
   return p ? `${p[0]} ${cm}cm` : `${cm}cm`;
 };
 const isBag = (it: Item) => it.group === "가방";
-const HANDLE_RANGE: [number, number] = [10, 200];
+const HANDLE_RANGE = LEN_RANGE; // any length (Kim: no limits)
 
 /** The draft as the engine reads it (item -> engine path, beanie conversion, handle and the bag options
  *  only where offered; 0 = an option left with an invalid number, read as unset). */
@@ -433,13 +433,13 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
               <Radios label="몸통 모양" value={draft.topA != null ? "flare" : "straight"} options={[["straight", "일자형"], ["flare", "위로 넓어지는"]]}
                 onPick={v => patch({ topA: v === "flare" ? Math.round(draft.a * 1.3) : null })} />
               {draft.topA != null && <div className="nb-sub"><CmInput key={"top" + draft.shape + draft.a} label={draft.shape === "circle" ? "입구 지름 (cm)" : "입구 가로 (cm)"} value={draft.topA || null}
-                range={[Math.ceil(draft.a) + 1, Math.round(draft.a * 2)]} onValue={v => patch({ topA: v ?? 0 })} /></div>}
+                range={[Math.floor(draft.a) + 1, LEN_RANGE[1]]} onValue={v => patch({ topA: v ?? 0 })} /></div>}
             </Fold>
             {/* a flap (cover) over the opening, worked back and forth from the back */}
             <Fold label="덮개" value={draft.flapCm ? `있음 · ${draft.flapCm}cm` : draft.flapCm === 0 ? "있음" : "없음"} open={fold4 === "flap"} onToggle={() => toggle4("flap")}>
               <Radios label="덮개" value={draft.flapCm != null ? "yes" : "no"} options={[["no", "없음"], ["yes", "있음"]]}
                 onPick={v => patch({ flapCm: v === "yes" ? Math.max(4, Math.round(draft.h * 0.6)) : null })} />
-              {draft.flapCm != null && <div className="nb-sub"><CmInput label="덮개 길이 (cm)" value={draft.flapCm || null} range={[3, 40]} onValue={v => patch({ flapCm: v ?? 0 })} /></div>}
+              {draft.flapCm != null && <div className="nb-sub"><CmInput label="덮개 길이 (cm)" value={draft.flapCm || null} range={LEN_RANGE} onValue={v => patch({ flapCm: v ?? 0 })} /></div>}
             </Fold>
             {item.handles && (
               <Fold label="손잡이" value={handleText(draft)} open={fold4 === "handle"} onToggle={() => toggle4("handle")}>
@@ -512,12 +512,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           <Tiles label="몸통 모양" value={draft.topA != null ? "flare" : "straight"} cols={3} options={[["straight", "일자형"], ["flare", "위로 넓어지는"]]}
             onPick={v => patch({ topA: v === "flare" ? Math.round(draft.a * 1.3) : null })} />
           {draft.topA != null && <div className="nb-wsub"><CmInput key={"top" + draft.shape + draft.a} label={draft.shape === "circle" ? "입구 지름 (cm)" : "입구 가로 (cm)"} value={draft.topA || null}
-            range={[Math.ceil(draft.a) + 1, Math.round(draft.a * 2)]} onValue={v => patch({ topA: v ?? 0 })} /></div>}
+            range={[Math.floor(draft.a) + 1, LEN_RANGE[1]]} onValue={v => patch({ topA: v ?? 0 })} /></div>}
         </div>
         <div className="nb-wg"><Head>덮개</Head>
           <Tiles label="덮개" value={draft.flapCm != null ? "yes" : "no"} cols={3} options={[["no", "없음"], ["yes", "있음"]]}
             onPick={v => patch({ flapCm: v === "yes" ? Math.max(4, Math.round(draft.h * 0.6)) : null })} />
-          {draft.flapCm != null && <div className="nb-wsub"><CmInput label="덮개 길이 (cm)" value={draft.flapCm || null} range={[3, 40]} onValue={v => patch({ flapCm: v ?? 0 })} /></div>}
+          {draft.flapCm != null && <div className="nb-wsub"><CmInput label="덮개 길이 (cm)" value={draft.flapCm || null} range={LEN_RANGE} onValue={v => patch({ flapCm: v ?? 0 })} /></div>}
         </div>
         {item.handles && (
           <div className="nb-wg"><Head note="길이">손잡이</Head>
