@@ -44,11 +44,16 @@ export interface Draft {
   paint?: import("./pattern").PaintShape;
   /** web, the 3D only: strands in the handle (1-5; 3 when missing), and 단추 / 라벨 / 지퍼 tried on */
   handleW?: number;
-  extras?: { button?: boolean; label?: boolean; zipper?: boolean };
+  /** 단추 / 라벨 / 지퍼 (the 3D only), where and how big: [across -1..1, up 0..1, size cm]; 지퍼 0 closed .. 1 open */
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string };
+  /** the crochet stitch (Kim: 코바늘 무늬; lib/pattern CROCHET) */
+  crochetStitch?: import("./pattern").CrochetStitch;
+  /** a bag's flap outline below the front edge (3D) and how many handles: 1 across the top, or 2 */
+  flapShape?: "half" | "square" | "triangle";
+  handleCount?: 1 | 2;
   /** how the top is closed (Kim): open, a flap (flapCm), a drawstring through an eyelet round, a zipper,
-   *  a button, or the maker's own drawing (closureSketch: SVG path data in a 200 x 120 box) */
-  closure?: "open" | "flap" | "drawstring" | "zipper" | "button" | "sketch";
-  closureSketch?: string;
+   *  or a button (the whole piece is drawn in 그려서 만들기, not its opening alone - Kim) */
+  closure?: "open" | "flap" | "drawstring" | "zipper" | "button";
   yarnMode?: "mm" | "level";
   skeinG?: number | null;
   skeinM?: number | null;

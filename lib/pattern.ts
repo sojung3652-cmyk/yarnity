@@ -48,12 +48,23 @@ export interface PlanInput {
   free?: FreeShape | null;
   /** a picture painted freely (web: 직접 그리기 · 자유롭게, Kim) - worked flat in rows, the unpainted spots as holes */
   paint?: PaintShape | null;
+  /** the crochet stitch the piece is worked in (Kim: 코바늘 무늬): 짧은뜨기 (sc, the default), 이랑뜨기 (sc in
+   *  the back loop: ridges, the same height), 긴뜨기 (hdc), 한길긴뜨기 (dc) - taller stitches, fewer rows */
+  crochetStitch?: CrochetStitch | null;
   measuredH?: number | null; // stitch height from the 3rd-round measurement (cm)
   measuredW?: number | null; // stitch width from the 5-row measurement (rows / tube only, cm)
 }
 
 /** A drawn shape: its side profile from the bottom up, smoothed - [radius, height], both as shares of the
  *  piece's height - the height in cm, and the colours by height ([from this share of the height, colour]). */
+export type CrochetStitch = "sc" | "blo" | "hdc" | "dc";
+/** each crochet stitch: its name, how much taller than single crochet, its turning chain */
+export const CROCHET: Record<CrochetStitch, { ko: string; h: number; turn: number; note: string }> = {
+  sc: { ko: "짧은뜨기", h: 1, turn: 1, note: "촘촘하고 단단합니다" },
+  blo: { ko: "이랑뜨기", h: 1, turn: 1, note: "뒷고리만 떠서 가로 줄이 생깁니다" },
+  hdc: { ko: "긴뜨기", h: 1.6, turn: 2, note: "조금 더 부드럽고 빨리 올라갑니다" },
+  dc: { ko: "한길긴뜨기", h: 2.2, turn: 3, note: "성글고 가볍게 높이 올라갑니다" },
+};
 export interface FreeShape { pts: [number, number][]; hCm: number; bands?: [number, string][] }
 /** A painted picture (Kim: "like a paint program"): a gw x gh grid, row-major from the top row; each cell "."
  *  (nothing - the paper, a hole in the piece) or a palette index in base 36. The piece is wCm wide and hCm
@@ -92,6 +103,8 @@ export interface Row {
 }
 
 export interface Plan {
+  /** the turning chain of the plan's stitch (1 = single crochet, when missing) */
+  turn?: number;
   g: Gauge;
   c: number;
   rows: Row[];
@@ -104,7 +117,7 @@ type RawRow = Omit<Row, "idx" | "label">;
 
 export function gauge(p: PlanInput): Gauge {
   if (p.measuredH) return { h: p.measuredH, w: p.measuredH * 0.95, measured: true };
-  const h = (p.hookMm || HOOK_MM[p.hook] || 3) * 0.2 * (YARN[p.weight as Weight] || 1);
+  const h = (p.hookMm || HOOK_MM[p.hook] || 3) * 0.2 * (YARN[p.weight as Weight] || 1) * (p.crochetStitch ? CROCHET[p.crochetStitch].h : 1);
   return { h, w: h * 0.95, measured: false };
 }
 
@@ -200,7 +213,17 @@ export function planPaint(p: PlanInput): Plan {
   return { g, c: span + 1, rows, bottomRounds: 0, bodyRows: rows.filter(x => x.part === "rows").length, last };
 }
 
+/** The plan in the picked crochet stitch: worked out in single crochet (taller rows from gauge), then each row
+ *  says its own stitch, and its turning chain is the stitch's own (withChains reads Plan.turn). */
 export function plan(p: PlanInput): Plan {
+  const pp = planSc(p), st = p.crochetStitch;
+  if (!st || st === "sc") return pp;
+  const c = CROCHET[st], name = st === "blo" ? "짧은뜨기 이랑뜨기(뒷고리)" : c.ko;
+  const rows = pp.rows.map(r => ({ ...r, how: r.how.replace(/짧은뜨기/g, name) }));
+  return { ...pp, rows, turn: c.turn };
+}
+
+function planSc(p: PlanInput): Plan {
   if (p.paint) return planPaint(p);
   if (p.free) return planFree(p);
   if (p.object === "rows") return planRows(p);
@@ -214,7 +237,7 @@ export function plan(p: PlanInput): Plan {
     // the opening's stitches: the bottom's last round scaled by the perimeter (circle: diameter ratio;
     // oval / rect: length and width both grow by topA - a, perimeter ~ 2 (a - b) + pi b)
     const b0 = (p.b as number) || p.a;
-    const top = p.topA && p.topA > p.a
+    const top = p.topA && p.topA !== p.a
       ? Math.round(last * (p.shape === "circle" ? p.topA / p.a : (2 * (p.a - b0) + Math.PI * (b0 + p.topA - p.a)) / (2 * (p.a - b0) + Math.PI * b0)))
       : last;
     let prevN = last;
@@ -222,8 +245,8 @@ export function plan(p: PlanInput): Plan {
       if (top === last) { rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라갑니다" : `${last}코 그대로`, inc: 0 } as Row); continue; }
       // widening body: the extra stitches spread evenly over the rows (round 1 of the body stays straight)
       const n = i === 0 ? last : Math.round(last + (top - last) * i / (bodyRows - 1)), inc = n - prevN;
-      rows.push({ part: "body", n, how: inc ? `짧은뜨기 ${n}코 (늘림 ${inc}코를 고르게 나눠서)` : `늘림 없이 짧은뜨기 ${n}코`,
-        why: i === 0 ? "여기서부터 위로 올라갑니다" : inc ? `${prevN} + 늘림 ${inc} = ${n} · 위로 갈수록 넓어집니다` : `${n}코 그대로`, inc } as Row);
+      rows.push({ part: "body", n, how: inc > 0 ? `짧은뜨기 ${n}코 (늘림 ${inc}코를 고르게 나눠서)` : inc < 0 ? `짧은뜨기 ${n}코 (줄임 ${-inc}번을 고르게 나눠서)` : `늘림 없이 짧은뜨기 ${n}코`,
+        why: i === 0 ? "여기서부터 위로 올라갑니다" : inc > 0 ? `${prevN} + 늘림 ${inc} = ${n} · 위로 갈수록 넓어집니다` : inc < 0 ? `${prevN} - 줄임 ${-inc} = ${n} · 위로 갈수록 좁아집니다` : `${n}코 그대로`, inc } as Row);
       prevN = n;
     }
     const rimN = prevN;
@@ -352,23 +375,24 @@ export function planTube(p: PlanInput): Plan {
 // 기둥사슬 (Kim's correction).
 export const TURN_CH = 1;
 export function withChains(pp: Plan): Plan {
+  const TC = pp.turn ?? TURN_CH;
   const rows = pp.rows.map((r): Row & { turn?: number } => {
     const round = r.part === "bottom" || r.part === "body" || (r.part === "rim" && !r.how.startsWith("빼뜨기"));
     if (round) {
-      if (r.how.startsWith("매직링에 ")) return { ...r, how: `매직링에 기둥사슬 ${TURN_CH}, ${r.how.slice(5)}, 첫 코에 빼뜨기`, turn: TURN_CH };
+      if (r.how.startsWith("매직링에 ")) return { ...r, how: `매직링에 기둥사슬 ${TC}, ${r.how.slice(5)}, 첫 코에 빼뜨기`, turn: TC };
       // oval / rect round 1: "사슬 c코, 둘째 코부터 ..." = a base of c - 1 chains, then the 기둥사슬
       const m = r.how.match(/^사슬 (\d+)코, 둘째 코부터 (.*)$/);
       if (m) {
         const c = Number(m[1]);
-        return { ...r, how: `사슬 ${c - 1}코 + 기둥사슬 ${TURN_CH}, ${m[2]} · 첫 코에 빼뜨기`, why: r.why.replace(`사슬 ${c}코 기초`, `사슬 ${c - 1}코 기초`), turn: TURN_CH };
+        return { ...r, how: `사슬 ${c - 1}코 + 기둥사슬 ${TC}, ${m[2]} · 첫 코에 빼뜨기`, why: r.why.replace(`사슬 ${c}코 기초`, `사슬 ${c - 1}코 기초`), turn: TC };
       }
-      return { ...r, how: `기둥사슬 ${TURN_CH}, ${r.how}, 첫 코에 빼뜨기`, turn: TURN_CH };
+      return { ...r, how: `기둥사슬 ${TC}, ${r.how}, 첫 코에 빼뜨기`, turn: TC };
     }
-    if (r.part === "rounds") return { ...r, how: `기둥사슬 ${TURN_CH}, ${r.how}`, turn: TURN_CH };
-    if ((r.part === "rows" || r.part === "flap") && r.how.startsWith("사슬 1, 뒤집어서")) return { ...r, how: r.how.replace("사슬 1, 뒤집어서", `기둥사슬 ${TURN_CH}, 뒤집어서`), turn: TURN_CH };
+    if (r.part === "rounds") return { ...r, how: `기둥사슬 ${TC}, ${r.how}`, turn: TC };
+    if ((r.part === "rows" || r.part === "flap") && r.how.startsWith("사슬 1, 뒤집어서")) return { ...r, how: r.how.replace("사슬 1, 뒤집어서", `기둥사슬 ${TC}, 뒤집어서`), turn: TC };
     // a rows piece: the base chain alone, then row 1 raised by its 기둥사슬
-    if (r.part === "rows" && r.how.startsWith("두 번째 사슬부터")) return { ...r, how: `기둥사슬 ${TURN_CH}, 사슬 ${r.n}코에 짧은뜨기 ${r.n}코`, turn: TURN_CH };
-    if (r.part === "start" && /^사슬 \d+코$/.test(r.how)) return { ...r, n: r.n - TURN_CH, how: `사슬 ${r.n - TURN_CH}코`, why: r.why.replace(/, 기둥 사슬 1코 더$/, "") };
+    if (r.part === "rows" && r.how.startsWith("두 번째 사슬부터")) return { ...r, how: `기둥사슬 ${TC}, 사슬 ${r.n}코에 짧은뜨기 ${r.n}코`, turn: TC };
+    if (r.part === "start" && /^사슬 \d+코$/.test(r.how)) return { ...r, n: r.n - TC, how: `사슬 ${r.n - TC}코`, why: r.why.replace(/, 기둥 사슬 1코 더$/, "") };
     if (r.part === "start" && r.how.endsWith("고리 연결")) return r;
     return r;
   });

@@ -6,13 +6,15 @@
 //   back and forth            n stitches x the "rows" rows         -> "rows" (목도리: knitted, Kim)
 //   tube                      n stitches x the "rounds" rounds     -> "tube"
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
-import { paintMask, paintSize, type Plan, type PlanInput } from "@/lib/pattern";
+import { CROCHET, paintMask, paintSize, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
 import type { YarnMaterial, YarnPattern, YarnShape } from "./engine";
 
 /** the pattern's own fields the engine reads (Draft and Project both have them) */
 export interface YarnSource extends PlanInput {
+  flapShape?: "half" | "square" | "triangle";
+  handleCount?: 1 | 2;
   item?: string;
   color?: string;
   yarnMm?: number | null;
@@ -72,12 +74,15 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   // one colour per course: the pattern has one yarn colour (its extra colours are not placed on rows)
   const color = /^#[0-9a-f]{6}$/i.test(p.color ?? "") ? p.color! : DEFAULT_COLOR;
   const handleCm = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25;
-  const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : handleCm >= 60 ? "long" : "two";
+  // one handle across the top (Kim's sketch), or two; older works: a long one is a shoulder strap
+  const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : p.handleCount === 1 ? "long" : p.handleCount === 2 ? "two" : handleCm >= 60 ? "long" : "two";
   // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
   const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
   return { shape, colors: rowColors ? rowColors.map(c => c ?? color) : [color], yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
     ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
     ...(p.free ? {} : p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
+    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half" } } : {}),
+    ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper) ? { extras: p.extras } : {}) };
 }

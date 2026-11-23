@@ -62,8 +62,13 @@ export interface YarnPattern {
   firm?: boolean;
   /** how many strands side by side a strap is (1-5; 3 when missing) */
   strapW?: number;
-  /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼) */
-  extras?: { button?: boolean; label?: boolean; zipper?: boolean };
+  /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼), with where and how big (Kim): `buttonAt` /
+   *  `labelAt` = [across the front -1..1, up 0..1, size in cm]; `zipOpen` 0 closed .. 1 open; the button's colour */
+  extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string };
+  /** a bag's flap (덮개): worked from the back of the opening, over the top and down the front (Kim: it has to show) */
+  flap?: { cm: number; shape: "half" | "square" | "triangle" };
+  /** the crochet stitch's height against single crochet (긴뜨기 ~1.6, 한길긴뜨기 ~2.2) */
+  stitchH?: number;
 }
 export interface YarnInfo { round: boolean; widthCm: number; depthCm: number; heightCm: number | null; fit: string; skip: { stitch: number; row: number } | null }
 export interface YarnViewer {
@@ -320,7 +325,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const pick = (a: number[]) => { const o: number[] = []; for (let i = kk - 1; i < a.length; i += kk) o.push(Math.max(3, Math.round(a[i] / kk))); if (!o.length && a.length) o.push(Math.max(3, Math.round(a[a.length - 1] / kk))); return o; };
     const s: YarnShape = kk === 1 ? s0 : s0.kind === "round" ? { kind: "round", counts: pick(s0.counts), flat: s0.flat ? Math.max(1, Math.round(s0.flat / kk)) : 0 }
       : s0.kind === "oval" || s0.kind === "rect" ? { ...s0, chain: Math.max(2, Math.round(s0.chain / kk)), bottom: pick(s0.bottom), body: pick(s0.body) } : s0;
-    const rh = (pat.yarnMm + pat.hookMm) / MM * kk, sw = 2 * Math.PI * rh / 6;
+    const rh = (pat.yarnMm + pat.hookMm) / MM * kk * (pat.stitchH ?? 1), sw = 2 * Math.PI * rh / 6;
     const P: THREE.Vector3[] = [], E: Edge[] = [], C: Course[] = [], flat: number[] = [];
     const V = (x: number, y: number, z: number) => { P.push(new THREE.Vector3(x, y + (Math.random() - .5) * .01, z)); return P.length - 1; };
     const dist = (a: number, b: number) => P[a].distanceTo(P[b]);
@@ -566,8 +571,50 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         });
       });
     }
+    flapTip = addFlap(D, R, mat, M, step, geos);
     haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz);
     if (!opts.phone) addExtras(D, R);
+  }
+  // ---------- 덮개: rows across the opening from the back, over the top, then down the front as far as the flap
+  // is long; its outline below the front edge is the picked shape (반달 / 네모 / 세모). Returns where its tip is.
+  let flapTip: { p: THREE.Vector3; n: THREE.Vector3 } | null = null;
+  function addFlap(D: ItemData, R: number, mat: THREE.Material, M: number, step: number, geos: THREE.BufferGeometry[]) {
+    const f = pat.flap, k = pat.shape.kind; if (!f || !(f.cm > 0) || !(k === "round" || k === "oval" || k === "rect")) return null;
+    const top = D.C[D.C.length - 1]; if (!top || !top.closed || top.idx.length < 6) return null;
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, ry = 0;
+    top.idx.forEach(i => { const q = D.P[i]; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); ry += q.y; }); ry /= top.idx.length;
+    const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2 * .94, lift = R * 2.2, out = R * 3.4, drop = f.cm * 10 / MM, color = colorOf(top.ci);
+    // the centre line in (z, y): a low dome from the back edge to the front edge, then straight down the front
+    const line: [number, number, number][] = []; // z, y, share of the drop (-1 on the top)
+    const nTop = 24; for (let i = 0; i <= nTop; i++) { const t = i / nTop; line.push([z0 - out * (1 - t) * .3 + (z1 + out - z0) * t, ry + lift + Math.sin(Math.PI * t) * lift * 1.5, -1]); }
+    // down the front it lies on the wall: the wall's front at each height (a body widening downward leans out,
+    // and a flap hanging straight down would sink into it)
+    const frontZ = (y: number) => { let z = -1e9; for (const q of D.P) if (Math.abs(q.x - cx) < hw * .35 && Math.abs(q.y - y) < D.rh * .75 && q.z > z) z = q.z; return z > -1e9 ? z : z1; };
+    const nDrop = 24; for (let i = 1; i <= nDrop; i++) { const t = i / nDrop, y = ry + lift - (drop + lift) * t; line.push([Math.max(z1, frontZ(y)) + out, y, t]); }
+    const acc = [0]; for (let i = 1; i < line.length; i++) acc.push(acc[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1]));
+    const total = acc[acc.length - 1], rows = Math.max(3, Math.round(total / D.rh));
+    const at = (sv: number) => { let i = 1; while (i < acc.length - 1 && acc[i] < sv) i++; const t = (sv - acc[i - 1]) / Math.max(1e-9, acc[i] - acc[i - 1]); const a = line[i - 1], b = line[i]; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, b[2] < 0 ? -1 : (a[2] < 0 ? 0 : a[2]) + ((b[2]) - (a[2] < 0 ? 0 : a[2])) * t]; };
+    const half = (u: number) => f.shape === "square" ? hw : f.shape === "triangle" ? hw * Math.max(.06, 1 - u) : hw * Math.sqrt(Math.max(.01, 1 - u * u));
+    let prev: THREE.Vector3[] | null = null, tip: THREE.Vector3 | null = null;
+    const left: THREE.Vector3[] = [], right: THREE.Vector3[] = []; // the front part's edges, for its border
+    for (let r0 = 0; r0 <= rows; r0++) {
+      const [z, y, u] = at(total * r0 / rows), w = u < 0 ? hw : half(u), n = Math.max(2, Math.round(2 * w / D.sw)), row: THREE.Vector3[] = [];
+      for (let i = 0; i <= n; i++) row.push(new THREE.Vector3(cx - w + 2 * w * i / n, y, z));
+      const mk = (pts: THREE.Vector3[], rr: number) => { if (pts.length < 2) return; const cv = new THREE.CatmullRomCurve3(pts, false, "catmullrom", .5), sp = cv.getSpacedPoints(Math.max(8, Math.ceil(cv.getLength() / (rr * .75 * step)))); const g = buildYarn(sp, rr, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g); };
+      mk(row, R * .9);
+      if (prev) { const saw: THREE.Vector3[] = []; const pv = prev; row.forEach(q => { let best = pv[0], bd = 1e9; for (const o of pv) { const d = Math.abs(o.x - q.x); if (d < bd) { bd = d; best = o; } } saw.push(q.clone(), best.clone().lerp(q, .35)); }); mk(saw, R); }
+      if (u >= 0) { left.push(row[0].clone()); right.push(row[row.length - 1].clone()); }
+      prev = row; if (r0 === rows) tip = new THREE.Vector3(cx, y + D.rh * .6, z);
+    }
+    // the border all round the part on the front (down one side, along the bottom, up the other): a flap's
+    // edge is worked as a round of its own, and it is what makes the outline - 반달, 네모, 세모 - read
+    if (left.length > 1 && prev) {
+      const edge = [...left, ...prev.slice(1, -1).map(q => q.clone().setY(q.y - D.rh * .25)), ...right.reverse()];
+      const cv = new THREE.CatmullRomCurve3(edge, false, "catmullrom", .5), sp = cv.getSpacedPoints(Math.max(16, Math.ceil(cv.getLength() / (R * .7 * step))));
+      sp.forEach(q => { q.z += R * .5; });
+      const g = buildYarn(sp, R * 1.25, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
+    }
+    return tip ? { p: tip, n: new THREE.Vector3(0, 0, 1) } : null;
   }
   // ---------- 단추 / 라벨 / 지퍼 to try on (the 3D only; nothing of the pattern changes). On a piece with walls
   // they sit on the front wall and round the opening; on a flat piece the button and label lie on top.
@@ -591,15 +638,25 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     };
     const face = (o: THREE.Object3D, n: THREE.Vector3) => o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
     if (ex.button) {
-      const { p, n } = wall ? at(.72, 0) : { p: new THREE.Vector3(cx, b.my, cz), n: new THREE.Vector3(0, 1, 0) };
-      const g = new THREE.Group(), r = .95 * U, disc = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .16 * U * 2, 32), std(0xb88a5a, .62)); disc.rotation.x = Math.PI / 2; g.add(disc);
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(r * .82, .05 * U * 2, 8, 32), std(0xa57848, .6)); rim.position.z = .15 * U; g.add(rim);
-      for (const [hx, hy] of [[-.28, .28], [.28, .28], [-.28, -.28], [.28, -.28]]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(.13 * U, .13 * U, .36 * U, 10), std(0x4a372a, .9)); h.rotation.x = Math.PI / 2; h.position.set(hx * r, hy * r, 0); g.add(h); }
+      const ba = ex.buttonAt, gold = ex.buttonColor === "gold";
+      const { p, n } = ba ? (wall ? at(ba[1], ba[0] * Math.PI * .42) : { p: new THREE.Vector3(cx + ba[0] * (b.x1 - b.x0) / 2, b.my, cz - (ba[1] - .5) * (b.z1 - b.z0)), n: new THREE.Vector3(0, 1, 0) })
+        : flapTip ?? (wall ? at(.72, 0) : { p: new THREE.Vector3(cx, b.my, cz), n: new THREE.Vector3(0, 1, 0) });
+      const r = (ba?.[2] ?? 1.9) / 2 * U, g = new THREE.Group();
+      if (gold) {
+        // a gold dome, as on a handbag's clasp
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(r, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), std(0xd4af37, .28, .9)); dome.rotation.x = Math.PI / 2; dome.scale.set(1, .55, 1); g.add(dome);
+      } else {
+        const col = ex.buttonColor && /^#[0-9a-f]{6}$/i.test(ex.buttonColor) ? parseInt(ex.buttonColor.slice(1), 16) : 0xb88a5a;
+        const disc = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .16 * U * 2, 32), std(col, .62)); disc.rotation.x = Math.PI / 2; g.add(disc);
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(r * .82, .05 * U * 2, 8, 32), std(col, .6)); rim.position.z = .15 * U; g.add(rim);
+        for (const [hx, hy] of [[-.28, .28], [.28, .28], [-.28, -.28], [.28, -.28]]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(.13 * U, .13 * U, .36 * U, 10), std(0x4a372a, .9)); h.rotation.x = Math.PI / 2; h.position.set(hx * r, hy * r, 0); g.add(h); }
+      }
       face(g, n); g.position.copy(p).addScaledVector(n, R * 1.5 + .16 * U); put(g);
     }
     if (ex.label) {
-      const { p, n } = wall ? at(.34, .5) : at(1, .9);
-      const g = new THREE.Group(), w = 2.8 * U, h = 1.4 * U;
+      const la = ex.labelAt;
+      const { p, n } = la ? (wall ? at(la[1], la[0] * Math.PI * .42) : at(1, la[0])) : wall ? at(.34, .5) : at(1, .9);
+      const g = new THREE.Group(), w = (la?.[2] ?? 2.8) * U, h = w / 2;
       g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, .07 * U), std(0xf4ebdd, .95)));
       const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w * .86, h * .72)), new THREE.LineDashedMaterial({ color: lin(0xb99447), dashSize: .12 * U, gapSize: .1 * U })); edge.computeLineDistances(); edge.position.z = .045 * U; g.add(edge);
       const bar = new THREE.Mesh(new THREE.BoxGeometry(w * .42, h * .1, .02 * U), std(0x9c5d63, .9)); bar.position.z = .045 * U; g.add(bar);
@@ -615,12 +672,20 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       sp.forEach((q, i) => { pos.push(q.x, q.y + R * .4, q.z, q.x, q.y + R * .4 - hb, q.z); if (i < N) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); });
       const tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); tg.setIndex(idx); tg.computeVertexNormals();
       const tm = std(0x8e7b6b, .9); tm.side = THREE.DoubleSide; put(new THREE.Mesh(tg, tm));
-      const teeth = new THREE.InstancedMesh(new THREE.BoxGeometry(.2 * U, .18 * U, .26 * U), std(0xc9b37a, .35, .8), N), m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
-      for (let i = 0; i < N; i++) { const q = sp[i], t = cv.getTangent(i / N); q4.setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(t.x, 0, t.z).normalize()); m4.compose(new THREE.Vector3(q.x, q.y + R * .4, q.z), q4, one); teeth.setMatrixAt(i, m4); }
-      put(teeth);
-      const pull = new THREE.Group(), rt = at(1, Math.PI / 2); pull.add(new THREE.Mesh(new THREE.BoxGeometry(.5 * U, .45 * U, .5 * U), std(0xc9b37a, .3, .85)));
+      // 지퍼 잠그기 (Kim): closed up to the pull, the rest open - its two rows of teeth apart
+      const open = Math.max(0, Math.min(1, ex.zipOpen ?? 0)), shut = Math.round(N * (1 - open)), gap = .55 * U;
+      const teeth = new THREE.InstancedMesh(new THREE.BoxGeometry(.2 * U, .18 * U, .26 * U), std(0xc9b37a, .35, .8), N * 2), m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
+      let k4 = 0;
+      for (let i = 0; i < N; i++) {
+        const q = sp[i], t = cv.getTangent(i / N), nr = new THREE.Vector3(q.x - cx, 0, q.z - cz).normalize(); q4.setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(t.x, 0, t.z).normalize());
+        const sides = i < shut ? [0] : [-gap / 2, gap / 2];
+        for (const o of sides) { m4.compose(new THREE.Vector3(q.x + nr.x * o, q.y + R * .4, q.z + nr.z * o), q4, one); teeth.setMatrixAt(k4++, m4); }
+      }
+      teeth.count = k4; put(teeth);
+      const sq = sp[Math.min(N - 1, shut)], st0 = cv.getTangent(Math.min(N - 1, shut) / N), pull = new THREE.Group();
+      pull.add(new THREE.Mesh(new THREE.BoxGeometry(.5 * U, .45 * U, .5 * U), std(0xc9b37a, .3, .85)));
       const tab = new THREE.Mesh(new THREE.BoxGeometry(.32 * U, 1.1 * U, .08 * U), std(0xc9b37a, .3, .85)); tab.position.set(0, -.7 * U, .3 * U); pull.add(tab);
-      face(pull, rt.n.clone().negate()); pull.position.copy(rt.p).addScaledVector(rt.n, -R * 1.6); pull.position.y += R * .4; put(pull);
+      const pn = new THREE.Vector3(sq.x - cx, 0, sq.z - cz).normalize(); face(pull, pn); pull.position.set(sq.x, sq.y + R * .4, sq.z); void st0; put(pull);
     }
   }
   // knitted stockinette: one row = one strand of joined loops (the prototype's buildKnit)
