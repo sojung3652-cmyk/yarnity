@@ -319,6 +319,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // 3D로 보면서 만들기 (Kim): wide screens with the 3D book - after the name, the steps are made in the work
   // screen over the whole window, and the last page (확인) is in the book again
   const canMake = () => web && inBook != null && big3d.supported && matchMedia("(min-width: 901px)").matches;
+  const webStart = web && inBook != null && big3d.supported && !editId;
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
@@ -487,7 +488,15 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         onFresh={() => { const f = freshDraft(); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); }}
         onDraft={() => setStartDone(true)} onOpen={id => { setStartDone(true); book.editHere(id); }} />
     );
-    right = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} before={start} />;
+    // wide screens with the 3D (Kim): the first page asks only where to start - no steps, no name (the name is
+    // given on the 3D work screen's top); either way goes straight on into the work screen
+    right = webStart ? (
+      <div className="tp tp-start">
+        <StartChoice always draft={draft} projects={projects} mode={startMode} onMode={setStartMode}
+          onFresh={() => { const f = freshDraft(); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); next(); }}
+          onDraft={() => { setStartDone(true); next(); }} onOpen={id => { setStartDone(true); book.editHere(id); }} />
+      </div>
+    ) : <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} before={start} />;
     if (phone) phoneBody = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={null} before={start} />;
   } else if (step === 2) {
     left = (
@@ -802,7 +811,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     },
     doneLabel: "확인하기 →", blocked: !picked || !stepOk,
   } : undefined;
-  const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
+  const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
     // the first thing on the stage (Kim): the yarn as it will look, before any shape
     intro: <YarnCheck source={swatchSrc} plan={plan(swatchSrc)} big />,
@@ -874,6 +883,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             ? <LaceButton variant="mocha" width={360} type="submit" className="nb-final-lace" aria-disabled={blockNext || undefined}>
                 <small>마지막 단계</small>완성 · 최종 도안 보기 →
               </LaceButton>
+            : step === 1 && webStart ? null
             : <ClothLabel side="next" type="submit" blocked={blockNext || (step === 3 && !sheetOk)}>{nextLabel[step]}</ClothLabel>}
         </div>
       </section>

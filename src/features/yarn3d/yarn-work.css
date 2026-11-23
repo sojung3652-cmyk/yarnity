@@ -179,3 +179,12 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-stage.is-dark .yw-intro,.yw-stage.is-dark .sk-big{background:#2B2725}
 .yw-stage.is-dark .sk-big .sk-side{color:#F3ECE2}
 .yw-intro .y3-page-tools{left:16px}
+
+/* the name given on the work screen's top (Kim) */
+.yw-name-in{display:flex;align-items:baseline;gap:0}
+.yw-name-in input{width:220px;height:32px;padding:0 8px;border:0;border-radius:4px;background:transparent;font:inherit;font-size:16px;font-weight:600;color:inherit;box-shadow:inset 0 -1px 0 #CBBBA8}
+.yw-name-in input:hover,.yw-name-in input:focus{background:#FFFDF8;outline:none;box-shadow:inset 0 0 0 1px #B9A58E}
+.yw-name-in input::placeholder{color:#9A8F88;font-weight:500}
+/* the first page: only where to start */
+.tp-start{justify-content:center}
+.st-none{margin-top:10px}

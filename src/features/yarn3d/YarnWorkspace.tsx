@@ -19,6 +19,8 @@ import "./yarn-work.css";
 
 export interface WorkExtra {
   title?: string; sub?: string;
+  /** the piece's name, given here (Kim: named once the 3D opens, not on the book's first page) */
+  name?: { value: string; onChange: (v: string) => void };
   /** the size the pattern is made for (the engine's own measure of the 3D is shown when missing) */
   caption?: string;
   /** 재기: the sizes the pattern is made for, [across, up or deep] in cm, written on the measuring lines (the
@@ -45,6 +47,9 @@ const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["ca
 const Ic = ({ d, s = 22 }: { d: string; s?: number }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 const HINT = "드래그 돌리기 · 스크롤 확대 · 스페이스+드래그 옮기기";
 
+/** how light a colour is, 0 (black) to 1 (white) */
+const lum = (h?: string) => { if (!h || !/^#[0-9a-f]{6}$/i.test(h)) return 1; const n = parseInt(h.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= .04 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+
 const Opt = ({ on, onClick, children }: { on?: boolean; onClick: () => void; children: ReactNode }) => <button type="button" className="yw-opt" aria-pressed={on} onClick={onClick}>{children}</button>;
 
 export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: YarnPattern; onClose: () => void; extra?: WorkExtra }) {
@@ -60,9 +65,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const [intro, setIntro] = useState(!!extra?.intro);
   // a piece made from a drawing shows at once, beside it (Kim): the yarn check steps aside
   useEffect(() => { const f = () => setIntro(false); window.addEventListener("yw:shape", f); return () => window.removeEventListener("yw:shape", f); }, []);
-  // the stage light or dark (Kim), remembered in this browser
-  const [dark, setDark] = useState(() => { try { return localStorage.getItem("yw.bg") === "dark"; } catch { return false; } });
-  const pickBg = (d: boolean) => { setDark(d); try { localStorage.setItem("yw.bg", d ? "dark" : "light"); } catch { /* not kept */ } };
+  // the stage dark by default (Kim), and light by itself when the yarn picked is dark (it would sink into the
+  // dark); the reader can still pick either, until the yarn's colour changes again
+  const yarnDark = lum(pattern.colors?.[0]) < .22;
+  const [dark, setDark] = useState(!yarnDark);
+  useEffect(() => { setDark(!yarnDark); }, [yarnDark]);
+  const pickBg = (d: boolean) => setDark(d);
   const toShape = () => { setIntro(false); root.current?.querySelector("#yw-draw")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
   // the book stops, the page stays still, the way back takes the focus; Esc closes, Tab stays inside
@@ -71,10 +79,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
     backRef.current?.querySelector("button")?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onClose(); return; }
+      const pop = root.current?.querySelector<HTMLElement>(".sk-pop");
+      if (e.key === "Escape") { if (pop) return; e.preventDefault(); e.stopPropagation(); onClose(); return; }
       if (e.key !== "Tab" || !root.current) return;
       e.stopPropagation();
-      const f = [...root.current.querySelectorAll<HTMLElement>('button, input, [tabindex="0"]')].filter(x => !x.hasAttribute("disabled") && x.tabIndex >= 0 && x.offsetParent !== null);
+      const f = [...(pop ?? root.current).querySelectorAll<HTMLElement>('button, input, [tabindex="0"]')].filter(x => !x.hasAttribute("disabled") && x.tabIndex >= 0 && x.offsetParent !== null);
       if (!f.length) return;
       const i = f.indexOf(document.activeElement as HTMLElement), j = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i < 0 || i === f.length - 1 ? 0 : i + 1);
       e.preventDefault(); f[j].focus();
@@ -121,7 +130,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()} onSubmit={e => e.stopPropagation()}>
       <div className="yw-top">
         <span ref={backRef} className="yw-back"><ClothLabel side="back" type="button" onClick={onClose}>{extra?.backLabel ?? "← 돌아가기"}</ClothLabel></span>
-        <p className="yw-name">{extra?.title ?? "3D 미리 보기"}{extra?.sub && <small>{extra.sub}</small>}</p>
+        {extra?.name
+          ? <label className="yw-name yw-name-in"><span className="sr">작품 이름</span>
+              <input value={extra.name.value} maxLength={40} placeholder="작품 이름" autoComplete="off" spellCheck={false}
+                onChange={e => extra.name!.onChange(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }} />
+              {extra.sub && <small>{extra.sub}</small>}</label>
+          : <p className="yw-name">{extra?.title ?? "3D 미리 보기"}{extra?.sub && <small>{extra.sub}</small>}</p>}
         {!noGL && <>
           <span className="yw-sep" aria-hidden="true" />
           <span className="yw-lb">보는 방향</span>

@@ -40,9 +40,10 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
   const [view, setView] = useState<View>("front"), [tool, setTool] = useState<Tool>("pen");
   const [ink, setInk] = useState(INKS[0]), [width, setWidth] = useState(4);
   const [note, setNote] = useState(""), [busy, setBusy] = useState(false), [msg, setMsg] = useState<string | null>(null);
-  // 크게 그리기 (Kim): the pad spread over the 3D stage, its tools down its side; it folds back once the piece is made
+  // the pop-up pad (Kim, on the work screen only): open or not; it closes once the piece is made
   const [big, setBig] = useState(false), [canBig, setCanBig] = useState(false), root = useRef<HTMLDivElement>(null);
   useEffect(() => { setCanBig(!!root.current?.closest(".yw")); }, []);
+  useEffect(() => { if (big) requestAnimationFrame(() => cv.current?.focus({ preventScroll: true })); }, [big]);
   const [, redraw] = useState(0), last = useRef<[number, number] | null>(null), hover = useRef<[number, number] | null>(null);
   const sheet = (v: View) => { let c = sheets.current[v]; if (!c) { c = document.createElement("canvas"); c.width = S; c.height = S; sheets.current[v] = c; } return c; };
   const has = (v: View) => { const c = sheets.current[v]; if (!c) return false; const d = c.getContext("2d")!.getImageData(0, 0, S, S).data; for (let i = 3; i < d.length; i += 16) if (d[i] > 20) return true; return false; };
@@ -140,34 +141,39 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
     if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) { e.preventDefault(); undo(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey || (e.target as HTMLElement).tagName === "INPUT") return;
     const t = TOOLS.find(x => x[2] === e.key.toUpperCase()); if (t) { e.preventDefault(); setTool(t[0]); }
-    if (e.key === "Escape" && big) { e.preventDefault(); setBig(false); }
+    if (e.key === "Escape" && big) { e.preventDefault(); e.stopPropagation(); setBig(false); }
   };
 
-  const controls = <>
-      <div className="sk-head">
-        <div className="sk-views" role="tablist" aria-label="그리는 면">
-          {VIEWS.map(([v, label]) => <button key={v} type="button" role="tab" aria-selected={view === v} className={"sk-view" + (has(v) ? " is-drawn" : "")} onClick={() => setView(v)}>{label}{has(v) && <i aria-hidden="true" />}</button>)}
-        </div>
-        {canBig && <button type="button" className="pp-mini sk-bigbtn" aria-pressed={big} onClick={() => setBig(b => !b)}>{big ? "작게" : "크게 그리기"}</button>}
+  const views = (
+      <div className="sk-views" role="tablist" aria-label="그리는 면">
+        {VIEWS.map(([v, label]) => <button key={v} type="button" role="tab" aria-selected={view === v} className={"sk-view" + (has(v) ? " is-drawn" : "")} onClick={() => setView(v)}>{label}{has(v) && <i aria-hidden="true" />}</button>)}
       </div>
+  );
+  const tools = (
       <div className="sk-tools" role="toolbar" aria-label="그리기 도구">
         {TOOLS.map(([k, label, key, d]) => <button key={k} type="button" className="sk-tool" aria-pressed={tool === k} title={`${label} (${key})`} onClick={() => setTool(k)}><Ic d={d} />{label}<kbd>{key}</kbd></button>)}
       </div>
+  );
+  const inks = (
       <div className="sk-inks" role="radiogroup" aria-label="펜 색">
         <span className="pp-lb">색</span>
         {INKS.map(h => <button key={h} type="button" role="radio" aria-checked={ink === h} aria-label={h} className="sk-ink" style={{ background: h }} onClick={() => { setInk(h); if (tool === "eraser" || tool === "liquify") setTool("pen"); }} />)}
         <label className="pp-add" title="다른 색"><span aria-hidden="true">+</span><input type="color" aria-label="다른 색" value={ink} onChange={e => { setInk(e.target.value); if (tool !== "fill") setTool("pen"); }} /></label>
       </div>
+  );
+  const widthRow = (
       <div className="pp-line">
         {tool !== "fill" ? <Slide label={tool === "liquify" ? "붓 크기" : tool === "eraser" ? "지우개 크기" : "펜 굵기"} min={1} max={12} step={1} value={width} onChange={setWidth} text={`${width}`} /> : <span className="pp-hint">선 안쪽을 누르면 칠해집니다</span>}
       </div>
+  );
+  const acts = (
       <div className="sk-acts">
         <button type="button" className="pp-mini" onClick={undo} title="되돌리기 (Ctrl+Z)"><Ic d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />되돌리기</button>
         <button type="button" className="pp-mini" onClick={clear}>이 면 지우기</button>
         <button type="button" className="pp-mini" onClick={() => file.current?.click()}><Ic d="M4 7h3l2-2.5h6L17 7h3v12H4zM12 10a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7z" />사진 불러오기</button>
         <input ref={file} type="file" accept="image/*" hidden onChange={e => onFile(e.target.files?.[0])} />
       </div>
-  </>;
+  );
   const paper = (
       <canvas ref={cv} className={"pp-pad sk-pad is-" + tool} style={{ touchAction: "none" }} tabIndex={0}
         aria-label={`${VIEWS.find(v => v[0] === view)![1]}을 그리는 종이`} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={() => { hover.current = null; draw(); }} />
@@ -182,18 +188,41 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
       </div>
       <p className="nb-help sk-tip">앞면은 꼭, 옆면은 두께를 알려 줍니다. 안을 칠하면 모양을 더 정확히 잽니다.</p>
   </>;
-  // 크게 그리기: the paper and its tools moved onto the 3D stage beside the panel, the panel saying where they went
-  const stage = big && root.current ? root.current.closest(".yw")?.querySelector(".yw-stage") : null;
-  if (stage) return (
-    <div ref={root} className="pp sk sk-away">
-      <p className="nb-help">왼쪽 큰 종이에서 그리는 중입니다.</p>
-      <button type="button" className="pp-mini" onClick={() => setBig(false)}>작게 돌아오기</button>
-      {createPortal(<div className="sk-big" onKeyDown={onKey}><div className="sk-paper">{paper}</div><div className="pp sk sk-side">{controls}{after}</div></div>, stage)}
+
+  // the work screen (Kim): the pad is a pop-up window over it, laid out as Photoshop is - the tools down the
+  // left, the paper in the middle, colour, size and the way on down the right. The column keeps a small card:
+  // the faces drawn so far and the button that opens it.
+  const host = big && root.current ? root.current.closest(".yw") : null;
+  if (canBig) return (
+    <div ref={root} className="pp sk sk-card">
+      <div className="sk-thumbs">
+        {VIEWS.map(([v, label]) => {
+          const c = has(v) ? sheets.current[v]!.toDataURL() : null;
+          return <button key={v} type="button" className="sk-thumb" onClick={() => { setView(v); setBig(true); }} aria-label={`${label} 그리기`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {c ? <img src={c} alt="" /> : <i aria-hidden="true" />}<span>{label}</span></button>;
+        })}
+      </div>
+      <button type="button" className="sk-open" onClick={() => setBig(true)}><Ic d={TOOLS[0][3]} />그림판 열기</button>
+      {msg && !big && <p className="nb-help" role="status">{msg}</p>}
+      {host && createPortal(<>
+        <div className="sk-pop-dim" aria-hidden="true" onClick={() => setBig(false)} />
+        <div className="sk-pop" role="dialog" aria-modal="true" aria-label="그림판" onKeyDown={onKey}>
+          <div className="sk-pop-top">
+            <b>그림판</b>{views}
+            <button type="button" className="pp-mini sk-pop-x" onClick={() => setBig(false)}>닫기<kbd>Esc</kbd></button>
+          </div>
+          <div className="sk-pop-tools">{tools}{acts}</div>
+          <div className="sk-pop-paper">{paper}</div>
+          <div className="sk-pop-side">{inks}{widthRow}{after}</div>
+        </div>
+      </>, host)}
     </div>
   );
   return (
     <div ref={root} className="pp sk" onKeyDown={onKey}>
-      {controls}
+      <div className="sk-head">{views}</div>
+      {tools}{inks}{widthRow}{acts}
       {paper}
       {after}
     </div>

@@ -5,20 +5,23 @@ import type { Draft, Project } from "@/lib/types";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { Tiles } from "./WebPages";
 
-export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, onOpen }: {
+export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, onOpen, always }: {
   draft: Draft; projects: Project[]; mode: "new" | "go" | null;
   onMode: (m: "new" | "go") => void; onFresh: () => void; onDraft: () => void; onOpen: (id: string) => void;
+  /** the first page on wide screens (Kim): this choice in place of the name, shown even with nothing to go on with */
+  always?: boolean;
 }) {
   const hasDraft = !!(draft.itemPicked || draft.name.trim() || draft.free || draft.paint);
   const works = [...projects].sort((a, b) => (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created)).slice(0, 6);
-  if (!hasDraft && !works.length) return null;
+  if (!hasDraft && !works.length && !always) return null;
   const day = (t: number) => new Date(t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
   return (
     <div className="st nb-web">
       <p className="st-ask">어디서부터 시작하시겠습니까?</p>
       <Tiles label="시작" value={mode ?? ""} cols={2} onPick={v => { onMode(v as "new" | "go"); if (v === "new") onFresh(); }}
         options={[["new", "새로 시작", "빈 종이에서"], ["go", "이어서 하기", "만들던 것 불러오기"]]} />
-      {mode === "go" && (
+      {mode === "go" && !hasDraft && !works.length && <p className="nb-help st-none">이어서 할 것이 아직 없습니다. 새로 시작해 주십시오.</p>}
+      {mode === "go" && (hasDraft || !!works.length) && (
         <ul className="st-list">
           {hasDraft && (
             <li><button type="button" onClick={onDraft}>
