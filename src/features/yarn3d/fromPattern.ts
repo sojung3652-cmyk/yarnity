@@ -68,5 +68,6 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
   return { shape, colors: [color], yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
     ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
+    ...(p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper) ? { extras: p.extras } : {}) };
 }

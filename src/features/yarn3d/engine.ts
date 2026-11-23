@@ -52,6 +52,9 @@ export interface YarnPattern {
   /** the reader's own hairiness (Kim: 털 양, 털 길이 turned while looking): 1 is the material's own; 0 none */
   fuzzK?: number;
   hairK?: number;
+  /** how the opening is finished (Kim: a pouch is not an open tub): "pinch" - the two long sides meet along
+   *  the top, as a zipped pouch lies; "cinch" - drawn in a little, a bucket bag's gathered top */
+  top?: "pinch" | "cinch";
   /** how many strands side by side a strap is (1-5; 3 when missing) */
   strapW?: number;
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼) */
@@ -632,11 +635,22 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // Not on phones (their 3D stays as it was).
   let rest: Float32Array | null = null;
   function soften(D: ItemData) {
-    if (D.fixed || !rest || opts.phone || rest.length !== D.P.length * 3) return;
+    if (D.fixed || !rest || rest.length !== D.P.length * 3) return;
     for (let i = 0; i < D.P.length; i++) D.P[i].set(rest[i * 3], rest[i * 3 + 1], rest[i * 3 + 2]);
-    const s = Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
-    if (s < .03) return;
     const b = boxOf(D), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, H = b.my, rm = Math.max(b.x1 - b.x0, b.z1 - b.z0) / 2 || 1;
+    // the opening first: a pouch's long sides come together along the top (its ends spread a little, the
+    // same fabric lying flatter); a bucket bag's top is gathered in
+    if (pat.top && H > D.rh * 3) {
+      const longX = b.x1 - b.x0 >= b.z1 - b.z0;
+      for (const p of D.P) {
+        if (p.y <= D.rh * .5) continue;
+        const t = Math.min(1, p.y / H);
+        if (pat.top === "pinch") { const f = t ** 1.25, sq = 1 - f * .94, wd = 1 + f * .1; if (longX) { p.z = cz + (p.z - cz) * sq; p.x = cx + (p.x - cx) * wd; } else { p.x = cx + (p.x - cx) * sq; p.z = cz + (p.z - cz) * wd; } }
+        else { const u = Math.max(0, (t - .7) / .3), f = u * u * (3 - 2 * u), th = Math.atan2(p.z - cz, p.x - cx), k = 1 - f * (.2 + .03 * Math.sin(9 * th)); p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; }
+      }
+    }
+    const s = opts.phone ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
+    if (s < .03) return;
     if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
       for (const p of D.P) { const k = (Math.hypot(p.x - cx, p.z - cz) / rm) ** 2.4; p.y += s * D.rh * .7 * k * (.5 + .5 * Math.sin(3 * Math.atan2(p.z - cz, p.x - cx) + 1.3)); }
       return;
@@ -807,11 +821,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   return {
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
-      if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; } // another kind of piece: the camera starts over
+      if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; }
+      const retop = p.top !== pat.top; // another kind of piece: the camera starts over
       pat = p;
       if (mat) Object.assign(st, presetOf(p.material));
       if (reshape) startItem();
-      else if (IT.data?.done) { if (mat) soften(IT.data); showItem(); if (refocus) frameOn(IT.data); else if (opts.fit && framed && needsFit(IT.data) && !(pat.focus === "fabric" && IT.data.knit)) fitAll(IT.data, viewDir()); } // colour, material or stitch pattern: the yarn again, the shape as it is (a softer yarn gives more)
+      else if (IT.data?.done) { if (mat || retop) soften(IT.data); showItem(); if (refocus) frameOn(IT.data); else if (opts.fit && framed && needsFit(IT.data) && !(pat.focus === "fabric" && IT.data.knit)) fitAll(IT.data, viewDir()); } // colour, material or stitch pattern: the yarn again, the shape as it is (a softer yarn gives more)
     },
     setMaterial(m) {
       if (m === st.preset) return;
