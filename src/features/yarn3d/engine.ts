@@ -993,10 +993,11 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // a drawn body: its rounds laid on the drawing's own outline - nothing else bends it afterwards
     if (pat.outline && layOnOutline(D, pat.outline, b.x1 - b.x0 >= b.z1 - b.z0, cx, cz)) { if (pat.gravity) drape(D); return; }
     if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
-    const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
+    // every yarn a notch softer than its own measure (Kim: 좀만 더 흐물거리게); a stiff one (cord, raffia, jute) stays stiff
+    const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * 1.25 * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
     if (s < .03) return;
     if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
-      const soft = Math.max(0, s - .3) / .7, A = Math.min(D.rh, rm * .06); // soft: 0 for firm yarns (cotton, cord), up to 1 for mohair; A: gentle against the piece's size
+      const soft = Math.max(0, s - .25) / .75, A = Math.min(D.rh, rm * .07); // soft: 0 for firm yarns (cotton, cord), up to 1 for mohair; A: gentle against the piece's size
       for (const p of D.P) {
         const u = (p.x - cx) / rm, v = (p.z - cz) / rm, k = (Math.hypot(u, v)) ** 2.4;
         const edge = .5 + .5 * Math.sin(3 * Math.atan2(v, u) + 1.3);

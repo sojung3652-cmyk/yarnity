@@ -143,7 +143,6 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     <div ref={root} className={"yw" + (mk ? " yw-mk" : "")} role="dialog" aria-modal="true" aria-label="3D 작업 화면" data-built-ms={builtMs ?? undefined}
       onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()} onSubmit={e => e.stopPropagation()}>
       <div className="yw-top">
-        <span ref={backRef} className="yw-back"><ClothLabel side="back" type="button" onClick={onClose}>{extra?.backLabel ?? "← 돌아가기"}</ClothLabel></span>
         {extra?.name
           ? <label className="yw-name yw-name-in"><span className="sr">작품 이름</span>
               <input value={extra.name.value} maxLength={40} placeholder="작품 이름" autoComplete="off" spellCheck={false}
@@ -167,6 +166,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             </div>
           </div>
         </>}
+        {/* the way back as a plain X at the right end (Kim) */}
+        <span ref={backRef} className="yw-x"><button type="button" aria-label={(extra?.backLabel ?? "돌아가기").replace(/[←\s]+/, "").trim() + " 돌아가기"} title="닫기 (Esc)" onClick={onClose}><Ic s={22} d="M6 6l12 12M18 6L6 18" /></button></span>
       </div>
 
 
@@ -237,6 +238,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
 
       <div className="yw-stat" aria-live="polite">
         <span>{empty ? "뜰 것을 고르면 3D로 보여 드립니다." : <>{size ? <b>{size}</b> : "모양을 계산하고 있습니다."}{info && <>{info.fit}</>}</>}</span>
+        {/* Kim: the made piece is knitted fabric - it stretches, so it will not keep exactly this shape and size */}
+        <span className="yw-stretch">실제 결과물은 뜨개 편물의 특성상 신축성 있게 만들어져, 크기와 모양이 화면과 조금 다를 수 있습니다.</span>
       </div>
     </div>
   </>, document.body);
