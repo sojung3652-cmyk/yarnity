@@ -24,7 +24,7 @@ import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
 import { GoldX } from "@/components/GoldX";
 import { SuppliesPage, YarnPage, yarnStepOk, yarnThickOk } from "./YarnStep";
-import { Head, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
+import { Head, PanelYarn, Tiles, WebCheck, WebHook, WebItems, WebStitch, WebYarn } from "./WebPages";
 import { isKnit, stitchOf } from "@/lib/knit";
 import { yarnUse } from "@/lib/yarnUse";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
@@ -35,7 +35,7 @@ import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import { AskAiLine } from "@/components/AskAiLine";
 import { AiTab } from "@/components/AiTab";
 import { LaceButton } from "@/components/diary/Diary";
-import { useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
+import { partsOf, useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import "./newbook.css";
@@ -223,8 +223,30 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
   const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch }), [input, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch]);
-  // 크게 보기 on the left page (web): the full-screen 3D
-  const big3d = useYarn3D(yarnSrc, pp);
+  // the left page's one line under the 3D (web): the size the pattern is made for
+  const sizeCaption = (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
+    : (input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`) + (input.object === "bag" && input.h ? ` · 높이 ${input.h}cm` : ""))
+    + (item.handles && draft.handle !== "none" && handleCmOf(draft) ? ` · 손잡이 ${handleCmOf(draft)}cm` : "");
+  // 작업 화면으로 크게 on the left page (web): the 3D work screen, its panels change this draft (the yarn, the
+  // size); back in the book the pages' own inputs start again from the draft (rev)
+  const workPanel = (
+    <>
+      <section className="yw-pan" aria-label="실"><h3>실</h3><PanelYarn draft={draft} patch={patch} /></section>
+      <section className="yw-pan" aria-label="크기"><h3>크기<small>{item.name}</small></h3>
+        <div className="nb-web"><div className="nb-two nb-wtwo">
+          {fields.map(f => (
+            <Field key={item.id + f.key + draft.shape} label={f.label} error={errors[f.key]}>
+              {(id, eb) => <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={nums[f.key]} onChange={e => setNum(f.key)(e.target.value)} />}
+            </Field>
+          ))}
+          {!!item.handles && draft.handle !== "none" && <CmInput label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} onValue={v => { if (v) patch({ handle: "short", handleCm: v }); }} />}
+        </div></div>
+      </section>
+    </>
+  );
+  const big3d = useYarn3D(yarnSrc, pp, { title: item.name, sub: draft.name.trim() || NO_NAME, caption: sizeCaption, panel: workPanel, backLabel: "← 책으로",
+    dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
+    parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1) });
   // a bag option turned on but left with an invalid number (stored as 0) blocks the last step
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
@@ -562,10 +584,6 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} />;
   }
 
-  // the left page's one line under the 3D (web): the size the pattern is made for
-  const sizeCaption = (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
-    : (input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`) + (input.object === "bag" && input.h ? ` · 높이 ${input.h}cm` : ""))
-    + (item.handles && draft.handle !== "none" && handleCmOf(draft) ? ` · 손잡이 ${handleCmOf(draft)}cm` : "");
   const phoneNext: Record<Step, string> = { 1: "다음 · 품목 ↑", 2: "다음 · 실과 바늘 ↑", 3: "다음 · 준비물 확인 ↑", 4: "완성 · 최종 도안 보기" };
   const phoneStep: PhoneStep | undefined = phone ? {
     step, title: titles[step], ask: step === 2 ? "item" : step === 3 ? "yarn" : null, body: phoneBody,

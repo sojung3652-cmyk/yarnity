@@ -8,27 +8,45 @@ import dynamic from "next/dynamic";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { ClothLabel } from "@/components/newbook/ClothLabel";
 import { ClothPatch } from "@/components/diary/Diary";
-import { plan as planOf, type Plan } from "@/lib/pattern";
+import { PART_KO, plan as planOf, type Plan } from "@/lib/pattern";
+import type { WorkExtra } from "./YarnWorkspace";
 import { toYarnPattern, type YarnSource } from "./fromPattern";
 import "./yarn3d-place.css";
 
 const YarnPreview = dynamic(() => import("./YarnPreview"), { ssr: false });
+// wide screens (web): the work screen - tools, the 3D, panels; phones keep YarnPreview
+const YarnWorkspace = dynamic(() => import("./YarnWorkspace"), { ssr: false });
+
+/** a plan's parts in the order they are made, with their counts (the work screen's 부분) */
+export function partsOf(pp: Plan, startName?: string): [string, string][] {
+  const out: [string, string][] = [];
+  let i = 0;
+  while (i < pp.rows.length) {
+    const part = pp.rows[i].part; let j = i; while (j + 1 < pp.rows.length && pp.rows[j + 1].part === part) j++;
+    const n = Math.round(pp.rows[j].n), c = j - i + 1;
+    out.push([part === "start" && startName ? startName : PART_KO[part], part === "start" || part === "handle" ? `${n}코` : `${c}단 · ${n}코`]);
+    i = j + 1;
+  }
+  return out;
+}
 
 /** `source` may be missing while the work loads (hooks run before a screen's early return) */
-export function useYarn3D(source: YarnSource | null | undefined, pp?: Plan | null) {
-  const raw = useMemo(() => (source ? toYarnPattern(source, pp ?? planOf(source)) : null), [source, pp]);
+export function useYarn3D(source: YarnSource | null | undefined, pp?: Plan | null, extra?: WorkExtra) {
+  const thePlan = useMemo(() => (source ? pp ?? planOf(source) : null), [source, pp]);
+  const raw = useMemo(() => (source && thePlan ? toYarnPattern(source, thePlan) : null), [source, thePlan]);
   // the same pattern stays the same object while its values do not change: screens make a new plan on every
   // render, and a new object would restart the open 3D view (YarnPreview builds again when `pattern` changes)
   const last = useRef<{ key: string; pattern: typeof raw }>({ key: "", pattern: null });
   const key = raw ? JSON.stringify(raw) : "";
   if (last.current.key !== key) last.current = { key, pattern: raw };
   const pattern = last.current.pattern;
-  const [open, setOpen] = useState(false);
-  const back = useRef<HTMLElement | null>(null);
-  const show = useCallback(() => { back.current = document.activeElement as HTMLElement | null; setOpen(true); }, []);
+  const [open, setOpen] = useState<false | "phone" | "wide">(false);
+  const back = useRef<HTMLElement | null>(null), ex = useRef(extra); ex.current = extra;
+  const show = useCallback(() => { back.current = document.activeElement as HTMLElement | null; setOpen(matchMedia("(min-width: 901px)").matches ? "wide" : "phone"); }, []);
   // focus goes back to what opened it (when it is still on the screen)
-  const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => { if (back.current?.isConnected) back.current.focus({ preventScroll: true }); }); }, []);
-  const node: ReactNode = open && pattern ? <YarnPreview pattern={pattern} onClose={close} /> : null;
+  const close = useCallback(() => { setOpen(false); ex.current?.onClosed?.(); requestAnimationFrame(() => { if (back.current?.isConnected) back.current.focus({ preventScroll: true }); }); }, []);
+  const parts = useMemo(() => (thePlan ? partsOf(thePlan) : []), [thePlan]);
+  const node: ReactNode = !open || !pattern ? null : open === "wide" ? <YarnWorkspace pattern={pattern} onClose={close} extra={{ parts, ...extra }} /> : <YarnPreview pattern={pattern} onClose={close} />;
   return { supported: !!pattern, show, node };
 }
 

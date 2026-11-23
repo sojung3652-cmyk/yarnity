@@ -99,6 +99,50 @@ export function WebItems({ value, onPick, tried, hint, extra }: { value: ItemId 
 // the materials shown at once (the rest under 더 보기); the 3D draws each of them its own way
 const WEB_MATERIALS = ["코튼", "울", "메리노", "알파카", "모헤어", "아크릴", "리넨", "실크", "벨벳(셔닐)", "라피아", "코드사", "메탈릭"];
 
+// ---------------------------------------------------------------- the work screen's 실 panel (크게 보기)
+/** The yarn in the 3D work screen's narrow column: thickness, colour, material - the same values as the
+ *  book's 실 page (a thickness that is not a valid number yet leaves the last one in place). */
+export function PanelYarn({ draft, patch }: { draft: Draft; patch: Patch }) {
+  const [mmRaw, setMmRaw] = useState(draft.yarnMm != null ? String(draft.yarnMm) : "");
+  const good = (v: number) => Number.isFinite(v) && v >= YARN_MM_RANGE[0] && v <= YARN_MM_RANGE[1];
+  const mm = parseNum(mmRaw);
+  const setMm = (raw: string) => { setMmRaw(raw); const v = parseNum(raw); if (good(v)) { const r = Math.round(v * 10) / 10; patch({ yarnMm: r, weight: weightFromMm(r), yarnMode: "mm" }); } };
+  const mats = draft.materials ?? [];
+  const toggleMat = (m: string) => patch({ materials: mats.includes(m) ? mats.filter(x => x !== m) : [...mats, m] });
+  const preset = draft.color ? COLORS.find(([n, hex]) => hex === draft.color && n === draft.colorName) : undefined;
+  return (
+    <div className="nb-web">
+      <div className="nb-wg">
+        <Head>굵기</Head>
+        <div className="nb-wrow">
+          <span className="nb-box"><input inputMode="decimal" autoComplete="off" aria-label="실 굵기 (mm)" aria-invalid={mmRaw.trim() !== "" && !good(mm)} value={mmRaw} onChange={e => setMm(e.target.value)} placeholder="예: 3.2" /><span>mm</span></span>
+          {good(mm) && <span className="nb-wtag">{YARN_KO[weightFromMm(Math.round(mm * 10) / 10)]} 굵기</span>}
+        </div>
+      </div>
+      <div className="nb-wg">
+        <Head>색</Head>
+        <div className="nb-dots nb-wdots" role="radiogroup" aria-label="실 색">
+          {COLORS.map(([n, hex]) => {
+            const on = preset?.[0] === n;
+            return <button key={n} type="button" role="radio" aria-checked={on} aria-label={n} title={n} className="nb-dot-color" style={{ background: hex }}
+              onClick={() => patch(on ? { color: undefined, colorName: undefined } : { color: hex, colorName: n })} />;
+          })}
+          <label className={"nb-picker" + (!preset && draft.color ? " is-own" : "")} title="팔레트에서 색 고르기">
+            <span className="nb-picker-dot" aria-hidden="true">{!preset && draft.color ? <i style={{ background: draft.color }} /> : <i className="nb-wheel" />}</span>
+            <input type="color" aria-label="팔레트에서 색 고르기" value={!preset && draft.color ? draft.color : "#F0C1CA"} onChange={e => patch({ color: e.target.value, colorName: undefined })} />
+          </label>
+        </div>
+      </div>
+      <div className="nb-wg">
+        <Head>재질</Head>
+        <div className="nb-tiles nb-tiles-3" role="group" aria-label="재질 (여러 개)">
+          {WEB_MATERIALS.map(m => <button key={m} type="button" className="nb-tile" aria-pressed={mats.includes(m)} onClick={() => toggleMat(m)}>{m === "벨벳(셔닐)" ? "셔닐" : m}</button>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- 실
 export function WebYarn({ draft, patch, tried }: { draft: Draft; patch: Patch; tried: boolean }) {
   const [open, toggle] = useOneOpen();
