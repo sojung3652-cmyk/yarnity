@@ -8,13 +8,14 @@
 //   가방 모양    - body, flap, handle as tiles (bags only; NewBook.tsx builds it)
 //   무늬         - a knitted item's stitch pattern as chart tiles (WebStitch)
 // Phones keep YarnStep.tsx's pages as they are.
-import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import type { Draft } from "@/lib/types";
 import { CROCHET, YARN_KO, type CrochetStitch, type Weight } from "@/lib/pattern";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
 import { familiesOf, PATTERN_BY_ID, STITCH_PATTERNS, type StitchPattern } from "@/lib/stitchPatterns";
-import { CHART_MULT, CHART_ROWS, type ChartKey } from "@/lib/crochetChart";
+import { CHART_MULT, CHART_ROWS, type Chart, type ChartKey } from "@/lib/crochetChart";
+import { chartFor } from "@/lib/stitchCharts";
 import { GROUPS, ITEM, ITEMS, type Item, type ItemId } from "@/lib/items";
 import { Fold, useOneOpen } from "./Fold";
 import { ItemArt } from "./ItemArt";
@@ -386,6 +387,59 @@ export function CrochetChart({ k }: { k: CrochetStitch }) {
     </svg>
   );
 }
+/** A named pattern's chart (lib/stitchCharts) as a small drawing of the fabric for its tile: each stitch a
+ *  stroke of yarn from where it is worked into up to its head, knit stitches as Vs, purls as bumps, chains and
+ *  holes as rings, bobbles as filled ovals; the other colours as they fall; a square from the middle. */
+const YARN_INK = ["#9C6F69", "#E2C49A", "#5E4744"];
+export function ChartPicture({ name }: { name: string }) {
+  const c = useMemo<Chart | null>(() => chartFor(name), [name]);
+  if (!c) return null;
+  if (c.st.length && c.st.every(t => t.g) && c.st.some(t => t.type === "k" || t.type === "p")) return <KnitChartPicture c={c} />;
+  const S = Math.min(c.W, Math.max(c.H, 6)) * .9, x0 = (c.W - S) / 2 - .5, y0 = Math.max(0, (c.H - S) / 2), Y = (y: number) => y0 + S - y + y0;
+  const ink = (k?: number) => YARN_INK[Math.max(0, Math.min(2, k ?? 0))], parts: ReactNode[] = [];
+  c.ch.forEach((q, i) => parts.push(<ellipse key={"c" + i} cx={q[0]} cy={Y(q[1])} rx={.36} ry={.2} fill="none" stroke={ink(q[2])} strokeWidth={.16} />));
+  c.st.forEach((t, i) => {
+    const [bx, by] = t.b, [tx, ty] = t.t, col = ink(t.c), w = (t.z ?? 0) > .2 ? .4 : .3, k = "s" + i;
+    if (t.type === "k") parts.push(<path key={k} d={`M${tx - .38} ${Y(ty)}L${bx} ${Y(by + .05)}L${tx + .38} ${Y(ty)}`} fill="none" stroke={col} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" />);
+    else if (t.type === "p") parts.push(<path key={k} d={`M${bx - .42} ${Y(by + .4)}Q${bx} ${Y(by + .62)} ${bx + .42} ${Y(by + .4)}`} fill="none" stroke={col} strokeWidth={w} strokeLinecap="round" />);
+    else if (t.type === "yo" || t.type === "picot") parts.push(<circle key={k} cx={tx} cy={Y((by + ty) / 2)} r={.26} fill="none" stroke={col} strokeWidth={.14} />);
+    else if (t.type === "bob" || t.type === "pop" || t.type === "puff") parts.push(<ellipse key={k} cx={(bx + tx) / 2} cy={Y((by + ty) / 2)} rx={.5} ry={(ty - by) * .42} fill={col} />);
+    else parts.push(<g key={k}><path d={`M${bx} ${Y(by)}L${tx} ${Y(ty - .15)}`} stroke={col} strokeWidth={w} strokeLinecap="round" />{t.type !== "bar" && t.type !== "loop" && <ellipse cx={tx} cy={Y(ty)} rx={.42} ry={.16} fill="none" stroke={col} strokeWidth={.15} />}</g>);
+  });
+  return (
+    <svg className="nb-chart" viewBox={`${x0} ${y0} ${S} ${S}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect x={x0} y={y0} width={S} height={S} fill="#FFFDF8" />{parts}
+    </svg>
+  );
+}
+
+/** A knitted pattern's chart the way knitters read it (like StitchChart): a square per stitch, seen from the
+ *  right side, the bottom row first - an empty square a knit, a dash a purl, a ring a yarn over, a slash a
+ *  stitch leaning (a cable's crossing, bold when it goes in front), a dot a bobble, grey where nothing is
+ *  worked; the other colours as fills. Ten stitches by ten rows from the bottom corner. */
+function KnitChartPicture({ c }: { c: Chart }) {
+  const N = 10, s = 100 / N, cells: ReactNode[] = [], seen = new Set<string>();
+  const FILL = ["#FFFDF8", "#EBD3AE", "#6E5350"];
+  c.st.forEach((t, n) => {
+    const [i, j] = t.g!; if (i >= N || j >= N || seen.has(i + "," + j)) return; seen.add(i + "," + j);
+    const x = (N - 1 - i) * s, y = (N - 1 - j) * s, col = t.c ?? 0, ink = col === 2 ? "#FFFDF8" : "#6E5350", dx = t.t[0] - t.b[0], k = "k" + n;
+    const mark = t.type === "p" ? <rect x={x + s * .22} y={y + s * .44} width={s * .56} height={s * .12} fill={ink} />
+      : t.type === "yo" ? <circle cx={x + s / 2} cy={y + s / 2} r={s * .26} fill="none" stroke={ink} strokeWidth={1.2} />
+      : t.type === "bob" || t.type === "pop" || t.type === "puff" ? <circle cx={x + s / 2} cy={y + s / 2} r={s * .3} fill={ink} />
+      : t.type === "cl" ? <path d={`M${x + s * .2} ${y + s * .78}L${x + s / 2} ${y + s * .22}L${x + s * .8} ${y + s * .78}`} fill="none" stroke={ink} strokeWidth={1.3} />
+      : t.type === "loop" ? <path d={`M${x + s * .25} ${y + s * .3}Q${x + s / 2} ${y + s * 1.05} ${x + s * .75} ${y + s * .3}`} fill="none" stroke={ink} strokeWidth={1.2} />
+      : Math.abs(dx) > .2 ? <path d={dx > 0 ? `M${x + s * .85} ${y + s * .15}L${x + s * .15} ${y + s * .85}` : `M${x + s * .15} ${y + s * .15}L${x + s * .85} ${y + s * .85}`} stroke={ink} strokeWidth={(t.z ?? 0) > .3 ? 2.4 : 1.2} strokeLinecap="round" />
+      : null;
+    cells.push(<g key={k}><rect x={x} y={y} width={s} height={s} fill={FILL[Math.min(2, col)]} />{mark}</g>);
+  });
+  const lines: string[] = []; for (let q = 0; q <= N; q++) lines.push(`M${q * s} 0V100M0 ${q * s}H100`);
+  return (
+    <svg className="nb-chart" viewBox="0 0 100 100" aria-hidden="true">
+      <rect width="100" height="100" fill="#E8DFD3" />{cells}<path d={lines.join("")} stroke="#CDBFB4" strokeWidth=".6" fill="none" />
+    </svg>
+  );
+}
+
 /** 무늬 by the needle (Kim: 메리야스뜨기, 부채모양뜨기 - the named patterns, by the needle): the needle as a joined
  *  choice, the needle's families as tabs, every named pattern of the family as a tile - a picture where the 3D
  *  draws it, its name alone where it does not yet - and under them how the picked one is worked. Picking one
@@ -398,14 +452,15 @@ export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly }: { draft:
   const fam = fams.includes(tab) ? tab : fams[0], list = STITCH_PATTERNS.filter(p => p.needle === craft && p.fam === fam);
   const pick = (p: StitchPattern) => {
     const [k, v] = (p.draw ?? ":").split(":");
-    if (craft === "knit") patch({ pattern: p.id, ...(k === "kn" ? { stitch: v } : {}) });
-    else patch({ pattern: p.id, ...(k === "st" ? { crochetStitch: v === "sc" ? undefined : v as CrochetStitch, crochetChart: undefined } : k === "ch" ? { crochetChart: v as ChartKey, crochetStitch: undefined } : {}) });
+    if (craft === "knit") patch({ pattern: p.id, ...(k === "kn" ? { stitch: v } : k === "cc" ? { stitch: undefined } : {}) });
+    else patch({ pattern: p.id, ...(k === "st" ? { crochetStitch: v === "sc" ? undefined : v as CrochetStitch, crochetChart: undefined } : k === "ch" ? { crochetChart: v as ChartKey, crochetStitch: undefined } : k === "cc" ? { crochetChart: undefined, crochetStitch: undefined } : {}) });
   };
   const pic = (p: StitchPattern) => {
     const [k, v] = (p.draw ?? ":").split(":");
     if (k === "kn") return <StitchChart s={stitchOf(v)} />;
     if (k === "st") return <CrochetChart k={v as CrochetStitch} />;
     if (k === "ch") return <img className="nb-chart" src={`/stitches/${v}.webp`} alt="" width={120} height={120} />;
+    if (k === "cc") return <ChartPicture name={v} />;
     return null;
   };
   const [ck, cv] = (cur?.draw ?? ":").split(":");
@@ -436,6 +491,7 @@ export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly }: { draft:
           {ck === "ch" && <ol>{CHART_ROWS[cv as ChartKey].map((r, i) => <li key={i}>{r}</li>)}</ol>}
           {knitNow && knitNow.mult > 1 && <p className="nb-patfit">{left ? `${knitNow.mult}코 단위 무늬인데 지금 폭은 ${n}코라서 가장자리에서 ${left}코 남습니다.` : `${knitNow.mult}코 단위 무늬이고, 지금 폭 ${n}코에 딱 맞습니다.`}</p>}
           {ck === "ch" && (() => { const [m, a] = CHART_MULT[cv as ChartKey], r = (n - a) % m; return <p className="nb-patfit">{r ? `${m}코 + ${a} 단위 무늬라서, 지금 폭 ${n}코에서는 ${n - r}코나 ${n - r + m}코가 딱 맞습니다.` : `지금 폭 ${n}코에 딱 맞습니다.`}</p>; })()}
+          {ck === "cc" && <p className="nb-patfit">3D는 만드는 방법대로 그린 모습이라 실제와 조금 다를 수 있습니다. 도안의 단별 글은 아직 기본 코로 적힙니다.</p>}
           {!cur.draw && <p className="nb-patfit">이 무늬는 도안에 이름으로 적어 둡니다. 3D와 단별 글은 아직 기본 코로 보여 드립니다.</p>}
         </div>
       )}

@@ -3,11 +3,16 @@
 // raised by the stitch's height, moved along by how far it fans out. Chains are loops on their own. Units: one
 // stitch wide is 1, one single crochet tall is 1 (the 3D scales them to the yarn and hook). Rows go upwards.
 export type ChartKey = "shell" | "mesh" | "vst" | "moss";
-export type ChartType = "sc" | "hdc" | "dc" | "tr";
-export interface ChartStitch { type: ChartType; b: [number, number]; t: [number, number] }
-export interface Chart { st: ChartStitch[]; ch: [number, number][]; W: number; H: number }
+/** crochet stitches (sc...dtr, sl a slip stitch, bob/puff/pop/cl the bobbles and clusters, bar a tunisian
+ *  stitch, loop a loop stitch, picot, bull a bullion, crab a reverse single crochet) and, for knitting drawn
+ *  on a chart, k (a knit V), p (a purl bump) and yo (a yarn over: a hole with a little ring) */
+export type ChartType = "sc" | "hdc" | "dc" | "tr" | "dtr" | "sl" | "bob" | "puff" | "pop" | "cl" | "bar" | "loop" | "picot" | "bull" | "crab" | "k" | "p" | "yo";
+/** c: the colour (0 the main yarn, 1, 2 the others); z: how far it stands out of the fabric (+) or sinks (-) */
+export interface ChartStitch { type: ChartType; b: [number, number]; t: [number, number]; c?: number; z?: number; /** its cell (stitch, row) when built on a grid */ g?: [number, number] }
+/** chains: [x, y] or [x, y, colour] */
+export interface Chart { st: ChartStitch[]; ch: ([number, number] | [number, number, number])[]; W: number; H: number }
 
-export const CHART_HT: Record<ChartType, number> = { sc: .95, hdc: 1.45, dc: 2.05, tr: 2.7 };
+export const CHART_HT: Record<ChartType, number> = { sc: .95, hdc: 1.45, dc: 2.05, tr: 2.7, dtr: 3.35, sl: .45, bob: 2.05, puff: 1.6, pop: 2.05, cl: 2.05, bar: 1.1, loop: .95, picot: .9, bull: 2.05, crab: .95, k: .72, p: .72, yo: .72 };
 /** the stitch multiple each chart needs (`cols` is rounded to it) */
 export const CHART_MULT: Record<ChartKey, [number, number]> = { shell: [6, 1], mesh: [2, 1], vst: [3, 1], moss: [2, 1] };
 /** how each is written, row by row (the 무늬 section shows it under the tiles) */
@@ -21,7 +26,7 @@ export const CHART_ROWS: Record<ChartKey, string[]> = {
 export function chartCols(k: ChartKey, want: number): number { const [m, a] = CHART_MULT[k]; return Math.max(m + a, Math.round((want - a) / m) * m + a); }
 
 export function compileChart(k: ChartKey, cols: number, rows: number): Chart {
-  const st: ChartStitch[] = [], ch: [number, number][] = [], N = chartCols(k, cols);
+  const st: ChartStitch[] = [], ch: Chart["ch"] = [], N = chartCols(k, cols);
   const work = (type: ChartType, b: [number, number], dx = 0): [number, number] => { const t: [number, number] = [b[0] + dx, b[1] + CHART_HT[type]]; st.push({ type, b: [b[0], b[1]], t }); return t; };
   const chain = (n: number, y: number) => Array.from({ length: n }, (_, i): [number, number] => { ch.push([i, y]); return [i, y]; });
   let prev = chain(N, 0);

@@ -9,13 +9,17 @@
 import { CROCHET, paintMask, paintSize, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
-import { compileChart, type ChartKey } from "@/lib/crochetChart";
+import { compileChart, type Chart, type ChartKey } from "@/lib/crochetChart";
+import { chartFor } from "@/lib/stitchCharts";
 import type { YarnMaterial, YarnPattern, YarnShape } from "./engine";
 
 /** the pattern's own fields the engine reads (Draft and Project both have them) */
 export interface YarnSource extends PlanInput {
   /** a crochet stitch pattern drawn as a chart (lib/crochetChart: 부채모양뜨기...) on a flat crocheted piece */
   crochetChart?: ChartKey | null;
+  /** a named pattern drawn from its recipe (lib/stitchCharts), for either needle, and the other yarns' colours */
+  chartName?: string | null;
+  moreColors?: { hex?: string }[] | null;
   flapShape?: "half" | "square" | "triangle";
   handleCount?: 1 | 2;
   flapColor?: string;
@@ -75,6 +79,11 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     // a drawn shape: its rounds as they are, each in the colour drawn at its height
     const rr = pp.rows.filter(r => r.part === "bottom" || r.part === "body"); if (!rr.length) return null;
     shape = { kind: "round", counts: rr.map(r => Math.max(1, Math.round(r.n))), flat: pp.bottomRounds }; rowColors = rr.map(r => r.color);
+  } else if (p.object === "rows" && p.chartName && chartFor(p.chartName)) {
+    // a named pattern (쉐브론, 꽈배기, 페어아일...): its chart, repeated to the piece's size (up to 3 x 3)
+    const c0 = chartFor(p.chartName)!, g = pp.g, cols = counts("rows")[0] || Math.round(p.a / g.w), hc = (p.b ?? p.a);
+    const ch = tileChart(c0, Math.max(1, Math.min(3, Math.round(cols / c0.W))), Math.max(1, Math.min(3, Math.round(hc / g.h / c0.H))));
+    shape = { kind: "chart", chart: ch, wCm: ch.W * g.w, hCm: ch.H * g.h };
   } else if (p.object === "rows" && p.crochetChart && !isKnit(p)) {
     // a crochet stitch pattern: as many stitches across as the piece has (to the pattern's multiple), as many
     // rows as reach its height, each stitch drawn from where it is worked into
@@ -100,7 +109,10 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : p.handleCount === 1 ? "long" : p.handleCount === 2 ? "two" : handleCm >= 60 ? "long" : "two";
   // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
   const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
-  return { shape, colors: rowColors ? rowColors.map(c => c ?? color) : [color], yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
+  // a chart's other colours: the other yarns picked, or a lighter and a darker of the main one
+  const more = (p.moreColors ?? []).map(c => c?.hex).filter((h): h is string => !!h && /^#[0-9a-f]{6}$/i.test(h));
+  const colors = rowColors ? rowColors.map(c => c ?? color) : shape.kind === "chart" ? [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] : [color];
+  return { shape, colors, yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
     ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
     ...(p.free ? {} : p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
@@ -112,4 +124,24 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     // a drawn silhouette (lib/sketchMeasure): pressed to its depth, its opening edged
     ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true,
       ...(p.profile[0] > 0 && p.h ? { outline: { prof: p.profile, a: p.a, h: p.h, depth: p.depthProfile ?? DEPTH_DEFAULT, bottom: pp.bottomRounds, rounds: pp.bottomRounds + pp.bodyRows } } : {}) } : {}) };
+}
+
+/** a chart repeated nx across and ny up */
+function tileChart(c: Chart, nx: number, ny: number): Chart {
+  if (nx === 1 && ny === 1) return c;
+  const out: Chart = { st: [], ch: [], W: c.W * nx, H: c.H * ny };
+  for (let a = 0; a < nx; a++) for (let b = 0; b < ny; b++) {
+    const dx = a * c.W, dy = b * c.H;
+    c.st.forEach(s => out.st.push({ ...s, b: [s.b[0] + dx, s.b[1] + dy], t: [s.t[0] + dx, s.t[1] + dy] }));
+    c.ch.forEach(q => out.ch.push([q[0] + dx, q[1] + dy, q[2] ?? 0]));
+  }
+  return out;
+}
+/** a colour mixed towards white (k > 0) or a deep brown (k < 0) */
+function shade(hex: string, k: number): string {
+  const n = parseInt(hex.slice(1), 16), to = k > 0 ? [250, 246, 238] : [52, 38, 34], f = Math.abs(k);
+  const ch = [n >> 16, (n >> 8) & 255, n & 255].map((v, i) => Math.round(v + (to[i] - v) * f));
+  // a colour already near white goes darker instead, so the second colour always shows
+  if (k > 0 && (n >> 16) + ((n >> 8) & 255) + (n & 255) > 600) return shade(hex, -.4);
+  return "#" + ch.map(v => v.toString(16).padStart(2, "0")).join("");
 }
