@@ -53,7 +53,7 @@ import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import { PATTERN_BY_ID, chartNameOf } from "@/lib/stitchPatterns";
 import { autoName, bodyOf, bodyPatch, bodyWidth, partLines, scaleDraft } from "@/lib/assemble";
-import { AskInline, AskStart, NameStart } from "./AskStart";
+import { AskInline, AskStart } from "./AskStart";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -213,7 +213,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // (모양 만들기 on the yarn check). The yarn can still be changed afterwards (its sections, 실 확인 on the top).
   const [yarnSet, setYarnSet] = useState(false), [named, setNamed] = useState(false);
   /** what to make, answered (the window or 모양): the parts on at once, the first part's sliders open */
-  const applyAsk = (d: Draft) => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); window.dispatchEvent(new Event("yw:shape")); };
+  const applyAsk = (d: Draft) => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); if (yarnSet) window.dispatchEvent(new Event("yw:shape")); };
   useEffect(() => { const f = () => setYarnSet(true); window.addEventListener("yw:yarnset", f); return () => window.removeEventListener("yw:yarnset", f); }, []);
   // back to the yarn (실 다시 정하기): the right column is the yarn's section again
   useEffect(() => { const f = () => setYarnSet(false); window.addEventListener("yw:yarncheck", f); return () => window.removeEventListener("yw:yarncheck", f); }, []);
@@ -406,11 +406,11 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // current pages are snapshotted for the page turn, which starts once the new step is rendered.
   // Jumping several steps from the progress indicator is one turn. The step changes through the address,
   // so Back/Forward arrive here too (without a snapshot: no turn, just the new step).
-  const go = (s: Step) => {
+  const go = (s: Step, quiet = false) => {
     if (s === step) return;
     turn.current?.finish();
-    pending.current = formRef.current && canTurn() ? snapshot(formRef.current, s > step ? 1 : -1) : null;
-    book.goStep(s);
+    pending.current = !quiet && formRef.current && canTurn() ? snapshot(formRef.current, s > step ? 1 : -1) : null;
+    book.goStep(s, quiet);
   };
   useLayoutEffect(() => {
     const was = shownStep.current; if (was === pos) return;
@@ -468,7 +468,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // wide screens with the 3D: the book's pages between are gone (Kim) - the work screen closed on them goes to
   // 확인 (something made) or back to the first page
   useEffect(() => {
-    if (web && inBook != null && big3d.supported && (step === 2 || step === 3) && !big3d.open) { const t = setTimeout(() => go(picked ? 4 : 1), 60); return () => clearTimeout(t); }
+    if (web && inBook != null && big3d.supported && (step === 2 || step === 3) && !big3d.open) { const t = setTimeout(() => go(picked ? 4 : 1, true), 60); return () => clearTimeout(t); }
   }, [web, inBook, step, big3d.open]); // eslint-disable-line react-hooks/exhaustive-deps
   const back = () => {
     if (web && inBook != null && big3d.supported && step === 4) { go(1); return; }
@@ -568,7 +568,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     left = <TitleCover month={new Date(when).toLocaleString("en-US", { month: "long", year: "numeric" }).toUpperCase()} />;
     const start = editId || startDone ? null : (
       <StartChoice draft={draft} projects={projects} mode={startMode} onMode={setStartMode}
-        onFresh={() => { const f = freshDraft(); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); }}
+        onFresh={() => { const f = freshDraft(); startStep.current = 1; setAsked(false); setYarnSet(false); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); }}
         onDraft={() => setStartDone(true)} onOpen={id => { setStartDone(true); book.editHere(id); }} />
     );
     // wide screens with the 3D (Kim): the first page asks only where to start - no steps, no name (the name is
@@ -576,7 +576,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     right = webStart ? (
       <div className="tp tp-start">
         <StartChoice always draft={draft} projects={projects} mode={startMode} onMode={setStartMode}
-          onFresh={() => { const f = freshDraft(); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); next(); }}
+          onFresh={() => { const f = freshDraft(); startStep.current = 1; setAsked(false); setYarnSet(false); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); next(); }}
           onDraft={() => { setStartDone(true); next(); }} onOpen={id => { setStartDone(true); book.editHere(id); }} />
       </div>
     ) : <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} before={start} />;
@@ -969,7 +969,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     rightWeb = step === 3
       ? [<WebYarn key="y" draft={draft} patch={patch} tried={tried} />, webSize, bagNow ? webBag : <WebStitch key="s" draft={draft} patch={patch} n={pp.last} />][sheet]
       // the cover first (Kim: picked before the pattern is made; none = a random one), then the check
-      : <><CoverChoice draft={draft} patch={patch} /><WebCheck draft={draft} itemName={itemLabel} rows={checkRows} facts={facts}
+      : <><CoverChoice draft={draft} patch={patch} /><WebCheck draft={draft} itemName={itemLabel} rows={checkRows} facts={facts} onName={v => patch({ name: v })}
           use={{ g: use.g, m: use.m, skeins: use.skeins ?? null, short: !!use.short, labelOdd: !!use.labelOdd, perColor: !!use.perColor, colors: ucolors.length, per100: use.per100, basis, skeinText }}
           measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} /></>;
   }
@@ -1000,7 +1000,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       ? () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); }
       : () => {
         if (!stepOk) { setTried(true); requestAnimationFrame(() => (document.querySelector('.yw [aria-invalid="true"]') as HTMLElement | null)?.focus()); return; }
-        big3d.close(); setSheet(3, sheets3 - 1); go(4);
+        big3d.close(); setSheet(3, sheets3 - 1); go(4, true);
       },
     doneLabel: !yarnSet ? "모양 만들기 →" : "확인하기 →", blocked: yarnSet && (!picked || !stepOk),
     footNote: !yarnSet ? "실을 다 정하셨으면 무엇을 뜰지 정합니다. 실은 나중에도 바꿀 수 있습니다." : undefined,
@@ -1012,8 +1012,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
     // 조립하기: what to make, asked first (Kim); the 크기 틀 dragged on the 3D
-    ask: big3d.open && !picked && !editId && !named ? <NameStart name={draft.name} onName={v => patch({ name: v })} onNext={() => setNamed(true)} />
-      : big3d.open && yarnSet && !picked && !asked && !editId ? <AskStart draft={draft} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
+    // what to make, asked first (Kim: 맨 처음에); the yarn next, the shape after; the name at the end, on 확인
+    ask: big3d.open && !picked && !asked && !editId ? <AskStart draft={draft} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
       onApply={applyAsk} /> : undefined,
     onResize: picked && !draft.free && !draft.paint ? (fx, fy) => {
       if (fx !== 1 && fx === fy) { apply(scaleDraft(draft, fx)); return; }

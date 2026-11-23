@@ -6,6 +6,7 @@
 import { useState } from "react";
 import type { Draft } from "@/lib/types";
 import { readSpec, specToDraft } from "@/lib/sketchShape";
+import { GROUPS, ITEMS } from "@/lib/items";
 import { guessSpec } from "@/lib/assemble";
 import { ClothLabel } from "./ClothLabel";
 
@@ -51,18 +52,30 @@ function useAsk(draft: Draft, onApply: (d: Draft) => void) {
       <textarea value={text} maxLength={300} rows={3} placeholder="예: 어깨에 메는 둥근 가방. 덮개가 있고 단추로 잠그면 좋겠어요."
         onChange={e => { setText(e.target.value); setErr(""); }} onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); prepare(); } }} /></label>
   );
-  return { busy, err, prepare, field };
+  const put = (t: string) => { setText(x => (x.trim() ? x.trim() + " " : "") + t); setErr(""); };
+  return { busy, err, prepare, field, put };
 }
 
 /** the window after the yarn (Kim): only what to make; the parts and the rest are in 모양 */
 export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d: Draft) => void; onSkip: () => void }) {
-  const q = useAsk(draft, onApply);
+  const q = useAsk(draft, onApply), [list, setList] = useState(false);
   return (
     <div className="ask" role="dialog" aria-modal="true" aria-labelledby="ask-h">
       <div className="ask-box">
         <h2 id="ask-h">무엇을 떠 볼까요</h2>
-        <p className="ask-lead">자유롭게 적어 주십시오. Yarni가 부품을 맞춰 조립하고, 크기와 부품은 다음 화면에서 정합니다.</p>
+        <p className="ask-lead">자유롭게 적어 주십시오. Yarni가 부품을 맞춰 두고, 실을 고른 뒤 모양에서 크기와 부품을 정합니다.</p>
         {q.field}
+        {/* not sure what to make: what Yarnity can make, in a few words each (a press puts it in the box) */}
+        <button type="button" className="nb-link ask-listbtn" aria-expanded={list} onClick={() => setList(v => !v)}>{list ? "목록 닫기" : "뜰 수 있는 것 보기"}</button>
+        {list && (
+          <div className="ask-list2">
+            {GROUPS.map(g => (
+              <div key={g} className="ask-grp"><b>{g}</b>
+                <span>{ITEMS.filter(i => i.group === g).map(i => <button key={i.id} type="button" onClick={() => q.put(i.name)}>{i.name}</button>)}</span>
+              </div>
+            ))}
+          </div>
+        )}
         {q.err && <p className="ask-err" role="alert">{q.err}</p>}
         <div className="ask-foot">
           <ClothLabel side="back" type="button" onClick={onSkip}>나중에</ClothLabel>

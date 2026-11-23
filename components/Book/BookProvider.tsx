@@ -35,7 +35,8 @@ interface BookCtx {
   close: () => void;
   /** menu -> wizard, at `step` (default: the saved step) */
   startWizard: (step?: WizStep) => void;
-  goStep: (s: WizStep) => void;
+  /** `quiet`: no page turn - the new step is just there */
+  goStep: (s: WizStep, quiet?: boolean) => void;
   /** wizard -> menu spread */
   toHome: () => void;
   /** open the menu book over the page you are on (closing it keeps you there) */
@@ -93,6 +94,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
   // the book opened over another page ("새 도안"), and the page to come back to from the wizard
   const [overlay, setOverlay] = useState(false);
   const menuNext = useRef(false), menuTo = useRef("/");
+  /** the next step change comes without a page turn (goStep(s, true)) */
+  const quietTurn = useRef(false);
   const [sinking, setSinking] = useState(false);
   const [origin, setOrigin] = useState<string | null>(null);
   // Wide screens (Kim: "책만 올려" - only the book rises, whatever page is under it): raising the book over a page
@@ -136,7 +139,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
   // the wizard was opened by a typed address or a refresh (which only skips the motion of that first view)
   const [seenStep, setSeenStep] = useState<WizStep | null>(null);
   if (urlStep !== seenStep) {
-    if (seenStep !== null && urlStep !== null && seenPath === path) setInstant(false);
+    if (seenStep !== null && urlStep !== null && seenPath === path) { setInstant(quietTurn.current); quietTurn.current = false; }
     setSeenStep(urlStep);
   }
 
@@ -234,7 +237,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (path !== "/" && path !== "/new") setOrigin(path + location.search);
     go(`/new?step=${step ?? savedStep()}`);
   }, [go, path]);
-  const goStep = useCallback((s: WizStep) => {
+  const goStep = useCallback((s: WizStep, quiet?: boolean) => {
+    quietTurn.current = !!quiet;
     const sp = new URLSearchParams(location.search); sp.set("step", String(s));
     go(`/new?${sp}`);
   }, [go]);
