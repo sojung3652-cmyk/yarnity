@@ -9,6 +9,7 @@
 //   무늬         - a knitted item's stitch pattern as chart tiles (WebStitch)
 // Phones keep YarnStep.tsx's pages as they are.
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { keepYarnPhoto, useYarnPhoto, yarnPhoto } from "@/src/features/yarn3d/yarnPhoto";
 import type { Draft } from "@/lib/types";
 import { YARN_KO, type Weight } from "@/lib/pattern";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
@@ -252,6 +253,9 @@ export function WebYarn({ draft, patch, tried, noColor }: { draft: Draft; patch:
         )}
       </div>
 
+      {/* a photo of the reader's own yarn, shown beside the yarn on the 3D stage (Kim: with the yarn's information) */}
+      <YarnPhotoRow />
+
       {/* what the yarn's label says: optional, one folded row */}
       <div className="nb-folds nb-wmore">
         <Fold label="실 라벨 정보 더 적기" value={label || "브랜드 · 색 번호 · LOT · 타래 (선택)"} open={open === "info"} onToggle={() => toggle("info")}>
@@ -384,6 +388,20 @@ export function WebStitch({ draft, patch, n }: { draft: Draft; patch: Patch; n: 
           ? ` ${cur.mult}코 단위 무늬인데 지금 폭은 ${n}코라서, 가장자리에서 무늬가 ${left}코 남습니다. 그대로 떠도 되고, 폭을 조금 바꾸면 딱 맞습니다.`
           : ` ${cur.mult}코 단위 무늬이고, 지금 폭 ${n}코에 딱 맞습니다.`)}</p>
       </div>
+    </div>
+  );
+}
+
+function YarnPhotoRow() {
+  const photo = useYarnPhoto();
+  return (
+    <div className="nb-wg yp-row">
+      <span className="yp-lb">내 실 사진</span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {photo && <img className="yp-thumb" src={photo} alt="내 실 사진" />}
+      <label className="pp-mini yp-up">{photo ? "바꾸기" : "넣기"}<input type="file" accept="image/*" hidden onChange={e => { keepYarnPhoto(e.target.files?.[0]); e.target.value = ""; }} /></label>
+      {photo && <button type="button" className="nb-link" onClick={() => yarnPhoto.set(null)}>빼기</button>}
+      <span className="yp-note">3D 실 옆에 나란히 보입니다</span>
     </div>
   );
 }

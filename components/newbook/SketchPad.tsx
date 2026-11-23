@@ -7,18 +7,20 @@
 // height (a round, slouchy hobo is a curve, not a box), the side's depth, a flap, handles, a button, and the
 // colours of each part. The draft follows (lib/sketchShape), and with it the pattern and the 3D.
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { readSpec, type ShapeSpec } from "@/lib/sketchShape";
+import { maskOf, measure, withMeasure } from "@/lib/sketchMeasure";
 import { Slide } from "./WebPages";
 
 const S = 560; // a sheet's pixels (shown at the column's width)
 type View = "front" | "side" | "back";
 type Tool = "pen" | "fill" | "eraser" | "liquify";
 const VIEWS: [View, string][] = [["front", "앞면"], ["side", "옆면"], ["back", "뒷면"]];
-const TOOLS: [Tool, string, string][] = [
-  ["pen", "펜", "M4 20l1-4.5L16.5 4a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L8.5 19zM14.5 6l3.5 3.5"],
-  ["fill", "채우기", "M4 11l7-7 8 8-7 7a2 2 0 0 1-2.8 0L4 13.8a2 2 0 0 1 0-2.8zM4 11h15M20 15s1.5 2 1.5 3a1.5 1.5 0 0 1-3 0c0-1 1.5-3 1.5-3z"],
-  ["eraser", "지우개", "M8 20h12M5.5 14.5l7-7a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8L12 20H9.5l-4-4a1 1 0 0 1 0-1.5z"],
-  ["liquify", "유동화", "M4 14c3-6 5 4 8-2s5 2 8-4M4 19c3-4 5 2 8-1s5 1 8-2"],
+const TOOLS: [Tool, string, string, string][] = [
+  ["pen", "펜", "B", "M4 20l1-4.5L16.5 4a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L8.5 19zM14.5 6l3.5 3.5"],
+  ["fill", "채우기", "G", "M4 11l7-7 8 8-7 7a2 2 0 0 1-2.8 0L4 13.8a2 2 0 0 1 0-2.8zM4 11h15M20 15s1.5 2 1.5 3a1.5 1.5 0 0 1-3 0c0-1 1.5-3 1.5-3z"],
+  ["eraser", "지우개", "E", "M8 20h12M5.5 14.5l7-7a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8L12 20H9.5l-4-4a1 1 0 0 1 0-1.5z"],
+  ["liquify", "유동화", "L", "M4 14c3-6 5 4 8-2s5 2 8-4M4 19c3-4 5 2 8-1s5 1 8-2"],
 ];
 const INKS = ["#2B2523", "#E8A6B4", "#F6D2D8", "#D9565C", "#A9B79C", "#9BB7D4", "#D4AF37", "#FFFDF8"];
 const Ic = ({ d }: { d: string }) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
@@ -38,6 +40,9 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
   const [view, setView] = useState<View>("front"), [tool, setTool] = useState<Tool>("pen");
   const [ink, setInk] = useState(INKS[0]), [width, setWidth] = useState(4);
   const [note, setNote] = useState(""), [busy, setBusy] = useState(false), [msg, setMsg] = useState<string | null>(null);
+  // 크게 그리기 (Kim): the pad spread over the 3D stage, its tools down its side; it folds back once the piece is made
+  const [big, setBig] = useState(false), [canBig, setCanBig] = useState(false), root = useRef<HTMLDivElement>(null);
+  useEffect(() => { setCanBig(!!root.current?.closest(".yw")); }, []);
   const [, redraw] = useState(0), last = useRef<[number, number] | null>(null), hover = useRef<[number, number] | null>(null);
   const sheet = (v: View) => { let c = sheets.current[v]; if (!c) { c = document.createElement("canvas"); c.width = S; c.height = S; sheets.current[v] = c; } return c; };
   const has = (v: View) => { const c = sheets.current[v]; if (!c) return false; const d = c.getContext("2d")!.getImageData(0, 0, S, S).data; for (let i = 3; i < d.length; i += 16) if (d[i] > 20) return true; return false; };
@@ -92,7 +97,7 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
   };
 
   const onDown = (e: React.PointerEvent) => {
-    e.preventDefault(); cv.current!.setPointerCapture(e.pointerId); const p = at(e); snap(); setMsg(null);
+    e.preventDefault(); cv.current!.focus({ preventScroll: true }); cv.current!.setPointerCapture(e.pointerId); const p = at(e); snap(); setMsg(null);
     if (tool === "fill") { fill(p); redraw(n => n + 1); return; }
     last.current = p; if (tool !== "liquify") stroke(p, [p[0] + .01, p[1]]); draw();
   };
@@ -126,22 +131,27 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
       const j = await res.json().catch(() => ({}));
       const spec = res.ok ? readSpec(j.shape) : null;
       if (!spec) { setMsg(ERR[j.error as string] ?? "그림을 읽지 못했습니다. 다시 눌러 주십시오."); return; }
-      onShape(spec); setMsg(spec.summary ?? "그림대로 모양을 만들었습니다.");
+      const m = (v: View) => { if (!has(v)) return null; const mk = maskOf(sheet(v).getContext("2d")!.getImageData(0, 0, S, S).data, S, S); return mk ? measure(mk) : null; };
+      onShape(withMeasure(spec, m("front"), m("side"))); setMsg(spec.summary ?? "그림대로 모양을 만들었습니다."); setBig(false);
     } catch { setMsg("AI에 닿지 못했습니다. 인터넷을 확인하고 다시 눌러 주십시오."); }
     finally { setBusy(false); }
   };
-  const onKey = (e: React.KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) { e.preventDefault(); undo(); } };
+  const onKey = (e: React.KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) { e.preventDefault(); undo(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey || (e.target as HTMLElement).tagName === "INPUT") return;
+    const t = TOOLS.find(x => x[2] === e.key.toUpperCase()); if (t) { e.preventDefault(); setTool(t[0]); }
+    if (e.key === "Escape" && big) { e.preventDefault(); setBig(false); }
+  };
 
-  return (
-    <div className="pp sk" onKeyDown={onKey}>
-      <div className="sk-views" role="tablist" aria-label="그리는 면">
-        {VIEWS.map(([v, label]) => <button key={v} type="button" role="tab" aria-selected={view === v} className={"sk-view" + (has(v) ? " is-drawn" : "")} onClick={() => setView(v)}>{label}{has(v) && <i aria-hidden="true" />}</button>)}
+  const controls = <>
+      <div className="sk-head">
+        <div className="sk-views" role="tablist" aria-label="그리는 면">
+          {VIEWS.map(([v, label]) => <button key={v} type="button" role="tab" aria-selected={view === v} className={"sk-view" + (has(v) ? " is-drawn" : "")} onClick={() => setView(v)}>{label}{has(v) && <i aria-hidden="true" />}</button>)}
+        </div>
+        {canBig && <button type="button" className="pp-mini sk-bigbtn" aria-pressed={big} onClick={() => setBig(b => !b)}>{big ? "작게" : "크게 그리기"}</button>}
       </div>
-      <div className="pp-bar" role="toolbar" aria-label="그리기 도구">
-        {TOOLS.map(([k, label, d]) => <button key={k} type="button" className="pp-tool" aria-pressed={tool === k} onClick={() => setTool(k)}><Ic d={d} />{label}</button>)}
-        <span className="pp-sep" aria-hidden="true" />
-        <button type="button" className="pp-tool" onClick={() => file.current?.click()}><Ic d="M4 7h3l2-2.5h6L17 7h3v12H4zM12 10a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7z" />불러오기</button>
-        <input ref={file} type="file" accept="image/*" hidden onChange={e => onFile(e.target.files?.[0])} />
+      <div className="sk-tools" role="toolbar" aria-label="그리기 도구">
+        {TOOLS.map(([k, label, key, d]) => <button key={k} type="button" className="sk-tool" aria-pressed={tool === k} title={`${label} (${key})`} onClick={() => setTool(k)}><Ic d={d} />{label}<kbd>{key}</kbd></button>)}
       </div>
       <div className="sk-inks" role="radiogroup" aria-label="펜 색">
         <span className="pp-lb">색</span>
@@ -149,12 +159,20 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
         <label className="pp-add" title="다른 색"><span aria-hidden="true">+</span><input type="color" aria-label="다른 색" value={ink} onChange={e => { setInk(e.target.value); if (tool !== "fill") setTool("pen"); }} /></label>
       </div>
       <div className="pp-line">
-        {tool !== "fill" ? <Slide label={tool === "liquify" ? "붓 크기" : tool === "eraser" ? "지우개 크기" : "펜 굵기"} min={1} max={12} step={1} value={width} onChange={setWidth} text={`${width}`} /> : <span className="pp-hint">선으로 둘러싸인 곳을 누르면 그 안이 칠해집니다.</span>}
-        <button type="button" className="pp-mini" onClick={undo}><Ic d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />되돌리기</button>
-        <button type="button" className="pp-mini" onClick={clear}>이 면 지우기</button>
+        {tool !== "fill" ? <Slide label={tool === "liquify" ? "붓 크기" : tool === "eraser" ? "지우개 크기" : "펜 굵기"} min={1} max={12} step={1} value={width} onChange={setWidth} text={`${width}`} /> : <span className="pp-hint">선 안쪽을 누르면 칠해집니다</span>}
       </div>
+      <div className="sk-acts">
+        <button type="button" className="pp-mini" onClick={undo} title="되돌리기 (Ctrl+Z)"><Ic d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />되돌리기</button>
+        <button type="button" className="pp-mini" onClick={clear}>이 면 지우기</button>
+        <button type="button" className="pp-mini" onClick={() => file.current?.click()}><Ic d="M4 7h3l2-2.5h6L17 7h3v12H4zM12 10a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7z" />사진 불러오기</button>
+        <input ref={file} type="file" accept="image/*" hidden onChange={e => onFile(e.target.files?.[0])} />
+      </div>
+  </>;
+  const paper = (
       <canvas ref={cv} className={"pp-pad sk-pad is-" + tool} style={{ touchAction: "none" }} tabIndex={0}
         aria-label={`${VIEWS.find(v => v[0] === view)![1]}을 그리는 종이`} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={() => { hover.current = null; draw(); }} />
+  );
+  const after = <>
       <label className="sk-note"><span>메모</span>
         <input value={note} maxLength={120} placeholder="예: 분홍색 가방에 금색 단추" onChange={e => setNote(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); make(); } }} />
       </label>
@@ -162,7 +180,22 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
         <button type="button" className="sk-make" onClick={make} disabled={busy}>{busy ? "읽는 중…" : "이 그림으로 만들기"}</button>
         {msg && <p className="nb-help" role="status">{msg}</p>}
       </div>
-      <p className="nb-help">완성된 모습을 앞면부터 그려 주십시오. 옆면과 뒷면도 그리면 더 정확해집니다. 둥근 몸통, 덮개, 손잡이, 단추와 각 부분의 색까지 그림대로 읽습니다.</p>
+      <p className="nb-help sk-tip">앞면은 꼭, 옆면은 두께를 알려 줍니다. 안을 칠하면 모양을 더 정확히 잽니다.</p>
+  </>;
+  // 크게 그리기: the paper and its tools moved onto the 3D stage beside the panel, the panel saying where they went
+  const stage = big && root.current ? root.current.closest(".yw")?.querySelector(".yw-stage") : null;
+  if (stage) return (
+    <div ref={root} className="pp sk sk-away">
+      <p className="nb-help">왼쪽 큰 종이에서 그리는 중입니다.</p>
+      <button type="button" className="pp-mini" onClick={() => setBig(false)}>작게 돌아오기</button>
+      {createPortal(<div className="sk-big" onKeyDown={onKey}><div className="sk-paper">{paper}</div><div className="pp sk sk-side">{controls}{after}</div></div>, stage)}
+    </div>
+  );
+  return (
+    <div ref={root} className="pp sk" onKeyDown={onKey}>
+      {controls}
+      {paper}
+      {after}
     </div>
   );
 }

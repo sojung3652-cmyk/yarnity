@@ -157,3 +157,25 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-go{align-self:flex-end;height:auto;padding:0;background:none;box-shadow:none}
 /* how to turn the 3D: in a small box on the stage itself, where the hand is */
 .yw-hint{position:absolute;right:16px;bottom:14px;z-index:1;margin:0;padding:6px 11px;border-radius:5px;background:rgba(255,253,248,.92);box-shadow:inset 0 0 0 1px #D9CCBF,-1px 2px 5px -3px rgba(70,50,30,.35);font-size:12.5px;color:#5E554E;pointer-events:none}
+
+/* the yarn check fills the stage (Kim): the piece edge to edge, the title and the way on over it */
+.yw-intro{padding:0;gap:0;background:transparent}
+.yw-intro .yc-big{position:absolute;inset:0;display:block}
+.yw-intro .yc-swatch{position:absolute;inset:0;height:auto;min-height:0}
+.yw-intro .yc-swatch .y3-page{position:absolute;inset:0;border-radius:0;background:transparent;box-shadow:none}
+.yw-intro .yc-photo{position:absolute;top:60px;right:20px;width:min(30%,260px);margin:0;padding:6px;border-radius:6px;background:#FFFDF8;box-shadow:-2px 3px 8px -4px rgba(70,50,30,.45)}
+.yw-intro .yc-photo img{display:block;width:100%;height:auto;max-height:none;min-height:0;border-radius:4px}
+.yw-intro h2{position:absolute;top:18px;left:24px;z-index:1;margin:0;pointer-events:none}
+.yw-intro .yw-go{position:absolute;right:20px;bottom:18px;z-index:1}
+.yw-intro .y3-page-tools{top:auto;bottom:18px}
+/* the stage light or dark */
+.yw-stage{background:#F6F0E4;transition:background-color .25s}
+.yw-stage.is-dark{background:#2B2725}
+.yw-stage.is-dark .yw-intro{background:transparent}
+.yw-stage.is-dark .yw-intro h2{color:#F3ECE2}.yw-stage.is-dark .yw-intro h2 small{color:#CFC4B8}
+.yw-stage.is-dark .yw-hint{background:rgba(43,39,37,.88);color:#E6DDD2;box-shadow:inset 0 0 0 1px #5A514B}
+.yw-stage.is-dark .yw-empty p{color:#E6DDD2}
+.yw-stage .yw-intro{background:#F6F0E4}
+.yw-stage.is-dark .yw-intro,.yw-stage.is-dark .sk-big{background:#2B2725}
+.yw-stage.is-dark .sk-big .sk-side{color:#F3ECE2}
+.yw-intro .y3-page-tools{left:16px}

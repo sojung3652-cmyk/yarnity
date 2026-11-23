@@ -431,7 +431,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           if (v !== "half" && draft.free) patch({ free: undefined, itemPicked: false });
           if (v !== "paint" && draft.paint) patch({ paint: undefined, itemPicked: false });
         }} options={[["sketch", "통째로 그리기", "AI가 모양을 읽음"], ["paint", "칸 그림판", "구멍까지 칸으로"], ["half", "옆모습 반쪽", "좌우 대칭 · 둥글게"]]} />
-        {kindNow === "sketch" ? <SketchPad onShape={sp => { const nd = specToDraft(draft, sp); setDraft(nd); setNums(numsOf(nd)); }} />
+        {kindNow === "sketch" ? <SketchPad onShape={sp => { const nd = specToDraft(draft, sp); setDraft(nd); setNums(numsOf(nd)); window.dispatchEvent(new Event("yw:shape")); }} />
           : kindNow === "paint"
           ? <PaintPad value={draft.paint ?? undefined} base={draft.color || "#EFE6D4"} onChange={setPaint} info={draft.paint ? drawInfo : undefined} />
           : <DrawPad value={draft.free ?? undefined} base={draft.color || "#EFE6D4"} onChange={setFree} info={draft.free ? drawInfo : undefined} />}

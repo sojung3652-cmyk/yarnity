@@ -58,6 +58,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const [noGL, setNoGL] = useState(false);
   const [builtMs, setBuiltMs] = useState<number | null>(null);
   const [intro, setIntro] = useState(!!extra?.intro);
+  // a piece made from a drawing shows at once, beside it (Kim): the yarn check steps aside
+  useEffect(() => { const f = () => setIntro(false); window.addEventListener("yw:shape", f); return () => window.removeEventListener("yw:shape", f); }, []);
+  // the stage light or dark (Kim), remembered in this browser
+  const [dark, setDark] = useState(() => { try { return localStorage.getItem("yw.bg") === "dark"; } catch { return false; } });
+  const pickBg = (d: boolean) => { setDark(d); try { localStorage.setItem("yw.bg", d ? "dark" : "light"); } catch { /* not kept */ } };
   const toShape = () => { setIntro(false); root.current?.querySelector("#yw-draw")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
   // the book stops, the page stays still, the way back takes the focus; Esc closes, Tab stays inside
@@ -126,6 +131,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           <span className="yw-lb">보기</span>
           <span className="yw-opts" role="group" aria-label="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></span>
           <span className="yw-sep" aria-hidden="true" />
+          <span className="yw-lb">배경</span>
+          <span className="yw-opts" role="group" aria-label="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></span>
+          <span className="yw-sep" aria-hidden="true" />
           {extra?.intro && <span className="yw-opts"><Opt on={intro} onClick={() => setIntro(v => !v)}>실 확인</Opt></span>}
           <span className="yw-opts"><Opt on={ruler} onClick={toggleRuler}><Ic s={17} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />재기</Opt>
             <Opt onClick={() => viewer.current?.playDraw()}><Ic s={17} d="M7 4.5v15l12-7.5z" />뜨는 순서</Opt></span>
@@ -133,11 +141,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       </div>
 
 
-      <div className="yw-stage">
+      <div className={"yw-stage" + (dark ? " is-dark" : "")}>
         {intro && extra?.intro && (
           <div className="yw-intro">
-            <h2>실 확인<small>오른쪽에서 실을 바꾸면 바로 바뀝니다</small></h2>
             {extra.intro}
+            <h2>실 확인<small>오른쪽에서 실을 바꾸면 바로 바뀝니다</small></h2>
             <span className="yw-go"><ClothLabel side="next" type="button" onClick={toShape}>모양 그리기 →</ClothLabel></span>
           </div>
         )}
