@@ -28,6 +28,11 @@ export interface WorkExtra {
   parts?: [string, string][];
   backLabel?: string;
   onClosed?: () => void;
+  /** 3D로 보면서 만들기 (도안 만들기, Kim): the wizard's own step in the right column - where you are among the
+   *  steps, the step's question and inputs, 이전 / 다음 at the foot. Enter goes on, as in the book. */
+  making?: { tabs: string[]; cur: number; title: string; body: ReactNode; back?: () => void; next: () => void; nextLabel: string; blocked?: boolean };
+  /** nothing to draw yet (no item picked): the stage says so instead of showing a piece nobody chose */
+  empty?: boolean;
 }
 
 type Tool = "rotate" | "pan" | "zoom" | "ruler";
@@ -96,10 +101,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const show = (v: "yarn" | "holo") => { setView(v); viewer.current?.setView(v); };
   const look = (v: YarnLook) => viewer.current?.look(v);
   const tryMat = (m: YarnMaterial) => { setMat(m); viewer.current?.setMaterial(m); };
-  const size = extra?.caption ?? (!info ? "" : (info.round ? `지름 약 ${info.widthCm}cm` : `약 ${info.widthCm} × ${info.depthCm}cm`) + (info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : ""));
+  const mk = extra?.making, empty = !!extra?.empty;
+  const size = empty ? "" : extra?.caption ?? (!info ? "" : (info.round ? `지름 약 ${info.widthCm}cm` : `약 ${info.widthCm} × ${info.depthCm}cm`) + (info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : ""));
 
   return createPortal(
-    <div ref={root} className="yw" role="dialog" aria-modal="true" aria-label="3D 작업 화면" data-built-ms={builtMs ?? undefined}
+    <div ref={root} className={"yw" + (mk ? " yw-mk" : "")} role="dialog" aria-modal="true" aria-label="3D 작업 화면" data-built-ms={builtMs ?? undefined}
       onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()} onSubmit={e => e.stopPropagation()}>
       <div className="yw-top">
         <span ref={backRef} className="yw-back"><ClothLabel side="back" type="button" onClick={onClose}>{extra?.backLabel ?? "← 돌아가기"}</ClothLabel></span>
@@ -129,8 +135,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
 
       <div className="yw-stage">
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
-          : <canvas ref={cv} className={"yw-canvas yw-tool-" + tool} aria-label="완성 모양 3D" />}
-        {rules && tool === "ruler" && (
+          : <canvas ref={cv} className={"yw-canvas yw-tool-" + tool} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
+        {empty && <div className="yw-empty"><i aria-hidden="true" /><p>오른쪽에서 고르면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
+        {rules && tool === "ruler" && !empty && (
           <svg className="yw-rules" aria-hidden="true">
             {rules.map((r, i) => {
               const mx = (r.x1 + r.x2) / 2, my = (r.y1 + r.y2) / 2, t = `${extra?.dims?.[i] ?? r.cm}cm`, w = t.length * 8 + 16;
@@ -141,6 +148,19 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
         )}
       </div>
 
+      {mk ? (
+        <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); mk.next(); }}
+          onKeyDown={e => { const t = e.target as HTMLElement; if (e.key === "Enter" && !e.nativeEvent.isComposing && t.getAttribute("role") === "radio") { e.preventDefault(); mk.next(); } }}>
+          <ol className="yw-steps" aria-label="만드는 단계">
+            {mk.tabs.map((t, i) => <li key={t} className={i < mk.cur ? "done" : undefined} aria-current={i === mk.cur ? "step" : undefined}><b aria-hidden="true">{i < mk.cur ? "✓" : i + 1}</b>{t}</li>)}
+          </ol>
+          <div className="yw-mkbody" key={mk.cur}><h2>{mk.title}</h2>{mk.body}</div>
+          <div className="yw-mkfoot">
+            {mk.back ? <ClothLabel side="back" type="button" onClick={mk.back}>← 이전</ClothLabel> : <span />}
+            <ClothLabel side="next" type="submit" blocked={mk.blocked}>{mk.nextLabel}</ClothLabel>
+          </div>
+        </form>
+      ) : (
       <div className="yw-right">
         {extra?.panel ?? (
           <section className="yw-pan" aria-label="실">
@@ -162,9 +182,10 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           </section>
         )}
       </div>
+      )}
 
       <div className="yw-stat" aria-live="polite">
-        <span>{size ? <b>{size}</b> : "모양을 계산하고 있습니다."}{info && <>{info.fit}</>}</span>
+        <span>{empty ? "뜰 것을 고르면 3D로 보여 드립니다." : <>{size ? <b>{size}</b> : "모양을 계산하고 있습니다."}{info && <>{info.fit}</>}</>}</span>
         <span>{TOOLS.find(t => t[0] === tool)![3]}</span>
       </div>
     </div>,

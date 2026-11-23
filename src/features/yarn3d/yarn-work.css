@@ -51,21 +51,42 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-stat span{overflow:hidden;text-overflow:ellipsis}
 .yw-stat b{margin-right:14px;font-weight:600;color:#3A322D}
 /* the wizard's own panels (components/newbook: 실, 크기) in the narrow column */
-.yw-right .nb-wg{margin-bottom:14px}.yw-right .nb-wg:last-child{margin-bottom:0}
-.yw-right .nb-wh{font-size:13px;font-weight:400;color:#6A605F}
-.yw-right .nb-box{min-width:0;height:40px}.yw-right .nb-box input{width:64px;height:38px;font-size:16px}
-.yw-right .nb-tile{min-height:38px;font-size:13.5px}
-.yw-right .nb-dots{gap:8px;margin-bottom:0}
-.yw-right .nb-dot-color{width:24px;height:24px}
-.yw-right .nb-web .nb-field .nb-input{height:40px;font-size:16px;padding:0 10px}
-.yw-right .nb-web .nb-field>label{font-size:13px;color:#6A605F}
-.yw-right .nb-wthree{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px}
-.yw-right .nb-picker{padding:0;gap:0}
-.yw-right .nb-wrow{display:flex;align-items:center;gap:10px}
-.yw-right .nb-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
-.yw-right .nb-dots{gap:6px}.yw-right .nb-dot-color{width:20px;height:20px}
-.yw-right .nb-dot-color[aria-checked="true"]{outline:2px solid #B99447;outline-offset:2px}
-.yw-right .nb-picker{height:22px}.yw-right .nb-picker-dot{width:20px;height:20px}
-.yw-right .nb-mm .nb-unit{display:none}
-.yw-right .nb-field{margin-bottom:8px}
+.yw-pan .nb-wg{margin-bottom:14px}.yw-pan .nb-wg:last-child{margin-bottom:0}
+.yw-pan .nb-wh{font-size:13px;font-weight:400;color:#6A605F}
+.yw-pan .nb-box{min-width:0;height:40px}.yw-pan .nb-box input{width:64px;height:38px;font-size:16px}
+.yw-pan .nb-tile{min-height:38px;font-size:13.5px}
+.yw-pan .nb-dots{gap:8px;margin-bottom:0}
+.yw-pan .nb-dot-color{width:24px;height:24px}
+.yw-pan .nb-web .nb-field .nb-input{height:40px;font-size:16px;padding:0 10px}
+.yw-pan .nb-web .nb-field>label{font-size:13px;color:#6A605F}
+.yw-pan .nb-wthree{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px}
+.yw-pan .nb-picker{padding:0;gap:0}
+.yw-pan .nb-wrow{display:flex;align-items:center;gap:10px}
+.yw-pan .nb-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.yw-pan .nb-dots{gap:6px}.yw-pan .nb-dot-color{width:20px;height:20px}
+.yw-pan .nb-dot-color[aria-checked="true"]{outline:2px solid #B99447;outline-offset:2px}
+.yw-pan .nb-picker{height:22px}.yw-pan .nb-picker-dot{width:20px;height:20px}
+.yw-pan .nb-mm .nb-unit{display:none}
+.yw-pan .nb-field{margin-bottom:8px}
 .yw-pan{padding:12px 18px 12px}
+/* ---- 3D로 보면서 만들기: the wizard's step in a wider right column - steps, question, inputs, 이전 / 다음 */
+.yw.yw-mk{grid-template-columns:72px minmax(0,1fr) 432px}
+.yw-mkr{display:flex;flex-direction:column;overflow:hidden;margin:0}
+.yw-steps{flex:none;display:flex;gap:16px;margin:14px 22px 0;padding:0;list-style:none;border-bottom:1px solid #D9CCBF;font-size:14px;color:#8A7A72;white-space:nowrap}
+.yw-steps li{padding:0 1px 9px;margin-bottom:-1px;border-bottom:2px solid transparent}
+.yw-steps b{margin-right:5px;font-family:"Cormorant Garamond",serif;font-size:16px;font-weight:600;color:#B99447}
+.yw-steps li[aria-current="step"]{color:#3A322D;font-weight:600;border-bottom-color:#B99447}
+.yw-mkbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 22px 18px;scrollbar-width:thin;scrollbar-color:#D8CABD transparent}
+.yw-mkbody h2{margin:0 0 14px;font-size:21px;font-weight:600;line-height:1.4;color:#3A322D}
+.yw-mkfoot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;height:68px;padding:0 22px;box-shadow:0 -1px 0 rgba(181,168,148,.55)}
+.yw-mkbody .ask-line{display:none}
+.yw-mkbody .nb-wg{margin-bottom:18px}
+.yw-mkbody .nb-tabs{gap:13px}.yw-mkbody .nb-tabs button{font-size:13.5px}
+.yw-mkbody .nb-pre{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.yw-mkbody .nb-pre-t{padding:5px 2px 6px;font-size:13px}.yw-mkbody .nb-pre-t .nb-art{width:32px;height:32px}
+.yw-mkbody .nb-tiles-4{grid-template-columns:repeat(3,minmax(0,1fr))}
+.yw-mkbody .nb-tiles-6{grid-template-columns:repeat(4,minmax(0,1fr))}
+.yw-mkbody .nb-det{margin-top:12px;padding-top:11px}
+.yw-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center}
+.yw-empty i{display:block;width:300px;height:96px;border-radius:50%;border:1.5px dashed #C9BBA8}
+.yw-empty p{margin:0;font-size:15px;line-height:1.7;color:#6B5C55}

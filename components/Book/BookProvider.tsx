@@ -57,6 +57,8 @@ interface BookCtx {
   newPattern: () => void;
   /** wide screens: put the book away without asking (a pattern just finished): it sinks to where it rose */
   sinkAway: () => void;
+  /** the book sinks (when it floats) and the screen goes to `path`: 완성 -> the finished pattern (Kim) */
+  sinkTo: (path: string) => void;
   /** wide screens: 도안 만들기 rose over the opening (/), which stays under the book, faded back */
   fromOpening: boolean;
 }
@@ -243,6 +245,13 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (asks()) setLeaving("home"); else doHome();
   }, [asks, doHome, origin]);
   const toDesk = useCallback(() => { setClosing(true); router.push("/", { scroll: false }); }, [router]);
+  const sinkTo = useCallback((to: string) => {
+    if (sinking) return;
+    setInstant(false);
+    if (!floating) { router.push(to, { scroll: false }); return; }
+    setSinking(true); // the path change ends it (above), once the new screen is there
+    setTimeout(() => { setOverlay(false); router.push(to, { scroll: false }); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700);
+  }, [floating, sinking, router]);
   const leaveTo = useCallback((to: string) => { if (asks()) setLeaving({ path: to }); else { setInstant(false); router.push(to, { scroll: false }); } }, [asks, router]);
 
   // Esc closes the book, from the menu or the wizard alike (one book; Kim's call), never while a Korean
@@ -257,8 +266,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
 
   // the book floats over the opening: its menu on /, or the wizard raised from there (origin: the path only)
   const fromOpening = (path === "/" && overlay) || (path === "/new" && origin?.split("?")[0] === "/");
-  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, sinkAway: doClose, fromOpening, newPattern: raise }),
-    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, doClose, fromOpening, raise]);
+  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, sinkAway: doClose, sinkTo, fromOpening, newPattern: raise }),
+    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, doClose, sinkTo, fromOpening, raise]);
   return (
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>
