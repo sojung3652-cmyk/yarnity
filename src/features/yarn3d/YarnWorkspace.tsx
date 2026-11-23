@@ -100,7 +100,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const [dark, setDark] = useState(!yarnDark);
   useEffect(() => { setDark(!yarnDark); }, [yarnDark]);
   const pickBg = (d: boolean) => setDark(d);
-  const toShape = () => { setIntro(false); root.current?.querySelector("#yw-draw")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
+  // the yarn is set (Kim: the yarn first, then what to make): the page is told, and asks what to make
+  const yarnSet = () => window.dispatchEvent(new Event("yw:yarnset"));
+  const toShape = () => { setIntro(false); yarnSet(); root.current?.querySelector("#yw-draw")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
   // the book stops, the page stays still, the way back takes the focus; Esc closes, Tab stays inside
   useEffect(() => {
@@ -182,7 +184,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             <Group name="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></Group>
             {/* tools: each on or off by itself (재기, 실 확인) or played once (뜨는 순서) */}
             <div className="yw-acts" role="group" aria-label="도구">
-              {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => setIntro(v => !v)}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
+              {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => { if (intro) yarnSet(); setIntro(v => !v); }}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
               <button type="button" className="yw-act" aria-pressed={ruler} onClick={toggleRuler}><Ic s={18} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />재기</button>
               {extra?.onResize && !empty && <button type="button" className="yw-act" aria-pressed={frameOn} title="크기 틀 (Ctrl+T)" onClick={toggleFrame}><Ic s={18} d="M5 5h14v14H5zM3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4z" />크기 틀</button>}
               <button type="button" className="yw-act" onClick={() => viewer.current?.playDraw()}><Ic s={18} d="M7 4.5v15l12-7.5z" />뜨는 순서</button>

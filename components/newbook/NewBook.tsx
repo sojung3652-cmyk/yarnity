@@ -208,6 +208,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const apply = (p: Partial<Draft>) => { const nd = { ...draft, ...p }; setDraft(nd); setNums(numsOf(nd)); };
   // 조립하기 (Kim): the part being changed, 조립하기 or 그리기, and whether the first window has been answered
   const [asmPart, setAsmPart] = useState("bottom"), [shapeMode, setShapeMode] = useState<"asm" | "draw">("asm"), [asked, setAsked] = useState(false);
+  // the yarn first (Kim): the work screen opens on the yarn check; what to make is asked once the yarn is set
+  // (모양 만들기 on the yarn check). The yarn can still be changed afterwards (its sections, 실 확인 on the top).
+  const [yarnSet, setYarnSet] = useState(false);
+  useEffect(() => { const f = () => setYarnSet(true); window.addEventListener("yw:yarnset", f); return () => window.removeEventListener("yw:yarnset", f); }, []);
 
   // a new item starts from its own defaults (no values carried over from the previous item)
   const pickItem = (id: ItemId) => {
@@ -948,7 +952,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
     empty: !picked,
     // 조립하기: what to make, asked first (Kim); the 크기 틀 dragged on the 3D
-    ask: big3d.open && !picked && !asked && !editId ? <AskStart draft={draft} onName={v => patch({ name: v })} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
+    ask: big3d.open && yarnSet && !picked && !asked && !editId ? <AskStart draft={draft} onName={v => patch({ name: v })} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
       onApply={d => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); window.dispatchEvent(new Event("yw:shape")); }} /> : undefined,
     onResize: picked && !draft.free && !draft.paint ? (fx, fy) => {
       if (fx !== 1 && fx === fy) { apply(scaleDraft(draft, fx)); return; }
