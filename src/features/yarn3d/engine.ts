@@ -25,6 +25,7 @@
 //    phones and on the book's page (`detail: "page"`)
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { ellipseRing, roundSection, type Outline } from "@/lib/outline";
 import type { Chart } from "@/lib/crochetChart";
 import { stitchOf } from "@/lib/knit";
@@ -566,22 +567,56 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const R = yarnR(D), geos: THREE.BufferGeometry[] = [];
     const mat = yarnMat(R), M = LOD.M, step = LOD.step, lp = (b: Bot) => D.P[b[0]].clone().lerp(D.P[b[1]], b[2]);
     if (pat.shape.kind === "chart" && chartAt) {
-      // a crochet chart, stitch by stitch: each stitch's head lying on its top (a loop across the post), its post
-      // as two strands from the base up, and a long stitch's wrap round the middle; each chain its own loop
-      const s = pat.shape, at = chartAt, color = colorOf(0), add = (pts: THREE.Vector3[], closed: boolean, rad = R) => {
-        const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5), g = buildYarn(cv.getSpacedPoints(Math.max(16, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color });
-        const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
+      // a stitch chart (lib/crochetChart, lib/stitchCharts), stitch by stitch, lying in the fabric: a crochet
+      // stitch's head a loop across its top, its post two strands from the base up, a long stitch's wraps round
+      // the middle; a knit stitch a V, a purl a bump, a yarn over a small ring, a bobble its strands bulging out,
+      // a loop stitch a loop standing up; each chain its own loop. A stitch standing out (a front post, the
+      // crossing of a cable) is lifted, one sunk lowered; each in its own colour. All of it is one mesh.
+      const s = pat.shape, at = chartAt, parts: THREE.BufferGeometry[] = [], add = (pts: THREE.Vector3[], closed: boolean, rad: number, color: string) => {
+        const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5);
+        parts.push(buildYarn(cv.getSpacedPoints(Math.max(12, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color }));
       };
-      // loops lie in the fabric (an oval across, short along), just above it
       const loop = (c: THREE.Vector3, ax: THREE.Vector3, al: THREE.Vector3, w: number, d: number, h: number) => { const pts: THREE.Vector3[] = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; pts.push(c.clone().addScaledVector(ax, Math.cos(a) * w).addScaledVector(al, Math.sin(a) * d).setY(h * (1 + .35 * Math.sin(a)))); } return pts; };
-      const X1 = new THREE.Vector3(1, 0, 0), Z1 = new THREE.Vector3(0, 0, 1), r = R * .82;
-      s.chart.ch.forEach(([x, y]) => add(loop(at(x, y), X1, Z1, D.sw * .4, D.rh * .2, r), true, r * .9));
+      const X1 = new THREE.Vector3(1, 0, 0), Z1 = new THREE.Vector3(0, 0, 1), r = R * .82, WRAPS: Partial<Record<string, number>> = { hdc: 1, dc: 1, cl: 1, bob: 1, pop: 1, tr: 2, dtr: 3, bull: 5 };
+      s.chart.ch.forEach(q => add(loop(at(q[0], q[1]), X1, Z1, D.sw * .4, D.rh * .2, r), true, r * .9, colorOf(q[2] ?? 0)));
       s.chart.st.forEach(c => {
-        const b = at(c.b[0], c.b[1]), t = at(c.t[0], c.t[1]), dir = t.clone().sub(b), dn = dir.clone().normalize(), across = new THREE.Vector3(-dn.z, 0, dn.x), w = D.sw * .15;
-        add(loop(t, across, dn, D.sw * .44, D.rh * .2, r * 1.3), true, r);
-        for (const k of [-1, 1]) add([b.clone().addScaledVector(across, w * k).setY(r), b.clone().lerp(t, .5).addScaledVector(across, w * k * 1.35).setY(r * 2), t.clone().addScaledVector(across, w * k * .6).addScaledVector(dn, -D.rh * .2).setY(r * 1.3)], false, r);
-        if (c.type !== "sc") { const m1 = b.clone().lerp(t, .38), m2 = b.clone().lerp(t, .56); add([m1.clone().addScaledVector(across, -D.sw * .22).setY(r * 1.4), m1.clone().lerp(m2, .5).setY(r * 3), m2.clone().addScaledVector(across, D.sw * .22).setY(r * 1.4)], false, r * .95); }
+        const b = at(c.b[0], c.b[1]), t = at(c.t[0], c.t[1]), dir = t.clone().sub(b), len = dir.length() || D.rh, dn = len > 1e-9 ? dir.clone().divideScalar(len) : Z1.clone().negate();
+        const across = new THREE.Vector3(-dn.z, 0, dn.x), w = D.sw * .15, color = colorOf(c.c ?? 0), up = Math.max(r * .6, r + (c.z ?? 0) * D.rh * .9);
+        const P = (p: THREE.Vector3, y: number) => p.clone().setY(y);
+        switch (c.type) {
+          case "k": { // a V: from the middle of its foot out to the two sides of its top
+            for (const k of [-1, 1]) add([P(b.clone().addScaledVector(dn, D.rh * .05), up), P(b.clone().lerp(t, .55).addScaledVector(across, D.sw * .26 * k), up + r * .9), P(t.clone().addScaledVector(across, D.sw * .4 * k), up * 1.1)], false, r * 1.05, color);
+            return;
+          }
+          case "p": { // a bump across, standing up
+            add([P(b.clone().addScaledVector(across, -D.sw * .48).addScaledVector(dn, len * .3), up), P(b.clone().addScaledVector(dn, len * .42), up + r * 2.2), P(b.clone().addScaledVector(across, D.sw * .48).addScaledVector(dn, len * .3), up)], false, r * 1.1, color);
+            return;
+          }
+          case "yo": add(loop(b.clone().lerp(t, .5), across, dn, D.sw * .22, D.rh * .22, up), true, r * .85, color); return;
+          case "picot": { const pts: THREE.Vector3[] = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; pts.push(t.clone().addScaledVector(across, Math.cos(a) * D.sw * .28).setY(up + D.rh * .3 + Math.sin(a) * D.rh * .3)); } add(pts, true, r, color); return; }
+          case "sl": add(loop(t, across, dn, D.sw * .36, D.rh * .16, up), true, r, color); return;
+          case "bar": { // tunisian: a straight bar up, the return pass across its top
+            add([P(b, up), P(b.clone().lerp(t, .5), up + r * .8), P(t, up)], false, r, color);
+            add([P(t.clone().addScaledVector(across, -D.sw * .5), up * 1.1), P(t, up + r * .9), P(t.clone().addScaledVector(across, D.sw * .5), up * 1.1)], false, r * .95, color);
+            return;
+          }
+        }
+        // crochet stitches: the head loop, then the post
+        add(loop(t, across, dn, D.sw * .44, D.rh * .2, up * 1.3), true, r, color);
+        const bulge = c.type === "bob" || c.type === "pop" ? D.rh * .9 : c.type === "puff" ? D.rh * .6 : 0;
+        if (bulge) {
+          // a bobble: its strands from the base, out and up over a dome, to the top
+          for (let k = -2; k <= 2; k++) add([P(b.clone().addScaledVector(across, w * k * .3), up), P(b.clone().lerp(t, .5).addScaledVector(across, D.sw * .16 * k), up + bulge * (1 - Math.abs(k) * .18)), P(t.clone().addScaledVector(across, w * k * .3).addScaledVector(dn, -D.rh * .15), up * 1.3)], false, r, color);
+        } else for (const k of [-1, 1]) add([P(b.clone().addScaledVector(across, w * k), up), P(b.clone().lerp(t, .5).addScaledVector(across, w * k * 1.35), up + r), P(t.clone().addScaledVector(across, w * k * .6).addScaledVector(dn, -D.rh * .2), up * 1.3)], false, r, color);
+        const n = WRAPS[c.type] ?? 0;
+        for (let q = 0; q < n; q++) { const f = n === 1 ? .45 : .25 + q * .5 / (n - 1), m1 = b.clone().lerp(t, f - .08), m2 = b.clone().lerp(t, f + .08); add([P(m1.clone().addScaledVector(across, -D.sw * .22), up * 1.4), P(m1.clone().lerp(m2, .5), up + r * 2.2), P(m2.clone().addScaledVector(across, D.sw * .22), up * 1.4)], false, r * .95, color); }
+        if (c.type === "loop") { const pts: THREE.Vector3[] = []; for (let k = 0; k <= 10; k++) { const a = k / 10 * Math.PI; pts.push(t.clone().addScaledVector(across, Math.cos(a) * D.sw * .3).addScaledVector(dn, -D.rh * .3).setY(up + Math.sin(a) * D.rh * 1.6)); } add(pts, false, r, color); }
       });
+      if (parts.length) {
+        const g = mergeGeometries(parts, false) ?? parts[0]; g.userData = { perRing: parts[0].userData.perRing };
+        const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m);
+        geos.push(...parts);
+      }
       haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz); strapH = 0; flapTip = null; return;
     }
     if (D.knit) buildKnit(D, R, mat, geos);

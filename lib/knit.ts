@@ -32,6 +32,21 @@ export const KNIT_STITCHES: KnitStitch[] = [
   { key: "diag", ko: "사선", en: "diagonal rib", mult: 4, rep: 4, f: (j, i) => ((i + j) % 4 < 2 ? K : P), note: "비스듬한 줄무늬입니다. 편물이 조금 기울 수 있습니다." },
   { key: "zig", ko: "지그재그", en: "zigzag", mult: 8, rep: 4, f: (j, i) => ((tri(i, 8) + j) % 4 === 0 ? P : K), note: "안뜨기 점이 꺾인 선을 그립니다." },
   { key: "dia", ko: "다이아몬드", en: "diamond brocade", mult: 8, rep: 8, f: (j, i) => { const s = tri(i, 8) + tri(j, 8); return s === 4 || s === 0 ? P : K; }, note: "안뜨기 점으로 마름모를 그립니다." },
+  // more knit-and-purl patterns (Kim: 나머지도 다) - the 무늬 도감's 겉뜨기 · 안뜨기 무늬
+  { key: "rev", ko: "안메리야스", en: "reverse stockinette", mult: 1, rep: 2, f: () => P, note: "안뜨기 면이 겉이 됩니다. 오돌토돌한 가로 결입니다." },
+  { key: "irish", ko: "아이리시 모스", en: "Irish moss", mult: 2, rep: 4, f: (j, i) => ((i + Math.floor(j / 2)) % 2 ? P : K), note: "멍석을 두 단씩 쌓은 결입니다." },
+  { key: "andalu", ko: "안달루시안", en: "Andalusian", mult: 2, rep: 4, f: (j, i) => (j % 4 === 2 && i % 2 ? P : K), note: "메리야스에 작은 안뜨기 점이 격자로 찍힙니다." },
+  { key: "hurdle", ko: "허들", en: "hurdle", mult: 2, rep: 4, f: (j, i) => (j % 4 < 2 ? K : i % 2 ? P : K), note: "가터 줄과 고무 줄이 번갈아 나옵니다." },
+  { key: "sand", ko: "모래", en: "sand stitch", mult: 2, rep: 4, f: (j, i) => (j % 2 ? K : (i + j / 2) % 2 ? P : K), note: "모래처럼 잔잔한 점무늬입니다." },
+  { key: "waffle", ko: "와플", en: "waffle", mult: 3, rep: 4, f: (j, i) => (i % 3 === 2 || j % 4 === 3 ? K : P), note: "네모 칸이 들어간 와플 결입니다." },
+  { key: "garib", ko: "가터 고무", en: "garter rib", mult: 4, rep: 2, f: (j, i) => (i % 4 < 2 ? K : j % 2 ? P : K), note: "고무뜨기 골 사이가 가터 결입니다." },
+  { key: "pique", ko: "피케 고무", en: "piqué rib", mult: 4, rep: 4, f: (j, i) => (i % 4 === 3 ? P : j % 4 === 3 && i % 4 === 1 ? P : K), note: "고무 골 사이에 작은 점이 들어갑니다." },
+  { key: "check", ko: "체크 · 타일", en: "check", mult: 6, rep: 6, f: (j, i) => ((Math.floor(i / 3) + Math.floor(j / 3)) % 2 ? P : K), note: "작은 바둑판 체크입니다." },
+  { key: "pennant", ko: "깃발 · 삼각", en: "pennant", mult: 5, rep: 10, f: (j, i) => ((i % 5) < 5 - Math.abs((j % 10) - 5) ? P : K), note: "세로로 깃발 같은 삼각형이 이어집니다." },
+  { key: "seer", ko: "시어서커", en: "seersucker", mult: 4, rep: 8, f: (j, i) => (j % 8 < 4 ? (i % 4 < 2 ? K : P) : (i % 4 < 2 ? P : K)), note: "고무 줄이 네 단마다 엇갈려 오글오글합니다." },
+  { key: "chevrib", ko: "쉐브론 고무", en: "chevron rib", mult: 8, rep: 4, f: (j, i) => ((tri(i, 8) + j) % 4 < 2 ? K : P), note: "고무 골이 산 모양으로 꺾입니다." },
+  { key: "twrib", ko: "꼬아 고무", en: "twisted rib", mult: 2, rep: 1, f: (_j, i) => (i % 2 ? P : K), note: "겉뜨기를 꼬아 떠서 골이 또렷한 1×1 고무입니다." },
+  { key: "fisher", ko: "영국 고무", en: "fisherman's rib", mult: 2, rep: 2, f: (_j, i) => (i % 2 ? P : K), note: "아랫단에 떠서 도톰하고 폭신한 고무입니다." },
 ];
 export const KNIT_STITCH: Record<string, KnitStitch> = Object.fromEntries(KNIT_STITCHES.map(s => [s.key, s]));
 export const stitchOf = (key?: string | null): KnitStitch => KNIT_STITCH[key ?? ""] ?? KNIT_STITCHES[0];
