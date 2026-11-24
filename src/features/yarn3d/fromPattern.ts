@@ -132,6 +132,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
+    ...(p.crochetStitch === "blo" ? { ridge: true } : {}),
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
     ...(p.drape ? { gravity: true } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.handleStyle ? { strapStyle: p.handleStyle, strapWcm: p.handleWcm ?? 2.5 } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper || p.extras.tab || p.extras.items?.length) ? { extras: p.extras } : {}),

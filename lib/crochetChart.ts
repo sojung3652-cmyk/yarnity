@@ -71,7 +71,7 @@ export function compileChart(k: ChartKey, cols: number, rows: number): Chart {
     }
   } else if (k === "vst") {
     prev = prev.map(p => work("sc", p)); let vs: [number, number][] = []; for (let i = 1; i < N - 1; i += 3) vs.push(prev[i]);
-    for (let r = 0; r < rows; r++) { const nv: [number, number][] = []; vs.forEach(p => { const a = work("dc", p, -.85); work("dc", p, .85); ch.push([p[0], a[1] - .05]); nv.push([p[0], a[1] - .6]); }); vs = nv; }
+    for (let r = 0; r < rows; r++) { const nv: [number, number][] = []; vs.forEach(p => { const a = work("dc", p, -.85); work("dc", p, .85); ch.push([p[0], a[1] - .05]); nv.push([p[0], a[1] - .15]); }); vs = nv; } // the next V goes into this one's chain space, just under its top (it was .6 down: the V's crushed half into each other)
   } else {
     for (let r = 0; r < rows * 2; r++) for (let i = r % 2; i < N; i += 2) { const t = work("sc", r === 0 ? prev[i] : [i, r * CHART_HT.sc * .92]); if (i + 1 < N) ch.push([i + 1, t[1] - .05]); }
   }

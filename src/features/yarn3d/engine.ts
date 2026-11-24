@@ -113,6 +113,8 @@ export interface YarnPattern {
   flap?: { cm: number; shape: "half" | "square" | "triangle"; color?: string; over?: boolean };
   /** the crochet stitch's height against single crochet (긴뜨기 ~1.6, 한길긴뜨기 ~2.2) */
   stitchH?: number;
+  /** 이랑뜨기 (back loop only): the front loop left unworked stands up as a ridge along each row */
+  ridge?: boolean;
 }
 export interface YarnInfo { round: boolean; widthCm: number; depthCm: number; heightCm: number | null; fit: string; skip: { stitch: number; row: number } | null }
 export interface YarnViewer {
@@ -707,21 +709,48 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       }
       haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz); strapH = 0; flapTip = null; return;
     }
+    // 3D 정밀 (Kim): a tall stitch (긴뜨기, 한길긴뜨기) is an upright post of two strands, 한길긴뜨기 with its wrap across
+    // the middle - not a taller zigzag; drawn as one mesh, and only while the piece is small enough to stay quick
+    const tall = (pat.stitchH ?? 1) >= 1.4 && !D.knit, nSt = D.C.reduce((a, c) => a + c.idx.length, 0), posts = tall && nSt <= 2600, postParts: THREE.BufferGeometry[] = [];
+    const strand = (pts: THREE.Vector3[], rad: number, color: string) => { const cv = new THREE.CatmullRomCurve3(pts, false, "catmullrom", .5); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(8, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M: Math.min(6, M), color })); };
     if (D.knit) buildKnit(D, R, mat, geos);
-    else D.C.forEach(c => {
+    else D.C.forEach((c, ci) => {
       const tops = c.idx.map(n => D.P[n].clone()), saw: THREE.Vector3[] = [];
-      if (c.bot) c.idx.forEach((n, i) => saw.push(D.P[n].clone(), lp(c.bot![i])));
+      if (c.bot && posts) {
+        const color = colorOf(c.ci), wrap = (pat.stitchH ?? 1) >= 2;
+        c.idx.forEach((n, i) => {
+          const t = D.P[n], b0 = lp(c.bot![i]), nx = D.P[c.idx[(i + 1) % c.idx.length]], along = nx.clone().sub(t).setY(0);
+          if (along.lengthSq() < 1e-12) along.set(1, 0, 0); along.normalize();
+          // the post stands straight under its own top (its base on the row below was half a stitch over: posts leaned)
+          const dv = b0.clone().sub(t); dv.addScaledVector(along, -dv.dot(along)); const b = t.clone().add(dv);
+          along.multiplyScalar(D.sw * .16);
+          const up = t.clone().sub(b), mid = b.clone().addScaledVector(up, .5);
+          // slim, evenly spaced posts (the first try was fat and bunched in pairs): the two strands close together
+          // straight, nearly touching their neighbours (fat and bunched at first, then too thin - a lattice of holes)
+          for (const k of [-1, 1]) strand([b.clone().addScaledVector(along, k * 1.25), mid.clone().addScaledVector(along, k * 1.35), t.clone().addScaledVector(along, k * 1.2).addScaledVector(up, -.08)], R * .86, color);
+          if (wrap) strand([mid.clone().addScaledVector(along, -1.9).addScaledVector(up, -.12), mid.clone().addScaledVector(up, .02).add(new THREE.Vector3(0, R * .35, 0)), mid.clone().addScaledVector(along, 1.9).addScaledVector(up, .14)], R * .8, color);
+        });
+      } else if (c.bot) c.idx.forEach((n, i) => saw.push(D.P[n].clone(), lp(c.bot![i])));
+      // 이랑뜨기: the unworked front loop raised along the row (every row worked in rounds, every other in rows)
+      if (pat.ridge && (c.closed || ci % 2 === 0)) {
+        let cx = 0, cz = 0; tops.forEach(q => { cx += q.x; cz += q.z; }); cx /= tops.length || 1; cz /= tops.length || 1;
+        tops.forEach(q => { if (c.closed) { const o = new THREE.Vector3(q.x - cx, 0, q.z - cz); if (o.lengthSq() > 1e-12) q.addScaledVector(o.normalize(), R * 1.05); } else q.y += R * 1.15; });
+      }
       [saw, tops].forEach((arr0, ix) => {
         // points on the very same spot (a painted stitch with nothing painted under it: its "saw" goes down to
         // itself) are left out; a line of zero length made degenerate geometry that reset the graphics driver
         let arr = arr0.filter((q, i) => i === 0 || q.distanceToSquared(arr0[i - 1]) > 1e-10);
         if (arr.length === 1 && arr0.length > 1 && ix === 0) return; // a saw with nothing below: no saw
         if (!c.closed && arr.length && arr.length < 3) { const a0 = arr[0], a1 = arr[arr.length - 1], d = new THREE.Vector3(D.sw * .35, 0, 0); arr = arr.length === 1 ? [a0.clone().sub(d), a0, a0.clone().add(d)] : [a0, a0.clone().lerp(a1, .5), a1]; }
-        if (arr.length < 3) return; const cv = new THREE.CatmullRomCurve3(arr, c.closed, "catmullrom", .5), Rr = ix ? R * .9 : R;
+        if (arr.length < 3) return; const cv = new THREE.CatmullRomCurve3(arr, c.closed, "catmullrom", .5), Rr = ix ? R * (pat.ridge ? 1.12 : .9) : R;
         const pts = cv.getSpacedPoints(Math.max(24, Math.ceil(cv.getLength() / (Rr * .75 * step))));
         const g = buildYarn(pts, Rr, { M, closed: c.closed, color: colorOf(c.ci) }), m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
       });
     });
+    if (postParts.length) {
+      const g = mergeGeometries(postParts, false) ?? postParts[0]; g.userData = { perRing: postParts[0].userData.perRing };
+      const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(...postParts);
+    }
     // the edging round the opening: the last round again, a little up and out, thicker
     const lastC = D.C[D.C.length - 1];
     if (pat.rim && !D.knit && lastC && lastC.closed && lastC.idx.length > 6 && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
