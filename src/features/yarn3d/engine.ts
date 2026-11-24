@@ -376,26 +376,37 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (fuzz <= 0.01 || !geos.length) return null;
     const v: number[] = [], col: number[] = [], cc = new THREE.Color(), WH = lin(0xffffff); const d = new THREE.Vector3(), p = new THREE.Vector3(), jit = new THREE.Vector3();
     const per = (g: THREE.BufferGeometry) => { const fr = g.userData.frames; return fr[fr.length - 1].s / g.userData.R * fuzz * (st.fur ? 46 : fluffy ? 34 : 26); };
-    const raw = geos.reduce((a, g) => a + per(g), 0), scale = Math.min(1, fuzzCap() / Math.max(1, raw));
+    const raw = geos.reduce((a, g) => a + per(g), 0), scale = Math.min(1, fuzzCap() / 2 / Math.max(1, raw)); // each hair is three pieces now
     geos.forEach(g => {
       const fr = g.userData.frames, R = g.userData.R, count = Math.floor(per(g) * scale);
       // fur: the proper colour; the light fuzz: the prototype used the sRGB numbers as linear (lighter), so do the same
       // the hairs in the yarn's own colour (Kim), barely lighter; with a held yarn, half of them in its colour
       cc.set(g.userData.color); if (!st.fur) { cc.convertLinearToSRGB(); cc.lerp(WH, .04); }
       const c2 = pat.marl && g.userData.color === pat.colors[0] ? new THREE.Color(pat.marl).convertLinearToSRGB().lerp(WH, .04) : null;
+      // soft hairs (Kim: not spikes): each a curl of three short pieces - out from the yarn, then lying back along
+      // it, turning a little - shorter than before and fainter at its tip
+      const t2 = new THREE.Vector3(), q = new THREE.Vector3();
       for (let k = 0; k < count; k++) {
         const f = fr[Math.random() * fr.length | 0], ph = Math.random() * 6.283, c = Math.cos(ph), s = Math.sin(ph);
         d.set(0, 0, 0).addScaledVector(f.n, c).addScaledVector(f.b, s); p.copy(f.p).addScaledVector(d, R * .8);
-        const L = R * (.25 + Math.random() * Math.random() * 2.2) * (.35 + Math.min(2.5, fuzz)) * st.hair * hk();
-        d.addScaledVector(f.t, (Math.random() - .5) * 1.6).add(jit.set(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(.5)).normalize();
-        v.push(p.x, p.y, p.z, p.x + d.x * L, p.y + d.y * L, p.z + d.z * L);
-        const br = st.fur ? .75 + Math.random() * .25 : 1, k0 = st.fur ? .8 : .9;
-        if (st.glint > 0 && Math.random() < st.glint) col.push(.92, .92, .9, 1, 1, 1); // tinsel: a fibre that catches the light
-        else { const h = c2 && Math.random() < .5 ? c2 : cc; col.push(h.r * br * k0, h.g * br * k0, h.b * br * k0, h.r * br, h.g * br, h.b * br); }
+        const L = R * (.25 + Math.random() * Math.random() * 2.2) * (.35 + Math.min(2.5, fuzz)) * st.hair * hk() * .75;
+        const along = Math.random() < .5 ? -1 : 1, out = d.clone();
+        t2.copy(f.t).multiplyScalar(along);
+        const br = st.fur ? .75 + Math.random() * .25 : 1, k0 = st.fur ? .8 : .9, glint = st.glint > 0 && Math.random() < st.glint, h = c2 && Math.random() < .5 ? c2 : cc;
+        q.copy(p);
+        for (let j = 0; j < 3; j++) {
+          // the further out, the more it lies along the yarn and curls
+          const lie = .35 + j * .4;
+          d.copy(out).multiplyScalar(1 - lie * .6).addScaledVector(t2, lie).add(jit.set(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(.45)).normalize();
+          const a0 = q.clone(); q.addScaledVector(d, L / 3);
+          v.push(a0.x, a0.y, a0.z, q.x, q.y, q.z);
+          if (glint) col.push(.92, .92, .9, 1, 1, 1); // tinsel: a fibre that catches the light
+          else { const kA = k0 + (1 - k0) * j / 3, kB = k0 + (1 - k0) * (j + 1) / 3; col.push(h.r * br * kA, h.g * br * kA, h.b * br * kA, h.r * br * kB, h.g * br * kB, h.b * br * kB); }
+        }
       }
     });
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
-    return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: st.fur ? .7 : fluffy ? .4 : .22, depthWrite: false }));
+    return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: st.fur ? .62 : fluffy ? .32 : .18, depthWrite: false }));
   }
 
   // ---------- pattern -> 3D: stitch = point, joins = springs (the shape comes from the counts alone)
