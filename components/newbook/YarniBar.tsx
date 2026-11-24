@@ -13,12 +13,13 @@ export function YarniBar({ onWords }: { onWords?: () => void }) {
   const ask = (text: string) => { setChat(c => ({ ...c, open: true, prefill: text })); setQ(""); };
   return (
     <div className="yb" role="group" aria-label="Yarni에게 묻기">
-      <form className="yb-row" onSubmit={e => { e.preventDefault(); ask(q.trim()); }}>
+      {/* not a form: 모양 sits inside the work screen's own form */}
+      <div className="yb-row">
         <svg className="yb-star" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .5 7.1 4.9 11.5 6 7.1 7.1 6 11.5 4.9 7.1.5 6 4.9 4.9Z" /></svg>
         <span className="yb-lb" aria-hidden="true">Yarni</span>
-        <input id="yb-q" className="nb-input yb-in" value={q} autoComplete="off" onChange={e => setQ(e.target.value)} aria-label="Yarni에게 물을 것" />
-        <button type="submit" className="pp-mini yb-go">묻기</button>
-      </form>
+        <input id="yb-q" className="nb-input yb-in" value={q} autoComplete="off" onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.nativeEvent.isComposing) { e.preventDefault(); e.stopPropagation(); ask(q.trim()); } }} aria-label="Yarni에게 물을 것" />
+        <button type="button" className="pp-mini yb-go" onClick={() => ask(q.trim())}>묻기</button>
+      </div>
       <div className="yb-chips">
         {QUICK.map(t => <button key={t} type="button" className="yb-chip" onClick={() => ask(t)}>{t}</button>)}
         {onWords && <button type="button" className="yb-chip" onClick={onWords}>말로 설명해서 다시 만들기</button>}

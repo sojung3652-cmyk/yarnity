@@ -115,7 +115,12 @@ export interface YarnPattern {
   stitchH?: number;
   /** 이랑뜨기 (back loop only): the front loop left unworked stands up as a ridge along each row */
   ridge?: boolean;
+  /** a stitch pattern on a made shape's body (Kim: 모양 만들었을 때 무늬): its repeat, W stitches by H rows, bottom
+   *  row first - each cell the stitch worked there (sc, hdc, dc, tr, pop a bobble, ch a chain over a gap: a hole)
+   *  and its colour (an index into `colors` here); the body's rounds take it round after round */
+  wall?: { W: number; H: number; t: WallStitch[][]; c?: number[][]; colors?: string[] };
 }
+export type WallStitch = "sc" | "hdc" | "dc" | "tr" | "pop" | "ch";
 export interface YarnInfo { round: boolean; widthCm: number; depthCm: number; heightCm: number | null; fit: string; skip: { stitch: number; row: number } | null }
 export interface YarnViewer {
   setPattern(p: YarnPattern): void;
@@ -221,7 +226,7 @@ export function stitchCount(s: YarnShape): number {
 
 type Edge = [number, number, number, number];
 type Bot = [number, number, number];
-interface Course { idx: number[]; closed: boolean; bot: Bot[] | null; ci: number }
+interface Course { idx: number[]; closed: boolean; bot: Bot[] | null; ci: number; /** a round of the body (the wall), not the bottom */ body?: boolean }
 interface Knit { type: "flat" | "tube"; W: number; H: number; swap: boolean; wk: number; rk: number; rho: number; R: number }
 interface ItemData { P: THREE.Vector3[]; E: Edge[]; C: Course[]; rh: number; sw: number; knit: Knit | null; flat: number[]; fixed: boolean; skip: { stitch: number; row: number } | null; iter: number; done: boolean }
 
@@ -501,7 +506,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         let bot: Bot[];
         if (!prev) { idx.forEach(n => E.push([n, cen, Math.max(cr, .2), 1])); bot = idx.map(n => [cen, n, .25] as Bot); }
         else bot = linkFrac(idx, prev);
-        C.push({ idx, closed: true, bot, ci: nextCi() }); prev = idx;
+        C.push({ idx, closed: true, bot, ci: nextCi(), ...(r >= flatN ? { body: true } : {}) }); prev = idx;
       });
       return prev!;
     };
@@ -551,7 +556,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         prev.forEach(n => { cx += P[n].x; cz += P[n].z; }); cx /= pc; cz /= pc; prev.forEach(n => { mr += Math.hypot(P[n].x - cx, P[n].z - cz); }); mr /= pc;
         const k = c / pc, dr = Math.max(-rh * .98, Math.min(rh * .98, mr * (k - 1))), yy = P[prev[0]].y + Math.sqrt(rh * rh - dr * dr), poly = prev.map(n => [cx + (P[n].x - cx) * k, cz + (P[n].z - cz) * k]), idx: number[] = [];
         for (let i = 0; i < c; i++) { const f = (i + .5) / c * pc - .5, a = Math.floor(f), t = f - a, A = poly[((a % pc) + pc) % pc], B = poly[(((a + 1) % pc) + pc) % pc]; idx.push(V(A[0] + (B[0] - A[0]) * t, yy, A[1] + (B[1] - A[1]) * t)); }
-        ring(idx, true); C.push({ idx, closed: true, bot: linkFrac(idx, prev), ci: nextCi() }); prev = idx;
+        ring(idx, true); C.push({ idx, closed: true, bot: linkFrac(idx, prev), ci: nextCi(), body: true }); prev = idx;
       });
     };
     // flat rows (W x H drawn, `ex` / `ey` apart), lying on the ground; long pieces lie along x
@@ -744,14 +749,21 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // every piece, however big (Kim: 느려지면 생성 중을 띄우고 그냥 만들어) - the screen says 생성 중 while it is made
     const sH = pat.stitchH ?? 1, loops = !D.knit, postParts: THREE.BufferGeometry[] = [];
     const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(10, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color })); };
+    // the body's rounds counted from the bottom's edge, for a stitch pattern laid on them (pat.wall)
+    let bodyN = 0;
+    const wl = pat.wall && pat.wall.W > 0 && pat.wall.H > 0 ? pat.wall : null;
     if (D.knit) buildKnit(D, R, mat, geos);
     else D.C.forEach((c, ci) => {
       const tops = c.idx.map(n => D.P[n].clone()), saw: THREE.Vector3[] = [];
       let cx0 = 0, cz0 = 0; tops.forEach(q => { cx0 += q.x; cz0 += q.z; }); cx0 /= tops.length || 1; cz0 /= tops.length || 1;
       const ridgeRow = !!pat.ridge && (c.closed || ci % 2 === 0);
       if (c.bot && loops) {
-        const color = colorOf(c.ci);
+        const color = colorOf(c.ci), wr = wl && c.body ? (bodyN++ * (D.skip?.row ?? 1)) % wl.H : -1;
         c.idx.forEach((n, i) => {
+          // the stitch worked here: the pattern's on the body (a drawn round standing for k of the pattern's takes
+          // the repeat's row it starts on), else the piece's own stitch
+          const ty: WallStitch = wr >= 0 ? (wl!.t[wr]?.[(i * (D.skip?.stitch ?? 1)) % wl!.W] ?? "sc") : sH < 1.4 ? "sc" : sH < 2 ? "hdc" : "dc";
+          const col = wr >= 0 && wl!.c && wl!.colors ? (wl!.colors[wl!.c[wr]?.[(i * (D.skip?.stitch ?? 1)) % wl!.W] ?? 0] ?? color) : color;
           const t = D.P[n].clone(), b0 = lp(c.bot![i]), nx = D.P[c.idx[(i + 1) % c.idx.length]], pv = D.P[c.idx[(i - 1 + c.idx.length) % c.idx.length]];
           const alongV = (c.closed || i < c.idx.length - 1 ? nx.clone().sub(t) : t.clone().sub(pv)).setY(0), sw = Math.max(D.sw * .6, alongV.length());
           const al = alongV.lengthSq() < 1e-12 ? new THREE.Vector3(1, 0, 0) : alongV.normalize();
@@ -762,14 +774,21 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           if (ridgeRow) t.addScaledVector(out, R * 1.1);
           const P = (u: number, v: number, w: number) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, w * R);
           // the head: front half up over the fabric, back half under, wider than the stitch so the next one's hooks into it
+          // 사슬 over a gap (mesh, net, moss): a chain lying along the row at the head's height, nothing below - a hole
+          if (ty === "ch") { const cr: THREE.Vector3[] = []; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; cr.push(P(Math.cos(a) * .55, Math.sin(a) * .16 - .04, Math.sin(a) * .5 + .3)); } strand(cr, R * .82, col, true); return; }
           const ring: THREE.Vector3[] = []; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; ring.push(P(Math.cos(a) * .62, Math.sin(a) * .07 - .02, Math.sin(a) * 1.05 + .25)); }
-          strand(ring, R * .92, color, true);
-          if (sH < 1.4) { // 짧은뜨기: a V from the head's ends to one point below
-            for (const k of [-1, 1]) strand([P(k * .36, -.08, .9), P(k * .2, -.5, .75), P(0, -.98, .35)], R * .88, color);
+          strand(ring, R * .92, col, true);
+          if (ty === "sc") { // 짧은뜨기: a V from the head's ends to one point below
+            for (const k of [-1, 1]) strand([P(k * .36, -.08, .9), P(k * .2, -.5, .75), P(0, -.98, .35)], R * .88, col);
+          } else if (ty === "pop") { // 구슬뜨기 / 팝콘: posts bulging out of the fabric, gathered at the head
+            for (const k of [-1, 0, 1]) strand([P(k * .3, -.08, .9), P(k * .55, -.5, 2.3), P(k * .2, -.97, .45)], R * .9, col);
           } else { // the post: two strands down side by side
-            for (const k of [-1, 1]) strand([P(k * .3, -.08, .85), P(k * .2, -.5, .8), P(k * .16, -.97, .4)], R * .86, color);
-            if (sH < 2) strand([P(-.38, -.24, 1.25), P(0, -.27, 1.55), P(.38, -.24, 1.25)], R * .84, color); // 긴뜨기: the yarn-over, a bar under the head
-            else strand([P(-.34, -.62, 1.1), P(0, -.5, 1.55), P(.34, -.36, 1.1)], R * .84, color); // 한길긴뜨기: wound across the middle
+            for (const k of [-1, 1]) strand([P(k * .3, -.08, .85), P(k * .2, -.5, .8), P(k * .16, -.97, .4)], R * .86, col);
+            if (ty === "hdc") strand([P(-.38, -.24, 1.25), P(0, -.27, 1.55), P(.38, -.24, 1.25)], R * .84, col); // 긴뜨기: the yarn-over, a bar under the head
+            else { // 한길긴뜨기 wound across the middle once; 두길긴뜨기 twice
+              strand([P(-.34, -.62, 1.1), P(0, -.5, 1.55), P(.34, -.36, 1.1)], R * .84, col);
+              if (ty === "tr") strand([P(-.34, -.86, 1.05), P(0, -.76, 1.5), P(.34, -.62, 1.05)], R * .84, col);
+            }
           }
         });
       } else if (c.bot) c.idx.forEach((n, i) => saw.push(D.P[n].clone(), lp(c.bot![i])));

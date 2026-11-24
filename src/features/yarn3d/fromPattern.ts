@@ -12,7 +12,7 @@ import { isKnit } from "@/lib/knit";
 import { compileChart, type Chart, type ChartKey } from "@/lib/crochetChart";
 import { chartFor } from "@/lib/stitchCharts";
 import { chartFromSteps } from "@/lib/stitchGrammar";
-import type { YarnMaterial, YarnPattern, YarnShape } from "./engine";
+import type { WallStitch, YarnMaterial, YarnPattern, YarnShape } from "./engine";
 
 /** the pattern's own fields the engine reads (Draft and Project both have them) */
 export interface YarnSource extends PlanInput {
@@ -134,6 +134,10 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   // a chart's other colours: the other yarns picked, or a lighter and a darker of the main one
   const more = (p.moreColors ?? []).filter(c => !c?.held).map(c => c?.hex).filter((h): h is string => !!h && /^#[0-9a-f]{6}$/i.test(h));
   const colors = rowColors ? rowColors.map(c => c ?? color) : shape.kind === "chart" ? [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] : [color];
+  // the stitch pattern picked, on a bag's body (the bottom stays plain, as it is worked)
+  const wc = p.object === "bag" && !p.free && !isKnit(p) ? (p.crochetChart ? { W: WALL[p.crochetChart][0].length, H: WALL[p.crochetChart].length, t: WALL[p.crochetChart] }
+    : p.chartName && chartFor(p.chartName) ? wallOfChart(chartFor(p.chartName)!) : null) : null;
+  const wall = wc ? { ...wc, colors: [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] } : null;
   return { shape, colors, yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
     ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
@@ -148,12 +152,34 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.crochetStitch === "blo" ? { ridge: true } : {}),
+    ...(wall ? { wall } : {}),
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
     ...(p.drape ? { gravity: true } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.handleStyle ? { strapStyle: p.handleStyle, strapWcm: p.handleWcm ?? 2.5 } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper || p.extras.tab || p.extras.items?.length) ? { extras: p.extras } : {}),
     // a drawn silhouette (lib/sketchMeasure): pressed to its depth, its opening edged
     ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true,
       ...(p.profile[0] > 0 && p.h ? { outline: { prof: p.profile, a: p.a, h: p.h, depth: p.depthProfile ?? DEPTH_DEFAULT, bottom: pp.bottomRounds, rounds: pp.bottomRounds + pp.bodyRows } } : {}) } : {}) };
+}
+
+// a stitch pattern on a bag's body (Kim: 모양 만들었을 때 무늬를 표시): each pattern's repeat as the stitch in each
+// cell, bottom row first - read from how each is written (lib/crochetChart CHART_ROWS). A shell's five 한길긴뜨기
+// rise from one stitch, so they are drawn falling off to 긴뜨기 at its edges, the fan's outline
+const WALL: Record<ChartKey, WallStitch[][]> = {
+  shell: [["sc", "hdc", "dc", "dc", "dc", "hdc"], ["dc", "dc", "hdc", "sc", "hdc", "dc"]],
+  mesh: [["dc", "ch"]],
+  vst: [["dc", "ch", "dc"]],
+  moss: [["sc", "ch"], ["ch", "sc"]],
+  net: [["sc", "ch", "ch", "ch"], ["ch", "ch", "sc", "ch"]],
+};
+const WALL_OF: Partial<Record<string, WallStitch>> = { sc: "sc", sl: "sc", crab: "sc", loop: "sc", picot: "sc", bar: "sc", hdc: "hdc", dc: "dc", tr: "tr", dtr: "tr", bob: "pop", puff: "pop", pop: "pop", cl: "pop", bull: "pop", yo: "ch" };
+/** a chart built on a grid (lib/stitchCharts: each stitch with its cell) as a repeat for the body; null for a
+ *  knitted one (its knit and purl are drawn by the knitting engine, not round a crocheted bag) */
+function wallOfChart(ch: Chart): { W: number; H: number; t: WallStitch[][]; c: number[][] } | null {
+  const gs = ch.st.filter(s => s.g); if (!gs.length || gs.some(s => s.type === "k" || s.type === "p")) return null;
+  const W = Math.max(...gs.map(s => s.g![0])) + 1, H = Math.max(...gs.map(s => s.g![1])) + 1; if (W < 1 || H < 1 || W > 80 || H > 40) return null;
+  const t: WallStitch[][] = Array.from({ length: H }, () => Array<WallStitch>(W).fill("ch")), c = Array.from({ length: H }, () => Array<number>(W).fill(0));
+  gs.forEach(s => { const [i, j] = s.g!; t[j][i] = WALL_OF[s.type] ?? "sc"; c[j][i] = s.c ?? 0; });
+  return { W, H, t, c };
 }
 
 /** a chart repeated nx across and ny up */
