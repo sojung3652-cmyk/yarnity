@@ -274,10 +274,14 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const [softPeek, setSoftPeek] = useState(false);
   const softRowOf = (label: string) => (
     <div className="nb-soft">
-      <div className="nb-sliders nb-sliders-1"><Slide label={label} min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={v => { setSoftPeek(false); patch({ softK: v }); }} text={softWord(draft.softK ?? 1)} /></div>
-      <div className="nb-soft-acts">
-        {/* Kim: no 비교 button; 되돌리기 only */}
-        {(draft.softK ?? 1) !== 1 && <button type="button" className="nb-link st-muted" onClick={() => { setSoftPeek(false); patch({ softK: 1 }); }}>되돌리기</button>}
+      {/* Kim: 탄탄함 and 흐물거림 under the slider's two ends, and 되돌리기 beside it (not the word "실 그대로") */}
+      <div className="nb-slide nb-soft-slide">
+        <span>{label}</span>
+        <div className="nb-soft-track">
+          <input type="range" aria-label={label} aria-valuetext={softWord(draft.softK ?? 1)} min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={e => { setSoftPeek(false); patch({ softK: Number(e.target.value) }); }} />
+          <span className="nb-soft-ends" aria-hidden="true"><i>탄탄함</i><i>흐물거림</i></span>
+        </div>
+        <output><button type="button" className="nb-link nb-soft-back" disabled={(draft.softK ?? 1) === 1} onClick={() => { setSoftPeek(false); patch({ softK: 1 }); }}>되돌리기</button></output>
       </div>
       <p className="nb-help">권장보다 큰 바늘로 뜨거나 느슨하게 뜨면 편물이 더 흐물흐물해집니다. 3D 모양만 바뀝니다.</p>
     </div>
@@ -1046,7 +1050,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     rightWeb = step === 3
       ? [<WebYarn key="y" draft={draft} patch={patch} tried={tried} />, webSize, bagNow ? webBag : <WebStitch key="s" draft={draft} patch={patch} n={pp.last} />][sheet]
       // the cover first (Kim: picked before the pattern is made; none = a random one), then the check
-      : <><CoverChoice draft={draft} patch={patch} /><WebCheck draft={draft} itemName={itemLabel} rows={checkRows} facts={facts} onName={v => patch({ name: v })} soft={web ? softRow : undefined}
+      : <><CoverChoice draft={draft} patch={patch} /><WebCheck draft={draft} itemName={itemLabel} rows={checkRows} facts={facts} onName={v => patch({ name: v })}
           use={{ g: use.g, m: use.m, skeins: use.skeins ?? null, short: !!use.short, labelOdd: !!use.labelOdd, perColor: !!use.perColor, colors: ucolors.length, per100: use.per100, basis, skeinText }}
           measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} /></>;
   }
@@ -1078,9 +1082,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           <div className="nb-tiles nb-tiles-4" role="radiogroup" aria-label="다른 실로 보기">
             {TRY_MATS.map(m => <button key={m} type="button" role="radio" aria-checked={(tryMat ?? draft.materials?.[draft.materials.length - 1]) === m} className="nb-tile" onClick={() => setTryMat(m === tryMat ? null : m)}>{m === "벨벳(셔닐)" ? "셔닐" : m}</button>)}
           </div>
+          {/* Kim: 되돌리기 and 실 변경 as real buttons, big enough to press */}
           {tryMat && <div className="try-acts"><span>{tryMat}(으)로 보는 중입니다.</span>
-            <button type="button" className="nb-link" onClick={() => { patch({ materials: [tryMat] }); setTryMat(null); }}>이 실로 바꾸기</button>
-            <button type="button" className="nb-link st-muted" onClick={() => setTryMat(null)}>원래 실로</button></div>}
+            <span className="try-btns">
+              <button type="button" className="try-btn is-sub" onClick={() => setTryMat(null)}>되돌리기</button>
+              <button type="button" className="try-btn" onClick={() => { patch({ materials: [tryMat] }); setTryMat(null); }}>실 변경</button>
+            </span></div>}
           {softRow}
         </div>
       ) }] : []),

@@ -48,6 +48,8 @@ interface BookCtx {
   floating: boolean;
   /** the book is sinking back down (closing a floating book) */
   sinking: boolean;
+  /** where a sinking book is going (sinkTo), so the stage can show that page's ground instead of the one under it */
+  sinkPath: string | null;
   /** open a saved work in 도안 만들기 over the page you are on (closing it brings you back here) */
   editHere: (id: string) => void;
   /** leave 도안 만들기 for another address (the phone's buttons on the desk); a pattern half made asks first,
@@ -96,7 +98,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const menuNext = useRef(false), menuTo = useRef("/");
   /** the next step change comes without a page turn (goStep(s, true)) */
   const quietTurn = useRef(false);
-  const [sinking, setSinking] = useState(false);
+  const [sinking, setSinking] = useState(false), [sinkPath, setSinkPath] = useState<string | null>(null);
   const [origin, setOrigin] = useState<string | null>(null);
   // Wide screens (Kim: "책만 올려" - only the book rises, whatever page is under it): raising the book over a page
   // changes the address alone (window.history.pushState: usePathname / useSearchParams follow, the page rendered
@@ -133,7 +135,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     const toMenu = menuNext.current && path !== "/new"; menuNext.current = false;
     if (overlay !== toMenu) setOverlay(toMenu); // going anywhere (the wizard, 내 작품) ends the overlay
     if (origin && path !== "/new" && !toMenu) setOrigin(null); // back on a page (the origin or any other): forgotten
-    if (sinking) setSinking(false); // the sunk book stays down until the screen it goes back to is there
+    if (sinking) { setSinking(false); setSinkPath(null); } // the sunk book stays down until the screen it goes back to is there
   }
   // a step change on the same page (next / previous / Back / Forward) always turns the page, also after
   // the wizard was opened by a typed address or a refresh (which only skips the motion of that first view)
@@ -254,7 +256,7 @@ export function BookProvider({ children }: { children: ReactNode }) {
     if (sinking) return;
     setInstant(false);
     if (!floating) { router.push(to, { scroll: false }); return; }
-    setSinking(true); // the path change ends it (above), once the new screen is there
+    setSinking(true); setSinkPath(to); // the path change ends it (above), once the new screen is there
     setTimeout(() => { setOverlay(false); router.push(to, { scroll: false }); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700);
   }, [floating, sinking, router]);
   const leaveTo = useCallback((to: string) => { if (asks()) setLeaving({ path: to }); else { setInstant(false); router.push(to, { scroll: false }); } }, [asks, router]);
@@ -271,8 +273,8 @@ export function BookProvider({ children }: { children: ReactNode }) {
 
   // the book floats over the opening: its menu on /, or the wizard raised from there (origin: the path only)
   const fromOpening = (path === "/" && overlay) || (path === "/new" && origin?.split("?")[0] === "/");
-  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, sinkAway: doClose, sinkTo, fromOpening, newPattern: raise }),
-    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, editHere, leaveTo, toDesk, doClose, sinkTo, fromOpening, raise]);
+  const value = useMemo<BookCtx>(() => ({ view, step, instant, mode, setMode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, sinkPath, editHere, leaveTo, toDesk, sinkAway: doClose, sinkTo, fromOpening, newPattern: raise }),
+    [view, step, instant, mode, desk, open, close, startWizard, goStep, toHome, openHere, overlay, floating, sinking, sinkPath, editHere, leaveTo, toDesk, doClose, sinkTo, fromOpening, raise]);
   return (
     <Ctx.Provider value={value}>
       <Suspense fallback={null}><StepSync onStep={setUrlStep} /></Suspense>

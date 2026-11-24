@@ -441,3 +441,7 @@ body:has(.hero-desk.is-overlay) .wrap > footer{display:none}
 .leave-btns .cloth-label{width:100%}.leave-btns .cloth-face{width:100%;justify-content:center;font-size:14px}
 /* 고치기 straight into the 3D: the book underneath stays out of sight (lib/edit3d) */
 html.y-edit3d #book{visibility:hidden}
+/* the pattern page's ground under a book sinking to it (Hero: .sink-cover) */
+.sink-cover{position:fixed;inset:0;z-index:59;background:var(--bg);animation:sink-cover .25s ease-out}
+@keyframes sink-cover{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.sink-cover{animation:none}}

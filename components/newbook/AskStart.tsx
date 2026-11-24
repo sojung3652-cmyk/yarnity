@@ -77,11 +77,11 @@ export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d
     <div className="ask" role="dialog" aria-modal="true" aria-labelledby="ask-h">
       <div className="ask-box">
         <h2 id="ask-h">무엇을 떠 볼까요</h2>
-        <p className="ask-lead">자유롭게 적어 주십시오. Yarni가 부품을 맞춰 두고, 실을 고른 뒤 모양에서 크기와 부품을 정합니다.</p>
-        {q.field}
-        {/* an option (Kim): a ready 기본형 at once, changed afterwards in 모양 - words and drawing stay first */}
-        <button type="button" className="nb-link ask-listbtn" aria-expanded={list} onClick={() => setList(v => !v)}>{list ? "기본형 닫기" : "또는 기본형에서 시작하기"}</button>
+        {/* Kim: 기본형에서 시작하기 first, easy to see - a ready shape at once, changed afterwards in 모양 */}
+        <button type="button" className="ask-proto" aria-expanded={list} onClick={() => setList(v => !v)}><b>기본형에서 시작하기</b><span>{list ? "닫기" : "토트백, 버킷백, 파우치… 바로 고르기"}</span></button>
         {list && <Protos onPick={p => onApply(protoDraft(draft, p))} />}
+        <p className="ask-lead">또는 자유롭게 적어 주십시오. Yarni가 부품을 맞춰 두고, 실을 고른 뒤 모양에서 크기와 부품을 정합니다.</p>
+        {q.field}
         {q.err && <p className="ask-err" role="alert">{q.err}</p>}
         <div className="ask-foot">
           <ClothLabel side="back" type="button" onClick={onSkip}>나중에</ClothLabel>
@@ -98,11 +98,13 @@ export function AskInline({ draft, onApply }: { draft: Draft; onApply: (d: Draft
   return (
     <div className="ask-in">
       <p className="ask-in-h">무엇을 떠 볼까요</p>
+      {/* Kim: 기본형에서 시작하기 first, easy to see */}
+      <button type="button" className="ask-proto" aria-expanded={list} onClick={() => setList(v => !v)}><b>기본형에서 시작하기</b><span>{list ? "닫기" : "토트백, 버킷백, 파우치… 바로 고르기"}</span></button>
+      {list && <Protos onPick={p => onApply(protoDraft(draft, p))} />}
+      <p className="ask-in-or">또는 말로 적어서 만들기</p>
       {q.field}
       {q.err && <p className="ask-err" role="alert">{q.err}</p>}
       <button type="button" className="sk-make" onClick={q.prepare} disabled={q.busy}>{q.busy ? "조립하는 중…" : "조립하기"}</button>
-      <button type="button" className="nb-link ask-listbtn" aria-expanded={list} onClick={() => setList(v => !v)}>{list ? "기본형 닫기" : "또는 기본형에서 시작하기"}</button>
-      {list && <Protos onPick={p => onApply(protoDraft(draft, p))} />}
     </div>
   );
 }

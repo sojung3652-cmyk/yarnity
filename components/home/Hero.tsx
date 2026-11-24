@@ -32,6 +32,9 @@ export function Hero() {
   if (m) return <MobileSplash />;
   return (
     <>
+    {/* 최종 도안 보기 (Kim: 홈화면이 보이니): while the book sinks to the pattern, the pattern page's own ground is
+        under it, not the page it rose over */}
+    {b.sinking && b.sinkPath === "/pattern" && <div className="sink-cover" aria-hidden="true" />}
     {/* wide screens: the opening and the home are the / page itself (components/opening/OpeningHome.tsx); this stage
         only carries the book that rises over a screen */}
     <section className={"hero-desk book-stage" + (open ? " is-open" : "") + (b.view === "wizard" ? " is-wizard" : "") + (hidden ? " is-hidden" : "") + (b.floating ? " is-overlay" : "") + (b.sinking ? " is-sinking" : "") + (arriving ? " is-arriving" : "")}

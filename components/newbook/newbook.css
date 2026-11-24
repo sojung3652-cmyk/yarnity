@@ -1158,3 +1158,25 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .st-toast button{border:0;background:none;padding:2px 0;font:inherit;font-size:13.5px;color:#6E5350;border-bottom:1px solid currentColor;cursor:pointer}
 .st-toast button:focus-visible{outline:2px solid #4A3D38;outline-offset:3px}
 @keyframes st-toast{from{opacity:0;transform:translate(-50%,6px)}}
+/* 탄성 체크 (Kim): the ends named under the slider, 되돌리기 beside it */
+.nb-soft-slide{align-items:flex-start}
+.nb-soft-slide>span{padding-top:5px}
+.nb-soft-track{flex:1 1 auto;min-width:70px;display:flex;flex-direction:column}
+.nb-soft-track input[type="range"]{width:100%}
+.nb-soft-ends{display:flex;justify-content:space-between;margin-top:-2px;font-size:12px;color:#7A6A63}
+.nb-soft-ends i{font-style:normal}
+.nb-soft-slide output{padding-top:5px}
+.nb-soft-back{font-size:13px;white-space:nowrap}
+.nb-soft-back:disabled{opacity:.4;cursor:default;text-decoration:none}
+/* 기본형에서 시작하기 first, as a clear card (Kim: 가독성 좋게) */
+.ask-proto{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;margin:4px 0 10px;padding:12px 16px;border:0;border-radius:6px;background:#FFFDF8;
+  box-shadow:-2px 3px 6px -5px rgba(70,50,30,.4),inset 0 0 0 1px #D9C9B0;font:inherit;text-align:left;color:#3A322D;cursor:pointer}
+.ask-proto:hover,.ask-proto[aria-expanded="true"]{box-shadow:-2px 3px 6px -5px rgba(70,50,30,.4),inset 0 0 0 1.5px #A39A92}
+.ask-proto b{font-size:15px;font-weight:600}.ask-proto span{font-size:12.5px;color:#7A6A63}
+.ask-in-or{margin:12px 0 6px;font-size:13px;color:#7A6A63}
+/* 다른 실로 보기: 되돌리기 and 실 변경 big enough (Kim) */
+.try-btns{display:flex;gap:8px;margin-left:auto}
+.try-btn{min-height:36px;padding:0 18px;border:0;border-radius:6px;background:#B9858A;color:#FFFDF8;font:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:-1px 2px 4px -2px rgba(70,50,30,.45)}
+.try-btn:hover{background:#A8747A}
+.try-btn.is-sub{background:#FFFDF8;color:#3A322D;font-weight:500;box-shadow:inset 0 0 0 1px #CDBFB4}
+.try-btn.is-sub:hover{box-shadow:inset 0 0 0 1.5px #A39A92}
