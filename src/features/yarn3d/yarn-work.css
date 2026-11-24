@@ -614,3 +614,6 @@ body:has(.yw) .aic-root{z-index:460}
 /* the piece's name a little fainter on its label (Kim) */
 .yw-tabd.is-on .yw-tabname{color:rgba(58,50,45,.78)}
 .yw-tabd.is-on .yw-tabname::placeholder{color:rgba(120,100,95,.55)}
+/* 작품 이름 (Kim, again): the cream woven label itself - not the pink patch the other chosen labels use */
+.yw-tabd.is-on{height:40px;border-style:solid;border-width:0 18px;border-image:url(/labels/name-label.webp) 0 12% fill / 0 18px stretch;background:none;box-shadow:none}
+.yw-tabd.is-on::before,.yw-tabd.is-on::after{display:none}
