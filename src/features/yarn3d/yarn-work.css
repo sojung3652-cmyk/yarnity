@@ -584,15 +584,15 @@ body:has(.yw) .aic-root{z-index:460}
 /* ===== Kim's own cloth (3D 디자인에 이런 라벨들): the real woven pictures, not drawn ones =====
    panels on the ivory patch (/glossary/patch_ivory.webp, its stitched border kept, the middle stretched);
    small buttons on the woven label (/brand/label_title.webp, its stitched ends kept) */
-.yw{--patch:url(/glossary/patch_ivory.webp) 46 fill / 12px stretch;--label:url(/brand/label_title.webp) 0 12% fill / 0 16px stretch;
+.yw{--yw-patch:url(/glossary/patch_ivory.webp) 46 fill / 12px stretch;--yw-label:url(/brand/label_title.webp) 0 12% fill / 0 16px stretch;
   --lift:drop-shadow(0 1px 1.5px rgba(70,50,40,.2)) drop-shadow(0 4px 8px rgba(70,50,40,.1))}
-.yw-dock-tools,.yw .yw-dock .yw-views,.yw-loadlist,.yw-leave-card,.yw-pick{border-style:solid;border-width:12px;border-image:var(--patch);background:none;box-shadow:none;border-radius:0;filter:var(--lift)}
+.yw-dock-tools,.yw .yw-dock .yw-views,.yw-loadlist,.yw-leave-card,.yw-pick{border-style:solid;border-width:12px;border-image:var(--yw-patch);background:none;box-shadow:none;border-radius:0;filter:var(--lift)}
 .yw-dock-tools::before,.yw-loadlist::before{display:none}
 .yw-dock-tools{padding:2px 6px 3px}
 .yw .yw-dock .yw-views{padding:0 2px;border-width:9px}
 .yw-loadlist{padding:4px 6px}
 .yw-leave-card{padding:14px 16px 10px}
-.yw-tabd,.yw .yw-tabadd,.yw .yw-sim{border-style:solid;border-width:0 16px;border-image:var(--label);background:none;box-shadow:none;border-radius:0;filter:var(--lift)}
+.yw-tabd,.yw .yw-tabadd,.yw .yw-sim{border-style:solid;border-width:0 16px;border-image:var(--yw-label);background:none;box-shadow:none;border-radius:0;filter:var(--lift)}
 .yw-tabd::before,.yw-tabd::after,.yw .yw-sim::before,.yw .yw-sim::after{display:none}
 .yw-tabd>button:first-child,.yw-tabd .yw-tabname{padding:0 4px}
 .yw-tabx{margin-right:-4px}
@@ -609,3 +609,8 @@ body:has(.yw) .aic-root{z-index:460}
 .yw-index .yw-tab[aria-current="step"],.asm-rail button[aria-selected="true"],
 .nb-tile[aria-checked="true"],.nb-tile[aria-pressed="true"],.nb-needle button[aria-checked="true"],.asm-mode button[aria-checked="true"]{
   border-style:solid;border-width:7px;border-image:url(/mobile/diary/patch_pink.webp) 62 fill / 7px stretch;background:none;box-shadow:none;color:#4A3F3B}
+/* the + menu and 불러오기 list over the 3D (Kim: it was hidden under it): the top bar above the stage */
+.yw-top{position:relative;z-index:10}
+/* the piece's name a little fainter on its label (Kim) */
+.yw-tabd.is-on .yw-tabname{color:rgba(58,50,45,.78)}
+.yw-tabd.is-on .yw-tabname::placeholder{color:rgba(120,100,95,.55)}
