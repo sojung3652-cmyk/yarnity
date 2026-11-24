@@ -271,9 +271,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const [tryMat, setTryMat] = useState<string | null>(null);
   // 탄성 compared (Kim: in the yarn, the shape and 확인): the 3D shown as the yarn is by itself while 비교 is on
   const [softPeek, setSoftPeek] = useState(false);
-  const softRow = (
+  const softRowOf = (label: string) => (
     <div className="nb-soft">
-      <div className="nb-sliders nb-sliders-1"><Slide label="탄성" min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={v => { setSoftPeek(false); patch({ softK: v }); }} text={softWord(draft.softK ?? 1)} /></div>
+      <div className="nb-sliders nb-sliders-1"><Slide label={label} min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={v => { setSoftPeek(false); patch({ softK: v }); }} text={softWord(draft.softK ?? 1)} /></div>
       <div className="nb-soft-acts">
         <button type="button" className="nb-link" aria-pressed={softPeek} disabled={(draft.softK ?? 1) === 1} onClick={() => setSoftPeek(v => !v)}>{softPeek ? "지금 탄성으로 보기" : "실 그대로와 비교"}</button>
         {(draft.softK ?? 1) !== 1 && <button type="button" className="nb-link st-muted" onClick={() => { setSoftPeek(false); patch({ softK: 1 }); }}>실 그대로로 되돌리기</button>}
@@ -282,6 +282,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       <p className="nb-help">권장보다 큰 바늘로 뜨거나 느슨하게 뜨면 편물이 더 흐물흐물해집니다. 3D 모양만 바뀝니다.</p>
     </div>
   );
+  const softRow = softRowOf("탄성");
   const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: tryMat ? [tryMat] : draft.materials, softK: softPeek ? 1 : draft.softK, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, topGapCm: draft.topGapCm, topFold: draft.topFold, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch, chartName: chartNameOf(draft.pattern, draft.craft ?? (knitNow ? "knit" : "crochet")), moreColors: draft.moreColors }), [input, draft.pattern, draft.craft, knitNow, draft.moreColors, draft.item, draft.color, draft.yarnMm, draft.materials, tryMat, draft.softK, softPeek, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.topGapCm, draft.topFold, draft.extras, draft.crochetChart, draft.crochetStitch]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
@@ -875,7 +876,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         {extrasGroup}
       </div>
     );
-    oneYarn = <WebYarn draft={draft} patch={patch} tried={tried} noColor />;
+    // 탄성 체크 (Kim): under 기타 조절 in the yarn, above the hairs
+    oneYarn = <WebYarn draft={draft} patch={patch} tried={tried} noColor soft={softRowOf("탄성 체크")} />;
     const craftNow = draft.craft ?? (knitNow ? "knit" : "crochet");
     oneHook = (
       <div className="nb-web">
@@ -1074,7 +1076,6 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       { id: "yarn", title: "실", body: <><ColorStudio draft={draft} patch={patch} /><div className="yw-sub">{oneYarn}</div></> },
       { id: "needle", title: "바늘", body: oneHook },
       { id: "stitch", title: "무늬 테스트해보기", note: "선택", body: oneStitch },
-      { id: "soft", title: "탄성", note: "선택", body: softRow },
     ] : [
       { id: "draw", title: "모양", note: picked ? itemLabel : undefined, body: oneAsm },
       // the last step (Kim): another yarn tried on the piece, taken if it is liked better; and how limp it is

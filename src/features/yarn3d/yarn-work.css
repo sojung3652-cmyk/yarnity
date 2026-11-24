@@ -12,12 +12,12 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-opts{flex:none;display:flex;gap:5px}
 .yw-opt{min-width:36px;height:32px;padding:0 11px;border:0;border-radius:4px;background:#FFFDF8;font-size:13.5px;box-shadow:inset 0 0 0 1px rgba(181,168,148,.75)}
 .yw-opt:hover{box-shadow:inset 0 0 0 1px #9C8E82}
-.yw-opt[aria-pressed="true"]{background:#F6E3E2;box-shadow:inset 0 0 0 1.5px #B99447;font-weight:600}
+.yw-opt[aria-pressed="true"]{background:#F6E3E2;box-shadow:inset 0 0 0 1.5px #A39A92;font-weight:600}
 .yw button:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}
 .yw-tools{grid-area:tools;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:12px;background:#FBF8F1;box-shadow:1px 0 0 rgba(142,131,121,.3)}
 .yw-tools button{width:58px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0;border:0;border-radius:5px;background:none;font-size:12px;color:#5E554E}
 .yw-tools button:hover{background:rgba(224,170,174,.14)}
-.yw-tools button[aria-pressed="true"]{background:#F6E3E2;box-shadow:inset 0 0 0 1.5px #B99447;color:#3A322D;font-weight:600}
+.yw-tools button[aria-pressed="true"]{background:#F6E3E2;box-shadow:inset 0 0 0 1.5px #A39A92;color:#3A322D;font-weight:600}
 .yw-tools hr{width:38px;margin:5px 0;border:0;border-top:1px solid rgba(181,168,148,.7)}
 .yw-stage{grid-area:stage;position:relative;min-width:0;min-height:0}
 .yw-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:grab;outline:none}
@@ -41,11 +41,11 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-sw{display:block;width:20px;height:20px;border-radius:50%;box-shadow:-1px 2px 3px -1px rgba(70,50,30,.4),inset 0 0 0 1px rgba(90,70,50,.2)}
 .yw-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .yw-tiles button{min-height:38px;padding:4px;border:0;border-radius:5px;background:#FFFDF8;font-size:13.5px;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4}
-.yw-tiles button[aria-pressed="true"]{background:#F6E3E2;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px #B99447;font-weight:600}
+.yw-tiles button[aria-pressed="true"]{background:#F6E3E2;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px #A39A92;font-weight:600}
 .yw-parts{margin:0;padding:0;list-style:none}
 .yw-parts li{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px solid rgba(181,168,148,.4);font-size:14px}
 .yw-parts li:last-child{border-bottom:0}
-.yw-parts b{font-family:"Cormorant Garamond",serif;font-size:15px;font-weight:600;color:#B99447}
+.yw-parts b{font-family:"Cormorant Garamond",serif;font-size:15px;font-weight:600;color:#A39A92}
 .yw-parts span{margin-left:auto;font-size:13px;color:#6A605F}
 .yw-stat{grid-area:stat;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 18px;background:#FBF8F1;box-shadow:0 -1px 0 rgba(142,131,121,.3);font-size:13px;color:#6A605F;white-space:nowrap;min-width:0}
 .yw-stat span{overflow:hidden;text-overflow:ellipsis}
@@ -64,7 +64,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-pan .nb-wrow{display:flex;align-items:center;gap:10px}
 .yw-pan .nb-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
 .yw-pan .nb-dots{gap:6px}.yw-pan .nb-dot-color{width:20px;height:20px}
-.yw-pan .nb-dot-color[aria-checked="true"]{outline:2px solid #B99447;outline-offset:2px}
+.yw-pan .nb-dot-color[aria-checked="true"]{outline:2px solid #A39A92;outline-offset:2px}
 .yw-pan .nb-picker{height:22px}.yw-pan .nb-picker-dot{width:20px;height:20px}
 .yw-pan .nb-mm .nb-unit{display:none}
 .yw-pan .nb-field{margin-bottom:8px}
@@ -74,8 +74,8 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-mkr{display:flex;flex-direction:column;overflow:hidden;margin:0}
 .yw-steps{flex:none;display:flex;gap:16px;margin:14px 22px 0;padding:0;list-style:none;border-bottom:1px solid #D9CCBF;font-size:14px;color:#8A7A72;white-space:nowrap}
 .yw-steps li{padding:0 1px 9px;margin-bottom:-1px;border-bottom:2px solid transparent}
-.yw-steps b{margin-right:5px;font-family:"Cormorant Garamond",serif;font-size:16px;font-weight:600;color:#B99447}
-.yw-steps li[aria-current="step"]{color:#3A322D;font-weight:600;border-bottom-color:#B99447}
+.yw-steps b{margin-right:5px;font-family:"Cormorant Garamond",serif;font-size:16px;font-weight:600;color:#A39A92}
+.yw-steps li[aria-current="step"]{color:#3A322D;font-weight:600;border-bottom-color:#A39A92}
 .yw-mkbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 22px 18px;scrollbar-width:thin;scrollbar-color:#D8CABD transparent}
 .yw-mkbody h2{margin:0 0 14px;font-size:21px;font-weight:600;line-height:1.4;color:#3A322D}
 .yw-mkfoot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;height:68px;padding:0 22px;box-shadow:0 -1px 0 rgba(181,168,148,.55)}
@@ -107,8 +107,8 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-mkr{display:flex;flex-direction:column;overflow:hidden;margin:0}
 .yw-index{flex:none;display:flex;flex-wrap:wrap;gap:4px 18px;padding:14px 26px 12px;border-bottom:1px solid #DCCFC2;background:#FBF8F1}
 .yw-index a{display:inline-flex;align-items:baseline;gap:5px;font-size:14px;color:#5E554E;text-decoration:none;white-space:nowrap}
-.yw-index a:hover{color:#3A322D;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#B99447}
-.yw-index b,.yw-sec h2 b{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:600;color:#B99447}
+.yw-index a:hover{color:#3A322D;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#A39A92}
+.yw-index b,.yw-sec h2 b{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:600;color:#A39A92}
 .yw-mkbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 26px 8px;scrollbar-width:thin;scrollbar-color:#D8CABD transparent}
 .yw-sec{padding:22px 0 24px;border-bottom:1px solid #E2D7CB}
 .yw-sec:last-child{border-bottom:0}
@@ -141,7 +141,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-intro h2 small{font-size:15px;font-weight:400;color:#5E554E}
 .yw-intro .yc{flex:1 1 auto;min-height:0}
 .yw-intro .yc-row{flex:1 1 auto}
-.yw-go{align-self:flex-end;height:46px;padding:0 22px;border:0;border-radius:6px;background:#F6E3E2;box-shadow:-2px 3px 6px -4px rgba(70,50,30,.45),inset 0 0 0 1.5px #B99447;font:inherit;font-size:16px;font-weight:600;color:#3A322D;cursor:pointer}
+.yw-go{align-self:flex-end;height:46px;padding:0 22px;border:0;border-radius:6px;background:#F6E3E2;box-shadow:-2px 3px 6px -4px rgba(70,50,30,.45),inset 0 0 0 1.5px #A39A92;font:inherit;font-size:16px;font-weight:600;color:#3A322D;cursor:pointer}
 
 /* smaller, quieter (Kim: 버튼이 너무 크다) - the web page's own sizes: 13-14px words, 32-34px controls */
 .yw-mkbody .nb-tile{min-height:34px;padding:3px 4px;font-size:13px}
@@ -191,11 +191,11 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
    - type: 14px words, 13px names and notes in a darker grey (#5E554E), 17px headings; never under 12px
    ===================================================================================================== */
 .yw{--weave:repeating-linear-gradient(0deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.04) 0 1px,transparent 1px 3px);
-  --ink:#3A322D;--ink2:#5E554E;--line:#D9CCBF;--rose:#F4E0DF;--gold:#B99447;--paper:#FFFDF8;font-size:14px}
+  --ink:#3A322D;--ink2:#5E554E;--line:#D9CCBF;--rose:rgba(224,170,174,.28);--gold:#A39A92;--paper:#FFFDF8;font-size:14px}
 .yw{grid-template-rows:68px minmax(0,1fr) 36px}
 /* the top bar: cream weave, a stitched seam under it */
 .yw-top{gap:16px;padding:0 20px 0 14px;background:var(--weave),#F8F2E7;box-shadow:none;position:relative}
-.yw-top::after{content:"";position:absolute;left:0;right:0;bottom:3px;border-bottom:1.5px dashed rgba(185,148,71,.45);pointer-events:none}
+.yw-top::after{content:"";position:absolute;left:0;right:0;bottom:3px;border-bottom:1.5px dashed rgba(150,138,128,.45);pointer-events:none}
 .yw-top::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
 .yw-name{display:flex;flex-direction:column;gap:1px;margin:0 0 0 6px;font-size:17px;line-height:1.3;color:var(--ink)}
 .yw-name small{margin:0;font-size:13px;color:var(--ink2)}
@@ -214,7 +214,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 /* tools: tiles with their icon, on or off */
 .yw-acts{display:flex;gap:6px;padding-left:18px;border-left:1px solid var(--line);align-self:stretch;align-items:flex-end}
 .yw-act{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 13px;border:0;border-radius:4px;background:var(--paper);font-size:14px;color:var(--ink);box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4}
-.yw-act svg{color:#8A6F4E}
+.yw-act svg{color:#857A71}
 .yw-act:hover{box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #9C8E82}
 .yw-act[aria-pressed="true"]{background:var(--rose);box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px var(--gold);font-weight:600}
 .yw-act[aria-pressed="true"] svg{color:#9C5D63}
@@ -241,7 +241,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-index a:hover{text-decoration:none;color:var(--ink)}
 .yw-index b,.yw-sec h2 b{font-size:18px}
 .yw-mkbody{padding:0 28px 12px}
-.yw-sec{padding:26px 0 28px;border-bottom:1.5px dashed rgba(185,148,71,.35)}
+.yw-sec{padding:26px 0 28px;border-bottom:1.5px dashed rgba(150,138,128,.35)}
 .yw-sec h2{gap:10px;margin:0 0 18px;font-size:17px}
 .yw-sec h2 small{font-size:13px;color:var(--ink2)}
 /* the wizard's inputs in the column: one readable size, 40px controls */
@@ -258,7 +258,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-mkbody .nb-slide{font-size:13.5px;color:var(--ink)}
 /* the foot: what is left to do, and the way on as the site's cloth label */
 .yw-mkfoot{height:70px;padding:0 26px;background:var(--weave),#F6EEE1;box-shadow:none;border-top:1px solid var(--line);position:relative}
-.yw-mkfoot::before{content:"";position:absolute;left:0;right:0;top:3px;border-top:1.5px dashed rgba(185,148,71,.45)}
+.yw-mkfoot::before{content:"";position:absolute;left:0;right:0;top:3px;border-top:1.5px dashed rgba(150,138,128,.45)}
 .yw-mknote{font-size:13px;color:var(--ink2);line-height:1.45;max-width:230px}
 .yw-mkfoot .cloth-face{height:42px;padding:0 26px;font-size:14.5px;font-weight:600}
 /* the status line */
@@ -294,7 +294,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 /* the way back: a plain X at the top bar's right end (Kim) */
 .yw-x{margin-left:auto;flex:none;display:flex;align-items:center}
 .yw-x button{display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:4px;background:none;color:var(--ink,#3A322D);cursor:pointer}
-.yw-x button:hover,.yw-x button:focus-visible{background:rgba(185,148,71,.12)}
+.yw-x button:hover,.yw-x button:focus-visible{background:rgba(150,138,128,.12)}
 /* the stretch note on the bottom line: small, cut short if the line is narrow */
 .yw-stretch{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:#7A6A63}
 
@@ -305,21 +305,21 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .ask-lead{margin:0 0 14px;font-size:13px;line-height:1.7;color:#6B5C55}
 .ask-f{display:block;margin-top:14px}.ask-f>span{display:block;font-size:14px;font-weight:700;margin-bottom:6px}.ask-f small{font-weight:400;font-size:12px;color:#7A6660;margin-left:8px}
 .ask-f input,.ask-f textarea{width:100%;border:1px solid #CDBFB4;background:#F9F4EA;padding:10px 12px;font:inherit;font-size:14px;line-height:1.6;color:inherit;border-radius:0;resize:none}
-.ask-f input:focus-visible,.ask-f textarea:focus-visible{outline:2px solid var(--gold,#B99447);outline-offset:1px}
+.ask-f input:focus-visible,.ask-f textarea:focus-visible{outline:2px solid var(--gold,#A39A92);outline-offset:1px}
 .ask-quick{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}.ask-quick button{border:1px solid #CDBFB4;background:#FFFDF8;padding:5px 11px;font:inherit;font-size:13px;color:inherit;cursor:pointer;border-radius:0}
-.ask-quick button:hover{background:var(--rose,#F4E0DF)}.ask-quick span{font-size:12px;color:#7A6660;margin-left:4px}
+.ask-quick button:hover{background:var(--rose,rgba(224,170,174,.28))}.ask-quick span{font-size:12px;color:#7A6660;margin-left:4px}
 .ask-err{margin:10px 0 0;font-size:13px;color:#A0524A}
 .ask-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:22px}.ask-foot .cloth-back{margin-right:auto}.ask-skipnote{font-size:12px;color:#7A6660;order:-1;margin-right:auto}.ask-skipnote+.cloth-back{margin-right:0}
 .ask-say{display:flex;gap:10px;margin:10px 0 8px;padding:10px 12px;background:#F6F0E6;border:1px solid #E4D8CC;font-size:13px;line-height:1.65}.ask-say b{color:#8E6B66;white-space:nowrap}
 .ask-list{list-style:none;margin:0;padding:0}.ask-list li{border-bottom:1px solid #EDE3D5;font-size:13px}
 .ask-list li.is-fixed,.ask-list label{display:grid;grid-template-columns:20px 70px 1fr;gap:8px;align-items:center;padding:8px 0}.ask-list label{cursor:pointer}
-.ask-list b{font-size:14px}.ask-list span{color:#5E554E}.ask-list i{width:7px;height:7px;background:var(--gold,#B99447);margin-left:5px}
+.ask-list b{font-size:14px}.ask-list span{color:#5E554E}.ask-list i{width:7px;height:7px;background:var(--gold,#A39A92);margin-left:5px}
 .ask-list input{width:16px;height:16px;accent-color:#B9858A;margin:0}
 .ask-note{margin:10px 0 0;font-size:12px;color:#7A6660}
 
 /* 크기 틀 (Kim: Ctrl+T처럼): the piece's box, its handles dragged */
-.yw-frame{position:absolute;border:1.5px solid var(--gold,#B99447);pointer-events:none;z-index:6}.yw-frame.is-pull{border-style:dashed;background:rgba(185,148,71,.07)}
-.yw-frame i{position:absolute;width:13px;height:13px;margin:-7px;background:#FFFDF8;border:1.5px solid var(--gold,#B99447);pointer-events:auto;touch-action:none}
+.yw-frame{position:absolute;border:1.5px solid var(--gold,#A39A92);pointer-events:none;z-index:6}.yw-frame.is-pull{border-style:dashed;background:rgba(150,138,128,.07)}
+.yw-frame i{position:absolute;width:13px;height:13px;margin:-7px;background:#FFFDF8;border:1.5px solid var(--gold,#A39A92);pointer-events:auto;touch-action:none}
 .yw-frame .h-l{left:0;top:50%;cursor:ew-resize}.yw-frame .h-r{left:100%;top:50%;cursor:ew-resize}.yw-frame .h-t{left:50%;top:0;cursor:ns-resize}.yw-frame .h-tl{left:0;top:0;cursor:nwse-resize}.yw-frame .h-tr{left:100%;top:0;cursor:nesw-resize}
 .yw-frame b{position:absolute;left:50%;top:100%;transform:translate(-50%,8px);white-space:nowrap;background:#FFFDF8;border:1px solid #CDBFB4;padding:3px 9px;font-size:12px;font-weight:600;color:#3A322D}
 
@@ -339,20 +339,20 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-pick{position:absolute;z-index:4;transform:translate(-50%,calc(-100% - 14px));display:flex;align-items:center;gap:2px;padding:4px 6px;border-radius:4px;background:#FFFDF8;box-shadow:-2px 3px 8px -4px rgba(70,50,30,.5),inset 0 0 0 1px #D9CCBF;font-size:12.5px;white-space:nowrap}
 .yw-pick b{margin:0 6px 0 4px;font-weight:600;color:#3A322D}
 .yw-pick button{min-width:26px;height:26px;padding:0 6px;border:0;border-radius:3px;background:none;font:inherit;color:#3A322D;cursor:pointer}
-.yw-pick button:hover{background:#F4E0DF}
+.yw-pick button:hover{background:rgba(224,170,174,.28)}
 
 /* =====================================================================================================
    Cream linen + cloth labels (Kim's pick): the book's cream weave for the bars and the column, the tabs and
    section titles as small woven labels with lavender stitches at their ends, gold hairlines, rose for what is
    picked. Only colours and dressing here; the places stay as set above.
    ===================================================================================================== */
-.yw{--linen:#F6EFE2;--linen2:#FBF7EF;--stitch:var(--book-lav,#EEBDC7);--rose:#F4E0DF;--gold:#B99447;--ink:#3E3430;--ink2:#6A5B55}
+.yw{--linen:#F6EFE2;--linen2:#FBF7EF;--stitch:var(--book-lav,#EEBDC7);--rose:rgba(224,170,174,.28);--gold:#A39A92;--ink:#3E3430;--ink2:#6A5B55}
 .yw-top,.yw-stat,.yw-index,.yw-mkfoot{background:var(--weave),var(--linen)}
-.yw-top{border-bottom:1px solid rgba(185,148,71,.55)}
-.yw-stat{border-top:1px solid rgba(185,148,71,.45)}
+.yw-top{border-bottom:1px solid rgba(150,138,128,.55)}
+.yw-stat{border-top:1px solid rgba(150,138,128,.45)}
 .yw-right,.yw-mkr{background:var(--weave),var(--linen2)}
 /* the bar's tabs: woven labels */
-.yw-index{gap:10px;padding:12px 18px;border-bottom:1px solid rgba(185,148,71,.45)}
+.yw-index{gap:10px;padding:12px 18px;border-bottom:1px solid rgba(150,138,128,.45)}
 .yw-index a.yw-tab{position:relative;display:inline-flex;align-items:baseline;gap:6px;padding:7px 18px 6px;border-radius:2px;background:var(--weave),#F3EBDD;border-top:1px solid #E6DAC6;border-bottom:1px solid #E6DAC6;
   box-shadow:0 1px 2px rgba(70,50,40,.12);color:var(--ink2);font-size:13.5px;text-decoration:none;transform:rotate(-.4deg)}
 .yw-index a.yw-tab::before,.yw-index a.yw-tab::after{content:"";position:absolute;top:5px;bottom:5px;width:0;border-left:1.5px dashed var(--stitch)}
@@ -363,7 +363,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-sec h2{display:inline-flex;position:relative;padding:6px 18px 5px;border-radius:2px;background:var(--weave),#F3EBDD;border-top:1px solid #E6DAC6;border-bottom:1px solid #E6DAC6;box-shadow:0 1px 2px rgba(70,50,40,.12);font-size:15px}
 .yw-sec h2::before,.yw-sec h2::after{content:"";position:absolute;top:5px;bottom:5px;border-left:1.5px dashed var(--stitch)}
 .yw-sec h2::before{left:6px}.yw-sec h2::after{right:6px}
-.yw-sec+.yw-sec{border-top:1px solid rgba(185,148,71,.35)}
+.yw-sec+.yw-sec{border-top:1px solid rgba(150,138,128,.35)}
 /* picked things: rose with a gold edge, everywhere on this screen */
 .yw .nb-tile[aria-pressed="true"],.yw .nb-tile[aria-checked="true"],.yw [role="radio"][aria-checked="true"].nb-tile,.yw .asm-rail button[aria-selected="true"],.yw .nb-needle button[aria-checked="true"]{background:var(--rose);box-shadow:inset 0 0 0 1.5px var(--gold);color:var(--ink)}
 .yw .nb-tile,.yw .asm-rail,.yw .asm-card,.yw .ex-placed li,.yw .xp-tile{background:#FFFDF8}
@@ -410,7 +410,7 @@ body:has(.yw) .aic-root{z-index:460}
 .yw .yw-name.yw-name-in::before,.yw .yw-name.yw-name-in::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed var(--book-lav,#EEBDC7)}
 .yw .yw-name.yw-name-in::before{left:8px}.yw .yw-name.yw-name-in::after{right:8px}
 .yw .yw-name-in input{width:170px;height:28px;padding:0 2px;border:0;background:none;box-shadow:none;font:600 15px "Noto Serif KR",serif;color:#3E3430}
-.yw .yw-name-in input:hover,.yw .yw-name-in input:focus{background:none;box-shadow:inset 0 -1px 0 #C9B48A;outline:none}
+.yw .yw-name-in input:hover,.yw .yw-name-in input:focus{background:none;box-shadow:inset 0 -1px 0 #BDB3AA;outline:none}
 .yw .yw-name-in input::placeholder{color:#B7A99E;font-weight:500}
 .yw .yw-name-in small{margin:0;font-size:12px;color:#8A7A72;white-space:nowrap}
 /* the yarn check: the 3D fills the stage (Kim); only the piece is first seen further away (YarnPagePreview far).
@@ -455,17 +455,17 @@ body:has(.yw) .aic-root{z-index:460}
 .yw-binder{flex:1 1 auto;min-width:0;display:flex;align-items:flex-end;align-self:stretch;gap:10px;margin-left:10px}
 .yw-tabs{display:flex;align-items:flex-end;gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
 .yw-tabd{flex:none;display:flex;align-items:center;height:36px;max-width:180px;border-radius:5px 5px 0 0;background:#EFE7D9;box-shadow:inset 0 0 0 1px #DCCFBE}
-.yw-tabd.is-on{background:#F6F0E4;box-shadow:inset 1px 0 0 #CDBFB4,inset -1px 0 0 #CDBFB4,inset 0 2px 0 var(--gold,#B99447)}
+.yw-tabd.is-on{background:#F6F0E4;box-shadow:inset 1px 0 0 #CDBFB4,inset -1px 0 0 #CDBFB4,inset 0 2px 0 var(--gold,#A39A92)}
 .yw-tabd>button:first-child{flex:1 1 auto;min-width:0;height:100%;padding:0 6px 0 13px;border:0;background:none;font-size:13.5px;color:#6A5B55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .yw-tabd.is-on>button:first-child{color:#3A322D;font-weight:600}
 .yw-tabd:only-child>button:first-child,.yw-tabd>button:only-child{padding-right:13px}
 .yw-tabx{flex:none;width:24px;height:24px;margin-right:5px;border:0;border-radius:3px;background:none;font-size:15px;line-height:1;color:#8A7A72}
-.yw-tabx:hover{background:rgba(185,148,71,.14);color:#3A322D}
+.yw-tabx:hover{background:rgba(150,138,128,.14);color:#3A322D}
 .yw-tabadd{flex:none;width:32px;height:32px;margin:0 0 2px 4px;border:0;border-radius:4px;background:none;font-size:19px;color:#6A5B55}
-.yw-tabadd:hover{background:rgba(185,148,71,.12)}
+.yw-tabadd:hover{background:rgba(150,138,128,.12)}
 .yw-load{position:relative;flex:none;align-self:center}
 .yw-loadbtn{height:32px;padding:0 12px;border:0;border-radius:4px;background:var(--paper,#FFFDF8);font-size:13px;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4}
-.yw-loadbtn[aria-expanded="true"]{background:var(--rose,#F4E0DF)}
+.yw-loadbtn[aria-expanded="true"]{background:var(--rose,rgba(224,170,174,.28))}
 .yw-loadlist{position:absolute;top:calc(100% + 8px);left:0;z-index:30;width:320px;max-height:360px;overflow:auto;padding:12px 14px;border-radius:5px;background:#FBF8F1;box-shadow:-4px 8px 20px -10px rgba(40,30,20,.5),inset 0 0 0 1px #E0D2BE;white-space:normal}
 .yw-loadh{margin:0 0 8px;font-size:13.5px;font-weight:600;color:#3A322D}
 .yw-loadlist ul{margin:0;padding:0;list-style:none}
@@ -501,18 +501,18 @@ body:has(.yw) .aic-root{z-index:460}
 .yw-tabd>button:first-child{padding:0 8px 0 14px;font:500 13px "Noto Serif KR",serif;color:#7A6A63;letter-spacing:.01em}
 .yw-tabd>button:first-child:hover{color:#3A322D}
 .yw-tabd.is-on{position:relative;height:42px;background:var(--weave,none),#FBF8F1;box-shadow:inset 1px 0 0 #CDBFB4,inset -1px 0 0 #CDBFB4,inset 0 1px 0 #CDBFB4,-2px 0 6px -4px rgba(70,50,30,.35)}
-.yw-tabd.is-on::before{content:"";position:absolute;left:7px;right:7px;top:5px;border-top:1.5px dashed #C9A85C;opacity:.9;pointer-events:none}
+.yw-tabd.is-on::before{content:"";position:absolute;left:7px;right:7px;top:5px;border-top:1.5px dashed #B5AAA0;opacity:.9;pointer-events:none}
 .yw-tabname{flex:1 1 auto;min-width:0;height:100%;padding:4px 6px 0 14px;border:0;background:none;font:600 14.5px "Noto Serif KR",serif;color:#3A322D;outline:none}
 .yw-tabname::placeholder{color:#B7A99E;font-weight:500}
-.yw-tabname:focus{box-shadow:inset 0 -1.5px 0 #C9B48A}
+.yw-tabname:focus{box-shadow:inset 0 -1.5px 0 #BDB3AA}
 .yw-tabx{width:22px;height:22px;margin-right:6px;font-size:14px;color:#A39389}
 .yw-tabadd{width:30px;height:30px;margin:0 0 4px 2px;border-radius:3px;font:400 18px "Noto Serif KR",serif;color:#8A7A72}
-.yw-tabadd:hover{background:rgba(185,148,71,.12);color:#3A322D}
+.yw-tabadd:hover{background:rgba(150,138,128,.12);color:#3A322D}
 .yw-load{align-self:center;margin-bottom:0}
 .yw .yw-loadbtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 6px;border:0;border-radius:3px;background:none;box-shadow:none;font:500 12.5px "Noto Serif KR",serif;color:#6A5B55}
-.yw .yw-loadbtn svg{color:#B08F4E}
-.yw .yw-loadbtn:hover,.yw .yw-loadbtn[aria-expanded="true"]{background:none;color:#3A322D;text-decoration:underline;text-decoration-color:#C9B48A;text-underline-offset:4px}
-.yw-loadbtn b{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#F4E0DF;font-size:11px;font-weight:600;line-height:18px;color:#9C5D63;text-decoration:none}
+.yw .yw-loadbtn svg{color:#8C8279}
+.yw .yw-loadbtn:hover,.yw .yw-loadbtn[aria-expanded="true"]{background:none;color:#3A322D;text-decoration:underline;text-decoration-color:#BDB3AA;text-underline-offset:4px}
+.yw-loadbtn b{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:rgba(224,170,174,.28);font-size:11px;font-weight:600;line-height:18px;color:#9C5D63;text-decoration:none}
 .yw-loadlist{border-radius:3px;background:var(--weave,none),#FBF8F1}
 /* ===== the site's own labels on the 3D screen (Kim: 린넨 라벨과 라벨, not digital) =====
    the woven face of ClothLabel (newbook.css .cloth-face): cream weave, soft lower shadow, dashed stitches */
@@ -526,12 +526,12 @@ body:has(.yw) .aic-root{z-index:460}
 .yw-tabd:nth-child(even){transform:rotate(.6deg)}
 .yw-tabd::before,.yw-tabd::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed var(--stitch);pointer-events:none}
 .yw-tabd::before{left:6px}.yw-tabd::after{right:6px}
-.yw-tabd.is-on{height:36px;transform:none;background:repeating-linear-gradient(0deg,rgba(150,90,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,90,90,.045) 0 1px,transparent 1px 3px),#F4E0DF;box-shadow:0 1px 2px rgba(70,50,40,.2),0 5px 12px rgba(70,50,40,.1)}
+.yw-tabd.is-on{height:36px;transform:none;background:repeating-linear-gradient(0deg,rgba(150,90,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,90,90,.045) 0 1px,transparent 1px 3px),rgba(224,170,174,.28);box-shadow:0 1px 2px rgba(70,50,40,.2),0 5px 12px rgba(70,50,40,.1)}
 .yw-tabd.is-on::before,.yw-tabd.is-on::after{border-color:#C98F98}
 .yw-tabd>button:first-child{padding:0 8px 0 16px;font:500 13.5px "Noto Serif KR",serif;color:#5E534D}
 .yw-tabd:only-child>button:first-child{padding-right:16px}
 .yw-tabname{padding:0 8px 0 16px;font:600 14px "Noto Serif KR",serif;color:#3A322D}
-.yw-tabname:focus{box-shadow:none;text-decoration:underline;text-decoration-color:#C9A85C;text-underline-offset:5px}
+.yw-tabname:focus{box-shadow:none;text-decoration:underline;text-decoration-color:#B5AAA0;text-underline-offset:5px}
 .yw-tabname::placeholder{color:#A8958D}
 .yw-tabx{margin-right:12px;width:18px;height:18px;font-size:13px;color:#9C8A80;background:none}
 .yw-tabx:hover{background:rgba(255,255,255,.5);color:#3A322D}
@@ -542,7 +542,7 @@ body:has(.yw) .aic-root{z-index:460}
 .yw-loadlist::before{content:"";position:absolute;inset:5px;border:1.5px dashed var(--stitch);border-radius:2px;pointer-events:none}
 .yw-addmenu{display:grid;gap:2px;padding:10px}
 .yw-addmenu button{position:relative;display:grid;gap:1px;padding:9px 12px;border:0;border-radius:2px;background:none;text-align:left;cursor:pointer}
-.yw-addmenu button:hover{background:rgba(244,224,223,.7)}
+.yw-addmenu button:hover{background:rgba(224,170,174,.7)}
 .yw-addmenu b{font:600 14px "Noto Serif KR",serif;color:#3A322D}
 .yw-addmenu small{font-size:12px;color:#7A6A63}
 .yw-loadh{display:flex;align-items:center;gap:6px;font-family:"Noto Serif KR",serif}
@@ -555,10 +555,10 @@ body:has(.yw) .aic-root{z-index:460}
 .yw .yw-dock-tools .yw-seg{background:none;box-shadow:none;gap:2px}
 .yw .yw-dock-tools .yw-opt,.yw .yw-dock-tools .yw-act{height:28px;padding:0 10px;border-radius:2px;background:none;box-shadow:none;font:500 12.5px "Noto Serif KR",serif;color:#5E534D}
 .yw .yw-dock-tools .yw-opt:hover,.yw .yw-dock-tools .yw-act:hover{background:rgba(255,255,255,.55);box-shadow:none}
-.yw .yw-dock-tools .yw-opt[aria-pressed="true"],.yw .yw-dock-tools .yw-act[aria-pressed="true"]{background:#F4E0DF;box-shadow:inset 0 0 0 1px #D8A9B0;color:#3A322D;font-weight:600}
+.yw .yw-dock-tools .yw-opt[aria-pressed="true"],.yw .yw-dock-tools .yw-act[aria-pressed="true"]{background:rgba(224,170,174,.28);box-shadow:inset 0 0 0 1px #D8A9B0;color:#3A322D;font-weight:600}
 .yw .yw-dock-tools .yw-opt+.yw-opt{box-shadow:none}
 .yw-dock-tools .yw-acts{border-left:1.5px dashed #DCCBB8}
-.yw-dock-tools .yw-act svg{color:#A3865A}
+.yw-dock-tools .yw-act svg{color:#8C8279}
 /* how to move it: plain words on the stage, no keycaps */
 .yw .yw-dock .yw-hint.yw-keys{padding:0;background:none;box-shadow:none;font:400 11.5px "Noto Serif KR",serif;color:#8A7A72}
 .yw .yw-stage.is-dark .yw-dock .yw-hint.yw-keys{color:#BDB2A6}
@@ -573,3 +573,11 @@ body:has(.yw) .aic-root{z-index:460}
 .yw .yw-sim::before,.yw .yw-sim::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed var(--stitch)}
 .yw .yw-sim::before{left:6px}.yw .yw-sim::after{right:6px}
 .yw .yw-sim:hover{transform:none}.yw-tabd.is-on::before{left:6px;right:auto;top:6px;bottom:6px;border-top:0;opacity:1}
+/* 작품 이름 (Kim): the open tab is Kim's own woven label - its stitched ends kept, the middle stretched to the name */
+.yw-tabd.is-on{height:40px;min-width:120px;padding:0 6px;background:none;border-style:solid;border-width:0 18px;border-image:url(/labels/name-label.webp) 0 12% fill / 0 18px stretch;box-shadow:none;filter:drop-shadow(0 1px 1.5px rgba(70,50,40,.22)) drop-shadow(0 4px 8px rgba(70,50,40,.1))}
+.yw-tabd.is-on::before,.yw-tabd.is-on::after{display:none}
+.yw-tabd.is-on .yw-tabname{padding:0 2px}
+.yw-tabd.is-on .yw-tabx{margin-right:0}
+/* 기타 조절 and 실 라벨 정보 (Kim): headings of their own, the boxes in view */
+.nb-etc{margin:14px 0 6px;padding-top:12px;border-top:1px dashed #DCCBB8}
+.nb-labelbox{padding:12px 14px 10px;border-radius:2px;background:repeating-linear-gradient(0deg,rgba(150,120,90,.04) 0 1px,transparent 1px 3px),#FBF7EF;box-shadow:inset 0 0 0 1px #E3D6C4}

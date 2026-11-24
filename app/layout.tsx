@@ -12,6 +12,7 @@ import { BookProvider } from "@/components/Book/BookProvider";
 import { Hero } from "@/components/home/Hero";
 import { MobileChrome } from "@/components/mobile/MobileChrome";
 import { ScrollTop } from "@/components/ScrollTop";
+import { Floating } from "@/components/Floating";
 
 // Home hero and the open book: the start button (Cormorant Garamond italic) and the "INTELLIGENT CROCHET"
 // captions (Cormorant Garamond upright). Self-hosted by next/font (OFL), exposed as a CSS variable.
@@ -53,6 +54,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AiBadge />
             {/* 위로 가기: a small arrow at the lower left of whatever is scrolled (Kim) */}
             <ScrollTop />
+            {/* 플로팅: pressable things float smoothly under the pointer, site-wide (Kim) */}
+            <Floating />
           </BookProvider>
         </AppProvider>
       </body>

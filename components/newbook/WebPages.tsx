@@ -184,7 +184,7 @@ export function PanelYarn({ draft, patch }: { draft: Draft; patch: Patch }) {
 
 // ---------------------------------------------------------------- 실
 /** `noColor`: the work screen has its own 색 section (ColorStudio), so the colour row is left out there */
-export function WebYarn({ draft, patch, tried, noColor, sub }: { draft: Draft; patch: Patch; tried: boolean; noColor?: boolean; sub?: boolean }) {
+export function WebYarn({ draft, patch, tried, noColor, sub, soft }: { draft: Draft; patch: Patch; tried: boolean; noColor?: boolean; sub?: boolean; soft?: ReactNode }) {
   const [open, toggle] = useOneOpen();
   const [mmRaw, setMmRaw] = useState(draft.yarnMm != null ? String(draft.yarnMm) : "");
   const [more, setMore] = useState(false), [adding, setAdding] = useState(false), [own, setOwn] = useState("");
@@ -209,8 +209,6 @@ export function WebYarn({ draft, patch, tried, noColor, sub }: { draft: Draft; p
   const addOwn = () => { const c = clean(own); if (c && !mats.includes(c)) patch({ materials: [...mats, c] }); setOwn(""); setAdding(false); };
   const preset = draft.color ? COLORS.find(([n, hex]) => hex === draft.color && n === draft.colorName) : undefined;
   const extra = draft.moreColors ?? [];
-  const num = (k: "skeinG" | "skeinM" | "skeins") => (raw: string) => { const v = parseNum(raw); patch({ [k]: Number.isFinite(v) ? v : null } as Partial<Draft>); };
-  const label = [draft.yarn, draft.colorNo, draft.lot ? `LOT ${draft.lot}` : "", draft.skeins ? `${draft.skeins}타래` : ""].filter(Boolean).join(" · ");
 
   return (
     <div className="nb-web">
@@ -269,6 +267,9 @@ export function WebYarn({ draft, patch, tried, noColor, sub }: { draft: Draft; p
           </div>
           {!more && <button type="button" className="nb-matmore" aria-label="재질 더 보기" onClick={() => setMore(true)} />}
         </div>
+        {/* 기타 조절 (Kim): 탄성 체크 first, then the hairs */}
+        <p className="nb-wsubhead nb-etc">기타 조절</p>
+        {soft}
         <HairSliders draft={draft} patch={patch} />
         {adding && (
           <div className="nb-wrow nb-wsub">
@@ -282,6 +283,8 @@ export function WebYarn({ draft, patch, tried, noColor, sub }: { draft: Draft; p
             <span className="nb-box nb-box-text"><input id="yBlend" maxLength={MAX_TEXT} placeholder="혼방 비율 (예: 코튼 60 · 아크릴 40)" value={draft.blend ?? ""} onChange={e => patch({ blend: e.target.value })} onBlur={e => patch({ blend: clean(e.target.value) })} /></span></div>
         )}
       </div>
+
+      <LabelInfo draft={draft} patch={patch} />
 
       {/* 실 추가 (Kim: 갈색 울 + 흰색 앙고라): another yarn, set just as the main one - colour, thickness, material,
           its hairs, its label - and held together with it (합사) or worked on its own for colourwork (배색) */}
@@ -314,10 +317,17 @@ export function WebYarn({ draft, patch, tried, noColor, sub }: { draft: Draft; p
       </div>}
 
       {/* 내 실 사진 is left out for now (Kim) */}
+    </div>
+  );
+}
 
-      {/* what the yarn's label says: optional, one folded row */}
-      <div className="nb-folds nb-wmore">
-        <Fold label="실 라벨 정보 더 적기" value={label || "브랜드 · 색 번호 · LOT · 타래 (선택)"} open={open === "info"} onToggle={() => toggle("info")}>
+/** what the yarn's label says (Kim: where to write it must be plain to see, and before 실 추가): its own card, the
+ *  boxes in view, every one optional */
+function LabelInfo({ draft, patch }: { draft: Draft; patch: Patch }) {
+  const num = (k: "skeinG" | "skeinM" | "skeins") => (raw: string) => { const v = parseNum(raw); patch({ [k]: Number.isFinite(v) ? v : null } as Partial<Draft>); };
+  return (
+      <div className="nb-wg nb-labelbox">
+        <Head note="선택 · 적으면 실 양과 타래 수가 정확해집니다">실 라벨 정보</Head>
           <div className="nb-grid2">
             <div className="nb-mini"><label htmlFor="yName">실 이름 / 브랜드</label><input id="yName" className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: 면 혼방 합사" value={draft.yarn} onChange={e => patch({ yarn: e.target.value })} onBlur={e => patch({ yarn: clean(e.target.value) })} /></div>
             <div className="nb-mini"><label htmlFor="yNo">색 번호</label><input id="yNo" className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: No. 214" value={draft.colorNo ?? ""} onChange={e => patch({ colorNo: e.target.value })} onBlur={e => patch({ colorNo: clean(e.target.value) })} /></div>
@@ -329,9 +339,7 @@ export function WebYarn({ draft, patch, tried, noColor, sub }: { draft: Draft; p
           </div>
           <div className="nb-mini"><label htmlFor="yMemo">메모</label><input id="yMemo" className="nb-input nb-input-sm nb-wide" maxLength={MAX_TEXT} value={draft.memo ?? ""} onChange={e => patch({ memo: e.target.value })} onBlur={e => patch({ memo: clean(e.target.value) })} /></div>
           <p className="nb-help">LOT(염색 로트)는 같은 색 실을 더 살 때 필요합니다. 실 라벨에 적혀 있습니다.</p>
-        </Fold>
       </div>
-    </div>
   );
 }
 
