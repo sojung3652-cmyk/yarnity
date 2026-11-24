@@ -130,6 +130,8 @@ export interface YarnViewer {
   look(v: YarnLook): void;
   /** the piece from the front, the camera put back after: a JPEG data URL (null without a piece) */
   snapshot(): string | null;
+  /** the current view as it is, full size (for checking up close) */
+  viewShot(): string;
   /** what dragging does: turn it, move it across the screen, or zoom */
   setTool(t: YarnTool): void;
   /** 재기: the piece's width and height (or depth) as lines on the screen (opts.onRuler) */
@@ -299,7 +301,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const DRAW_STITCHES = page ? 9_000 : opts.phone ? 12_000 : 24_000;
   let LOD = { M: 10, step: 1 };
   function lodFor(drawn: number) {
-    const want = VERT_BUDGET / Math.max(1, drawn), maxM = page ? 8 : 10;
+    const want = VERT_BUDGET / Math.max(1, drawn), maxM = page ? 12 : 12; // 12 round the strand: four plies twist
     LOD = want >= BASE_VPS ? { M: maxM, step: 1 } : { M: want >= BASE_VPS * .6 ? Math.min(8, maxM) : 6, step: 1 };
     if (want < BASE_VPS) LOD.step = Math.min(4, Math.max(1, (17 * (LOD.M + 1)) / want));
   }
@@ -317,7 +319,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
 
   // ---------- yarn: centre line (points) -> twisted ply surface
   function buildYarn(pts: THREE.Vector3[], R: number, o: { M?: number; closed?: boolean; color: string }) {
-    const n = pts.length, M = o.M || Math.max(14, st.plies * 6), N = o.M ? Math.min(st.plies, Math.floor(o.M / 4)) : st.plies, tau = st.twist * 0.75 / R, K = 3;
+    // every ply shown whenever there are three points round the strand for it (Kim: 실의 꼬인 모양 - at the page's
+    // detail the plies were cut to two or one, the twist gone and the yarn a smooth tube)
+    const n = pts.length, M = o.M || Math.max(14, st.plies * 6), N = o.M ? Math.min(st.plies, Math.max(2, Math.floor(o.M / 3))) : st.plies, tau = st.twist * 0.75 / R, K = 3;
     const pos = new Float32Array(n * (M + 1) * 3), col = new Float32Array(n * (M + 1) * 3), uv = new Float32Array(n * (M + 1) * 2), frames: { p: THREE.Vector3; t: THREE.Vector3; n: THREE.Vector3; b: THREE.Vector3; s: number }[] = [];
     const T = new THREE.Vector3(), Nv = new THREE.Vector3(), B = new THREE.Vector3(), tmp = new THREE.Vector3();
     let s = 0; const base = new THREE.Color(o.color), slub0 = Math.random() * 9;
@@ -711,31 +715,48 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     }
     // 3D 정밀 (Kim): a tall stitch (긴뜨기, 한길긴뜨기) is an upright post of two strands, 한길긴뜨기 with its wrap across
     // the middle - not a taller zigzag; drawn as one mesh, and only while the piece is small enough to stay quick
-    const tall = (pat.stitchH ?? 1) >= 1.4 && !D.knit, nSt = D.C.reduce((a, c) => a + c.idx.length, 0), posts = tall && nSt <= 2600, postParts: THREE.BufferGeometry[] = [];
-    const strand = (pts: THREE.Vector3[], rad: number, color: string) => { const cv = new THREE.CatmullRomCurve3(pts, false, "catmullrom", .5); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(8, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M: Math.min(6, M), color })); };
+    // 3D 정밀 (Kim: 실제 실의 꼬인 모양 - the stitches were smooth tubes and sausages): every crochet stitch as the
+    // how-to drawings show it, while the piece is small enough to stay quick -
+    //   head   a chain loop lying across the top, a little wider than the stitch so it hooks into its neighbours,
+    //          its front half over the fabric and its back half under it: side by side, the braid of a row's top
+    //   legs   짧은뜨기 two strands from the head's ends down to one point on the row below - a V
+    //          긴뜨기 two strands down side by side, the yarn-over lying as a bar just under the head
+    //          한길긴뜨기 two strands down side by side, the yarn-over wound across the middle
+    const sH = pat.stitchH ?? 1, nSt = D.C.reduce((a, c) => a + c.idx.length, 0), loops = !D.knit && nSt <= 2600, postParts: THREE.BufferGeometry[] = [];
+    const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(10, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color })); };
     if (D.knit) buildKnit(D, R, mat, geos);
     else D.C.forEach((c, ci) => {
       const tops = c.idx.map(n => D.P[n].clone()), saw: THREE.Vector3[] = [];
-      if (c.bot && posts) {
-        const color = colorOf(c.ci), wrap = (pat.stitchH ?? 1) >= 2;
+      let cx0 = 0, cz0 = 0; tops.forEach(q => { cx0 += q.x; cz0 += q.z; }); cx0 /= tops.length || 1; cz0 /= tops.length || 1;
+      const ridgeRow = !!pat.ridge && (c.closed || ci % 2 === 0);
+      if (c.bot && loops) {
+        const color = colorOf(c.ci);
         c.idx.forEach((n, i) => {
-          const t = D.P[n], b0 = lp(c.bot![i]), nx = D.P[c.idx[(i + 1) % c.idx.length]], along = nx.clone().sub(t).setY(0);
-          if (along.lengthSq() < 1e-12) along.set(1, 0, 0); along.normalize();
-          // the post stands straight under its own top (its base on the row below was half a stitch over: posts leaned)
-          const dv = b0.clone().sub(t); dv.addScaledVector(along, -dv.dot(along)); const b = t.clone().add(dv);
-          along.multiplyScalar(D.sw * .16);
-          const up = t.clone().sub(b), mid = b.clone().addScaledVector(up, .5);
-          // slim, evenly spaced posts (the first try was fat and bunched in pairs): the two strands close together
-          // straight, nearly touching their neighbours (fat and bunched at first, then too thin - a lattice of holes)
-          for (const k of [-1, 1]) strand([b.clone().addScaledVector(along, k * 1.25), mid.clone().addScaledVector(along, k * 1.35), t.clone().addScaledVector(along, k * 1.2).addScaledVector(up, -.08)], R * .86, color);
-          if (wrap) strand([mid.clone().addScaledVector(along, -1.9).addScaledVector(up, -.12), mid.clone().addScaledVector(up, .02).add(new THREE.Vector3(0, R * .35, 0)), mid.clone().addScaledVector(along, 1.9).addScaledVector(up, .14)], R * .8, color);
+          const t = D.P[n].clone(), b0 = lp(c.bot![i]), nx = D.P[c.idx[(i + 1) % c.idx.length]], pv = D.P[c.idx[(i - 1 + c.idx.length) % c.idx.length]];
+          const alongV = (c.closed || i < c.idx.length - 1 ? nx.clone().sub(t) : t.clone().sub(pv)).setY(0), sw = Math.max(D.sw * .6, alongV.length());
+          const al = alongV.lengthSq() < 1e-12 ? new THREE.Vector3(1, 0, 0) : alongV.normalize();
+          // straight under its own head (its base on the row below was half a stitch over)
+          const dv = b0.clone().sub(t); dv.addScaledVector(al, -dv.dot(al)); const b = t.clone().add(dv), upV = t.clone().sub(b), h = upV.length() || D.rh, up = upV.clone().divideScalar(h);
+          // out of the fabric: up for a flat piece, outward for a wall
+          const out = c.closed ? new THREE.Vector3(t.x - cx0, 0, t.z - cz0) : new THREE.Vector3(0, 1, 0); if (out.lengthSq() < 1e-12) out.set(0, 1, 0); out.normalize();
+          if (ridgeRow) t.addScaledVector(out, R * 1.1);
+          const P = (u: number, v: number, w: number) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, w * R);
+          // the head: front half up over the fabric, back half under, wider than the stitch so the next one's hooks into it
+          const ring: THREE.Vector3[] = []; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; ring.push(P(Math.cos(a) * .62, Math.sin(a) * .07 - .02, Math.sin(a) * 1.05 + .25)); }
+          strand(ring, R * .92, color, true);
+          if (sH < 1.4) { // 짧은뜨기: a V from the head's ends to one point below
+            for (const k of [-1, 1]) strand([P(k * .36, -.08, .9), P(k * .2, -.5, .75), P(0, -.98, .35)], R * .88, color);
+          } else { // the post: two strands down side by side
+            for (const k of [-1, 1]) strand([P(k * .3, -.08, .85), P(k * .2, -.5, .8), P(k * .16, -.97, .4)], R * .86, color);
+            if (sH < 2) strand([P(-.38, -.24, 1.25), P(0, -.27, 1.55), P(.38, -.24, 1.25)], R * .84, color); // 긴뜨기: the yarn-over, a bar under the head
+            else strand([P(-.34, -.62, 1.1), P(0, -.5, 1.55), P(.34, -.36, 1.1)], R * .84, color); // 한길긴뜨기: wound across the middle
+          }
         });
       } else if (c.bot) c.idx.forEach((n, i) => saw.push(D.P[n].clone(), lp(c.bot![i])));
+      // drawn as loops: no long tube along the row's top (the heads are its top)
+      if (c.bot && loops) return;
       // 이랑뜨기: the unworked front loop raised along the row (every row worked in rounds, every other in rows)
-      if (pat.ridge && (c.closed || ci % 2 === 0)) {
-        let cx = 0, cz = 0; tops.forEach(q => { cx += q.x; cz += q.z; }); cx /= tops.length || 1; cz /= tops.length || 1;
-        tops.forEach(q => { if (c.closed) { const o = new THREE.Vector3(q.x - cx, 0, q.z - cz); if (o.lengthSq() > 1e-12) q.addScaledVector(o.normalize(), R * 1.05); } else q.y += R * 1.15; });
-      }
+      if (ridgeRow) tops.forEach(q => { if (c.closed) { const o = new THREE.Vector3(q.x - cx0, 0, q.z - cz0); if (o.lengthSq() > 1e-12) q.addScaledVector(o.normalize(), R * 1.05); } else q.y += R * 1.15; });
       [saw, tops].forEach((arr0, ix) => {
         // points on the very same spot (a painted stitch with nothing painted under it: its "saw" goes down to
         // itself) are left out; a line of zero length made degenerate geometry that reset the graphics driver
@@ -1545,6 +1566,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     playDraw,
     zoom(f) { const v = cam.position.clone().sub(ctl.target), l = Math.min(ctl.maxDistance, Math.max(ctl.minDistance, v.length() * f)); cam.position.copy(ctl.target).addScaledVector(v.normalize(), l); touched = true; ctl.update(); kick(); },
     home() { touched = false; framed = true; if (IT.data) { cam.position.copy(ctl.target).addScaledVector(HOME, 10); wasFab = false; if (opts.fit) fitAll(IT.data, HOME.clone()); else frameOn(IT.data); } },
+    viewShot() {
+      // the view as it is now, at the canvas's own size (checking how the stitches look up close)
+      renderer.render(scene, cam); return renderer.domElement.toDataURL("image/jpeg", .82);
+    },
     snapshot() {
       const D = IT.data; if (!D?.done) return null;
       const pos = cam.position.clone(), tgt = ctl.target.clone();

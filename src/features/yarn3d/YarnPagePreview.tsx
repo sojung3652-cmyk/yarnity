@@ -51,6 +51,8 @@ export function YarnPagePreview({ source, plan, fabric, caption, live, far, mova
       const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, detail: "page", fit: true, onInfo: () => {}, onBuilt: ms => { box.current?.setAttribute("data-built-ms", String(Math.round(ms))); if (far && !farDone.current) { farDone.current = true; viewer.current?.zoom(far); } } }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
+      // development only: the yarn check's viewer reachable for a sharp snapshot while checking how stitches look
+      if (process.env.NODE_ENV !== "production" && bus) (window as unknown as { __yc?: YarnViewer }).__yc = v;
     });
     return () => { gone = true; viewer.current?.dispose(); viewer.current = null; shown.current = null; };
   }, []);
