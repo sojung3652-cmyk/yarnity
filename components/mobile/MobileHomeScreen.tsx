@@ -16,11 +16,11 @@ export function MobileHomeScreen() {
   // 도안 만들기 opens step 1 (Kim); a pattern half made keeps what it has (the draft is not cleared)
   const start = () => book.startWizard(1);
   // 이어서 뜨기 (Kim): the work on the hook - the most recently knitted one that is going - straight to 따라 뜨기;
-  // with none going, 나의 도안집 where the works are
+  // shown only while one is going
   const hook = useMemo(() => [...projects].filter(p => statusOf(p) === "knitting" && (p.current || 0) > 0)
     .sort((a, b) => (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created))[0] ?? null, [projects]);
   const w = hook ? whereOf(hook) : null;
-  const resume = () => { if (!hook) { router.push("/my"); return; } setActive(hook.id); router.push("/track"); };
+  const resume = () => { if (!hook) return; setActive(hook.id); router.push("/track"); };
   // the opening's card rise (body.m-intro-cards, PhoneOpening) stays on while this home is shown: taking it off
   // there would hand the cards back their own arrival animation, which then plays a second time (the flash)
   useEffect(() => () => document.body.classList.remove("m-intro-cards"), []);
@@ -47,7 +47,8 @@ export function MobileHomeScreen() {
           <span className="mfh-two mfh-en" lang="en"><b>Handbook</b></span>
         </button>
       </nav>
-      {ready && hook && w ? (
+      {/* only while a work is going (Kim) */}
+      {ready && hook && w && (
         <button type="button" className="mf-patch is-cream mfh-resume" onClick={resume}>
           <BookCover p={hook} w={38} />
           <span className="mfh-resume-text">
@@ -57,10 +58,6 @@ export function MobileHomeScreen() {
             <ProgressBar pct={w.pct} />
           </span>
           <span className="mfh-chev" aria-hidden="true">›</span>
-        </button>
-      ) : (
-        <button type="button" className="mf-patch is-cream mfh-go" onClick={resume}>
-          <span className="mfh-two"><b>이어서 뜨기</b></span>
         </button>
       )}
       <nav className="mfh-foot" aria-label="만들기">

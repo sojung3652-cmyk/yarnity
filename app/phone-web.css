@@ -95,8 +95,3 @@
   html body .aic-root.is-win .aic-chat{width:auto}
   html body .aic-root.is-win .aic-bar{width:auto}
 }
-@media (max-width:767.98px){
-  /* the phone home's 이어서 뜨기 with no work going (Kim): one patch across, between the two rows */
-  html body .mfh .mfh-go{display:flex;align-items:center;justify-content:center;width:100%;min-height:60px;margin-top:10px}
-  html body .mfh .mfh-go b{font-size:15px;font-weight:600}
-}
