@@ -112,7 +112,9 @@ export const RECIPES: Record<string, () => Chart> = {
   "와플 스티치": () => grid(W0, 6, (i, j) => (i % 3 === 0 ? S("dc", { z: .32 }) : S("dc", { z: j % 2 ? .2 : 0 }))),
   "바구니 무늬": () => grid(16, 8, (i, j) => S("dc", { z: (Math.floor(i / 4) + Math.floor(j / 2)) % 2 ? -.28 : .3 })),
   "코바늘 꽈배기": () => grid(W0, 5, (i, j) => { const m = i % 6; if (m >= 1 && m <= 4) { const cr = j % 2 === 1; return S("tr", { dx: cr ? (m <= 2 ? 1 : -1) : 0, z: cr && m <= 2 ? .45 : .3 }); } return S("dc", { z: -.2 }); }),
-  "악어 비늘 무늬": () => { const st: ChartStitch[] = [], ch: Chart["ch"] = []; for (let r = 0; r < 4; r++) for (let s = 0; s < 4; s++) { const x0 = s * 4 + (r % 2) * 2 + 1, y0 = r * 2.6; for (let k = 0; k < 5; k++) { const a = Math.PI * (.15 + .7 * k / 4); st.push({ type: "dc", b: [x0, y0], t: [x0 - Math.cos(a) * 2, y0 + Math.sin(a) * 2.2], z: .35 + .1 * Math.sin(a) }); } } return { st, ch, W: 18, H: 12 }; },
+  // 3D 정밀 (Kim): a scale hangs from its top - dc worked down one post and up the next fan out below it, the
+  // rounded edge at the bottom - and each row lies over the one below, half a scale over (they opened upward)
+  "악어 비늘 무늬": () => { const st: ChartStitch[] = [], ch: Chart["ch"] = []; for (let r = 0; r < 4; r++) for (let s = 0; s < 4; s++) { const x0 = s * 4 + (r % 2) * 2 + 1, top = r * 2.4 + 2.6; for (let k = 0; k < 9; k++) { const a = Math.PI * (1.12 + .76 * k / 8); st.push({ type: "dc", b: [x0, top], t: [x0 + Math.cos(a) * 2, top + Math.sin(a) * 2.3], z: .3 + r * .06 + .12 * -Math.sin(a) }); } } return { st, ch, W: 18, H: 12.5 }; },
   // ---------------- 코바늘 · 볼록 무늬
   "방울뜨기 (보블)": () => grid(W0, 9, (i, j) => (j % 2 && (i + (j >> 1)) % 4 === 1 ? S("bob", { z: .4 }) : S("sc"))),
   "퍼프 스티치": () => grid(W0, 6, (i, j) => (i % 2 ? CH : S("puff", { dx: j % 2 ? .3 : 0, z: .2 }))),
@@ -138,7 +140,30 @@ export const RECIPES: Record<string, () => Chart> = {
   "쉐브론 (리플)": () => ripple(grid(24, 10, (i, j) => S("dc", { dx: (i % 12 < 6 ? 1 : -1) * .5, c: Math.floor(j / 2) % 3 }))),
   "캐서린 휠": () => grid(W0, 6, (i, j) => ((i + j * 4) % 8 < 4 ? S("cl", { join: [-1, 1], c: j % 2 }) : S("dc", { dx: ((i + j * 4) % 8 - 5.5) * .35, c: j % 2 }))),
   "코너 투 코너 (C2C)": () => grid(16, 12, (i, j) => S("dc", { dx: .45, c: (Math.floor((i + j) / 3) % 2) })),
-  "그래니 스퀘어": () => { const c = rounds(4, r => r * 12, (r, k) => (k % 4 === 3 ? "ch" : "dc"), r => r % 2); c.st.forEach(s => { s.t = sq(s.t, c.W / 2); s.b = sq(s.b, c.W / 2); }); c.ch = c.ch.map(([x, y, cc]) => { const q = sq([x, y], c.W / 2); return [q[0], q[1], cc ?? 0] as [number, number, number]; }); return c; },
+  // 3D 정밀 (Kim): built as it is worked - round by round out from the middle, each side's clusters of three
+  // parallel dc standing out from their side, in the spaces of the round below, a chain space at each corner
+  // (it was spokes from the middle)
+  "그래니 스퀘어": () => {
+    const st: ChartStitch[] = [], ch: Chart["ch"] = [], R = 4, step = 2.1, C = R * step + 1;
+    const sides: [number, number, number, number][] = [[1, 0, 0, 1], [0, 1, -1, 0], [-1, 0, 0, -1], [0, -1, 1, 0]]; // outward normal (nx,ny), along (ax,ay)
+    for (let r = 1; r <= R; r++) {
+      const outer = r * step, inner = (r - 1) * step + .2, n = r, col = r % 2;
+      for (const [nx, ny, ax, ay] of sides) {
+        for (let k = 0; k < n; k++) {
+          const u = (k + .5) / n * 2 - 1; // -1 .. 1 along the side
+          for (const o of [-.55, 0, .55]) {
+            // parallel posts; only past the inner square's corner (the corner cluster, worked into the corner space) they fan
+            const along = u * outer * .82 + o, lim = Math.max(.4, inner) * .95, bAlong = Math.max(-lim, Math.min(lim, along));
+            st.push({ type: "dc", b: [C + nx * inner + ax * bAlong, C + ny * inner + ay * bAlong], t: [C + nx * outer + ax * along, C + ny * outer + ay * along], c: col });
+          }
+          if (k < n - 1) { const g = ((k + 1) / n * 2 - 1) * outer * .82; ch.push([C + nx * outer + ax * g, C + ny * outer + ay * g, col]); }
+        }
+        // the corner space: two chains at this side's end
+        const e = outer * .98; ch.push([C + nx * outer + ax * e, C + ny * outer + ay * e, col]);
+      }
+    }
+    return { st, ch, W: C * 2, H: C * 2 };
+  },
   "원형 · 육각 모티프": () => rounds(4, r => r * 6, () => "dc", r => r % 2),
   "꽃 모티프": () => { const c = rounds(2, r => (r === 1 ? 8 : 0), () => "sc"); const st = c.st; for (let p = 0; p < 6; p++) { const a = p / 6 * Math.PI * 2; for (let k = 0; k < 5; k++) { const a2 = a + (k - 2) * .16; st.push({ type: "tr", b: [c.W / 2 + Math.cos(a) * 2, c.H / 2 + Math.sin(a) * 2], t: [c.W / 2 + Math.cos(a2) * 5.4, c.H / 2 + Math.sin(a2) * 5.4], c: 1, z: .1 }); } } return c; },
   "바바리안 무늬": () => grid(W0, 6, (i, j) => ((i + j * 3) % 6 < 3 ? S("cl", { join: [-2, -1, 1, 2], c: j % 2 }) : S("dc", { dx: ((i + j * 3) % 6 - 4) * .5, c: j % 2 }))),

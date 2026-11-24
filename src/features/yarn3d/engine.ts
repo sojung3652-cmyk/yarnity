@@ -1084,9 +1084,11 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     for (let j = 0; j < K.H; j++) {
       const pts: THREE.Vector3[] = [], tb = K.type === "tube";
       for (let i = tb ? 0 : -q; i < (tb ? K.W * per : K.W * per + q + 1); i++) {
-        const u = i / per, ac = w * u + a * Math.sin(4 * Math.PI * u), lp = (Hh / 2) * Math.cos(2 * Math.PI * u), dz = d * Math.cos(4 * Math.PI * u) * sg(j, u);
-        if (tb) { const th = ac / K.rho, r = K.rho - dz; pts.push(new THREE.Vector3(Math.cos(th) * r, j * K.rk - lp + Hh / 2, Math.sin(th) * r)); }
-        else { const al = (j - (K.H - 1) / 2) * K.rk - lp, x = ac - K.W * w / 2, y = d - dz; pts.push(K.swap ? new THREE.Vector3(al, y, x) : new THREE.Vector3(x, y, al)); }
+        // 3D 정밀 (Kim): knit stitches stand forward and purl ones sink back - the ribs of 고무뜨기, the ridges of
+        // 가터, the pebbles of 멍석 (the fabric was flat, the two only told apart by the loop's shape)
+        const u = i / per, ac = w * u + a * Math.sin(4 * Math.PI * u), lp = (Hh / 2) * Math.cos(2 * Math.PI * u), sgn = sg(j, u), dz = d * Math.cos(4 * Math.PI * u) * sgn, relief = d * .9 * sgn;
+        if (tb) { const th = ac / K.rho, r = K.rho - dz + relief; pts.push(new THREE.Vector3(Math.cos(th) * r, j * K.rk - lp + Hh / 2, Math.sin(th) * r)); }
+        else { const al = (j - (K.H - 1) / 2) * K.rk - lp, x = ac - K.W * w / 2, y = d - dz + relief; pts.push(K.swap ? new THREE.Vector3(al, y, x) : new THREE.Vector3(x, y, al)); }
       }
       const cv = new THREE.CatmullRomCurve3(pts, tb), g = buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength() / (R * .6 * LOD.step))), R, { M: Math.min(8, LOD.M), closed: tb, color: colorOf(rowC[j]?.ci ?? j) }), m = new THREE.Mesh(g, mat);
       m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
