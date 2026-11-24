@@ -355,6 +355,22 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     g.userData = { frames, R, perRing: M * 6, color: o.color }; return g;
   }
 
+  /** many small strands (every stitch's head and legs) as one geometry per colour, carrying what the fuzz and
+   *  the hairs read (its path frames, the yarn's radius): a material change then shells and hairs a few
+   *  geometries, not thousands (Kim: 재질을 바꾸면 너무 오래 걸림 - it froze for 8 to 17 seconds) */
+  function mergeYarn(parts: THREE.BufferGeometry[]): THREE.BufferGeometry[] {
+    const byColor = new Map<string, THREE.BufferGeometry[]>();
+    parts.forEach(p => { const k = String(p.userData.color); const l = byColor.get(k); if (l) l.push(p); else byColor.set(k, [p]); });
+    const out: THREE.BufferGeometry[] = [];
+    byColor.forEach((list, color) => {
+      const g = mergeGeometries(list, false) ?? list[0], frames: { p: THREE.Vector3; t: THREE.Vector3; n: THREE.Vector3; b: THREE.Vector3; s: number }[] = [];
+      let off = 0; list.forEach(p => { const fr = p.userData.frames as typeof frames; fr.forEach(f => frames.push({ ...f, s: f.s + off })); off += fr.length ? fr[fr.length - 1].s : 0; });
+      g.userData = { frames, R: list[0].userData.R, perRing: list[0].userData.perRing, color };
+      if (g !== list[0]) list.forEach(p => p.dispose());
+      out.push(g);
+    });
+    return out;
+  }
   // the soft cloud of fibre round a fluffy strand: the strand's own surface pushed out along its normals,
   // see-through and speckled, lighter than the yarn (mohair, alpaca, fur; a little on wool and chenille)
   const HTEX = (() => {
@@ -708,11 +724,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         for (let q = 0; q < n; q++) { const f = n === 1 ? .45 : .25 + q * .5 / (n - 1), m1 = b.clone().lerp(t, f - .08), m2 = b.clone().lerp(t, f + .08); add([P(m1.clone().addScaledVector(across, -D.sw * .22), up * 1.4), P(m1.clone().lerp(m2, .5), up + r * 2.2), P(m2.clone().addScaledVector(across, D.sw * .22), up * 1.4)], false, r * .95, color); }
         if (c.type === "loop") { const pts: THREE.Vector3[] = []; for (let k = 0; k <= 10; k++) { const a = k / 10 * Math.PI; pts.push(t.clone().addScaledVector(across, Math.cos(a) * D.sw * .3).addScaledVector(dn, -D.rh * .3).setY(up + Math.sin(a) * D.rh * 1.6)); } add(pts, false, r, color); }
       });
-      if (parts.length) {
-        const g = mergeGeometries(parts, false) ?? parts[0]; g.userData = { perRing: parts[0].userData.perRing };
-        const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m);
-        geos.push(...parts);
-      }
+      if (parts.length) mergeYarn(parts).forEach(g => { const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g); });
       haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz); strapH = 0; flapTip = null; return;
     }
     // 3D 정밀 (Kim): a tall stitch (긴뜨기, 한길긴뜨기) is an upright post of two strands, 한길긴뜨기 with its wrap across
@@ -771,10 +783,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const g = buildYarn(pts, Rr, { M, closed: c.closed, color: colorOf(c.ci) }), m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
       });
     });
-    if (postParts.length) {
-      const g = mergeGeometries(postParts, false) ?? postParts[0]; g.userData = { perRing: postParts[0].userData.perRing };
-      const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(...postParts);
-    }
+    if (postParts.length) mergeYarn(postParts).forEach(g => { const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g); });
     // the edging round the opening: the last round again, a little up and out, thicker
     const lastC = D.C[D.C.length - 1];
     if (pat.rim && !D.knit && lastC && lastC.closed && lastC.idx.length > 6 && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
@@ -1345,7 +1354,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // 생성 중 (Kim: when it is slow, say so and make it anyway): the screen is told first, and the work waits
     // two frames so the notice is painted before it begins
     opts.onBusy?.(true); hold = 2;
-    opts.onInfo(null); t0 = performance.now(); IT.data = makeItem(); lodFor(IT.data.knit ? IT.data.knit.W * IT.data.knit.H * 1.6 : IT.data.P.length);
+    opts.onInfo(null); t0 = performance.now(); IT.data = makeItem(); lodFor(IT.data.knit ? IT.data.knit.W * IT.data.knit.H * 1.6 : IT.data.P.length * 3.2); // crochet: a head and legs per stitch, about three strands' worth
     if (IT.data.fixed) IT.data.iter = 1e9; // a known shape: nothing to settle
     showItem();
     // the shape while it settles (its gold lines) is in view as well: it used to fill the page, cut off.
@@ -1563,7 +1572,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       pat = p;
       if (mat || heldCh) { Object.assign(st, presetOf(p.material)); withHeld(); }
       if (reshape) startItem();
-      else if (IT.data?.done) { if (mat || retop) soften(IT.data); showItem(); if (refocus) frameOn(IT.data); else if (opts.fit && framed && needsFit(IT.data) && !(pat.focus === "fabric" && IT.data.knit)) fitAll(IT.data, viewDir()); } // colour, material or stitch pattern: the yarn again, the shape as it is (a softer yarn gives more)
+      else if (IT.data?.done) {
+        // colour, material or stitch pattern: the yarn again, the shape as it is (a softer yarn gives more). A big
+        // piece takes a moment: 생성 중 is shown first and the work starts once it is on the screen
+        const D = IT.data, redo = () => { if (IT.data !== D) return; if (mat || retop) soften(D); showItem(); if (refocus) frameOn(D); else if (opts.fit && framed && needsFit(D) && !(pat.focus === "fabric" && D.knit)) fitAll(D, viewDir()); opts.onBusy?.(false); };
+        if (D.P.length > 1500 && opts.onBusy) { opts.onBusy(true); requestAnimationFrame(() => requestAnimationFrame(redo)); } else redo();
+      }
     },
     setMaterial(m) {
       if (m === st.preset) return;
