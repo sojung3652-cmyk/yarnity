@@ -1169,7 +1169,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const u = (p.x - cx) / rm, v = (p.z - cz) / rm, k = (Math.hypot(u, v)) ** 2.4;
         const edge = .5 + .5 * Math.sin(3 * Math.atan2(v, u) + 1.3);
         const ripple = (.5 + .5 * Math.sin(u * 3.4 + 1.7) * Math.cos(v * 2.6 + .4)) * (.35 + .65 * Math.max(Math.abs(u), Math.abs(v)));
-        p.y += s * A * (.7 + 1.3 * soft) * k * edge + soft * A * .9 * ripple;
+        // 탄성 turned up (Kim: 무늬 테스트에서도 보이게): a limper piece lies in bigger waves and soft rumples
+        const rumple = o * A * 1.6 * Math.sin(u * 5.1 + .6) * Math.cos(v * 4.3 + 1.2) * (.4 + .6 * Math.min(1, k + .2));
+        p.y += s * A * (.7 + 1.3 * soft) * (1 + 1.8 * o) * k * edge + soft * A * .9 * (1 + o) * ripple + rumple;
       }
       return;
     }
