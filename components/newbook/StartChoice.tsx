@@ -22,6 +22,8 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
   const { setDraft } = useApp();
   const hasDraft = !draft.editOf && !!(draft.itemPicked || draft.name.trim() || draft.free || draft.paint);
   const [ask, setAsk] = useState<string[] | null>(null), [win, setWin] = useState(false);
+  // the phone home's 이어서 만들기 (Kim): this page opens with the 이어서 하기 window up
+  useEffect(() => { try { if (sessionStorage.getItem("iyarn.openGoOn")) { sessionStorage.removeItem("iyarn.openGoOn"); onMode("go"); setWin(true); } } catch {} }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // 선택 (Kim: 나의 도안집처럼): pick several and take them away together
   const [picking, setPicking] = useState(false), [picked, setPicked] = useState<string[]>([]);
   const [undo, setUndo] = useState<{ n: number; d?: Draft; es?: BinderEntry[] } | null>(null);
