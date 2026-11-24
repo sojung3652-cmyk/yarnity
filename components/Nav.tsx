@@ -48,7 +48,8 @@ export function Nav() {
       <div className="ynav-mid" ref={box}>
         <div className="ynav-links" lang="en">{links("ynav-link")}</div>
         <button type="button" className="ynav-burger" aria-label="메뉴" aria-expanded={open} onClick={() => setOpen(o => !o)}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+          {/* three dots (Kim, 11/25), at the left on phones */}
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="19" cy="12" r="1.7" fill="currentColor" /></svg>
         </button>
         {open && <div className="ynav-panel" lang="en">{links("ynav-plink")}</div>}
       </div>

@@ -11,18 +11,14 @@
   html body .my-left{flex-direction:column;align-items:stretch;gap:12px;overflow:visible}
   html body .my-me{align-self:flex-start}
   html body .my-me b{height:38px;min-width:0;padding:0 18px;font-size:13.5px}
-  /* the menu as binder tabs (Kim, 11/25: 바인더나 라벨같은 걸로, 클릭된 건 더스티로즈): woven cream tabs standing on
-     the page's edge, the picked one in dusty rose and a touch taller */
-  html body .my-menu{flex-wrap:nowrap;align-items:flex-end;overflow-x:auto;gap:4px;margin:0;padding:6px 2px 0;scrollbar-width:none;
-    border-bottom:2px solid #C99BA0}
+  /* the menu as the 3D screen's labels (Kim, 11/25: 라벨 사용, 3D창이랑 비슷하게): the cream cloth patch, the picked
+     one on the pink patch, as the work screen's tiles and tabs */
+  html body .my-menu{flex-wrap:nowrap;align-items:center;overflow-x:auto;gap:6px;margin:0;padding:2px 2px 4px;scrollbar-width:none;border:0}
   html body .my-menu::-webkit-scrollbar{display:none}
-  html body .my-mi{flex:none;min-height:34px;padding:0 14px;border-radius:9px 9px 0 0;font-size:13px;color:#5E554E;
-    background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
-    box-shadow:inset 0 0 0 1px rgba(170,150,130,.35),inset 0 -3px 0 rgba(120,90,70,.06)}
+  html body .my-mi{flex:none;min-height:0;height:auto;padding:4px 10px;border-radius:0;font-size:13px;color:#5E554E;background:none;box-shadow:none;
+    border-style:solid;border-width:8px;border-image:url(/mobile/diary/patch_cream.webp) 62 fill / 8px stretch;filter:drop-shadow(-1px 1.5px 1px rgba(90,62,44,.12))}
   html body .my-mi::before,html body .my-mi span::before{display:none!important}
-  html body .my-mi.is-on{min-height:40px;color:#4A2F33;font-weight:600;
-    background:repeating-linear-gradient(0deg,rgba(108,62,71,.07) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(108,62,71,.06) 0 1px,transparent 1px 3px),#D9AEB1;
-    box-shadow:inset 0 0 0 1px rgba(150,100,105,.45)}
+  html body .my-mi.is-on{min-height:0;color:#4A3F3B;font-weight:600;background:none;box-shadow:none;border-image:url(/mobile/diary/patch_pink.webp) 62 fill / 8px stretch}
   html body .my-mi em{margin-left:5px;font-style:normal;font-size:11px;opacity:.75}
   /* 나의 도안집 */
   html body .mine-head{flex-direction:column;align-items:stretch;gap:12px}
@@ -89,6 +85,10 @@
   html body form.nb-book{padding:0;border-radius:6px;background:#FBF7EF;box-shadow:0 0 0 1px rgba(142,131,121,.18),-8px 14px 30px -18px rgba(50,35,25,.35)}
 }
 @media (max-width:767.98px){
+  /* ---- the NavBar on phones: its three dots at the left, the menu opening under them ---- */
+  html body .ynav-mid{grid-column:1;justify-self:start;margin-left:-10px}
+  html body .ynav-left{display:none}
+  html body .ynav-panel{left:0;transform:none}
   /* ---- Yarni's window: the screen's width, from under the bar to the bottom (the web's small floating window
      is wider than a phone) ---- */
   html body .aic-root.is-win .aic-panel{left:8px!important;right:8px!important;top:auto!important;bottom:8px!important;width:auto!important;height:min(640px,calc(100svh - 72px))!important;max-height:none}
