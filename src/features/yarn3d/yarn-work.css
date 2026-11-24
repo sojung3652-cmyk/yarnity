@@ -413,3 +413,5 @@ body:has(.yw) .aic-root{z-index:460}
 .yw .yw-name-in input:hover,.yw .yw-name-in input:focus{background:none;box-shadow:inset 0 -1px 0 #C9B48A;outline:none}
 .yw .yw-name-in input::placeholder{color:#B7A99E;font-weight:500}
 .yw .yw-name-in small{margin:0;font-size:12px;color:#8A7A72;white-space:nowrap}
+/* the yarn check's piece about 70% of the stage (Kim: it filled the stage too much) */
+.yw-intro .yc-swatch .y3-page{inset:15%}
