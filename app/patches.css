@@ -98,12 +98,21 @@ html body .gl-title{line-height:1}
    elements that set their own transitions. */
 :where(button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary){transition:translate .2s ease,transform .2s ease,box-shadow .2s ease,background-color .2s ease,color .2s ease,border-color .2s ease,opacity .2s ease}
 @media (hover:hover){
-  :where(button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary):not(:disabled):not([aria-disabled="true"]):hover{translate:0 -1px}
+  :where(button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary):not(:disabled):not([aria-disabled="true"]):hover{translate:0 -2px}
   :where(button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary):not(:disabled):active{translate:0 0}
 }
-/* 프로필 설정's two cards float as the other My Page cards do */
-.my-prof-main,.my-data{transition:translate .25s ease,box-shadow .25s ease}
-@media (hover:hover){.my-prof-main:hover,.my-data:hover{translate:0 -2px;box-shadow:0 2px 4px rgba(70,50,40,.1),0 10px 24px rgba(70,50,40,.1)}}
 /* things that must not move: drag handles, range thumbs, the 3D's frame, the canvas tools */
 :where(.y3-grip,.yw-frame i,.sk-pad,.pp-pad,.cs-field,input[type="range"]){translate:none}
 @media (prefers-reduced-motion:reduce){:where(button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary, .my-prof-main, .my-data){transition:none;translate:none!important}}
+/* every card floats alike (Kim: 다 플로팅으로, 어떤 건 뜨고 어떤 건 아니면 안 됨): up 3px, a soft shadow under it
+   (a filter, so the card's own shadow and border stay as they are); pressable things 1px as before */
+:where(.float-card, .my-prof-main, .my-data, .my-login, .my-row, .my-row-new, .my-newslot, .my-wish, .my-gal-pic, .my-hook){transition:translate .22s ease,filter .22s ease,box-shadow .22s ease}
+@media (hover:hover){
+  :is(.float-card, .my-prof-main, .my-data, .my-login, .my-row, .my-row-new, .my-newslot, .my-wish, .my-gal-pic, .my-hook):not(:disabled):not([aria-disabled="true"]):hover{translate:0 -3px;filter:drop-shadow(0 6px 10px rgba(70,50,40,.12))}
+}
+@media (prefers-reduced-motion:reduce){:where(.float-card, .my-prof-main, .my-data, .my-login, .my-row, .my-row-new, .my-newslot, .my-wish, .my-gal-pic, .my-hook){transition:none;translate:none!important;filter:none!important}}
+/* 페이드 (Kim: 핸드북, 마이페이지 등등 모두): what appears comes in softly - a page, a window, a menu, a list, a
+   tab's content - rising a little as it fades in */
+@keyframes y-fade-in{from{opacity:0;translate:0 6px}to{opacity:1;translate:0 0}}
+:where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation:y-fade-in .28s ease both}
+@media (prefers-reduced-motion:reduce){:where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation:none}}

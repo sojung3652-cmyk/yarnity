@@ -581,3 +581,31 @@ body:has(.yw) .aic-root{z-index:460}
 /* 기타 조절 and 실 라벨 정보 (Kim): headings of their own, the boxes in view */
 .nb-etc{margin:14px 0 6px;padding-top:12px;border-top:1px dashed #DCCBB8}
 .nb-labelbox{padding:12px 14px 10px;border-radius:2px;background:repeating-linear-gradient(0deg,rgba(150,120,90,.04) 0 1px,transparent 1px 3px),#FBF7EF;box-shadow:inset 0 0 0 1px #E3D6C4}
+/* ===== Kim's own cloth (3D 디자인에 이런 라벨들): the real woven pictures, not drawn ones =====
+   panels on the ivory patch (/glossary/patch_ivory.webp, its stitched border kept, the middle stretched);
+   small buttons on the woven label (/brand/label_title.webp, its stitched ends kept) */
+.yw{--patch:url(/glossary/patch_ivory.webp) 46 fill / 12px stretch;--label:url(/brand/label_title.webp) 0 12% fill / 0 16px stretch;
+  --lift:drop-shadow(0 1px 1.5px rgba(70,50,40,.2)) drop-shadow(0 4px 8px rgba(70,50,40,.1))}
+.yw-dock-tools,.yw .yw-dock .yw-views,.yw-loadlist,.yw-leave-card,.yw-pick{border-style:solid;border-width:12px;border-image:var(--patch);background:none;box-shadow:none;border-radius:0;filter:var(--lift)}
+.yw-dock-tools::before,.yw-loadlist::before{display:none}
+.yw-dock-tools{padding:2px 6px 3px}
+.yw .yw-dock .yw-views{padding:0 2px;border-width:9px}
+.yw-loadlist{padding:4px 6px}
+.yw-leave-card{padding:14px 16px 10px}
+.yw-tabd,.yw .yw-tabadd,.yw .yw-sim{border-style:solid;border-width:0 16px;border-image:var(--label);background:none;box-shadow:none;border-radius:0;filter:var(--lift)}
+.yw-tabd::before,.yw-tabd::after,.yw .yw-sim::before,.yw .yw-sim::after{display:none}
+.yw-tabd>button:first-child,.yw-tabd .yw-tabname{padding:0 4px}
+.yw-tabx{margin-right:-4px}
+.yw .yw-tabadd{width:auto;min-width:44px;padding:0 2px}
+.yw .yw-sim{padding:0 6px}
+/* the open tab: the same label, the dusty rose over it (translucent) */
+.yw-tabd.is-on{border-width:0 18px;border-image:url(/labels/name-label.webp) 0 12% fill / 0 18px stretch;background:none}
+.yw-tabd.is-on::after{display:block;content:"";position:absolute;inset:3px -10px;left:-10px;right:-10px;border:0;background:rgba(224,170,174,.18);mix-blend-mode:multiply;pointer-events:none}
+/* every pink label is the Handbook's pink patch (Kim: 이 색을 따라가도록) - /mobile/diary/patch_pink.webp, as
+   .dict-tablabel.is-on: its stitched border kept, the middle stretched */
+.yw-tabd.is-on{border-width:10px 12px;border-image:url(/mobile/diary/patch_pink.webp) 62 fill / 10px 12px stretch}
+.yw-tabd.is-on::after{display:none}
+.yw .yw-dock-tools .yw-opt[aria-pressed="true"],.yw .yw-dock-tools .yw-act[aria-pressed="true"],
+.yw-index .yw-tab[aria-current="step"],.asm-rail button[aria-selected="true"],
+.nb-tile[aria-checked="true"],.nb-tile[aria-pressed="true"],.nb-needle button[aria-checked="true"],.asm-mode button[aria-checked="true"]{
+  border-style:solid;border-width:7px;border-image:url(/mobile/diary/patch_pink.webp) 62 fill / 7px stretch;background:none;box-shadow:none;color:#4A3F3B}
