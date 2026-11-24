@@ -12,5 +12,6 @@ export const shots = {
   get(id: string, after = 0): string | null { const k = read(id); return k && k.v === V && k.at >= after ? k.u : null; },
   set(id: string, u: string) { try { localStorage.setItem(K(id), JSON.stringify({ u, at: Date.now(), v: V })); } catch { /* full or blocked: not kept */ } },
   /** the draft's picture becomes the saved work's (taken now, as the work is saved) */
+  drop(id: string) { try { localStorage.removeItem(K(id)); } catch { /* */ } },
   move(from: string, to: string) { const k = read(from); if (k && k.v === V) shots.set(to, k.u); try { localStorage.removeItem(K(from)); } catch { /* */ } },
 };

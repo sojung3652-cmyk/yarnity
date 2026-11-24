@@ -638,7 +638,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const start = editId || startDone ? null : (
       <StartChoice draft={draft} projects={projects} mode={startMode} onMode={setStartMode}
         onFresh={() => { binder.stash(draft); const f = freshDraft(); startStep.current = 1; setAsked(false); setYarnSet(false); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); }}
-        onDraft={() => setStartDone(true)} onOpen={id => { setStartDone(true); book.editHere(id); }} />
+        onDraft={() => setStartDone(true)} onKept={id => { loadDraft(binder.open(id, draft)); setStartDone(true); }} onOpen={id => { setStartDone(true); book.editHere(id); }} />
     );
     // wide screens with the 3D (Kim): the first page asks only where to start - no steps, no name (the name is
     // given on the 3D work screen's top); either way goes straight on into the work screen
@@ -646,7 +646,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       <div className="tp tp-start">
         <StartChoice always draft={draft} projects={projects} mode={startMode} onMode={setStartMode}
           onFresh={() => { binder.stash(draft); const f = freshDraft(); startStep.current = 1; setAsked(false); setYarnSet(false); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); next(); }}
-          onDraft={() => { setStartDone(true); next(); }} onOpen={id => { setStartDone(true); book.editHere(id); }} />
+          onDraft={() => { setStartDone(true); next(); }} onKept={id => { loadDraft(binder.open(id, draft)); setStartDone(true); next(); }} onOpen={id => { setStartDone(true); book.editHere(id); }} />
       </div>
     ) : <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} before={start} />;
     if (phone) phoneBody = <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={null} before={start} />;
