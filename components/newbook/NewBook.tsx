@@ -381,6 +381,14 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the work screen itself is drawn at the end of this render (big3d.render): in 3D로 보면서 만들기 its right
   // column is this wizard's own step
   const big3d = useYarn3D(yarnSrc, pp);
+  // closing the 3D with X / Esc (Kim: 저장할지 말지 물어봐): the draft as it was when the 3D opened, put back
+  // if the changes are not kept
+  const atOpen = useRef<Draft | null>(null);
+  useEffect(() => { atOpen.current = big3d.open ? draft : null; }, [big3d.open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const leave3d = {
+    changed: () => !!atOpen.current && JSON.stringify(atOpen.current) !== JSON.stringify(draft),
+    drop: () => { const d = atOpen.current; if (d) { setDraft(d); setNums(numsOf(d)); } },
+  };
   // the work screen opened on the item step (the left page's button): straight on to the whole screen
   useEffect(() => { if (web && big3d.open && step === 2) { setSheet(3, 0); go(3); } }, [web, big3d.open, step]); // eslint-disable-line react-hooks/exhaustive-deps
   // 3D로 보면서 만들기 (Kim): wide screens with the 3D book - after the name, the steps are made in the work
@@ -1038,7 +1046,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       { label: "모양", on: yarnSet, onClick: () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); } },
     ],
   } : undefined;
-  const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, panel: making ? undefined : workPanel,
+  const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, leave: leave3d, panel: making ? undefined : workPanel,
     empty: !picked,
     // 조립하기: what to make, asked first (Kim); the 크기 틀 dragged on the 3D
     // what to make, asked first (Kim: 맨 처음에); the yarn next, the shape after; the name at the end, on 확인

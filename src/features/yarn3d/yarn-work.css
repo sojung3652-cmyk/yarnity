@@ -425,3 +425,11 @@ body:has(.yw) .aic-root{z-index:460}
 .yw-soft span{flex:none;font-weight:600}
 .yw-soft input{flex:1 1 auto;accent-color:#B9858A}
 .yw-soft output{flex:none;min-width:74px;text-align:right;color:#6A5B55;font-size:12.5px}
+
+/* closing the 3D with something changed (Kim): keep it or not */
+.yw-leave{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(40,32,28,.38)}
+.yw-leave-card{width:min(400px,calc(100vw - 32px));padding:24px 26px 20px;border-radius:6px;background:#FBF8F1;box-shadow:-4px 8px 22px -10px rgba(40,30,20,.5),inset 0 0 0 1px #E0D2BE}
+.yw-leave-q{margin:0 0 6px;font-size:16px;font-weight:600;color:#3A322D}
+.yw-leave-sub{margin:0 0 18px;font-size:13px;line-height:1.6;color:#6A5B55}
+.yw-leave-acts{display:flex;align-items:center;justify-content:flex-end;gap:12px}
+.yw-leave-acts .nb-link{margin-right:auto;font-size:13px}

@@ -35,6 +35,8 @@ export interface WorkExtra {
   parts?: [string, string][];
   backLabel?: string;
   onClosed?: () => void;
+  /** closing with X / Esc (Kim): when something changed here, asked first - keep it, or put it back as it was */
+  leave?: { changed: () => boolean; drop: () => void };
   /** 3D로 보면서 만들기 (도안 만들기, Kim): the wizard's own step in the right column - where you are among the
    *  steps, the step's question and inputs, 이전 / 다음 at the foot. Enter goes on, as in the book. */
   making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean; footNote?: string;
@@ -129,6 +131,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     col.scrollTo({ top: col.scrollTop + el.getBoundingClientRect().top - col.getBoundingClientRect().top, behavior: "smooth" });
   };
   const toShape = () => { setIntro(false); yarnSet(); setTimeout(() => toSec("#yw-draw"), 60); };
+  // X / Esc: asked first when something changed (Kim); the window's own Esc goes back to the work
+  const leaveRef = useRef(extra?.leave); leaveRef.current = extra?.leave;
+  const [leaving, setLeaving] = useState(false), leavingRef = useRef(false); leavingRef.current = leaving;
+  const tryClose = () => { if (leaveRef.current?.changed()) setLeaving(true); else onClose(); };
+  const tryCloseRef = useRef(tryClose); tryCloseRef.current = tryClose;
+  useEffect(() => { if (leaving) root.current?.querySelector<HTMLElement>(".yw-leave-acts > :last-child")?.focus(); }, [leaving]);
 
   // the book stops, the page stays still, the way back takes the focus; Esc closes, Tab stays inside
   useEffect(() => {
@@ -140,8 +148,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     backRef.current?.querySelector("button")?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof Element && e.target.closest(".aic-root")) return;
-      const pop = root.current?.querySelector<HTMLElement>(".sk-pop");
-      if (e.key === "Escape") { if (pop) return; e.preventDefault(); e.stopPropagation(); onClose(); return; }
+      const pop = root.current?.querySelector<HTMLElement>(".yw-leave, .sk-pop");
+      if (e.key === "Escape") { if (pop && !leavingRef.current) return; e.preventDefault(); e.stopPropagation(); if (leavingRef.current) setLeaving(false); else tryCloseRef.current(); return; }
       if (e.key !== "Tab" || !root.current) return;
       e.stopPropagation();
       const f = [...(pop ?? root.current).querySelectorAll<HTMLElement>('button, input, [tabindex="0"]')].filter(x => !x.hasAttribute("disabled") && x.tabIndex >= 0 && x.offsetParent !== null);
@@ -224,10 +232,23 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           </div>
         </>}
         {/* the way back as a plain X at the right end (Kim) */}
-        <span ref={backRef} className="yw-x"><button type="button" aria-label={(extra?.backLabel ?? "돌아가기").replace(/[←\s]+/, "").trim() + " 돌아가기"} title="닫기 (Esc)" onClick={onClose}><Ic s={22} d="M6 6l12 12M18 6L6 18" /></button></span>
+        <span ref={backRef} className="yw-x"><button type="button" aria-label={(extra?.backLabel ?? "돌아가기").replace(/[←\s]+/, "").trim() + " 돌아가기"} title="닫기 (Esc)" onClick={tryClose}><Ic s={22} d="M6 6l12 12M18 6L6 18" /></button></span>
       </div>
 
 
+      {leaving && (
+        <div className="yw-leave" role="alertdialog" aria-modal="true" aria-labelledby="yw-leave-q" onClick={e => { if (e.target === e.currentTarget) setLeaving(false); }}>
+          <div className="yw-leave-card">
+            <p id="yw-leave-q" className="yw-leave-q">바꾼 내용을 저장하시겠습니까?</p>
+            <p className="yw-leave-sub">저장하지 않으면 3D를 열었을 때의 도안으로 돌아갑니다.</p>
+            <div className="yw-leave-acts">
+              <button type="button" className="nb-link st-muted" onClick={() => setLeaving(false)}>계속 만들기</button>
+              <ClothLabel side="back" type="button" onClick={() => { leaveRef.current?.drop(); setLeaving(false); onClose(); }}>저장 안 함</ClothLabel>
+              <ClothLabel side="next" type="button" onClick={() => { setLeaving(false); onClose(); }}>저장</ClothLabel>
+            </div>
+          </div>
+        </div>
+      )}
       <div className={"yw-stage" + (dark ? " is-dark" : "")}>
         {intro && extra?.intro && (
           <div className="yw-intro">
