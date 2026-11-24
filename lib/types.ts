@@ -62,6 +62,14 @@ export interface Draft {
   pattern?: string;
   /** a bag's flap outline below the front edge (3D) and how many handles: 1 across the top, or 2 */
   flapShape?: "half" | "square" | "triangle";
+  /** how the flap goes (Kim): "top" covers the top's whole width, front to back, then falls down the front (a box
+   *  stays open under it); "fold" (default) folds straight from the back edge, the top closed to 입구 여유 */
+  flapOver?: "top" | "fold";
+  /** a piece with an oval or square bottom (Kim): "flat" the front and back joined straight (no bottom width, a
+   *  flat pouch); "box" a bottom and sides with width (세로), changeable later; unset as before */
+  gusset?: "flat" | "box";
+  /** 손목 고리 (Kim: a wristlet): the handle is one loop at the top's corner to slip the hand through */
+  handleKind?: "wrist";
   /** how far a bag's top stays open, cm (Kim: with a flap the top closes to this; 0 shut as a zipper's) */
   topGapCm?: number | null;
   /** the draft holds a saved work opened with 고치기 (Kim: a made work is changed only that way) - never shown as

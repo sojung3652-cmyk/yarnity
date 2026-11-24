@@ -1060,3 +1060,5 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .nb-soft-acts .nb-link[aria-pressed="true"]{font-weight:600}
 .nb-soft-acts .nb-link:disabled{opacity:.45;cursor:default;text-decoration:none}
 .nb-soft-on{font-size:12.5px;color:#9C5D63}
+/* the parts under a drawing (그리기) */
+.asm-after{margin-top:18px;padding-top:14px;border-top:1px solid #E6DACB}

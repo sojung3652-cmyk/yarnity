@@ -78,8 +78,12 @@ const HANDLE_RANGE = LEN_RANGE; // any length (Kim: no limits)
  *  only where offered; 0 = an option left with an invalid number, read as unset). */
 export function engineInput(d: Draft): PlanInput {
   const it = ITEM[itemIdOf(d)], e = engineDims(it, d), bag = isBag(it);
-  return { ...d, ...e, object: ENGINE[it.kind], handle: it.handles ? d.handle : (it.defaults.handle ?? "none"),
-    handleCm: it.handles ? d.handleCm || null : null, topA: bag ? d.topA || null : null, flapCm: bag ? d.flapCm || null : null };
+  // every piece with walls can take a handle (Kim: not only the bags the list says) - a pouch, a basket, a pot cover
+  const hOk = it.handles || it.kind === "base-body";
+  return { ...d, ...e, object: ENGINE[it.kind], handle: hOk ? d.handle : (it.defaults.handle ?? "none"),
+    handleCm: hOk ? d.handleCm || null : null, topA: hOk ? d.topA || null : null, flapCm: hOk ? d.flapCm || null : null,
+    // flat (면과 면 잇기): no bottom width - drawn and counted that way
+    ...(bag && d.gusset === "flat" && d.shape !== "circle" ? { b: Math.min(e.b ?? d.b, 1.5) } : {}) };
 }
 
 /** A number in cm typed into a box: kept as typed, passed on only when valid (else null). */
@@ -302,7 +306,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     );
   };
   // the handle's length and how many strands wide it is, dragged (the typed box beside it starts again: hRev)
-  const hasHandle = !!item.handles && draft.handle !== "none";
+  const hasHandle = (!!item.handles || item.kind === "base-body") && draft.handle !== "none";
   const handleSliders = hasHandle ? (
     <div className="nb-sliders nb-sliders-1">
       <Slide label="길이" min={15} max={Math.max(150, handleCmOf(draft))} step={1} value={handleCmOf(draft)} onChange={v => { setHRev(n => n + 1); patch({ handle: "short", handleCm: v }); }} text={`${handleCmOf(draft)}cm`} />
@@ -757,7 +761,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
                   else patch({ handle: "short", handleCm: Number(v) });
                 }} options={[...HANDLE_PRESETS.map(([n, v]): [string, ReactNode] => [String(v), `${n} ${v}cm`]), ["own", "직접 입력"], ["none", "없음"]]} />
                 {handlePick === "own" && <div className="nb-sub"><CmInput label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} autoFocus={ownHandle} onValue={v => patch({ handle: "short", handleCm: v ?? 0 })} /></div>}
-                <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다.</p>
+                <p className="nb-help">{draft.handleKind === "wrist" ? "손목에 끼는 고리는 약 20~30cm입니다." : "손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다."}</p>
               </Fold>
             )}
           </div>
@@ -864,7 +868,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             {handleMake}
             {handleSliders}
             {handlePick === "own" && <div className="nb-wsub"><CmInput key={"wh" + hRev} label="손잡이 길이 (cm)" value={handleCmOf(draft)} range={HANDLE_RANGE} autoFocus={ownHandle} onValue={v => patch({ handle: "short", handleCm: v ?? 0 })} /></div>}
-            <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다.</p>
+            <p className="nb-help">{draft.handleKind === "wrist" ? "손목에 끼는 고리는 약 20~30cm입니다." : "손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다."}</p>
           </div>
         )}
         {extrasGroup}
@@ -905,7 +909,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const rng = (k: "a" | "b" | "h", d: [number, number]) => item.range[k] ?? d;
     const hasFlap = !!draft.flapCm, flapNow = draft.flapCm ?? 0;
     const railParts: [string, string, boolean][] = base
-      ? [["bottom", "바닥", true], ["body", "몸통", true], ...(item.handles ? [["handle", "손잡이", draft.handle !== "none"] as [string, string, boolean]] : []), ...(bagNow ? [["top", "입구", hasFlap || closureNow !== "open" || !!exNow.zipper] as [string, string, boolean]] : []), ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]]
+      // every part for every piece with walls (Kim: 뭘 뜰지에 따라 소환하지 말고, 전체적으로 다) - a pouch can have a
+      // wrist loop, a basket a flap
+      ? [["bottom", "바닥", true], ["body", "몸통", true], ["handle", "손잡이", draft.handle !== "none"], ["top", "입구", hasFlap || closureNow !== "open" || !!exNow.zipper], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]]
       : [["size", "크기", true], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]];
     const partNow = railParts.some(([k]) => k === asmPart) ? asmPart : railParts[0][0];
     const setBody = (f: Partial<typeof form>) => apply(bodyPatch(draft, { ...form, ...f }));
@@ -916,7 +922,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const asmPanel = !picked ? (
       <div className="nb-web"><AskInline draft={draft} onApply={applyAsk} /></div>
     ) : (draft.free || draft.paint) ? (
-      <div className="nb-web"><p className="nb-help">직접 그린 모양입니다. 부품으로 조립하려면 아래에서 뜰 것을 다시 정해 주십시오.</p>
+      <div className="nb-web">{oneSize}<div className="nb-wg">{extrasGroup}</div>
+        <p className="nb-help">직접 그린 모양은 그린 대로 뜹니다. 손잡이·입구까지 부품으로 조립하려면 부품으로 다시 시작해 주십시오.</p>
         <button type="button" className="nb-tile" onClick={() => { patch({ free: undefined, paint: undefined, itemPicked: false }); setAsked(false); }}>부품으로 다시 시작하기</button></div>
     ) : (
       <div className="nb-web asm">
@@ -937,11 +944,14 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           {partNow === "bottom" && <>
             <h3>바닥<small>여기서부터 뜹니다</small></h3>
             {shapes.length > 1 && <Tiles label="바닥 모양" value={draft.shape} cols={3} onPick={v => pickShape(v as Shape)} options={shapes.map(sh => [sh, SHAPE_KO[sh]])} />}
+            {/* 면과 면 잇기 or 너비 만들기 (Kim): a piece with an oval or square bottom - the width changeable after */}
+            {draft.shape !== "circle" && <Tiles label="옆면" value={draft.gusset ?? "box"} cols={2} onPick={v => patch({ gusset: v as "flat" | "box", ...(v === "flat" ? { flapOver: undefined } : {}) })}
+              options={[["flat", "면과 면 잇기", "바닥 너비 없이 납작하게"], ["box", "너비 만들기", "바닥과 옆면에 두께"]]} />}
             <div className="nb-sliders nb-sliders-1">
               <Slide label={draft.shape === "circle" ? "지름" : "가로"} min={ra[0]} max={ra[1]} step={.5} value={draft.a} onChange={v => setBottom("a", v)} text={`${draft.a}cm`} />
-              {draft.shape !== "circle" && <Slide label="세로" min={rb[0]} max={Math.min(rb[1], Math.max(rb[0], draft.a - 1))} step={.5} value={draft.b} onChange={v => setBottom("b", v)} text={`${draft.b}cm`} />}
+              {draft.shape !== "circle" && draft.gusset !== "flat" && <Slide label="너비 (두께)" min={rb[0]} max={Math.min(rb[1], Math.max(rb[0], draft.a - 1))} step={.5} value={draft.b} onChange={v => setBottom("b", v)} text={`${draft.b}cm`} />}
             </div>
-            <p className="nb-help">{draft.shape === "circle" ? "원 바닥은 통처럼 둥근 몸통이 됩니다." : draft.shape === "oval" ? "타원 바닥은 납작하고 부드러운 가방이 됩니다." : "네모 바닥은 각이 잡힌 몸통이 됩니다."}</p>
+            <p className="nb-help">{draft.shape === "circle" ? "원 바닥은 통처럼 둥근 몸통이 됩니다." : draft.gusset === "flat" ? "시작 사슬 양쪽을 한 바퀴 떠서 앞판과 뒤판이 바로 맞붙습니다. 납작한 파우치가 됩니다." : draft.shape === "oval" ? "타원 바닥은 두께가 있는 부드러운 몸통이 됩니다. 너비는 언제든 바꿀 수 있습니다." : "네모 바닥은 두께가 있는 각진 몸통이 됩니다. 너비는 언제든 바꿀 수 있습니다."}</p>
           </>}
           {partNow === "body" && <>
             <h3>몸통<small>{`가장 넓은 곳 ${widest}cm`}</small></h3>
@@ -959,10 +969,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             <button type="button" className="nb-tile asm-add" onClick={() => patch({ handle: "short", handleCm: draft.handleCm || 45, handleCount: draft.handleCount ?? 2 })}>+ 손잡이 넣기</button>
           </> : <>
             <h3>손잡이<button type="button" className="nb-link asm-del" onClick={() => patch({ handle: "none" })}>이 부품 빼기</button></h3>
-            <Tiles label="손잡이 수" value={String(draft.handleCount ?? (handleCmOf(draft) >= 60 ? 1 : 2))} cols={2} onPick={v => patch({ handleCount: Number(v) as 1 | 2 })} options={[["1", "1개", "위로 가로질러"], ["2", "2개", "앞뒤로"]]} />
+            <Tiles label="손잡이 종류" value={draft.handleKind === "wrist" ? "wrist" : String(draft.handleCount ?? (handleCmOf(draft) >= 60 ? 1 : 2))} cols={3}
+              onPick={v => v === "wrist" ? patch({ handleKind: "wrist", handleCount: 1, handleCm: Math.min(handleCmOf(draft), 30) || 25 }) : patch({ handleKind: undefined, handleCount: Number(v) as 1 | 2 })}
+              options={[["1", "1개", "위로 가로질러"], ["2", "2개", "앞뒤로"], ["wrist", "손목 고리", "모서리에 하나"]]} />
             {handleMake}
             {handleSliders}
-            <p className="nb-help">손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다.</p>
+            <p className="nb-help">{draft.handleKind === "wrist" ? "손목에 끼는 고리는 약 20~30cm입니다." : "손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다."}</p>
           </>)}
           {partNow === "top" && <>
             <h3>입구<small>한 번 더 누르면 뺍니다</small></h3>
@@ -982,10 +994,13 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
               <p className="nb-help">잠글수록 윗면이 다물어집니다. 코 수는 그대로이고 모양만 오므려집니다.</p>
             </>}
             {hasFlap && <>
+              {/* how the flap goes (Kim): over the whole top then down, or folded straight from the back edge */}
+              {draft.gusset !== "flat" && <Tiles label="덮개 방식" value={draft.flapOver ?? "fold"} cols={2} onPick={v => patch({ flapOver: v as "top" | "fold" })}
+                options={[["top", "윗면 덮고 내려오기", "두께만큼 덮은 뒤 앞으로"], ["fold", "바로 내려오기", "뒤에서 앞으로 접혀"]]} />}
               <Tiles label="덮개 모양" value={draft.flapShape ?? "half"} cols={3} onPick={v => patch({ flapShape: v as "half" | "square" | "triangle" })} options={[["half", "반달"], ["square", "네모"], ["triangle", "세모"]]} />
               <div className="nb-sliders nb-sliders-1"><Slide label="덮개 길이" min={3} max={Math.max(8, Math.round(draft.h))} step={.5} value={Math.min(flapNow, Math.max(8, Math.round(draft.h)))} onChange={v => patch({ flapCm: v })} text={`${flapNow}cm`} /></div>
-              <div className="nb-sliders nb-sliders-1"><Slide label="입구 여유" min={0} max={Math.max(4, Math.round(draft.a * .6))} step={.5} value={draft.topGapCm ?? 2} onChange={v => patch({ topGapCm: v })} text={(draft.topGapCm ?? 2) < .25 ? "꼭 닫힘" : `${draft.topGapCm ?? 2}cm`} /></div>
-              <p className="nb-help">덮개는 뒷면 마지막 단에서 이어 떠서, 입구 여유만큼 윗면을 지난 뒤 앞면을 덮습니다. 0cm면 윗면이 지퍼처럼 꼭 다물어집니다.</p>
+              {draft.flapOver !== "top" && <div className="nb-sliders nb-sliders-1"><Slide label="입구 여유" min={0} max={Math.max(4, Math.round(draft.a * .6))} step={.5} value={draft.topGapCm ?? 2} onChange={v => patch({ topGapCm: v })} text={(draft.topGapCm ?? 2) < .25 ? "꼭 닫힘" : `${draft.topGapCm ?? 2}cm`} /></div>}
+              <p className="nb-help">{draft.flapOver === "top" ? `덮개는 뒷면 마지막 단에서 이어 떠서, 윗면 너비(${draft.b}cm)를 덮은 뒤 앞 모서리에서 꺾여 앞면으로 내려옵니다. 그만큼 덮개 단이 늘어납니다.` : "덮개는 뒷면 마지막 단에서 이어 떠서, 입구 여유만큼 윗면을 지난 뒤 앞면을 덮습니다. 0cm면 윗면이 지퍼처럼 꼭 다물어집니다."}</p>
             </>}
             {closureNow === "drawstring" && <p className="nb-help">입구 아래에 끈 구멍 단을 한 단 더 뜨고, 사슬로 뜬 끈을 꿰어 조입니다.</p>}
             <p className="nb-help">단추와 라벨은 "장식"에서 붙입니다.</p>
@@ -1004,7 +1019,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         <div className="nb-needle asm-mode" role="radiogroup" aria-label="모양을 만드는 방법">
           {([["asm", "조립하기"], ["draw", "그리기"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={shapeMode === k} onClick={() => setShapeMode(k)}>{t}</button>)}
         </div>
-        {shapeMode === "asm" ? asmPanel : <>{drawPanel}{picked && (draft.free || draft.paint) && oneSize}</>}
+        {/* 그리기 too (Kim: 왜 여기는 아무것도 못해): once a drawing is read, every part is here to adjust under it */}
+        {shapeMode === "asm" ? asmPanel : <>{drawPanel}{picked && <div className="asm-after"><p className="nb-wsubhead">그린 모양 다듬기</p>{asmPanel}</div>}</>}
       </div>
     );
     // 확인: short rows with 고치기, the yarn amount, the counts as small cards
@@ -1101,7 +1117,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       const nd = { ...draft, ...p }; apply({ ...p, ...(draft.asm ? bodyPatch(nd, draft.asm) : {}) });
     } : undefined,
     // the first thing on the stage (Kim): the yarn as it will look, before any shape
-    intro: <YarnCheck source={swatchSrc} plan={plan(swatchSrc)} big />,
+    intro: <YarnCheck source={swatchSrc} plan={plan(swatchSrc)} big />, startShape: yarnSet,
     dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
     parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1),
     // 단추 / 라벨 dragged on the 3D (Kim): kept where they were let go, their size as it was
@@ -1134,7 +1150,11 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           : <YarnPagePreview source={yarnSrc} plan={pp} fabric={knitNow && step === 3 && sheet === 2} caption={sizeCaption} />}
         <div className="nb-foot">
           <ClothLabel side="back" type="button" onClick={back}>← 이전</ClothLabel>
-          {big3d.supported && <ClothLabel side="next" type="button" onClick={big3d.show}>{step === 4 ? "다시 3D로 고치기" : "3D로 보면서 만들기"}</ClothLabel>}
+          {/* from 확인: back into the whole making screen on 모양 (Kim: every part there), not a view with only a few */}
+          {big3d.supported && <ClothLabel side="next" type="button" onClick={step === 4 && web ? () => {
+            go(3, true); setYarnSet(true); setAsked(true); big3d.show();
+            setTimeout(() => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); }, 120);
+          } : big3d.show}>{step === 4 ? "다시 3D로 고치기" : "3D로 보면서 만들기"}</ClothLabel>}
           <span className="nb-folio">{folio}</span>
         </div>
       </section>

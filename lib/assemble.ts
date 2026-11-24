@@ -45,11 +45,11 @@ const SHAPE_KO = { circle: "원", oval: "타원", rect: "네모" } as const;
 export function partLines(d: Draft): [string, string][] {
   const it = ITEM[itemIdOf(d)], out: [string, string][] = [];
   if (it.kind === "base-body") {
-    out.push(["바닥", d.shape === "circle" ? `원 지름 ${d.a}cm` : `${SHAPE_KO[d.shape]} ${d.a} × ${d.b}cm`]);
+    out.push(["바닥", d.shape === "circle" ? `원 지름 ${d.a}cm` : d.gusset === "flat" ? `${d.a}cm · 면과 면 잇기 (납작)` : `${SHAPE_KO[d.shape]} ${d.a} × ${d.b}cm`]);
     const f = bodyOf(d), top = d.profile ? Math.round(d.a * d.profile[d.profile.length - 1] / d.profile[0]) : d.topA ?? d.a;
     out.push(["몸통", `높이 ${d.h}cm · 입구 ${top}cm` + (d.profile ? " · 둥글게" : f.top > d.a + .4 ? " · 위로 넓게" : f.top < d.a - .4 ? " · 위로 좁게" : " · 일자")]);
-    if (d.handle !== "none") out.push(["손잡이", `${!d.handleStyle ? "끈" : d.handleStyle === "tube" ? "원통형" : "평면"} ${d.handleCount ?? 2}개 · ${d.handleCm ?? 25}cm`]);
-    if (d.flapCm) out.push(["덮개", `${{ half: "반달", square: "네모", triangle: "세모" }[d.flapShape ?? "half"]} · ${d.flapCm}cm`]);
+    if (d.handle !== "none") out.push(["손잡이", d.handleKind === "wrist" ? `손목 고리 · ${d.handleCm ?? 25}cm` : `${!d.handleStyle ? "끈" : d.handleStyle === "tube" ? "원통형" : "평면"} ${d.handleCount ?? 2}개 · ${d.handleCm ?? 25}cm`]);
+    if (d.flapCm) out.push(["덮개", `${{ half: "반달", square: "네모", triangle: "세모" }[d.flapShape ?? "half"]} · ${d.flapCm}cm${d.flapOver === "top" ? " · 윗면 덮고 내려오기" : ""}`]);
     else if (d.closure === "drawstring") out.push(["입구", "끈으로 조이기"]);
   } else if (it.kind === "tube") out.push(["몸통", `둘레 ${d.a}cm · 높이 ${d.h}cm`]);
   else if (it.kind === "flat-rows") out.push(["편물", `${d.a} × ${d.b}cm`]);

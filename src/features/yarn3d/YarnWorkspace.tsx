@@ -63,6 +63,8 @@ export interface WorkExtra {
   empty?: boolean;
   /** shown on the stage first (도안 만들기: the yarn check, Kim), until the reader goes on to the shape */
   intro?: ReactNode;
+  /** open on the shape, the yarn check put aside */
+  startShape?: boolean;
 }
 
 type Tool = "rotate" | "pan";
@@ -148,7 +150,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const [rules, setRules] = useState<YarnRule[] | null>(null);
   const [noGL, setNoGL] = useState(false);
   const [builtMs, setBuiltMs] = useState<number | null>(null);
-  const [intro, setIntro] = useState(!!extra?.intro);
+  // the yarn check first - unless the yarn is set already (opened again from 확인: straight to the shape)
+  const [intro, setIntro] = useState(!!extra?.intro && !extra?.startShape);
   // a piece made from a drawing shows at once, beside it (Kim): the yarn check steps aside
   useEffect(() => { const f = () => setIntro(false); window.addEventListener("yw:shape", f); return () => window.removeEventListener("yw:shape", f); }, []);
   // the yarn again (Kim: from the shape too): the yarn check on the stage, the yarn's section on the right

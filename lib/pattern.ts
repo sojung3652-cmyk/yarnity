@@ -42,6 +42,12 @@ export interface PlanInput {
   topA?: number | null;
   /** bag flap (cover) length in cm, worked back and forth over the back half of the opening; unset = none */
   flapCm?: number | null;
+  /** "top": the flap first crosses the top's width (the bottom's width, b) before it falls (Draft.flapOver) */
+  flapOver?: "top" | "fold" | null;
+  /** "flat": no bottom width - round 1 round the foundation chain is the bottom, front and back joined (Draft.gusset) */
+  gusset?: "flat" | "box" | null;
+  /** "wrist": one loop at a corner (Draft.handleKind) */
+  handleKind?: "wrist" | null;
   /** how the top is closed (Draft.closure): a drawstring adds an eyelet round under the rim */
   closure?: string | null;
   /** a shape the reader drew (web: 직접 그리기); when set, the rounds follow it (planFree) */
@@ -141,10 +147,12 @@ export function planBottom(p: PlanInput, g: Gauge): { rows: RawRow[]; c: number 
     }
     return { rows, c: 0 };
   }
-  const b = p.b as number;
-  const straight = Math.max(g.w * 2, p.a - b);
+  const b = p.b as number, flat = p.gusset === "flat";
+  // flat (면과 면 잇기, Kim): the chain as long as the piece, worked round both its sides once - that round is the
+  // whole bottom, and the body goes straight up from it, front and back meeting at the bottom edge
+  const straight = Math.max(g.w * 2, flat ? p.a - g.w * 2 : p.a - b);
   const c = Math.max(3, rnd(straight / g.w) + 1);
-  const R = Math.max(3, rnd((b / 2) / g.h));
+  const R = flat ? 1 : Math.max(3, rnd((b / 2) / g.h));
   const per = p.shape === "oval" ? 6 : 8;
   for (let r = 1; r <= R; r++) {
     const n = 2 * (c - 1) + 6 + per * (r - 1);
@@ -153,7 +161,7 @@ export function planBottom(p: PlanInput, g: Gauge): { rows: RawRow[]; c: number 
     if (r === 1) how = `사슬 ${c}코, 둘째 코부터 짧은뜨기 ${c - 2}코 · 끝 코에 3코 · 반대편 짧은뜨기 ${c - 2}코 · 끝 코에 3코`;
     else if (p.shape === "oval") how = "직선은 그대로, 양 끝 반원에서 3번씩 늘림";
     else how = "직선은 그대로, 네 모서리 코마다 3코 뜨기";
-    rows.push({ part: "bottom", n, how, why: r === 1 ? `사슬 ${c}코 기초 → ${n}코` : `${prev} + 늘림 ${per} = ${n}`, inc: r === 1 ? 0 : per });
+    rows.push({ part: "bottom", n, how, why: r === 1 ? `사슬 ${c}코 기초 → ${n}코${flat ? " · 바닥 너비 없이 앞뒤가 바로 맞붙습니다" : ""}` : `${prev} + 늘림 ${per} = ${n}`, inc: r === 1 ? 0 : per });
   }
   return { rows, c };
 }
@@ -273,13 +281,16 @@ function planSc(p: PlanInput): Plan {
     }
     for (let i = 0; i < 2; i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? `짧은뜨기 ${rimN}코` : `빼뜨기 ${rimN}코로 마무리`, why: "입구를 단단하게", inc: 0 } as Row);
     if (p.flapCm && p.flapCm > 0) {
-      const fn = Math.max(4, Math.round(rimN / 2) - 2), fr = Math.max(2, rnd(p.flapCm / g.h));
-      for (let i = 0; i < fr; i++) rows.push({ part: "flap", n: fn, how: i === 0 ? `뒤판 가운데 ${fn}코에 실을 걸고 짧은뜨기 ${fn}코` : i === fr - 1 ? `사슬 1, 뒤집어서 짧은뜨기 ${fn}코 · 가운데에 사슬 고리(단추 구멍)` : `사슬 1, 뒤집어서 짧은뜨기 ${fn}코`,
-        why: i === 0 ? `입구의 절반 ${Math.round(rimN / 2)}코 - 양옆 1코씩 · 덮개 ${p.flapCm}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${fr}단` : `${fn}코 그대로`, inc: 0 } as Row);
+      // over the top (Kim): it crosses the top's width first (as wide as the bottom is, b), then falls - more rows
+      const over = p.flapOver === "top" && p.shape !== "circle" && p.gusset !== "flat" ? Math.max(0, (p.b as number) || 0) : 0;
+      const fn = Math.max(4, Math.round(rimN / 2) - 2), fr = Math.max(2, rnd((p.flapCm + over) / g.h)), fo = over ? rnd(over / g.h) : 0;
+      for (let i = 0; i < fr; i++) rows.push({ part: "flap", n: fn, how: i === 0 ? `뒤판 가운데 ${fn}코에 실을 걸고 짧은뜨기 ${fn}코` : i === fr - 1 ? `사슬 1, 뒤집어서 짧은뜨기 ${fn}코 · 가운데에 사슬 고리(단추 구멍)` : `사슬 1, 뒤집어서 짧은뜨기 ${fn}코${fo && i === fo ? " · 여기서부터 앞으로 꺾여 내려옵니다" : ""}`,
+        why: i === 0 ? `입구의 절반 ${Math.round(rimN / 2)}코 - 양옆 1코씩 · ${over ? `윗면 ${over}cm + ` : ""}덮개 ${p.flapCm}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${fr}단` : `${fn}코 그대로`, inc: 0 } as Row);
     }
     if (p.handle !== "none") {
       const len = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25, ch = rnd(len / (g.w * 0.85));
-      for (let i = 0; i < 2; i++) rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 양쪽에 연결`, why: `${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
+      if (p.handleKind === "wrist") rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 두 끝을 입구 한쪽 모서리에 함께 연결`, why: `손목 고리 ${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
+      else for (let i = 0; i < 2; i++) rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 양쪽에 연결`, why: `${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
     }
   }
   let bi = 0, bo = 0, ri = 0, fl = 0, ha = 0;

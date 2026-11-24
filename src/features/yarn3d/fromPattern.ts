@@ -21,6 +21,10 @@ export interface YarnSource extends PlanInput {
   chartName?: string | null;
   moreColors?: { hex?: string; material?: string; materials?: string[]; held?: boolean; yarnMm?: number | null }[] | null;
   flapShape?: "half" | "square" | "triangle";
+  flapOver?: "top" | "fold" | null;
+  gusset?: "flat" | "box" | null;
+  /** wrist: one loop to slip the hand through (손목 고리) */
+  handleKind?: "wrist" | null;
   handleCount?: 1 | 2;
   flapColor?: string;
   handleColor?: string;
@@ -109,7 +113,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   const color = /^#[0-9a-f]{6}$/i.test(p.color ?? "") ? p.color! : DEFAULT_COLOR;
   const handleCm = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25;
   // one handle across the top (Kim's sketch), or two; older works: a long one is a shoulder strap
-  const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : p.handleCount === 1 ? "long" : p.handleCount === 2 ? "two" : handleCm >= 60 ? "long" : "two";
+  const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : p.handleKind === "wrist" ? "wrist" as const : p.handleCount === 1 ? "long" : p.handleCount === 2 ? "two" : handleCm >= 60 ? "long" : "two";
   // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
   const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
   // a chart's other colours: the other yarns picked, or a lighter and a darker of the main one
@@ -118,15 +122,15 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   return { shape, colors, yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
     ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
-    ...(p.free ? {} : p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
+    ...(p.free ? {} : p.item === "pouch" && p.gusset !== "box" && p.flapOver !== "top" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
     // with a flap the top closes to the gap asked (2cm when not said)
     ...(p.softK && p.softK !== 1 ? { softK: p.softK } : {}),
     // 합사 (Kim): the first added yarn held together with the main one - its colour twists in, its fibres show
     ...((h => h ? { marl: h.hex, marlShare: (h.yarnMm && h.yarnMm > 0 ? h.yarnMm : (p.yarnMm || 3)) / ((p.yarnMm || 3) + (h.yarnMm && h.yarnMm > 0 ? h.yarnMm : (p.yarnMm || 3))), ...((m => m && MAT[m] ? { marlMat: MAT[m] } : {})(h.materials?.length ? h.materials[h.materials.length - 1] : h.material)) } : {})((p.moreColors ?? []).find(c => c?.held && !!c.hex && /^#[0-9a-f]{6}$/i.test(c.hex)))),
-    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
+    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && p.flapOver !== "top" ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
     // a handle is flat or a tube (Kim: no strands): flat when not said
     ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),
-    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
+    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
     ...(p.drape ? { gravity: true } : {}),

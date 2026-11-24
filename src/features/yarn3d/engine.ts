@@ -33,7 +33,8 @@ import { stitchOf } from "@/lib/knit";
 
 export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal"
   | "cashmere" | "alpaca" | "angora" | "sleep" | "boucle" | "scrub" | "tshirt" | "ribbon" | "jute" | "nylon";
-export type YarnStrap = "none" | "two" | "long";
+/** wrist: a loop to slip the hand through, hanging from the top's right corner (Kim: a wristlet) */
+export type YarnStrap = "none" | "two" | "long" | "wrist";
 /** what is drawn, in the pattern's own counts (stitches per course, bottom first) */
 export type YarnShape =
   | { kind: "round"; counts: number[]; flat: number }                       // magic ring; `flat` = rounds that lie flat (the bottom)
@@ -108,7 +109,8 @@ export interface YarnPattern {
   /** a handle (strap) in its own colour, when it differs from the body */
   strapColor?: string;
   /** a bag's flap (덮개): worked from the back of the opening, over the top and down the front (Kim: it has to show) */
-  flap?: { cm: number; shape: "half" | "square" | "triangle"; color?: string };
+  /** over: it covers the open top flat, front to back, and turns down at the front edge (Kim) */
+  flap?: { cm: number; shape: "half" | "square" | "triangle"; color?: string; over?: boolean };
   /** the crochet stitch's height against single crochet (긴뜨기 ~1.6, 한길긴뜨기 ~2.2) */
   stitchH?: number;
 }
@@ -722,6 +724,19 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const at = (f: number) => { const q = D.P[L[((Math.round(f * c - .5) % c) + c) % c]].clone(); q.y = ry; return q; };
       // the strap's height from its length (cm): an arc of that length over the gap between its ends
       const len = pat.strapCm * 10 / MM;
+      if (pat.strap === "wrist") {
+        // 손목 고리 (Kim): from the rim's right end, a loop of the strap's length hanging down beside the piece, flat
+        // to the front, as a wristlet's strap hangs
+        let P = D.P[L[0]].clone(); L.forEach(n => { if (D.P[n].x > P.x) P = D.P[n].clone(); }); P.y = ry;
+        const r0 = len / (2 * Math.PI), ax = r0 * .62, ay = r0 * 1.38, nrm = new THREE.Vector3(0, 0, 1), N = 72;
+        // the loop hangs from the corner: its upper left at the corner, the rest down and out beside the wall
+        const A0 = P.clone().add(new THREE.Vector3(R * 2, 0, 0)), ctr = new THREE.Vector3(A0.x + ax * .7, A0.y - ay * .72, P.z);
+        const th0 = Math.atan2((A0.y - ctr.y) / ay, (A0.x - ctr.x) / ax);
+        const all = Array.from({ length: N + 1 }, (_, i) => { const th = th0 - 2 * Math.PI * i / N; return new THREE.Vector3(ctr.x + ax * Math.cos(th), ctr.y + ay * Math.sin(th), ctr.z); });
+        all[0].copy(A0); all[N].copy(A0);
+        strapEnds.push(all[0].clone());
+        strapBand(all, nrm, color, R, M, step, mat, geos, D.rh, false);
+      } else {
       const arcs: [number, number, number][] = pat.strap === "long" ? [[0, .5, 0]] : [[.15, .35, 1], [.65, .85, 1]];
       arcs.forEach(([a, b, lean]) => {
         const A = at(a), B = at(b), w = new THREE.Vector3().subVectors(B, A).normalize(), nrm = new THREE.Vector3(-w.z, 0, w.x), mid = A.clone().add(B).multiplyScalar(.5);
@@ -792,6 +807,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           const cv = new THREE.CatmullRomCurve3(pts), g = buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength() / (R * .6 * step))), R, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
         });
       });
+      }
     }
     flapTip = addFlap(D, R, mat, M, step, geos);
     haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz);
@@ -872,7 +888,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // the centre line in (z, y): on from the back wall's last round (it is worked from there), a low curve over
     // the top - as wide as the top is left open - then down the front
     const line: [number, number, number][] = []; // z, y, share of the drop (-1 on the top)
-    const nTop = 16; for (let i = 0; i <= nTop; i++) { const t = i / nTop; line.push([z0 + (z1 + out - z0) * t, ry + Math.sin(Math.PI * t) * lift + R * .6 * t, -1]); }
+    // over the top (Kim): flat across the opening, a lid, and a firm turn at the front edge
+    const nTop = 16; for (let i = 0; i <= nTop; i++) { const t = i / nTop; line.push([z0 + (z1 + out - z0) * t, ry + (f.over ? Math.min(1, Math.sin(Math.PI * t) * 3) : Math.sin(Math.PI * t)) * lift + R * .6 * t, -1]); }
     // down the front it lies on the wall: the wall's front at each height (a body widening downward leans out,
     // and a flap hanging straight down would sink into it)
     const frontZ = (y: number) => { let z = -1e9; for (const q of D.P) if (Math.abs(q.x - cx) < hw * .35 && Math.abs(q.y - y) < D.rh * .75 && q.z > z) z = q.z; return z > -1e9 ? z : z1; };
