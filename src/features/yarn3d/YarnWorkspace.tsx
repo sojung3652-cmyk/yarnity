@@ -159,7 +159,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const [info, setInfo] = useState<YarnInfo | null>(null);
   const [rules, setRules] = useState<YarnRule[] | null>(null);
   const [noGL, setNoGL] = useState(false);
-  const [builtMs, setBuiltMs] = useState<number | null>(null);
+  const [builtMs, setBuiltMs] = useState<number | null>(null), [busy, setBusy] = useState(true);
   // the yarn check first - unless the yarn is set already (opened again from 확인: straight to the shape)
   const [intro, setIntro] = useState(!!extra?.intro && !extra?.startShape);
   // a piece made from a drawing shows at once, beside it (Kim): the yarn check steps aside
@@ -223,7 +223,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     import("./engine").then(({ createYarnViewer, hasWebGL }) => {
       if (gone || !cv.current) return;
       const p = latest.current;
-      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y),
+      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onBusy: setBusy, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y),
         onExtraPick: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) { setSwap(false); setPickEx({ k, x: x - r.left, y: y - r.top }); } },
         // the pointer on one (Kim: 위치에 커서를 올리면 조절 옵션): its tools show beside it
         onExtraHover: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) setPickEx(p => p?.k === k ? p : (setSwap(false), { k, x: x - r.left, y: y - r.top })); } }) : null;
@@ -314,6 +314,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               value={extra.extraTools.current(pickEx.k)} onPick={p => { extra.extraTools!.replace(pickEx.k, p.id); setSwap(false); }} /></div>}
           </div>
         )}
+        {/* 생성 중 (Kim): while a shape is being made, said on the stage */}
+        {busy && !noGL && !empty && !intro && <p className="yw-busy" role="status"><i aria-hidden="true" />생성 중…</p>}
         {/* the lower right (Kim): 제작 시뮬레이션 (the piece made round by round) just left of Yarni */}
         <div className="yw-corner">
           {!noGL && !empty && !intro && <button type="button" className="yw-act yw-sim" title="한 단씩 떠 올라가는 모습을 보여 드립니다" onClick={() => { setIntro(false); viewer.current?.playDraw(); }}><Ic s={18} d="M7 4.5v15l12-7.5z" />제작 시뮬레이션</button>}

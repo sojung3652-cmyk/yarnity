@@ -39,7 +39,7 @@ export function YarnPagePreview({ source, plan, fabric, caption, live, far, mova
   const pattern = useMemo(() => { const p = toYarnPattern(source, plan); return p && fabric ? { ...p, focus: "fabric" as const } : p; }, [source, plan, fabric]);
   const box = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), viewer = useRef<YarnViewer | null>(null), shown = useRef<YarnPattern | null>(null);
   const latest = useRef(pattern); latest.current = pattern;
-  const [noGL, setNoGL] = useState(false);
+  const [noGL, setNoGL] = useState(false), [busy, setBusy] = useState(true);
 
   // the viewer: made once for the page, disposed with it
   useEffect(() => {
@@ -48,7 +48,7 @@ export function YarnPagePreview({ source, plan, fabric, caption, live, far, mova
       const p = latest.current;
       if (gone || !cv.current || !p) return;
       // data-built-ms on the box: when the shape last finished, and how long it took (for checking)
-      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, detail: "page", fit: true, onInfo: () => {}, onBuilt: ms => { box.current?.setAttribute("data-built-ms", String(Math.round(ms))); if (far && !farDone.current) { farDone.current = true; viewer.current?.zoom(far); } } }) : null;
+      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, detail: "page", fit: true, onInfo: () => {}, onBusy: setBusy, onBuilt: ms => { box.current?.setAttribute("data-built-ms", String(Math.round(ms))); if (far && !farDone.current) { farDone.current = true; viewer.current?.zoom(far); } } }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
       // development only: the yarn check's viewer reachable for a sharp snapshot while checking how stitches look
@@ -82,6 +82,7 @@ export function YarnPagePreview({ source, plan, fabric, caption, live, far, mova
           <button type="button" aria-label="처음 각도로" title="처음 각도로" onClick={() => viewer.current?.home()}><I d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></button>
         </div>
       )}
+      {busy && !noGL && <p className="y3-busy" role="status"><i aria-hidden="true" />생성 중…</p>}
       {caption && <p className="y3-page-cap">{caption}</p>}
     </div>
   );

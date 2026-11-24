@@ -32,3 +32,10 @@ html body .mbz-3d .cloth-label{min-height:36px;position:relative;inset:auto;marg
 .y3-page-empty p{margin:0;font-size:14px;line-height:1.7;color:#6B5C55}
 /* no WebGL: one line, in the page's help text (newbook.css .nb-help) */
 .y3-page-nogl{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:16px;font-size:13px;line-height:1.6;color:#8C7D76;text-align:center}
+
+/* 생성 중: a quiet note while a shape is made (Kim) - on the woven label, a thread turning beside it */
+.yw-busy,.y3-busy{position:absolute;left:50%;top:50%;z-index:4;display:flex;align-items:center;gap:9px;margin:0;padding:8px 18px;translate:-50% -50%;border-radius:2px;background:var(--weave,none),#F6EFE2;box-shadow:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.1);font:500 13px "Noto Serif KR",serif;color:#4A3D38;pointer-events:none;animation:y-busy-in .3s ease both}
+.yw-busy i,.y3-busy i{width:14px;height:14px;border-radius:50%;border:2px solid #CDBFB4;border-top-color:#8C8279;animation:y-busy-spin 1s linear infinite}
+@keyframes y-busy-spin{to{transform:rotate(360deg)}}
+@keyframes y-busy-in{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.yw-busy i,.y3-busy i{animation:none}}

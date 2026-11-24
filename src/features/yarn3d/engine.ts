@@ -147,7 +147,9 @@ export interface YarnRule { x1: number; y1: number; x2: number; y2: number; cm: 
 /** `fit` (the web's page and work screen): the camera is set so the whole piece - straps and most of its
  *  shadow included - is in view and in the middle, whatever the canvas's shape; without it the first
  *  framing (phones) stays as it was */
-export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: boolean; onInfo: (i: YarnInfo | null) => void; onBuilt?: (ms: number) => void; onRuler?: (r: YarnRule[] | null) => void;
+export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: boolean; onInfo: (i: YarnInfo | null) => void; onBuilt?: (ms: number) => void;
+  /** a shape being made (true) and done (false): the screen shows 생성 중 meanwhile */
+  onBusy?: (busy: boolean) => void; onRuler?: (r: YarnRule[] | null) => void;
   /** 단추 / 라벨 dragged on the piece (Kim: moved freely): where it was let go, [across -1..1, up 0..1] */
   onExtraMove?: (kind: string, across: number, up: number) => void;
   /** a button or label pressed without dragging (Kim: 클릭해서 크기 조절): which, and where on the screen */
@@ -722,7 +724,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     //   legs   짧은뜨기 two strands from the head's ends down to one point on the row below - a V
     //          긴뜨기 two strands down side by side, the yarn-over lying as a bar just under the head
     //          한길긴뜨기 two strands down side by side, the yarn-over wound across the middle
-    const sH = pat.stitchH ?? 1, nSt = D.C.reduce((a, c) => a + c.idx.length, 0), loops = !D.knit && nSt <= 2600, postParts: THREE.BufferGeometry[] = [];
+    // every piece, however big (Kim: 느려지면 생성 중을 띄우고 그냥 만들어) - the screen says 생성 중 while it is made
+    const sH = pat.stitchH ?? 1, loops = !D.knit, postParts: THREE.BufferGeometry[] = [];
     const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(10, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color })); };
     if (D.knit) buildKnit(D, R, mat, geos);
     else D.C.forEach((c, ci) => {
@@ -1111,7 +1114,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         if (tb) { const th = ac / K.rho, r = K.rho - dz + relief; pts.push(new THREE.Vector3(Math.cos(th) * r, j * K.rk - lp + Hh / 2, Math.sin(th) * r)); }
         else { const al = (j - (K.H - 1) / 2) * K.rk - lp, x = ac - K.W * w / 2, y = d - dz + relief; pts.push(K.swap ? new THREE.Vector3(al, y, x) : new THREE.Vector3(x, y, al)); }
       }
-      const cv = new THREE.CatmullRomCurve3(pts, tb), g = buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength() / (R * .6 * LOD.step))), R, { M: Math.min(8, LOD.M), closed: tb, color: colorOf(rowC[j]?.ci ?? j) }), m = new THREE.Mesh(g, mat);
+      // as many points round the strand as the crochet's, so its plies twist here too (Kim: 대바늘도)
+      const cv = new THREE.CatmullRomCurve3(pts, tb), g = buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength() / (R * .5 * LOD.step))), R, { M: LOD.M, closed: tb, color: colorOf(rowC[j]?.ci ?? j) }), m = new THREE.Mesh(g, mat);
       m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g);
     }
   }
@@ -1335,9 +1339,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       if (longX) { p.x = cx + (p.x - cx) * su; p.z = cz + (p.z - cz) * sv; } else { p.z = cz + (p.z - cz) * su; p.x = cx + (p.x - cx) * sv; }
     }
   }
-  let t0 = 0;
+  let t0 = 0, hold = 0;
   function startItem() {
     rest = null;
+    // 생성 중 (Kim: when it is slow, say so and make it anyway): the screen is told first, and the work waits
+    // two frames so the notice is painted before it begins
+    opts.onBusy?.(true); hold = 2;
     opts.onInfo(null); t0 = performance.now(); IT.data = makeItem(); lodFor(IT.data.knit ? IT.data.knit.W * IT.data.knit.H * 1.6 : IT.data.P.length);
     if (IT.data.fixed) IT.data.iter = 1e9; // a known shape: nothing to settle
     showItem();
@@ -1352,6 +1359,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // the right radius) is already close to the rest shape
   function tickItem() {
     const D = IT.data; if (!D || D.done) return;
+    if (hold > 0) { hold--; return; }
     const big = Math.max(1, D.E.length / 40000), ppf = Math.max(1, Math.round(8 / big)), iters = big > 1 ? Math.max(40, Math.round(150 / big)) : 150;
     if (!D.fixed) { relax(D, ppf); D.iter++; if (holo && holo.parent) updateHolo(D); }
     if (D.iter >= (reduced() ? 1 : iters)) {
@@ -1360,7 +1368,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       D.done = true;
       rest = new Float32Array(D.P.length * 3); D.P.forEach((q, i) => { rest![i * 3] = q.x; rest![i * 3 + 1] = q.y; rest![i * 3 + 2] = q.z; }); soften(D);
       showItem(); // the straps' height is known once the yarn is on
-      frameOn(D); opts.onBuilt?.(performance.now() - t0);
+      frameOn(D); opts.onBuilt?.(performance.now() - t0); opts.onBusy?.(false);
     }
   }
   // ---------- the whole piece in view (opts.fit)
