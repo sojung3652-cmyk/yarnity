@@ -1102,4 +1102,5 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .st-pv-name{display:flex;align-items:baseline;gap:8px;margin:10px 0 8px}
 .st-pv-name b{font-size:15px;color:#3A322D}.st-pv-name span{font-size:12.5px;color:#7A6A63}
 .st-pv-acts{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.st-pv-go{padding:6px 18px}
+.st-pv-go{padding:6px 18px}.st-pv-ask{margin:0 0 10px;font-size:13px;color:#3A322D}
+.st-pv-del{margin-left:14px}

@@ -43,8 +43,10 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {shot ? <img src={shot} alt={`${rows[0].name} - 닫기 직전의 모습`} /> : <p className="st-pv-none">아직 사진이 없습니다. 3D를 닫을 때 그 모습이 남습니다.</p>}
         <p className="st-pv-name"><b>{rows[0].name}</b><span>{rows[0].sub}</span></p>
+        {/* 지우기 here now the list is gone - asked once, in the window, and it can be brought back a moment after */}
+        {ask ? <p className="st-pv-ask">이 도안을 지우시겠습니까? <button type="button" className="nb-link st-danger" onClick={() => { del(["draft"]); setPreview(false); }}>지우기</button> <button type="button" className="nb-link st-muted" onClick={() => setAsk(null)}>취소</button></p> : null}
         <div className="st-pv-acts">
-          <button type="button" className="nb-link st-muted" onClick={() => setPreview(false)}>닫기</button>
+          <span><button type="button" className="nb-link st-muted" onClick={() => setPreview(false)}>닫기</button>{!ask && <button type="button" className="nb-link st-muted st-pv-del" onClick={() => setAsk(["draft"])}>지우기</button>}</span>
           <button type="button" className="tp-label st-pv-go" autoFocus onClick={() => { setPreview(false); onDraft(); }}><b>이어서 만들기</b></button>
         </div>
       </div>
@@ -60,37 +62,12 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
         <button type="button" className="tp-label st-label" aria-pressed={mode === "new"} onClick={() => { onMode("new"); onFresh(); }}>
           <span className="tp-label-top" lang="en">from scratch</span><b>새로 시작</b><span className="st-desc">빈 종이에서</span>
         </button>
-        <button type="button" className="tp-label st-label st-label-b" aria-pressed={mode === "go"} aria-expanded={mode === "go"} onClick={() => onMode("go")}>
+        <button type="button" className="tp-label st-label st-label-b" aria-pressed={mode === "go"} aria-expanded={mode === "go"} onClick={() => { onMode("go"); if (hasDraft) setPreview(true); }}>
           <span className="tp-label-top" lang="en">continue</span><b>이어서 하기</b><span className="st-desc">만들던 것 불러오기</span>
         </button>
       </div>
       {mode === "go" && !hasDraft && !undo && <p className="nb-help st-none">만들다 만 도안이 없습니다.<br />저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>}
-      {mode === "go" && hasDraft && (
-        <div className="st-go">
-          {/* asked here, never with a browser dialog; the works can be brought back for a few seconds */}
-          {ask && (
-            <div className="st-ask-del" role="alertdialog" aria-label="지우기">
-              <p>{ask.length > 1 ? `고른 ${ask.length}개를 지우시겠습니까?` : `'${nameOf(ask[0])}'을(를) 지우시겠습니까?`}</p>
-              <button type="button" className="nb-link" autoFocus onClick={() => setAsk(null)}>취소</button>
-              <button type="button" className="nb-link st-danger" onClick={() => del(ask)}>지우기</button>
-            </div>
-          )}
-          <ul className="st-list">
-            {rows.map(r => {
-              const on = picked.includes(r.id);
-              return (
-                <li key={r.id} className={"st-row" + (on ? " is-on" : "")}>
-                  <button type="button" aria-pressed={picking ? on : undefined} onClick={() => picking ? setPicked(x => on ? x.filter(i => i !== r.id) : [...x, r.id]) : r.open()}>
-                    {picking && <i className="st-check" aria-hidden="true">{on ? "✓" : ""}</i>}
-                    <b>{r.name}</b><span>{r.sub}</span>
-                  </button>
-                  {!picking && <button type="button" className="st-del" aria-label={`${r.name} 지우기`} title="지우기" onClick={() => setAsk([r.id])}>×</button>}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      {/* Kim: no list - 이어서 하기 opens the window with the piece straight away */}
       {/* outside the list: with everything taken away it is still there to bring them back */}
       {undo && <p className="st-undo" role="status">{undo.n > 1 ? `${undo.n}개를 지웠습니다.` : "지웠습니다."} <button type="button" className="nb-link" onClick={() => { if (undo.r) restoreProjects(undo.r); if (undo.d) setDraft(undo.d); setUndo(null); }}>되돌리기</button></p>}
       <p className="st-foot" lang="en">with love · yarnity</p>
@@ -100,18 +77,9 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
     <div className="st nb-web">
       {previewWin}
       <p className="st-ask">어디서부터 시작하시겠습니까?</p>
-      <Tiles label="시작" value={mode ?? ""} cols={2} onPick={v => { onMode(v as "new" | "go"); if (v === "new") onFresh(); }}
+      <Tiles label="시작" value={mode ?? ""} cols={2} onPick={v => { onMode(v as "new" | "go"); if (v === "new") onFresh(); else if (hasDraft) setPreview(true); }}
         options={[["new", "새로 시작", "빈 종이에서"], ["go", "이어서 하기", "만들던 것 불러오기"]]} />
       {mode === "go" && !hasDraft && <p className="nb-help st-none">만들다 만 도안이 없습니다.<br />저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>}
-      {mode === "go" && hasDraft && (
-        <ul className="st-list">
-          {hasDraft && (
-            <li><button type="button" onClick={() => setPreview(true)}>
-              <b>{draft.name.trim() || "이름 없는 도안"}</b><span>만들던 도안{draft.itemPicked ? ` · ${draft.free || draft.paint ? "직접 그린 모양" : ITEM[itemIdOf(draft)].name}` : ""}</span>
-            </button></li>
-          )}
-        </ul>
-      )}
     </div>
   );
 }
