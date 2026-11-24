@@ -348,7 +348,6 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           </div>
         )}
         {!noGL && !empty && !intro && (ruler || frameOn) && <p className="yw-hint">{frameOn ? "틀의 옆 손잡이는 가로, 위 손잡이는 높이, 모서리는 전체 크기를 바꿉니다" : ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
-        {empty && <div className="yw-empty"><i aria-hidden="true" /><p>모양을 그리면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
         {box && frameOn && !empty && !intro && (() => {
           const [l, t, r, b] = box, cx = (l + r) / 2, w = (r - l) / 2 * (pull?.fx ?? 1), h = (b - t) * (pull?.fy ?? 1), st = { left: cx - w, top: b - h, width: w * 2, height: h };
           return (
