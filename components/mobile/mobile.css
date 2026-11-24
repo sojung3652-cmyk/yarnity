@@ -17,13 +17,12 @@
 @keyframes m-up{from{transform:translateY(10px);opacity:0}}
 
 @media (max-width:767.98px){
-  html{background:#E3D7CF}
-  body{background:radial-gradient(120% 80% at 50% 35%,#F6EFEA 0%,#ECE2DB 72%,#E3D7CF 100%);min-height:100svh;color:var(--m-ink)}
-  /* the desktop's top bar, footer logo and book stage are not on phones (also before the page has
-     hydrated, so nothing of them flashes) */
-  .nav,.wrap>footer,#view-home{display:none!important}
-  /* pages that keep their own layout on phones (도안, 내 작품) end above the bottom bar */
-  .wrap{padding-bottom:calc(var(--m-bottom) + 16px)}
+  /* phones get the web's pages (Kim, 11/25: 모바일은 웹을 바탕으로); only the phone home (#view-m-home) and its
+     opening keep the phone's own ground, without the web's bar and foot. The web's desktop home is never shown. */
+  html:has(#view-m-home){background:#E3D7CF}
+  body:has(#view-m-home){background:radial-gradient(120% 80% at 50% 35%,#F6EFEA 0%,#ECE2DB 72%,#E3D7CF 100%);min-height:100svh;color:var(--m-ink)}
+  body:has(#view-m-home) .nav,body:has(#view-m-home) .wrap>footer,#view-home{display:none!important}
+  body:has(#view-m-home) .wrap{padding-bottom:calc(var(--m-bottom) + 16px)}
   .m-root{font-family:var(--m-sans);color:var(--m-ink)}
   .m-root h1,.m-root h2,.m-root h3{font-family:var(--m-serif);font-weight:600;color:var(--m-ink)}
 

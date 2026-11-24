@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { Book } from "@/components/Book/Book";
 import { FoilLogo } from "@/components/FoilLogo";
 import { useBook, wizardInBook } from "@/components/Book/BookProvider";
-import { useMobile } from "@/components/mobile/useMobile";
+import { usePhone } from "@/components/mobile/useMobile";
 import { MobileSplash } from "@/components/mobile/MobileSplash";
 
 export function Hero() {
@@ -28,7 +28,7 @@ export function Hero() {
   }, [b.view, b.overlay]);
   // phones: no book at all - the app's own screens (app/page.tsx, app/new/page.tsx); only the splash lives
   // here. three.js never loads on a phone (Book3D is a dynamic import that phones never render).
-  const m = useMobile();
+  const m = usePhone(); // the opening keeps its phone screen (Kim)
   if (m) return <MobileSplash />;
   return (
     <>

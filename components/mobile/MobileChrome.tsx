@@ -12,7 +12,7 @@ import { AiPanel } from "@/components/newbook/AiPanel";
 import { FirstPage } from "./MobileHome";
 import { MobileNavBar } from "./MobileNavBar";
 import { SavedToast } from "./MoreSheet";
-import { useMobile } from "./useMobile";
+import { usePhone } from "./useMobile";
 import "@/components/newbook/newbook.css";
 import "./mobile.css";
 import "./home-page.css";
@@ -24,7 +24,9 @@ import "./flow-mobile.css";
 import "./motion.css";
 
 export function MobileChrome() {
-  const m = useMobile(), b = useBook(), { draft, setDraft } = useApp(), path = usePathname();
+  // only the phone home keeps the phone chrome (its book overlay and bar); every other page is the web's, with the
+  // web's NavBar and Yarni window (Kim: 모바일은 웹을 바탕으로)
+  const b = useBook(), { draft, setDraft } = useApp(), path = usePathname(), m = usePhone() && path === "/";
   const [up, setUp] = useState<null | "up" | "sinking">(null);
   useEffect(() => { setUp(null); }, [path]);
   if (!m) return null;

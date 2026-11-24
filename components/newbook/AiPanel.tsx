@@ -23,7 +23,7 @@ import { FoilLogo } from "@/components/FoilLogo";
 import { ask } from "@/components/ai/ask";
 import { Markdown } from "@/components/ai/Markdown";
 import { chats, useChats } from "@/components/ai/useChats";
-import { useMobile } from "@/components/mobile/useMobile";
+import { useMobile, usePhone } from "@/components/mobile/useMobile";
 import { proposalFrom, type Proposal } from "@/lib/aiApply";
 import type { ChatRequest } from "@/lib/chat";
 import { apiTurns, dateLine, dayGroup, sameDay, turnsOf, type CMsg, type Conversation } from "@/lib/conversations";
@@ -138,10 +138,10 @@ const Ic = {
 
 /** The one AI sheet on the book's stage (wide screens): shown on the open book (menu, or the wizard's step). */
 export function AiHost() {
-  const b = useBook(), { draft, setDraft } = useApp(), m = useMobile();
-  // phones have their own sheet (MobileChrome). The small window does not need the book open: coming back
-  // from /ai (the book has closed by then) it is still there, on the same conversation (Kim)
-  if (m !== false) return null;
+  const b = useBook(), { draft, setDraft } = useApp(), m = useMobile(), phone = usePhone(), path = usePathname();
+  // the phone home keeps its own sheet (MobileChrome); every other page has this window, phones too. It does not
+  // need the book open: coming back from /ai (the book has closed by then) it is still there (Kim)
+  if (m !== false || (phone && path === "/")) return null;
   return <AiPanel draft={draft} step={b.view === "wizard" ? b.step : 0} onApply={p => setDraft({ ...draft, ...p })} />;
 }
 

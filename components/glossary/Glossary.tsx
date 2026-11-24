@@ -208,6 +208,8 @@ export function GlossaryScreen({ id, inDict = false }: { id?: string; inDict?: b
     // the address follows the panel without leaving the page
     history.replaceState(null, "", inDict ? `/glossary/terms/${t.id}` : `/glossary/${t.id}`);
     panel.current?.scrollTo({ top: 0 });
+    // phones (the web laid out narrow): the term comes under the list, so the page goes to it
+    if (matchMedia("(max-width: 767.98px)").matches) requestAnimationFrame(() => panel.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
   const Wrap = inDict ? "div" : "main";
   return (

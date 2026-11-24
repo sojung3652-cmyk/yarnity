@@ -48,7 +48,7 @@ function useColumns() {
   useLayoutEffect(() => {
     const el = ref.current; if (!el) return;
     // smaller books (Kim): seven to a shelf on a wide page, six, five, four as it narrows
-  const fit = () => { const w = el.clientWidth; setCols(w >= 1080 ? 7 : w >= 900 ? 6 : w >= 720 ? 5 : 4); };
+  const fit = () => { const w = el.clientWidth; setCols(w >= 1080 ? 7 : w >= 900 ? 6 : w >= 720 ? 5 : w >= 480 ? 4 : 3); /* phones: 3 books a shelf */ };
     fit(); const ro = new ResizeObserver(fit); ro.observe(el); return () => ro.disconnect();
   });
   return [ref, cols] as const;

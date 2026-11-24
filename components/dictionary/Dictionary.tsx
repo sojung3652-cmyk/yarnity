@@ -104,6 +104,9 @@ function useAskYarni() {
 
 // ---------------------------------------------------------------- 1) 뜨개 상식
 
+/** phones (the web laid out narrow): the article comes under the list, so a pressed title scrolls to it */
+const toArticle = () => requestAnimationFrame(() => { if (matchMedia("(max-width: 767.98px)").matches) document.querySelector(".dict-article")?.scrollIntoView({ behavior: "smooth", block: "start" }); });
+
 export function KnowhowScreen() {
   // 전체 first (Kim: with only the five topics it looked like five articles), each chip with its count
   const [topic, setTopic] = useState<"all" | (typeof KNOWHOW_TOPICS)[number]["id"]>("all");
@@ -120,7 +123,7 @@ export function KnowhowScreen() {
       <div className="dict-know">
         <ol className="dict-toc">
           {list.map((k, i) => (
-            <li key={k.id}><button type="button" className={k.id === cur?.id ? "is-on" : ""} aria-current={k.id === cur?.id ? "true" : undefined} onClick={() => setSel(k.id)}>
+            <li key={k.id}><button type="button" className={k.id === cur?.id ? "is-on" : ""} aria-current={k.id === cur?.id ? "true" : undefined} onClick={() => { setSel(k.id); toArticle(); }}>
               <i>{i + 1}</i><span>{k.title}</span></button></li>
           ))}
           {!list.length && <li className="dict-soon">준비 중</li>}
