@@ -80,6 +80,9 @@ const HANDLE_RANGE = LEN_RANGE; // any length (Kim: no limits)
 /** the stitches 모양 offers for a bag's body (Kim): worked in the round, each with how many it needs */
 const BAG_STITCHES: [string, string][] = [["c2", "기본 · 아무 코 수"], ["c3", "조금 높게"], ["c4", "높고 성글게"], ["c7", "가로 이랑"], ["c12", "2코 단위"], ["c44", "6코 단위"], ["c45", "3코 단위"], ["c48", "4코 단위 · 구멍"]];
 
+/** 1광수 = 190cm (뜨개 사전 · 커뮤니티 표현 "광수") */
+const GWANGSU = 190;
+
 export function engineInput(d: Draft): PlanInput {
   const it = ITEM[itemIdOf(d)], e = engineDims(it, d), bag = isBag(it);
   // every piece with walls can take a handle (Kim: not only the bags the list says) - a pouch, a basket, a pot cover
@@ -266,6 +269,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     }
     return e;
   }, [nums, fields, draft.paint]);
+  // 목도리 길이의 단위 (Kim): cm, or 광수 (190cm)
+  const [lenUnit, setLenUnit] = useState<"cm" | "광수">("cm"), [gRaw, setGRaw] = useState<string | null>(null);
   const setNum = (k: FieldKey) => (raw: string) => {
     setNums(n => ({ ...n, [k]: raw }));
     const f = fields.find(x => x.key === k), v = Number(raw.trim());
@@ -309,11 +314,21 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const sizeInput = (f: (typeof fields)[number]) => {
     const r = item.range[f.key] ?? [1, 100], v = Number(nums[f.key]), ok = nums[f.key].trim() !== "" && Number.isFinite(v) && v > 0;
     const lo = ok ? Math.min(r[0], Math.floor(v)) : r[0], hi = ok ? Math.max(r[1], Math.ceil(v)) : r[1];
+    // 광수 (Kim: 목도리 단위에 광수 - the community's length unit in 뜨개 사전: 190cm, the actor 이광수's height): the
+    // scarf's length typed in 광수 when it is picked; the pattern still keeps centimetres
+    const gw = item.id === "scarf" && f.key === "b", inG = gw && lenUnit === "광수";
     return (
-      <Field key={item.id + f.key + draft.shape} label={f.label} error={errors[f.key]}>
+      <Field key={item.id + f.key + draft.shape} label={inG ? "길이 (광수)" : f.label} error={errors[f.key]}>
         {(id, eb) => <>
-          <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={nums[f.key]} onChange={e => setNum(f.key)(e.target.value)} />
-          <input type="range" className="nb-range" aria-label={`${f.label} 조절`} min={lo} max={hi} step={0.5} value={ok ? v : lo} onChange={e => setNum(f.key)(e.target.value)} />
+          {inG
+            ? <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={gRaw ?? (ok ? String(Math.round(v / GWANGSU * 100) / 100) : "")}
+                onChange={e => { setGRaw(e.target.value); const g = Number(e.target.value.trim()); if (e.target.value.trim() && Number.isFinite(g) && g > 0) setNum(f.key)(String(Math.round(g * GWANGSU * 2) / 2)); }} onBlur={() => setGRaw(null)} />
+            : <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={nums[f.key]} onChange={e => setNum(f.key)(e.target.value)} />}
+          <input type="range" className="nb-range" aria-label={`${f.label} 조절`} min={lo} max={hi} step={0.5} value={ok ? v : lo} onChange={e => { setGRaw(null); setNum(f.key)(e.target.value); }} />
+          {gw && <span className="nb-gw">
+            <span className="nb-seg" role="radiogroup" aria-label="길이 단위">{(["cm", "광수"] as const).map(u => <button key={u} type="button" role="radio" aria-checked={lenUnit === u} onClick={() => { setLenUnit(u); setGRaw(null); }}>{u}</button>)}</span>
+            <small>{ok ? (inG ? `${v}cm` : `약 ${Math.round(v / GWANGSU * 100) / 100}광수`) : ""} · 1광수 = 190cm</small>
+          </span>}
         </>}
       </Field>
     );
