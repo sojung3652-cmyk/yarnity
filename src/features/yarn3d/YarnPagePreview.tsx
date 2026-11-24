@@ -20,7 +20,18 @@ const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undef
  *  screen (the yarn check), so it follows changes even while the book's page 3D waits */
 /** `far`: the piece first seen this much further away (the yarn check: smaller in a full stage, Kim); `movable`:
  *  the three tools at the top right, dragged anywhere by their grip */
-export function YarnPagePreview({ source, plan, fabric, caption, live, far, movable, bus }: { source: YarnSource; plan: Plan; fabric?: boolean; caption?: string; live?: boolean; far?: number; movable?: boolean; bus?: boolean }) {
+type PreviewProps = { source: YarnSource; plan: Plan; fabric?: boolean; caption?: string; live?: boolean; far?: number; movable?: boolean; bus?: boolean };
+/** Phones (Kim, 11/25: 3D켜면 꺼진다): while the work screen covers the page, the page's own 3D is let go - two 3D
+ *  views at once ran a phone's graphics memory out and the browser closed the page. It is made again on closing. */
+export function YarnPagePreview(props: PreviewProps) {
+  const [covered, setCovered] = useState(bookPause.get());
+  useEffect(() => bookPause.subscribe(() => setCovered(bookPause.get())), []);
+  const phone = typeof window !== "undefined" && matchMedia("(max-width: 767.98px)").matches;
+  if (phone && covered && !props.live && !props.bus) return <div className="y3-page" aria-hidden="true" />;
+  return <PagePreview {...props} />;
+}
+
+function PagePreview({ source, plan, fabric, caption, live, far, movable, bus }: PreviewProps) {
   const farDone = useRef(false), [toolsAt, setToolsAt] = useState<{ x: number; y: number } | null>(null);
   const grab = (e: React.PointerEvent) => {
     const b = box.current?.getBoundingClientRect(), t = (e.currentTarget.parentElement as HTMLElement).getBoundingClientRect(); if (!b) return;
@@ -48,7 +59,7 @@ export function YarnPagePreview({ source, plan, fabric, caption, live, far, mova
       const p = latest.current;
       if (gone || !cv.current || !p) return;
       // data-built-ms on the box: when the shape last finished, and how long it took (for checking)
-      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, detail: "page", fit: true, onInfo: () => {}, onBusy: setBusy, onBuilt: ms => { box.current?.setAttribute("data-built-ms", String(Math.round(ms))); if (far && !farDone.current) { farDone.current = true; viewer.current?.zoom(far); } } }) : null;
+      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: matchMedia("(max-width: 767.98px)").matches, detail: "page", fit: true, onInfo: () => {}, onBusy: setBusy, onBuilt: ms => { box.current?.setAttribute("data-built-ms", String(Math.round(ms))); if (far && !farDone.current) { farDone.current = true; viewer.current?.zoom(far); } } }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
       // development only: the yarn check's viewer reachable for a sharp snapshot while checking how stitches look

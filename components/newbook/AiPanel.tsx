@@ -149,7 +149,8 @@ type Busy = { id: string; text: string; ctl: AbortController };
 
 export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draft: Draft; step: number; onApply: (patch: Partial<Draft>) => void; page?: boolean }) {
   const { chat, setChat, projects, updateProject, active } = useApp();
-  const all = useChats(), m = useMobile(), phone = !!m, router = useRouter(), path = usePathname();
+  // phones keep Yarni's own sheet (Kim, 11/25: 전처럼 거의 전체화면, 위아래로 끌어서 끄기) though their pages are the web's
+  const all = useChats(), pm = usePhone(), m = pm === null ? null : pm, phone = !!pm, router = useRouter(), path = usePathname();
   const open = page || !!chat.open, convId = chat.conv && chat.conv !== "new" ? chat.conv : null, sheet = !page && phone && !!chat.sheet;
   const conv = convId ? all.find(c => c.id === convId) ?? null : null;
   // wide screens, not /ai: a small floating window (Kim) with the phone's chat inside - ☰ the list as a drawer,
@@ -226,7 +227,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
       else if (onWork) { const c = live.find(c => c.projectId === active!.id); if (c) next = c.id; else setNewLink(active!.id); }
       else if (chat.conv && chat.conv !== "new" && all.some(c => c.id === chat.conv)) next = chat.conv;
       else if (phone && live[0]) next = live[0].id;
-      setChat(c => ({ ...c, conv: next, sheet: !page && s > 0 }));
+      setChat(c => ({ ...c, conv: next, sheet: false })); // phones: always the near-full sheet, pulled down to close (Kim, 11/25)
     }
     wasOpen.current = open;
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps

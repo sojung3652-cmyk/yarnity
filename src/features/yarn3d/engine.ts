@@ -234,7 +234,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   let renderer: THREE.WebGLRenderer;
   try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch { return null; }
   const page = opts.detail === "page";
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // phones: 1.5x at most - a phone's GPU memory runs out at 2x with a big piece, and the browser closes the page
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.phone ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   const scene = new THREE.Scene();
@@ -922,7 +923,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     flapTip = addFlap(D, R, mat, M, step, geos);
     meshes.slice(flapFrom).forEach(m => { m.userData.part = "flap"; });
     haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz);
-    if (!opts.phone) addExtras(D, R);
+    addExtras(D, R); // the phone's work screen tries buttons and labels on too (the old phone overlay had none)
   }
   // ---------- a handle as it is made (Kim). Along its centre line `cl`, its flat face towards `nrm`:
   //   tube        rounds round it, one after another (a crocheted tube), as thick as strapWcm

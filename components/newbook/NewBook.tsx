@@ -1132,7 +1132,6 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         edit3d.current = false; endEdit3d(); big3d.close(); setSheet(3, sheets3 - 1); go(4, true);
       },
     doneLabel: !yarnSet ? "모양 만들기 →" : "확인하기 →", blocked: yarnSet && (!picked || !stepOk),
-    footNote: !yarnSet ? "실을 다 정하셨으면 무엇을 뜰지 정합니다. 실은 나중에도 바꿀 수 있습니다." : undefined,
     tabs: [
       { label: "실 설정", on: !yarnSet, onClick: () => window.dispatchEvent(new Event("yw:yarncheck")) },
       { label: "모양", on: yarnSet, onClick: () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); } },

@@ -227,7 +227,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     import("./engine").then(({ createYarnViewer, hasWebGL }) => {
       if (gone || !cv.current) return;
       const p = latest.current;
-      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onBusy: setBusy, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y),
+      const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: matchMedia("(max-width: 767.98px)").matches, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onBusy: setBusy, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y),
         // a press is for moving it (Kim): let go without moving, the tools stay put away
         onExtraPick: () => { setPickEx(null); },
         // the pointer on one (Kim): its tools show above it; off it, they go after a moment (time to reach them).
@@ -414,7 +414,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>}
           </div>
           <div className="yw-mkfoot">
-            <span className="yw-mknote">{mk.footNote ?? (mk.blocked ? "정하지 않은 항목이 있습니다. 누르면 그곳으로 갑니다." : "다 정하셨으면 책으로 돌아가 확인합니다.")}</span>
+            {/* Kim (11/25: 쓸데없는 말 없애, 다 알아): no "다 정하셨으면 ..." under the button; only what is missing */}
+            <span className="yw-mknote">{mk.blocked ? "정하지 않은 항목이 있습니다." : ""}</span>
             <ClothLabel side="next" type="submit" blocked={mk.blocked}>{mk.doneLabel}</ClothLabel>
           </div>
         </form>
@@ -443,7 +444,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
 
       {extra?.ask}
       <div className="yw-stat" aria-live="polite">
-        <span>{empty ? "뜰 것을 고르면 3D로 보여 드립니다." : <>{size ? <b>{size}</b> : "모양을 계산하고 있습니다."}{info && <>{info.fit}</>}</>}</span>
+        <span>{empty ? "" : <>{size ? <b>{size}</b> : "모양을 계산하고 있습니다."}{info && <>{info.fit}</>}</>}</span>
         {/* Kim: the made piece is knitted fabric - it stretches, so it will not keep exactly this shape and size */}
         <span className="yw-stretch">실제 결과물은 뜨개 편물의 특성상 신축성 있게 만들어져, 크기와 모양이 화면과 조금 다를 수 있습니다.</span>
       </div>

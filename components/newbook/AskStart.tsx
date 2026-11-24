@@ -104,7 +104,7 @@ export function AskInline({ draft, onApply }: { draft: Draft; onApply: (d: Draft
       <p className="ask-in-h">무엇을 떠 볼까요</p>
       <button type="button" className="ask-proto ask-pick" disabled={off} onClick={() => setChat(c => ({ ...c, open: true, conv: "new", shape: true, prefill: null }))}>
         <b><i aria-hidden="true">1</i>Yarni와 대화하기</b>
-        <span>{off ? "지금은 Yarni를 쓸 수 없습니다. 기본형으로 시작해 주십시오." : "뜨고 싶은 것을 말하면, 필요한 것만 물어본 뒤 바로 만들어 드립니다"}</span>
+        {off && <span>지금은 Yarni를 쓸 수 없습니다.</span>}
       </button>
       <button type="button" className="ask-proto ask-pick" aria-expanded={list} onClick={() => setList(v => !v)}>
         <b><i aria-hidden="true">2</i>기본형으로 시작하기</b>
