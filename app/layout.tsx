@@ -19,7 +19,20 @@ import { Floating } from "@/components/Floating";
 // captions (Cormorant Garamond upright). Self-hosted by next/font (OFL), exposed as a CSS variable.
 const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600"], style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
 
-export const metadata: Metadata = { title: "Yarnity" };
+// the link preview (Kim): what KakaoTalk, messages and other messengers read - og:title, og:description, og:image -
+// with the picture at its full address on the deployed site
+const SITE = "https://yarnity.netlify.app";
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
+  title: "Yarnity",
+  description: "나의 뜨개친구",
+  openGraph: {
+    type: "website", url: SITE, siteName: "Yarnity", locale: "ko_KR",
+    title: "Yarnity", description: "나의 뜨개친구",
+    images: [{ url: `${SITE}/og-image.png`, width: 1200, height: 630, alt: "Yarnity" }],
+  },
+  twitter: { card: "summary_large_image", title: "Yarnity", description: "나의 뜨개친구", images: [`${SITE}/og-image.png`] },
+};
 // maximumScale 1: iOS Safari zoomed the whole screen in when a field inside the phone's 3D book page was tapped
 // (the page is CSS-zoomed and 3D-scaled, so its 16px inputs read as small). iOS still lets people pinch-zoom;
 // desktop browsers ignore it.
