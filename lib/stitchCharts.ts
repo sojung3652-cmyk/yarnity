@@ -238,7 +238,7 @@ export const RECIPES: Record<string, () => Chart> = {
   "보블": () => grid(W0, 12, (i, j) => (j % 6 === 3 && i % 6 === 2 ? S("bob", { z: .55 }) : j % 6 === 3 && i % 6 === 5 ? S("bob", { z: .55 }) : Pp())),
   // 3D 정밀 (Kim): knit, not crochet - little round berries ((k1,p1,k1) in one, p3tog) close on a purl ground,
   // half a berry over each time (they were crochet clusters, posts crossing)
-  "트리니티 (블랙베리)": () => grid(W0, 12, (i, j) => (j % 2 === 0 && (i + (j % 4 === 0 ? 0 : 2)) % 4 === 1 ? S("bob", { z: .4 }) : Pp())),
+  "트리니티 (블랙베리)": () => grid(W0, 12, (i, j) => (j % 2 === 0 && (i + (j % 4 === 0 ? 0 : 2)) % 4 === 1 ? S("puff", { z: .12 }) : Pp())), // small and low (a bobble stood up like a mushroom)
   "별 무늬 (데이지)": () => grid(W0, 12, (i, j) => (j % 4 === 1 && i % 3 === 1 ? S("cl", { join: [-1, 1], z: .25 }) : K())),
   "고리 뜨기": () => grid(W0, 12, (_i, j) => (j % 2 ? S("loop", { z: .35 }) : K())),
   // ---------------- 대바늘 · 배색
@@ -252,7 +252,20 @@ export const RECIPES: Record<string, () => Chart> = {
   "되돌아뜨기 (경사뜨기)": () => grid(W0, 12, (i, j) => (i < W0 - j * 1.2 ? K() : null)),
   "엔터락": () => grid(16, 12, (i, j) => K((Math.floor(i / 4) + Math.floor(j / 4)) % 2, { dx: Math.floor(j / 4) % 2 ? .3 : -.3 })),
   "아이코드": () => grid(4, 16, () => K(0, { z: .3 })),
-  "미터드 스퀘어": () => grid(16, 12, (i, j) => (i >= j && i < 16 - j ? K(Math.floor(j / 2) % 2, { dx: i === j ? .4 : i === 15 - j ? -.4 : 0 }) : null)),
+  // 3D 정밀 (Kim): a square, as it is knitted - every row an L along the bottom and the right edge, the double
+  // decrease where the two arms meet, so the rows close in on the opposite corner and the stripes are nested L's
+  // with the decrease line on the diagonal (it was a triangle)
+  "미터드 스퀘어": () => {
+    const st: ChartStitch[] = [], ch: Chart["ch"] = [], n = 12, rows = n;
+    for (let i = 0; i <= n; i++) ch.push([i, 0]);
+    for (let j = 0; j < rows; j++) {
+      const c = Math.floor(j / 2) % 2, y = j * .9, xr = n - j * .9;
+      for (let x = 0; x < xr - .5; x += 1) st.push({ type: "k", b: [x, y], t: [x, y + .72], ...(c ? { c } : {}) }); // the bottom arm: stitches up
+      for (let yy = y + 1; yy <= n; yy += 1) st.push({ type: "k", b: [xr, yy], t: [xr - .72, yy], ...(c ? { c } : {}) }); // the right arm: stitches in
+      st.push({ type: "k", b: [xr, y], t: [xr - .5, y + .5], ...(c ? { c } : {}) }); // the double decrease at the corner
+    }
+    return { st, ch, W: n + 1, H: n + 1 };
+  },
   "피코 단": () => grid(W0, 12, (i, j) => (j === 6 ? (i % 2 ? S("yo") : K(0, { dx: .45 })) : K())),
 };
 
