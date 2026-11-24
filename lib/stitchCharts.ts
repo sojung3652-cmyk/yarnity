@@ -62,7 +62,9 @@ function rounds(R: number, per: (r: number) => number, t: (r: number, k: number)
   for (let r = 1; r <= R; r++) {
     const n = per(r), rad = r * 2.05;
     for (let k = 0; k < n; k++) {
-      const a = (k + (r % 2) * .5) / n * Math.PI * 2, tt = t(r, k);
+      // each round turned a little against the one below (Kim: 3D 정밀): its stitches stood on the same angles as the
+      // round below's, six of them in a line from the middle to the edge - spokes; in a real circle they never stack
+      const a = (k + (r % 2) * .5) / n * Math.PI * 2 + r * .23, tt = t(r, k);
       if (tt === "ch") { ch.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad, color?.(r) ?? 0]); continue; }
       const b: [number, number] = [cx + Math.cos(a) * prevR, cy + Math.sin(a) * prevR], top: [number, number] = [cx + Math.cos(a) * (rad - gap), cy + Math.sin(a) * (rad - gap)];
       st.push({ type: tt, b, t: top, ...(color ? { c: color(r) } : {}) });
@@ -211,7 +213,16 @@ export const RECIPES: Record<string, () => Chart> = {
   "그물 무늬": () => grid(W0, 12, (i, j) => (j % 2 ? K() : (i + (j % 4 ? 1 : 0)) % 2 ? S("yo") : K(0, { dx: .45 }))),
   "페더 앤 팬 (올드 셰일)": () => ripple(grid(W0, 12, (i, j) => (j % 4 === 3 ? Pp() : K(0, { dx: (tri(i, 9) - 2.2) * .18 * (j % 4 === 1 ? 1 : .5) }))), 9),
   "나뭇잎 레이스": () => grid(W0, 16, (i, j) => { const m = i % 9, r = j % 8, w = r < 4 ? r : 8 - r; return m === 4 && r === 0 ? S("yo") : Math.abs(m - 4) === w + 1 && r % 2 === 0 ? S("yo") : K(0, { dx: Math.abs(m - 4) <= w ? (m < 4 ? .3 : m > 4 ? -.3 : 0) : 0 }); }),
-  "다이아몬드 레이스": () => grid(W0, 16, (i, j) => ((tri(i, 8) + tri(j, 8)) === 4 && j % 2 === 0 ? S("yo") : K())),
+  // 3D 정밀 (Kim): every hole has its decrease beside it, leaning in - that slant is what draws the diamond's lines
+  // (the holes stood alone, scattered); on the purl rows between, plain stitches
+  "다이아몬드 레이스": () => grid(W0, 16, (i, j) => {
+    const hole = (x: number) => (tri(x, 8) + tri(j, 8)) === 4 && j % 2 === 0;
+    if (hole(i)) return S("yo");
+    const m = ((i % 8) + 8) % 8;
+    if (hole(i + 1)) return K(0, { dx: m < 4 ? .5 : -.5 }); // k2tog / ssk beside the hole, leaning along the diamond's side
+    if (hole(i - 1)) return K(0, { dx: m < 4 ? .5 : -.5 });
+    return K();
+  }),
   "말굽 레이스": () => grid(W0, 12, (i, j) => (j % 2 ? K() : i % 10 === 1 || i % 10 === 9 ? S("yo") : K(0, { dx: i % 10 < 5 ? -.25 : .25 }))),
   "사다리 무늬": () => grid(W0, 12, (i, j) => (i % 6 === 2 ? (j % 2 ? S("yo") : null) : K())),
   "늘어뜨린 코 (드롭 스티치)": () => grid(W0, 12, (i, j) => (i % 5 === 2 ? (j % 6 === 0 ? K() : null) : K())),
