@@ -21,8 +21,10 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
 }) {
   const { setDraft } = useApp();
   const hasDraft = !draft.editOf && !!(draft.itemPicked || draft.name.trim() || draft.free || draft.paint);
-  const [ask, setAsk] = useState<string | null>(null), [win, setWin] = useState(false);
-  const [undo, setUndo] = useState<{ d?: Draft; e?: BinderEntry } | null>(null);
+  const [ask, setAsk] = useState<string[] | null>(null), [win, setWin] = useState(false);
+  // 선택 (Kim: 나의 도안집처럼): pick several and take them away together
+  const [picking, setPicking] = useState(false), [picked, setPicked] = useState<string[]>([]);
+  const [undo, setUndo] = useState<{ n: number; d?: Draft; es?: BinderEntry[] } | null>(null);
   useEffect(() => { if (!undo) return; const t = setTimeout(() => setUndo(null), 6000); return () => clearTimeout(t); }, [undo]);
   // 이어서 하기 (Kim): every draft left half made - the one being worked on and the ones kept in the binder (tabs or
   // put away) - in one list; a row pointed at shows its piece as it looked when the 3D was closed
@@ -37,23 +39,39 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
     // saved works are not here (Kim): they are in 나의 도안집, changed only with 고치기
   ];
   const any = rows.length > 0;
-  const del = (id: string) => {
-    if (id === "draft") { setUndo({ d: draft }); setDraft(freshDraft()); store.set("iyarn.newstep", 1); }
-    else { const e = kept.find(x => x.id === id); binder.remove(id); setUndo({ e }); }
-    setAsk(null); setHover(null); if (rows.length <= 1) setWin(false);
+  const del = (ids: string[]) => {
+    const d = ids.includes("draft") ? draft : undefined, es = kept.filter(x => ids.includes(x.id));
+    if (d) { setDraft(freshDraft()); store.set("iyarn.newstep", 1); }
+    es.forEach(e => binder.remove(e.id));
+    setUndo({ n: ids.length, d, es }); setAsk(null); setHover(null); setPicked([]); setPicking(false);
+    if (rows.length <= ids.length) setWin(false);
   };
-  const bringBack = () => { if (!undo) return; if (undo.d) setDraft(undo.d); if (undo.e) binder.put(undo.e); setUndo(null); };
+  const bringBack = () => { if (!undo) return; if (undo.d) setDraft(undo.d); undo.es?.forEach(e => binder.put(e)); setUndo(null); };
+  const endPick = () => { setPicking(false); setPicked([]); setAsk(null); };
+  const allIds = rows.map(r => r.id), allOn = allIds.length > 0 && allIds.every(id => picked.includes(id));
   if (!hasDraft && !always && !kept.length) return null;
   const hv = hover && rows.find(r => r.id === hover.id), pic = hv ? shots.get(hv.shot) : null;
+  // 되돌리기: in the window while it is open (the page under it cannot be pressed), on the page once it is closed
+  const undoLine = undo && <p className="st-undo" role="status">{undo.n > 1 ? `${undo.n}개를 지웠습니다.` : "지웠습니다."} <button type="button" className="nb-link" onClick={bringBack}>되돌리기</button></p>;
+  const back = !(win && rows.length > 0) && undoLine;
   // Kim: the list opens in a window of its own when 이어서 하기 is pressed, not under the button
   const list = win && any && createPortal(
-    <div className="st-pv-dim" onMouseDown={e => { if (e.target === e.currentTarget) { setWin(false); setHover(null); } }}>
+    <div className="st-pv-dim" onMouseDown={e => { if (e.target === e.currentTarget) { setWin(false); setHover(null); endPick(); } }}>
     <div className="st-pv st-go" role="dialog" aria-modal="true" aria-label="만들던 도안" onMouseLeave={() => setHover(null)}>
-      <p className="st-pv-title"><b>만들던 도안</b><span>{rows.length}개</span></p>
+      <div className="st-pv-head">
+        <p className="st-pv-title"><b>만들던 도안</b><span>{rows.length}개</span></p>
+        <div className="st-tools">
+          {picking ? <>
+            <button type="button" className="nb-link" onClick={() => setPicked(allOn ? [] : allIds)}>{allOn ? "전체 해제" : "전체 선택"}</button>
+            <button type="button" className="nb-link st-danger" disabled={!picked.length} onClick={() => setAsk(picked)}>{picked.length}개 지우기</button>
+            <button type="button" className="nb-link st-muted" onClick={endPick}>선택 취소</button>
+          </> : <button type="button" className="nb-link" onClick={() => { setPicking(true); setHover(null); }}>선택</button>}
+        </div>
+      </div>
       {ask && (
         <div className="st-ask-del" role="alertdialog" aria-label="지우기">
           {/* asked here, never with a browser dialog; it can be brought back for a few seconds */}
-          <p>{`'${rows.find(r => r.id === ask)?.name ?? ""}'을(를) 지우시겠습니까?`}</p>
+          <p>{ask.length > 1 ? `고른 도안 ${ask.length}개를 지우시겠습니까?` : `'${rows.find(r => r.id === ask[0])?.name ?? ""}'을(를) 지우시겠습니까?`}</p>
           <button type="button" className="nb-link" autoFocus onClick={() => setAsk(null)}>취소</button>
           <button type="button" className="nb-link st-danger" onClick={() => del(ask)}>지우기</button>
         </div>
@@ -64,11 +82,14 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
           const show = (el: HTMLElement) => { const b = el.getBoundingClientRect(), u = (el.closest(".st-pv") as HTMLElement).getBoundingClientRect(), w = 240;
             setHover({ id: r.id, top: Math.max(8, Math.min(b.top, window.innerHeight - 300)), left: u.left - w - 18 >= 8 ? u.left - w - 18 : Math.min(u.right + 18, window.innerWidth - w - 8) }); };
           return (
-            <li key={r.id} className={"st-row" + (hover?.id === r.id ? " is-on" : "")}>
-              <button type="button" onClick={r.go} onMouseEnter={e => show(e.currentTarget)} onFocus={e => show(e.currentTarget)}>
+            <li key={r.id} className={"st-row" + ((picking ? picked.includes(r.id) : hover?.id === r.id) ? " is-on" : "")}>
+              {/* picking: a press checks the row (its picture still shows when pointed at) */}
+              <button type="button" aria-pressed={picking ? picked.includes(r.id) : undefined}
+                onClick={() => picking ? setPicked(x => x.includes(r.id) ? x.filter(i => i !== r.id) : [...x, r.id]) : r.go()} onMouseEnter={e => show(e.currentTarget)} onFocus={e => show(e.currentTarget)}>
                 <b>{r.name}</b><span>{r.sub}</span>
+                {picking && <i className="st-check" aria-hidden="true">{picked.includes(r.id) ? "✓" : ""}</i>}
               </button>
-              <button type="button" className="st-del" aria-label={`${r.name} 지우기`} title="지우기" onClick={() => setAsk(r.id)}>×</button>
+              {!picking && <button type="button" className="st-del" aria-label={`${r.name} 지우기`} title="지우기" onClick={() => setAsk([r.id])}>×</button>}
             </li>
           );
         })}
@@ -81,13 +102,12 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
           <b>{hv.name}</b>
         </div>, document.body
       )}
-      <div className="st-pv-acts"><button type="button" className="nb-link st-muted" onClick={() => { setWin(false); setHover(null); }}>닫기</button></div>
+      {undoLine}
+      <div className="st-pv-acts"><button type="button" className="nb-link st-muted" onClick={() => { setWin(false); setHover(null); endPick(); }}>닫기</button></div>
     </div>
     </div>, document.body
   );
   const none = mode === "go" && !any && !undo && <p className="nb-help st-none">만들다 만 도안이 없습니다.<br />저장한 도안은 나의 도안집에서 고칠 수 있습니다.</p>;
-  // outside the list: with everything taken away it is still there to bring them back
-  const back = undo && <p className="st-undo" role="status">지웠습니다. <button type="button" className="nb-link" onClick={bringBack}>되돌리기</button></p>;
   if (always) return (
     <div className="st st-big">
       <p className="st-kicker" lang="en">new pattern</p>
