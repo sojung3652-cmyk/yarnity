@@ -20,7 +20,7 @@ export const YARNS: Yarn[] = [
     fabric: "탄력이 있어 코가 고르게 자리 잡고, 편물이 도톰하고 폭신합니다. 블로킹하면 모양이 잘 잡히고, 입을수록 몸에 맞게 늘었다 돌아옵니다.",
   },
   {
-    id: "mohair", image: "/dictionary/yarns/mohair.webp", name: "모헤어", nameEn: "Mohair", group: "animal", short: "보송보송, 가벼움", seasons: ["autumn", "winter"],
+    id: "mohair", image: "/dictionary/yarns/mohair.jpg", name: "모헤어", nameEn: "Mohair", group: "animal", short: "보송보송, 가벼움", seasons: ["autumn", "winter"],
     traits: { warmth: 4, stretch: 2, softness: 4, care: 1, price: 4 },
     about: "앙고라 염소의 털로 만든 실입니다. 가는 심 실 둘레에 긴 털이 후광처럼 퍼져 있어, 굵게 뜨지 않아도 포근하고 가벼운 편물이 됩니다. 다른 실과 한 가닥씩 겹쳐 뜨면 색이 은은하게 섞이고 보송한 결이 더해집니다.",
     caution: "털이 서로 걸려 한 번 뜬 것을 풀기 어렵습니다. 코가 잘 보이지 않으니 단수링을 자주 겁니다. 피부가 예민하면 따끔할 수 있고, 울처럼 뜨거운 물과 마찰에 줄어듭니다.",
