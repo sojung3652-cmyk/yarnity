@@ -32,7 +32,7 @@ import type { Chart } from "@/lib/crochetChart";
 import { stitchOf } from "@/lib/knit";
 
 export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal"
-  | "cashmere" | "alpaca" | "angora" | "sleep" | "boucle" | "scrub" | "tshirt" | "ribbon" | "jute";
+  | "cashmere" | "alpaca" | "angora" | "sleep" | "boucle" | "scrub" | "tshirt" | "ribbon" | "jute" | "nylon";
 export type YarnStrap = "none" | "two" | "long";
 /** what is drawn, in the pattern's own counts (stitches per course, bottom first) */
 export type YarnShape =
@@ -89,6 +89,8 @@ export interface YarnPattern {
   marlMat?: YarnMaterial;
   /** how much of the strand the held yarn is (Kim: by the two yarns' thicknesses) - 0..1 */
   marlShare?: number;
+  /** 탄성 (Kim): how limp the fabric is against the yarn's own (0.3 firm .. 1 as it is .. 2.5 very limp) - 3D only */
+  softK?: number;
   /** closing the top: "spread" the sides go out (the round's length kept), "tuck" the width kept and the sides
    *  folded in at the top (as a paper bag's) */
   topFold?: "spread" | "tuck";
@@ -169,6 +171,7 @@ export const PRE: Record<YarnMaterial, Preset> = {
   mohair: { ...P0, plies: 2, twist: .45, fuzz: 1.7, depth: .12, rough: 1, ao: .16, sheen: 0, halo: .5, fill: 1.05, soft: .85 },
   linen: { ...P0, plies: 2, twist: .55, fuzz: .08, depth: .2, rough: .9, ao: .3, slub: .38, soft: .45 },
   silk: { ...P0, plies: 3, twist: .9, fuzz: 0, depth: .18, rough: .38, ao: .22, sheen: .7, soft: .75 },
+  nylon: { ...P0, plies: 3, twist: 1, fuzz: 0, depth: .2, rough: .4, ao: .22, sheen: .65, soft: .12 },
   chenille: { ...P0, plies: 1, twist: 0, fuzz: .15, depth: 0, rough: 1, ao: .1, sheen: 0, halo: .3, fill: 1.75, soft: .7 },
   raffia: { ...P0, plies: 1, twist: .25, fuzz: 0, depth: 0, rough: .58, ao: .22, flat: 3.4, fill: 1.15, soft: .2 },
   cord: { ...P0, plies: 8, twist: 1.3, fuzz: 0, depth: .2, braid: true, rough: .92, ao: .28, sheen: 0, soft: .1 },
@@ -301,7 +304,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   function yarnMat(R: number) {
     // sheen: the soft light along fibres (wool, chenille, silk), the colour stays the yarn's own
     // dry (Kim): only silk and nylon (drawn as silk), the tinsel and metal shine; the rest takes little light
-    const shiny = st.preset === "silk" || st.preset === "scrub" || st.metal > .5;
+    const shiny = st.preset === "silk" || st.preset === "nylon" || st.preset === "scrub" || st.metal > .5;
     const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: shiny ? st.rough : Math.max(.94, st.rough), specularIntensity: shiny ? 1 : .25, metalness: st.metal, envMap: st.metal || st.preset === "silk" ? ENV : null, envMapIntensity: st.metal ? 1.25 : .35,
       bumpMap: FTEX, bumpScale: R * (st.preset === "raffia" ? .14 : .05), sheen: st.sheen, sheenRoughness: st.preset === "silk" ? .28 : .6, sheenColor: new THREE.Color(.34, .33, .32) });
     return m;
@@ -1125,7 +1128,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (pat.outline && layOnOutline(D, pat.outline, wideX(b), cx, cz)) { if (pat.gravity) drape(D); return; }
     if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
     // every yarn a notch softer than its own measure (Kim: 좀만 더 흐물거리게); a stiff one (cord, raffia, jute) stays stiff
-    const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * 1.25 * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
+    const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * 1.25 * (pat.softK ?? 1) * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
     if (s < .03) return;
     if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
       const soft = Math.max(0, s - .25) / .75, A = Math.min(D.rh, rm * .07); // soft: 0 for firm yarns (cotton, cord), up to 1 for mohair; A: gentle against the piece's size
@@ -1160,7 +1163,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     }
   }
   // how firmly the yarn holds a shape, 0-1 (Kim: nylon and cord stand, then cotton; the others are limp)
-  const firm = () => (st.preset === "cord" ? .92 : st.preset === "raffia" || st.preset === "jute" ? .8 : st.preset === "cotton" || st.preset === "linen" || st.preset === "tshirt" ? .5 : Math.max(.06, .3 - st.soft * .3));
+  const firm = () => (st.preset === "cord" || st.preset === "nylon" ? .92 : st.preset === "raffia" || st.preset === "jute" ? .8 : st.preset === "cotton" || st.preset === "linen" || st.preset === "tshirt" ? .5 : Math.max(.06, .3 - st.soft * .3));
   // The piece under its own weight, as animation cloth is settled: every stitch is pulled down, kept at its
   // distance from its neighbours (the fabric neither stretches nor shrinks: the wall has to fold or belly out),
   // kept above the table, and drawn back towards the shape it was made in by as much as the yarn is firm.
@@ -1432,7 +1435,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
       if (p.shape.kind !== pat.shape.kind) { framed = false; touched = false; }
-      const zk = (q: YarnPattern) => JSON.stringify([q.topFold ?? null, q.topGap ?? null, !!q.extras?.zipper, q.extras?.zipOpen ?? 0, !!q.flap]);
+      const zk = (q: YarnPattern) => JSON.stringify([q.softK ?? 1, q.topFold ?? null, q.topGap ?? null, !!q.extras?.zipper, q.extras?.zipOpen ?? 0, !!q.flap]);
       const retop = zk(p) !== zk(pat) || p.top !== pat.top || p.gravity !== pat.gravity || JSON.stringify(p.outline ?? null) !== JSON.stringify(pat.outline ?? null) || JSON.stringify(p.depth ?? null) !== JSON.stringify(pat.depth ?? null); // another kind of piece: the camera starts over
       const heldCh = p.marlMat !== pat.marlMat;
       pat = p;

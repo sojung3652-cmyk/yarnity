@@ -415,3 +415,9 @@ body:has(.yw) .aic-root{z-index:460}
 .yw .yw-name-in small{margin:0;font-size:12px;color:#8A7A72;white-space:nowrap}
 /* the yarn check's piece about half the stage (Kim: 70%, then 70% of that) */
 .yw-intro .yc-swatch .y3-page{inset:25.5%}
+
+/* 탄성 slider (the read-only 3D) */
+.yw-soft{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:#3A322D}
+.yw-soft span{flex:none;font-weight:600}
+.yw-soft input{flex:1 1 auto;accent-color:#B9858A}
+.yw-soft output{flex:none;min-width:74px;text-align:right;color:#6A5B55;font-size:12.5px}

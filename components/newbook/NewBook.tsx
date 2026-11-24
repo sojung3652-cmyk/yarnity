@@ -20,6 +20,7 @@ import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "
 import { store } from "@/lib/store";
 import { BUTTONS, LABEL_GROUPS, extraPic } from "@/lib/extras";
 import { shots } from "@/lib/shots";
+import { softWord } from "@/src/features/yarn3d/YarnWorkspace";
 import { endEdit3d } from "@/lib/edit3d";
 import { ExtraPicker } from "./ExtraPicker";
 import type { Draft } from "@/lib/types";
@@ -59,6 +60,8 @@ import "./newbook.css";
 
 type Step = WizStep;
 const STEP_KEY = "iyarn.newstep";
+// 다른 실로 보기 at the end (Kim): the materials the 3D draws, nylon the firmest
+const TRY_MATS = ["코튼", "울", "캐시미어", "알파카", "모헤어", "앙고라", "수면사", "벨벳(셔닐)", "부클레", "페이크퍼", "수세미실", "리넨", "실크", "라피아", "패브릭얀", "리본얀", "황마", "코드사", "나일론", "메탈릭"];
 const NO_NAME = "이름 없는 작품";
 /** Handle length in cm as the engine will use it (older drafts: short 25 / long 90). */
 const handleCmOf = (d: Draft) => d.handleCm || (d.handle === "long" ? 90 : 25);
@@ -256,7 +259,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const pp = useMemo(() => plan(input), [input]);
   const g = useMemo(() => gauge(input), [input]);
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: draft.materials, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, topGapCm: draft.topGapCm, topFold: draft.topFold, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch, chartName: chartNameOf(draft.pattern, draft.craft ?? (knitNow ? "knit" : "crochet")), moreColors: draft.moreColors }), [input, draft.pattern, draft.craft, knitNow, draft.moreColors, draft.item, draft.color, draft.yarnMm, draft.materials, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.topGapCm, draft.topFold, draft.extras, draft.crochetChart, draft.crochetStitch]);
+  // 다른 실로 보기 at the end (Kim): a material tried on the 3D before it is taken - here only, never saved
+  const [tryMat, setTryMat] = useState<string | null>(null);
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: tryMat ? [tryMat] : draft.materials, softK: draft.softK, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, topGapCm: draft.topGapCm, topFold: draft.topFold, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch, chartName: chartNameOf(draft.pattern, draft.craft ?? (knitNow ? "knit" : "crochet")), moreColors: draft.moreColors }), [input, draft.pattern, draft.craft, knitNow, draft.moreColors, draft.item, draft.color, draft.yarnMm, draft.materials, tryMat, draft.softK, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.topGapCm, draft.topFold, draft.extras, draft.crochetChart, draft.crochetStitch]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
   const itemLabel = draft.free || draft.paint ? "직접 그린 모양" : item.name;
@@ -1006,6 +1011,19 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       { id: "stitch", title: "무늬 테스트해보기", note: "선택", body: oneStitch },
     ] : [
       { id: "draw", title: "모양", note: picked ? itemLabel : undefined, body: oneAsm },
+      // the last step (Kim): another yarn tried on the piece, taken if it is liked better; and how limp it is
+      ...(picked ? [{ id: "try", title: "다른 실로 보기", note: "선택", body: (
+        <div className="nb-web">
+          <div className="nb-tiles nb-tiles-4" role="radiogroup" aria-label="다른 실로 보기">
+            {TRY_MATS.map(m => <button key={m} type="button" role="radio" aria-checked={(tryMat ?? draft.materials?.[draft.materials.length - 1]) === m} className="nb-tile" onClick={() => setTryMat(m === tryMat ? null : m)}>{m === "벨벳(셔닐)" ? "셔닐" : m}</button>)}
+          </div>
+          {tryMat && <div className="try-acts"><span>{tryMat}(으)로 보는 중입니다.</span>
+            <button type="button" className="nb-link" onClick={() => { patch({ materials: [tryMat] }); setTryMat(null); }}>이 실로 바꾸기</button>
+            <button type="button" className="nb-link st-muted" onClick={() => setTryMat(null)}>원래 실로</button></div>}
+          <div className="nb-sliders nb-sliders-1"><Slide label="탄성" min={.3} max={2.5} step={.1} value={draft.softK ?? 1} onChange={v => patch({ softK: v })} text={softWord(draft.softK ?? 1)} /></div>
+          <p className="nb-help">권장보다 큰 바늘로 뜨거나 느슨하게 뜨면 편물이 더 흐물흐물해집니다. 3D 모양만 바뀝니다.</p>
+        </div>
+      ) }] : []),
     ],
     done: !yarnSet
       ? () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); }

@@ -61,12 +61,15 @@ export interface WorkExtra {
 
 type Tool = "rotate" | "pan";
 const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["cashmere", "캐시미어"], ["alpaca", "알파카"], ["mohair", "모헤어"], ["angora", "앙고라"], ["sleep", "수면사"], ["chenille", "셔닐"], ["boucle", "부클레"],
-  ["fur", "털실"], ["scrub", "수세미실"], ["linen", "리넨"], ["silk", "실크"], ["raffia", "라피아"], ["tshirt", "패브릭얀"], ["ribbon", "리본얀"], ["jute", "황마"], ["cord", "코드사"], ["metal", "메탈릭"]];
+  ["fur", "털실"], ["scrub", "수세미실"], ["linen", "리넨"], ["silk", "실크"], ["raffia", "라피아"], ["tshirt", "패브릭얀"], ["ribbon", "리본얀"], ["jute", "황마"], ["cord", "코드사"], ["nylon", "나일론"], ["metal", "메탈릭"]];
 const Ic = ({ d, s = 22 }: { d: string; s?: number }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 const HINT = "드래그 돌리기 · 스크롤 확대 · 스페이스+드래그 옮기기";
 
 /** how light a colour is, 0 (black) to 1 (white) */
 const lum = (h?: string) => { if (!h || !/^#[0-9a-f]{6}$/i.test(h)) return 1; const n = parseInt(h.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= .04 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+
+/** 탄성's words: firm to very limp */
+export const softWord = (k: number) => k < .6 ? "단단하게" : k < .9 ? "조금 단단하게" : k <= 1.15 ? "실 그대로" : k < 1.7 ? "흐물흐물" : "아주 흐물흐물";
 
 const Opt = ({ on, onClick, children, label }: { on?: boolean; onClick: () => void; children: ReactNode; label?: string }) => <button type="button" className="yw-opt" aria-pressed={on} aria-label={label} title={label} onClick={onClick}>{children}</button>;
 /** one labelled control on the top bar: its name above, the choices joined in one woven strip under it */
@@ -182,6 +185,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const show = (v: "yarn" | "holo") => { setView(v); viewer.current?.setView(v); };
   const look = (v: YarnLook) => viewer.current?.look(v);
   const tryMat = (m: YarnMaterial) => { setMat(m); viewer.current?.setMaterial(m); };
+  const [softK, setSoftK] = useState(pattern.softK ?? 1);
   const mk = extra?.making, empty = !!extra?.empty;
   // the index shows which section is being read (the column scrolls; the index stays)
   const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0);
@@ -313,6 +317,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               <div className="yw-tiles" role="group" aria-label="다른 실로 보기">
                 {MATS.map(([k, label]) => <button key={k} type="button" aria-pressed={(mat ?? pattern.material) === k} onClick={() => tryMat(k)}>{label}</button>)}
               </div>
+              {/* 탄성 (Kim): a looser hand or a bigger hook makes a limper fabric - seen here, the pattern unchanged */}
+              <label className="yw-soft"><span>탄성</span><input type="range" min={.3} max={2.5} step={.1} value={softK} onChange={e => { const k = Number(e.target.value); setSoftK(k); const p = { ...shown.current, softK: k }; viewer.current?.setPattern(p); shown.current = p; }} /><output>{softWord(softK)}</output></label>
             </>}
           </section>
         )}

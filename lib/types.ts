@@ -69,6 +69,10 @@ export interface Draft {
   editOf?: string;
   /** how the top closes (Kim): "spread" the sides go out; "tuck" the width kept, the sides folded in */
   topFold?: "spread" | "tuck";
+  /** 탄성 (Kim): how limp the fabric is drawn (a loose hand or a bigger hook) - the 3D only, 1 = the yarn's own */
+  softK?: number;
+  /** 다른 실로 보기 at the end (Kim): a material being tried on the 3D before it is taken (not saved) */
+  tryMat?: string;
   handleCount?: 1 | 2;
   /** a band handle (a chain, then this many rows of 짧은뜨기 along it); the 3D left to its own weight */
   handleRows?: number;

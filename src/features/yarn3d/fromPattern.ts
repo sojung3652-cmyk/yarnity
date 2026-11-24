@@ -39,6 +39,7 @@ export interface YarnSource extends PlanInput {
   handleWcm?: number | null;
   topGapCm?: number | null;
   topFold?: "spread" | "tuck";
+  softK?: number | null;
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; tab?: boolean; items?: { pic: string; at: [number, number, number] }[] } | null;
   /** a band handle's rows of 짧은뜨기 on its chain; the piece left to its own weight (the 3D only) */
   handleRows?: number;
@@ -60,7 +61,7 @@ export const DEFAULT_COLOR = "#EFE6D4";
 const MAT: Record<string, YarnMaterial> = {
   코튼: "cotton", 울: "wool", 메리노: "wool", 캐시미어: "cashmere", 아크릴: "wool", 알파카: "alpaca", 모헤어: "mohair", 앙고라: "angora",
   수면사: "sleep", 부클레: "boucle", 수세미실: "scrub", 패브릭얀: "tshirt", 리본얀: "ribbon", 황마: "jute",
-  리넨: "linen", 실크: "silk", 대나무: "cotton", 나일론: "silk", 폴리에스터: "cotton", "벨벳(셔닐)": "chenille",
+  리넨: "linen", 실크: "silk", 대나무: "cotton", 나일론: "nylon", 폴리에스터: "cotton", "벨벳(셔닐)": "chenille",
   라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈릭: "metal",
 };
 
@@ -119,6 +120,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
     ...(p.free ? {} : p.item === "pouch" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
     // with a flap the top closes to the gap asked (2cm when not said)
+    ...(p.softK && p.softK !== 1 ? { softK: p.softK } : {}),
     // 합사 (Kim): the first added yarn held together with the main one - its colour twists in, its fibres show
     ...((h => h ? { marl: h.hex, marlShare: (h.yarnMm && h.yarnMm > 0 ? h.yarnMm : (p.yarnMm || 3)) / ((p.yarnMm || 3) + (h.yarnMm && h.yarnMm > 0 ? h.yarnMm : (p.yarnMm || 3))), ...((m => m && MAT[m] ? { marlMat: MAT[m] } : {})(h.materials?.length ? h.materials[h.materials.length - 1] : h.material)) } : {})((p.moreColors ?? []).find(c => c?.held && !!c.hex && /^#[0-9a-f]{6}$/i.test(c.hex)))),
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
