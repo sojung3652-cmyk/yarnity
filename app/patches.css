@@ -116,3 +116,6 @@ html body .gl-title{line-height:1}
 @keyframes y-fade-in{from{opacity:0;translate:0 6px}to{opacity:1;translate:0 0}}
 :where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation:y-fade-in .28s ease both}
 @media (prefers-reduced-motion:reduce){:where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation:none}}
+/* a screen's new content (Kim: 창으로 들어갈 때 띄우는 효과 - 실 도감, FAQ): floats up and fades in */
+.y-enter{animation:y-fade-in .34s cubic-bezier(.2,.7,.3,1) both}
+@media (prefers-reduced-motion:reduce){.y-enter{animation:none}}

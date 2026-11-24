@@ -44,8 +44,23 @@ export function Floating() {
     scan(document);
     // what appears later (a page opened, a list grown): scanned once the browser is idle
     let queued: ParentNode[] = [], t = 0;
+    // a screen changing inside the page (Kim: 실 도감, FAQ - "띡" 하고 나오지 않게): what came in, when it is a screen's
+    // worth, floats up and fades in - before the browser paints it (this runs before the paint)
+    const enter = (els: HTMLElement[]) => {
+      els.slice(0, 60).forEach(el => {
+        el.classList.add("y-enter");
+        el.addEventListener("animationend", () => el.classList.remove("y-enter"), { once: true });
+      });
+    };
     const mo = new MutationObserver(ms => {
-      for (const m of ms) m.addedNodes.forEach(n => { if (n instanceof HTMLElement) queued.push(n); });
+      for (const m of ms) {
+        const els = [...m.addedNodes].filter((n): n is HTMLElement => n instanceof HTMLElement && !n.matches("canvas, script, style, .scroll-top, .y-enter") && !n.closest("nav, header, footer, .ai-badge, [aria-live]"));
+        if (els.length) {
+          let area = 0; for (const el of els) { const r = el.getBoundingClientRect(); area += r.width * r.height; }
+          if (area >= 280 * 160) enter(els);
+        }
+        els.forEach(n => queued.push(n));
+      }
       if (queued.length && !t) t = window.setTimeout(() => { const q = queued; queued = []; t = 0; q.forEach(n => { if ((n as HTMLElement).isConnected) scan(n); }); }, 60);
     });
     mo.observe(document.body, { childList: true, subtree: true });
