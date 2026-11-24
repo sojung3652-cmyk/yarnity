@@ -1142,8 +1142,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // every yarn a notch softer than its own measure (Kim: 좀만 더 흐물거리게); a stiff one (cord, raffia, jute) stays stiff
     const raw = opts.phone || pat.firm ? 0 : st.soft * 1.25 * (pat.softK ?? 1) * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm));
     const s = Math.max(0, Math.min(1, raw));
-    // past fully soft (탄성 turned far up, Kim's sketch): the bag slumps - lower, its upper wall rounding out and
-    // over into a dome, a soft crease where it folds at the middle
+    // past fully soft (탄성 turned far up): limp but held up by its top, as if hung on a hook (Kim: it keeps its
+    // form, no slumping) - the height stays, the walls fall in at the waist and the bottom sags round under the weight
     const o = Math.max(0, Math.min(1, (raw - 1) / 2));
     if (s < .03) return;
     if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
@@ -1163,9 +1163,18 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const k = (1 + s * (.07 * Math.sin(Math.PI * Math.min(1, t * 1.1)) - .055 * t * t) * (.6 + .4 * slim)) * (1 + s * .04 * t * (Math.sin(2 * th + .6) + .5 * Math.sin(3 * th + 2.1)));
       p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; p.y -= s * .075 * t * t * H * (.6 + .4 * slim);
       if (o > 0) {
-        const top = Math.max(0, (t - .55) / .45), crease = Math.exp(-(((t - .5) / .07) ** 2));
-        const ko = 1 + o * (.2 * Math.sin(Math.PI * Math.min(1, t * 1.05)) - .38 * top * top - .07 * crease);
-        p.x = cx + (p.x - cx) * ko; p.z = cz + (p.z - cz) * ko; p.y -= o * H * (.32 * t * t + .1 * top * top);
+        // hung: the top edge where it is; the wall drawn in most a little above the middle, with soft folds round it
+        const waist = Math.sin(Math.PI * Math.min(1, t * 1.15)) * (1 - t * .35), fold = .5 + .5 * Math.sin(5 * th + 1.1);
+        const ko = 1 - o * waist * (.13 + .06 * fold);
+        p.x = cx + (p.x - cx) * ko; p.z = cz + (p.z - cz) * ko;
+      }
+    }
+    // hung and very soft: the bottom sags into a round under its weight (its middle lowest), the top stays put
+    if (o > 0) {
+      const hx = (b.x1 - b.x0) / 2 || 1, hz = (b.z1 - b.z0) / 2 || 1;
+      for (const p of D.P) {
+        const r2 = Math.min(1, ((p.x - cx) / hx) ** 2 + ((p.z - cz) / hz) ** 2), low = Math.max(0, 1 - p.y / (H * .45));
+        p.y -= o * Math.min(hx, hz) * .32 * (1 - r2) * low * low;
       }
     }
     // a soft yarn's bag rounds at its bottom (Kim): the bottom's edge comes up and the wall's foot comes in - a U
