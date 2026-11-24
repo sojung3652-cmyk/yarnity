@@ -1016,7 +1016,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     );
     oneAsm = (
       <div className="nb-web">
-        <button type="button" className="nb-link asm-yarn" onClick={() => window.dispatchEvent(new Event("yw:yarncheck"))}>실 다시 정하기 · 실 확인 보기</button>
+        <button type="button" className="nb-link asm-yarn" onClick={() => window.dispatchEvent(new Event("yw:yarncheck"))}>실 설정으로 돌아가기</button>
         <div className="nb-needle asm-mode" role="radiogroup" aria-label="모양을 만드는 방법">
           {([["asm", "조립하기"], ["draw", "그리기"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={shapeMode === k} onClick={() => setShapeMode(k)}>{t}</button>)}
         </div>

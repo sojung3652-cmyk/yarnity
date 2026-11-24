@@ -514,3 +514,62 @@ body:has(.yw) .aic-root{z-index:460}
 .yw .yw-loadbtn:hover,.yw .yw-loadbtn[aria-expanded="true"]{background:none;color:#3A322D;text-decoration:underline;text-decoration-color:#C9B48A;text-underline-offset:4px}
 .yw-loadbtn b{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#F4E0DF;font-size:11px;font-weight:600;line-height:18px;color:#9C5D63;text-decoration:none}
 .yw-loadlist{border-radius:3px;background:var(--weave,none),#FBF8F1}
+/* ===== the site's own labels on the 3D screen (Kim: 린넨 라벨과 라벨, not digital) =====
+   the woven face of ClothLabel (newbook.css .cloth-face): cream weave, soft lower shadow, dashed stitches */
+.yw{--cloth:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
+  --cloth-sh:0 1px 2px rgba(70,50,40,.16),0 4px 10px rgba(70,50,40,.08);--stitch:var(--book-lav,#EEBEC7)}
+
+/* 바인더: each piece a small woven label; the open one in dusty rose, its name written on it */
+.yw-binder{align-self:center;margin-left:6px}
+.yw-tabs{align-items:center;gap:8px;overflow:visible;padding:0}
+.yw-tabd,.yw-tabd.is-on{position:relative;flex:0 1 auto;min-width:64px;height:34px;max-width:200px;border-radius:2px;background:var(--cloth);box-shadow:var(--cloth-sh);transform:rotate(-.6deg)}
+.yw-tabd:nth-child(even){transform:rotate(.6deg)}
+.yw-tabd::before,.yw-tabd::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed var(--stitch);pointer-events:none}
+.yw-tabd::before{left:6px}.yw-tabd::after{right:6px}
+.yw-tabd.is-on{height:36px;transform:none;background:repeating-linear-gradient(0deg,rgba(150,90,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,90,90,.045) 0 1px,transparent 1px 3px),#F4E0DF;box-shadow:0 1px 2px rgba(70,50,40,.2),0 5px 12px rgba(70,50,40,.1)}
+.yw-tabd.is-on::before,.yw-tabd.is-on::after{border-color:#C98F98}
+.yw-tabd>button:first-child{padding:0 8px 0 16px;font:500 13.5px "Noto Serif KR",serif;color:#5E534D}
+.yw-tabd:only-child>button:first-child{padding-right:16px}
+.yw-tabname{padding:0 8px 0 16px;font:600 14px "Noto Serif KR",serif;color:#3A322D}
+.yw-tabname:focus{box-shadow:none;text-decoration:underline;text-decoration-color:#C9A85C;text-underline-offset:5px}
+.yw-tabname::placeholder{color:#A8958D}
+.yw-tabx{margin-right:12px;width:18px;height:18px;font-size:13px;color:#9C8A80;background:none}
+.yw-tabx:hover{background:rgba(255,255,255,.5);color:#3A322D}
+.yw .yw-tabadd{position:relative;width:34px;height:34px;margin:0;border-radius:2px;background:var(--cloth);box-shadow:var(--cloth-sh);font:500 18px "Noto Serif KR",serif;color:#5E534D;transform:rotate(1deg)}
+.yw .yw-tabadd:hover,.yw .yw-tabadd[aria-expanded="true"]{transform:none;background:var(--cloth);color:#3A322D}
+.yw-load{position:relative;display:inline-flex}
+.yw-loadlist{top:calc(100% + 10px);left:-4px;width:300px;padding:12px 14px;border-radius:2px;background:var(--cloth);box-shadow:0 2px 4px rgba(70,50,40,.18),0 10px 24px rgba(70,50,40,.14)}
+.yw-loadlist::before{content:"";position:absolute;inset:5px;border:1.5px dashed var(--stitch);border-radius:2px;pointer-events:none}
+.yw-addmenu{display:grid;gap:2px;padding:10px}
+.yw-addmenu button{position:relative;display:grid;gap:1px;padding:9px 12px;border:0;border-radius:2px;background:none;text-align:left;cursor:pointer}
+.yw-addmenu button:hover{background:rgba(244,224,223,.7)}
+.yw-addmenu b{font:600 14px "Noto Serif KR",serif;color:#3A322D}
+.yw-addmenu small{font-size:12px;color:#7A6A63}
+.yw-loadh{display:flex;align-items:center;gap:6px;font-family:"Noto Serif KR",serif}
+.yw-loadlist li{border-top:1px dashed #DCCBB8}
+
+/* the 3D's toolbox: one linen card with stitched edges; its choices plain words, the chosen one in dusty rose */
+.yw-dock-tools{position:relative;padding:9px 14px 10px;border-radius:2px;background:var(--cloth);box-shadow:var(--cloth-sh)}
+.yw-dock-tools::before{content:"";position:absolute;inset:4px;border:1.5px dashed var(--stitch);border-radius:2px;pointer-events:none}
+.yw-dock-tools .yw-grp-n{font:500 11px "Noto Serif KR",serif;color:#8A7A72}
+.yw .yw-dock-tools .yw-seg{background:none;box-shadow:none;gap:2px}
+.yw .yw-dock-tools .yw-opt,.yw .yw-dock-tools .yw-act{height:28px;padding:0 10px;border-radius:2px;background:none;box-shadow:none;font:500 12.5px "Noto Serif KR",serif;color:#5E534D}
+.yw .yw-dock-tools .yw-opt:hover,.yw .yw-dock-tools .yw-act:hover{background:rgba(255,255,255,.55);box-shadow:none}
+.yw .yw-dock-tools .yw-opt[aria-pressed="true"],.yw .yw-dock-tools .yw-act[aria-pressed="true"]{background:#F4E0DF;box-shadow:inset 0 0 0 1px #D8A9B0;color:#3A322D;font-weight:600}
+.yw .yw-dock-tools .yw-opt+.yw-opt{box-shadow:none}
+.yw-dock-tools .yw-acts{border-left:1.5px dashed #DCCBB8}
+.yw-dock-tools .yw-act svg{color:#A3865A}
+/* how to move it: plain words on the stage, no keycaps */
+.yw .yw-dock .yw-hint.yw-keys{padding:0;background:none;box-shadow:none;font:400 11.5px "Noto Serif KR",serif;color:#8A7A72}
+.yw .yw-stage.is-dark .yw-dock .yw-hint.yw-keys{color:#BDB2A6}
+.yw .yw-dock .yw-keys kbd{padding:0;background:none;box-shadow:none;font:600 11.5px "Noto Serif KR",serif;color:inherit}
+/* the directions and the magnifiers: the same linen, a narrow strip */
+.yw .yw-dock .yw-views{position:relative;padding:3px 6px;border-radius:2px;background:var(--cloth);box-shadow:var(--cloth-sh)}
+.yw .yw-dock .yw-views .yw-opt{height:26px;background:none;box-shadow:none;font:500 12px "Noto Serif KR",serif;color:#5E534D}
+.yw .yw-dock .yw-views .yw-opt:hover{background:rgba(255,255,255,.55)}
+.yw-views-sep{width:0;border-left:1.5px dashed #DCCBB8;background:none}
+/* 제작 시뮬레이션: a woven label too */
+.yw .yw-sim{position:relative;height:34px;padding:0 18px;border-radius:2px;background:var(--cloth);box-shadow:var(--cloth-sh);font:500 12.5px "Noto Serif KR",serif;color:#4A3D38;transform:rotate(-.8deg)}
+.yw .yw-sim::before,.yw .yw-sim::after{content:"";position:absolute;top:6px;bottom:6px;border-left:1.5px dashed var(--stitch)}
+.yw .yw-sim::before{left:6px}.yw .yw-sim::after{right:6px}
+.yw .yw-sim:hover{transform:none}.yw-tabd.is-on::before{left:6px;right:auto;top:6px;bottom:6px;border-top:0;opacity:1}

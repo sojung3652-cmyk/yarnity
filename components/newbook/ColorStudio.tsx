@@ -28,7 +28,7 @@ export function ColorStudio({ draft, patch }: { draft: Draft; patch: Patch }) {
   const cur = HEX.test(draft.color ?? "") ? draft.color!.toUpperCase() : "#EFE6D4";
   const [hsv, setHsv] = useState(() => toHsv(cur));
   const [hexRaw, setHexRaw] = useState(cur);
-  const [favs, setFavs] = useState<string[]>([]);
+  const [favs, setFavs] = useState<string[]>([]), [favOpen, setFavOpen] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   const field = useRef<HTMLDivElement>(null), img = useRef<HTMLImageElement>(null), file = useRef<HTMLInputElement>(null);
   useEffect(() => { setFavs(store.get<string[]>(FAV_KEY, []).filter(c => HEX.test(c))); }, []);
@@ -90,23 +90,25 @@ export function ColorStudio({ draft, patch }: { draft: Draft; patch: Patch }) {
             <input value={hexRaw} maxLength={7} spellCheck={false} aria-label="색 코드"
               onChange={e => { const t = e.target.value.trim(); setHexRaw(t); const hx = t.startsWith("#") ? t : "#" + t; if (HEX.test(hx)) { setHsv(toHsv(hx)); put(hx); } }} />
           </label>
-          <button type="button" className="cs-save" onClick={saveFav} disabled={favs.includes(cur)}>{favs.includes(cur) ? "저장된 색" : "내 색에 저장"}</button>
+          <button type="button" className="cs-save" onClick={() => { saveFav(); setFavOpen(true); }} disabled={favs.includes(cur)}>{favs.includes(cur) ? "저장됨" : "이 색 저장"}</button>
         </div>
       </div>
       <input className="cs-hue" type="range" min={0} max={359} step={1} value={Math.round(h)} aria-label="색상" onChange={e => fromHsv(Number(e.target.value), s || .5, v || .9)} />
 
-      <div className="cs-row">
-        <span className="cs-lb">내 색</span>
-        {favs.length ? (
-          <div className="cs-dots" role="group" aria-label="내 색">
+      {/* 저장된 색 (Kim): a toggle - closed, only its name and how many */}
+      <div className="cs-row cs-favrow">
+        <button type="button" className="cs-lb cs-favtoggle" aria-expanded={favOpen} onClick={() => setFavOpen(v => !v)}>
+          <i aria-hidden="true">{favOpen ? "▾" : "▸"}</i>저장된 색{favs.length ? <small>{favs.length}</small> : null}</button>
+        {favOpen && (favs.length ? (
+          <div className="cs-dots" role="group" aria-label="저장된 색">
             {favs.map(c => (
               <span key={c} className="cs-fav">
-                <button type="button" className="cs-dot" style={{ background: c }} aria-label={`내 색 ${c}`} aria-pressed={c === cur} onClick={() => { setHsv(toHsv(c)); put(c); }} />
+                <button type="button" className="cs-dot" style={{ background: c }} aria-label={`저장된 색 ${c}`} aria-pressed={c === cur} onClick={() => { setHsv(toHsv(c)); put(c); }} />
                 <button type="button" className="cs-x" aria-label={`${c} 지우기`} onClick={() => dropFav(c)}>×</button>
               </span>
             ))}
           </div>
-        ) : <span className="cs-none">마음에 드는 색을 저장해 두면 여기에 모입니다.</span>}
+        ) : <span className="cs-none">마음에 드는 색을 저장해 두면 여기에 모입니다.</span>)}
       </div>
 
       <div className="cs-row">
@@ -127,7 +129,7 @@ export function ColorStudio({ draft, patch }: { draft: Draft; patch: Patch }) {
 
       <div className="cs-row">
         <span className="cs-lb">기본 색</span>
-        <div className="cs-dots" role="radiogroup" aria-label="기본 색">
+        <div className="cs-dots cs-basic" role="radiogroup" aria-label="기본 색">
           {COLORS.map(([n, hex]) => <button key={n} type="button" role="radio" className="cs-dot" title={n} aria-label={n} aria-checked={cur === hex.toUpperCase()} style={{ background: hex }}
             onClick={() => { setHsv(toHsv(hex)); put(hex, n); }} />)}
         </div>

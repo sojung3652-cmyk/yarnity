@@ -88,7 +88,7 @@ const Group = ({ name, children, plain }: { name: string; children: ReactNode; p
 
 /** 바인더: the tabs, + and 불러오기 (a list under it; 지우기 asks once, in the row) */
 function Binder({ b, name }: { b: NonNullable<WorkExtra["binder"]>; name?: WorkExtra["name"] }) {
-  const [list, setList] = useState(false), [sure, setSure] = useState<string | null>(null);
+  const [list, setList] = useState<false | "menu" | "load">(false), [sure, setSure] = useState<string | null>(null);
   return (
     <div className="yw-binder">
       <div className="yw-tabs" role="tablist" aria-label="만들던 도안">
@@ -102,15 +102,18 @@ function Binder({ b, name }: { b: NonNullable<WorkExtra["binder"]>; name?: WorkE
             {b.tabs.length > 1 && <button type="button" className="yw-tabx" aria-label={t.name + " 탭 닫기"} title="탭 닫기 (불러오기로 다시 열 수 있습니다)" onClick={() => b.close(t.id)}>×</button>}
           </span>
         ))}
-        <button type="button" className="yw-tabadd" aria-label="새 도안" title="새 도안" onClick={b.add}>+</button>
-      </div>
-      <div className="yw-load">
-        {/* 불러오기 (Kim: in the site's own look): a quiet text button, a small folder before it */}
-        <button type="button" className="yw-loadbtn" aria-expanded={list} onClick={() => { setList(v => !v); setSure(null); }}>
-          <Ic s={15} d="M3.5 7.5V18a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1V9.5a1 1 0 0 0-1-1h-8l-2-2.5H4.5a1 1 0 0 0-1 1z" />만들던 도안 불러오기{b.closed.length ? <b>{b.closed.length}</b> : null}</button>
-        {list && (
+        {/* + (Kim): a new one, or one being made brought back - asked in a small menu */}
+        <span className="yw-load">
+          <button type="button" className="yw-tabadd" aria-label="도안 추가" title="새로 만들기 · 만들던 도안 불러오기" aria-expanded={!!list} onClick={() => { setList(v => v ? false : "menu"); setSure(null); }}>+</button>
+          {list === "menu" && (
+            <div className="yw-loadlist yw-addmenu" role="menu" aria-label="도안 추가">
+              <button type="button" role="menuitem" onClick={() => { setList(false); b.add(); }}><b>새로 만들기</b><small>빈 도안에서 시작합니다</small></button>
+              <button type="button" role="menuitem" onClick={() => setList("load")}><b>만들던 도안 불러오기{b.closed.length ? ` (${b.closed.length})` : ""}</b><small>닫아 둔 도안을 다시 엽니다</small></button>
+            </div>
+          )}
+          {list === "load" && (
           <div className="yw-loadlist" role="dialog" aria-label="만들던 도안 불러오기">
-            <p className="yw-loadh">만들던 도안 불러오기</p>
+            <p className="yw-loadh"><button type="button" className="nb-link st-muted" onClick={() => setList("menu")}>←</button> 만들던 도안 불러오기</p>
             {b.closed.length ? (
               <ul>{b.closed.map(e => (
                 <li key={e.id}>
@@ -121,7 +124,8 @@ function Binder({ b, name }: { b: NonNullable<WorkExtra["binder"]>; name?: WorkE
               ))}</ul>
             ) : <p className="yw-loadnone">닫아 둔 도안이 없습니다. 탭의 ×로 닫거나 새로 시작한 도안이 여기에 모입니다.</p>}
           </div>
-        )}
+          )}
+        </span>
       </div>
     </div>
   );
@@ -291,7 +295,6 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
         {intro && extra?.intro && (
           <div className="yw-intro">
             {extra.intro}
-            <h2>실 확인<small>오른쪽에서 실을 바꾸면 바로 바뀝니다</small></h2>
           </div>
         )}
         {noGL ? <p className="yw-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
@@ -326,7 +329,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               <Group name="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></Group>
               <Group name="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></Group>
               <div className="yw-acts" role="group" aria-label="도구">
-                {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => { if (intro) toShape(); else window.dispatchEvent(new Event("yw:yarncheck")); }}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
+                {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => { if (intro) toShape(); else window.dispatchEvent(new Event("yw:yarncheck")); }}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 설정</button>}
                 <button type="button" className="yw-act" aria-pressed={ruler} onClick={toggleRuler}><Ic s={18} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />치수</button>
                 {extra?.onResize && !empty && <button type="button" className="yw-act" aria-pressed={frameOn} title="크기 틀 (Ctrl+T)" onClick={toggleFrame}><Ic s={18} d="M5 5h14v14H5zM3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4z" />크기 틀</button>}
               </div>

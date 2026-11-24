@@ -11,6 +11,7 @@ import { SparkleLogo } from "@/components/SparkleLogo";
 import { BookProvider } from "@/components/Book/BookProvider";
 import { Hero } from "@/components/home/Hero";
 import { MobileChrome } from "@/components/mobile/MobileChrome";
+import { ScrollTop } from "@/components/ScrollTop";
 
 // Home hero and the open book: the start button (Cormorant Garamond italic) and the "INTELLIGENT CROCHET"
 // captions (Cormorant Garamond upright). Self-hosted by next/font (OFL), exposed as a CSS variable.
@@ -50,6 +51,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AiHost />
             {/* the one AI button, a round linen badge at the lower right (web and phones) */}
             <AiBadge />
+            {/* 위로 가기: a small arrow at the lower left of whatever is scrolled (Kim) */}
+            <ScrollTop />
           </BookProvider>
         </AppProvider>
       </body>

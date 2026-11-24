@@ -87,3 +87,8 @@ html body .gl-title{line-height:1}
   html body .pg-link.pg-link-sage{--patch:url(/glossary/patch_babypink.webp)}
   html body .pg-link.pg-link-lilac{--patch:url(/glossary/patch_leaf.webp)}
 }
+
+/* 위로 가기 (Kim): small, at the lower left of what is scrolled - a linen button with one arrow */
+.scroll-top{position:fixed;z-index:950;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:3px;background:var(--weave,none),#F8F2E7;color:#5E534D;cursor:pointer;box-shadow:-1px 2px 4px -2px rgba(70,50,30,.45),inset 0 0 0 1px #D9C9B2;opacity:.92;transition:opacity .15s}
+.scroll-top:hover{opacity:1;color:#3A322D}
+.scroll-top:focus-visible{outline:2px solid #4A3D38;outline-offset:2px}

@@ -371,6 +371,8 @@ export function WebHook({ draft, patch, tried }: { draft: Draft; patch: Patch; t
       {showErr && <p className="nb-err" id="hErr">{err}</p>}
       {mis ? <p className="nb-wnote is-warn" role="status">{mis === "thin" ? "이 실에는 바늘이 가늡니다. 편물이 빳빳해질 수 있습니다." : "이 실에는 바늘이 굵습니다. 편물이 성글어질 수 있습니다."}</p>
         : fit.length > 0 && <p className="nb-wnote">{`실 ${yarnMm}mm에는 ${fit.length > 1 ? `${fit[0]}~${fit[fit.length - 1]}` : fit[0]}가 잘 맞습니다.`}</p>}
+      {/* Kim: say that the yarn against the hook decides how close the fabric is */}
+      <p className="nb-help nb-ratio">편물이 얼마나 촘촘한지는 실 굵기와 바늘 굵기의 비율로 정해집니다. 실보다 바늘이 가늘수록 촘촘하고 단단해지고, 굵을수록 성글고 부드러워집니다.{Number.isFinite(mm) && yarnMm ? ` 지금은 바늘이 실의 ${(mm / yarnMm).toFixed(1)}배입니다.` : ""}</p>
     </div>
   );
 }
@@ -520,7 +522,7 @@ export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly }: { draft:
         <div className="nb-needle" role="radiogroup" aria-label="바늘">
           {([["crochet", "코바늘"], ["knit", "대바늘"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={craft === k} onClick={() => patch({ craft: k })}>{t}</button>)}
         </div>
-        {flatOnly && <p className="nb-help nb-needle-note">대바늘 도안은 목도리처럼 평평하게 뜨는 편물에서 만들어집니다. 이 모양의 도안은 코바늘로 계산하고, 무늬는 3D 실 확인에서 볼 수 있습니다.</p>}
+        {flatOnly && <p className="nb-help nb-needle-note">대바늘 도안은 목도리처럼 평평하게 뜨는 편물에서 만들어집니다. 이 모양의 도안은 코바늘로 계산하고, 무늬는 3D 실 설정에서 볼 수 있습니다.</p>}
       </div>
       <div className="nb-tabs nb-famtabs" role="tablist" aria-label={(craft === "knit" ? "대바늘" : "코바늘") + " 무늬 종류"}>
         {fams.map(f => <button key={f} type="button" role="tab" aria-selected={f === fam} onClick={() => setTab(f)}>{f}</button>)}

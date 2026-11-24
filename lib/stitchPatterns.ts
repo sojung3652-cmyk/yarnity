@@ -4,9 +4,8 @@
 // "st:<key>" a plain crochet stitch (lib/pattern CROCHET), "ch:<key>" a crochet chart (lib/crochetChart), "cc:<name>" a chart built from its recipe
 // (lib/stitchCharts: a picture of the fabric worked out from how it is made, near rather than exact).
 export interface StitchPattern { id: string; needle: "crochet" | "knit"; fam: string; ko: string; en: string; how: string; mult: string; level: string; draw?: string }
-export const STITCH_PATTERNS: StitchPattern[] = [{"id":"c0","needle":"crochet","fam":"기본","ko":"사슬뜨기","en":"chain (ch)","how":"실을 걸어 고리 사이로 빼기. 모든 시작과 구멍·아치의 재료","mult":"—","level":"쉬움","draw":"cc:사슬뜨기"},
-{"id":"c1","needle":"crochet","fam":"기본","ko":"빼뜨기","en":"slip stitch (sl st)","how":"코에 넣어 실을 걸고 한 번에 빼기. 높이가 거의 없어 잇기·이동에 씀","mult":"—","level":"쉬움","draw":"cc:빼뜨기"},
-{"id":"c2","needle":"crochet","fam":"기본","ko":"짧은뜨기","en":"single crochet (sc)","how":"실을 걸어 빼고, 다시 걸어 고리 2개를 한 번에. 가장 촘촘하고 단단함","mult":"아무 코 수 · 기둥사슬 1 (코로 안 셈)","level":"쉬움","draw":"st:sc"},
+// 사슬뜨기 and 빼뜨기 are not stitch patterns (Kim: steps on the way to a fabric, not a 무늬) - left out
+export const STITCH_PATTERNS: StitchPattern[] = [{"id":"c2","needle":"crochet","fam":"기본","ko":"짧은뜨기","en":"single crochet (sc)","how":"실을 걸어 빼고, 다시 걸어 고리 2개를 한 번에. 가장 촘촘하고 단단함","mult":"아무 코 수 · 기둥사슬 1 (코로 안 셈)","level":"쉬움","draw":"st:sc"},
 {"id":"c3","needle":"crochet","fam":"기본","ko":"긴뜨기","en":"half double crochet (hdc)","how":"먼저 실을 감고 넣어, 고리 3개를 한 번에 빼기","mult":"아무 코 수 · 기둥사슬 2","level":"쉬움","draw":"st:hdc"},
 {"id":"c4","needle":"crochet","fam":"기본","ko":"한길긴뜨기","en":"double crochet (dc)","how":"실을 감고 넣어, 고리를 2개씩 두 번 빼기","mult":"아무 코 수 · 기둥사슬 3 (코로 셈)","level":"쉬움","draw":"st:dc"},
 {"id":"c5","needle":"crochet","fam":"기본","ko":"두길긴뜨기","en":"treble crochet (tr)","how":"실을 두 번 감고, 고리를 2개씩 세 번 빼기","mult":"아무 코 수 · 기둥사슬 4 (코로 셈)","level":"쉬움","draw":"cc:두길긴뜨기"},
