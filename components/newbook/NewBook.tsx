@@ -56,7 +56,7 @@ import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import { PATTERN_BY_ID, chartNameOf } from "@/lib/stitchPatterns";
 import { autoName, bodyOf, bodyPatch, bodyWidth, partLines, scaleDraft } from "@/lib/assemble";
-import { AskInline, AskStart } from "./AskStart";
+import { AskInline, NameStart } from "./AskStart";
 import "./newbook.css";
 
 type Step = WizStep;
@@ -405,7 +405,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // closing the 3D with X / Esc (Kim: 저장할지 말지 물어봐): the draft as it was when the 3D opened, put back
   // if the changes are not kept
   const atOpen = useRef<Draft | null>(null);
-  useEffect(() => { atOpen.current = big3d.open ? draft : null; }, [big3d.open]); // eslint-disable-line react-hooks/exhaustive-deps
+  // a draft that already has a name is not asked for it again
+  useEffect(() => { atOpen.current = big3d.open ? draft : null; if (big3d.open && draft.name.trim()) setNamed(true); }, [big3d.open]); // eslint-disable-line react-hooks/exhaustive-deps
   // 바인더 (Kim): the drafts being made as tabs on the 3D 만들기 screen - one pressed is worked on at once, the one
   // left kept as it was; + a new one; × puts one away, 불러오기 brings it back. Not while a saved work is changed.
   const [, setBinRev] = useState(0);
@@ -413,7 +414,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const loadDraft = (d: Draft | null) => {
     if (!d) return;
     const p = !!d.itemPicked;
-    startStep.current = p ? 4 : 1; setDraft(d); setNums(numsOf(d)); atOpen.current = d; setTryMat(null); setTried(false); setAsked(p); setYarnSet(p); setRev(r => r + 1);
+    startStep.current = p ? 4 : 1; setDraft(d); setNums(numsOf(d)); atOpen.current = d; setTryMat(null); setTried(false); setAsked(p); setYarnSet(p); setNamed(p || !!d.name.trim()); setRev(r => r + 1);
     if (p) { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); } else window.dispatchEvent(new Event("yw:yarncheck"));
   };
   const tabName = (d: Draft) => d.name.trim() || (d.itemPicked ? ITEM[itemIdOf(d)].name : "새 도안");
@@ -1104,10 +1105,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   } : undefined;
   const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, leave: leave3d, binder: binderX, panel: making ? undefined : workPanel,
     empty: !picked,
-    // 조립하기: what to make, asked first (Kim); the 크기 틀 dragged on the 3D
-    // what to make, asked first (Kim: 맨 처음에); the yarn next, the shape after; the name at the end, on 확인
-    ask: big3d.open && !picked && !asked && !editId ? <AskStart draft={draft} onSkip={() => { setAsked(true); setShapeMode("asm"); }}
-      onApply={applyAsk} /> : undefined,
+    // the first window asks only the name (Kim: 처음에는 이름만, 나머지는 제작에서) - the yarn next; what to make is
+    // said in 모양 (words, drawing, or a 기본형 there)
+    ask: big3d.open && !picked && !named && !editId ? <NameStart name={draft.name} onName={v => patch({ name: v })} onNext={() => { setNamed(true); setAsked(true); setShapeMode("asm"); }} /> : undefined,
     onResize: picked && !draft.free && !draft.paint ? (fx, fy) => {
       if (fx !== 1 && fx === fy) { apply(scaleDraft(draft, fx)); return; }
       const lim = (k: "a" | "b" | "h", v: number) => { const r = item.range[k]; const x = Math.round(v * 2) / 2; return r ? Math.min(r[1], Math.max(r[0], x)) : x; };

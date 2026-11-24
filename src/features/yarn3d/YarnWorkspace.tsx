@@ -87,21 +87,27 @@ const Group = ({ name, children, plain }: { name: string; children: ReactNode; p
 );
 
 /** 바인더: the tabs, + and 불러오기 (a list under it; 지우기 asks once, in the row) */
-function Binder({ b }: { b: NonNullable<WorkExtra["binder"]> }) {
+function Binder({ b, name }: { b: NonNullable<WorkExtra["binder"]>; name?: WorkExtra["name"] }) {
   const [list, setList] = useState(false), [sure, setSure] = useState<string | null>(null);
   return (
     <div className="yw-binder">
       <div className="yw-tabs" role="tablist" aria-label="만들던 도안">
         {b.tabs.map(t => (
           <span key={t.id} className={"yw-tabd" + (t.on ? " is-on" : "")}>
-            <button type="button" role="tab" aria-selected={t.on} title={t.name} onClick={() => { if (!t.on) b.pick(t.id); }}>{t.name}</button>
+            {/* the open one: its name written right on the tab (작품 이름, faint until given) */}
+            {t.on && name
+              ? <input className="yw-tabname" role="tab" aria-selected="true" aria-label="작품 이름" value={name.value} maxLength={40} placeholder="작품 이름" autoComplete="off" spellCheck={false}
+                  size={Math.max(6, Math.min(18, (name.value || "작품 이름").length + 2))} onChange={e => name.onChange(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }} />
+              : <button type="button" role="tab" aria-selected={t.on} title={t.name} onClick={() => { if (!t.on) b.pick(t.id); }}>{t.name}</button>}
             {b.tabs.length > 1 && <button type="button" className="yw-tabx" aria-label={t.name + " 탭 닫기"} title="탭 닫기 (불러오기로 다시 열 수 있습니다)" onClick={() => b.close(t.id)}>×</button>}
           </span>
         ))}
         <button type="button" className="yw-tabadd" aria-label="새 도안" title="새 도안" onClick={b.add}>+</button>
       </div>
       <div className="yw-load">
-        <button type="button" className="yw-loadbtn" aria-expanded={list} onClick={() => { setList(v => !v); setSure(null); }}>불러오기{b.closed.length ? ` ${b.closed.length}` : ""}</button>
+        {/* 불러오기 (Kim: in the site's own look): a quiet text button, a small folder before it */}
+        <button type="button" className="yw-loadbtn" aria-expanded={list} onClick={() => { setList(v => !v); setSure(null); }}>
+          <Ic s={15} d="M3.5 7.5V18a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1V9.5a1 1 0 0 0-1-1h-8l-2-2.5H4.5a1 1 0 0 0-1 1z" />만들던 도안 불러오기{b.closed.length ? <b>{b.closed.length}</b> : null}</button>
         {list && (
           <div className="yw-loadlist" role="dialog" aria-label="만들던 도안 불러오기">
             <p className="yw-loadh">만들던 도안 불러오기</p>
@@ -234,6 +240,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const toggleRuler = () => { const on = !ruler; setRuler(on); viewer.current?.setRuler(on); if (!on) setRules(null); };
   const show = (v: "yarn" | "holo") => { setView(v); viewer.current?.setView(v); };
   const look = (v: YarnLook) => viewer.current?.look(v);
+  const zoomBy = (f: number) => { if (intro) window.dispatchEvent(new CustomEvent("yc:zoom", { detail: f })); else viewer.current?.zoom(f); };
   const editNow = () => { const go = extra?.onEdit; if (!go) return; onClose(); go(); };
   const mk = extra?.making, empty = !!extra?.empty;
   // the index shows which section is being read (the column scrolls; the index stays)
@@ -250,14 +257,15 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     <div ref={root} className={"yw" + (mk ? " yw-mk" : "")} role="dialog" aria-modal="true" aria-label="3D 작업 화면" data-built-ms={builtMs ?? undefined}
       onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()} onSubmit={e => e.stopPropagation()}>
       <div className="yw-top">
-        {extra?.name
+        {/* with the binder, the piece's name is written on its own tab (Kim: the binder's title) */}
+        {extra?.binder ? <Binder b={extra.binder} name={extra.name} />
+          : extra?.name
           ? <label className="yw-name yw-name-in"><span className="sr">작품 이름</span>
               <input value={extra.name.value} maxLength={40} placeholder="작품 이름" autoComplete="off" spellCheck={false}
                 onChange={e => extra.name!.onChange(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } }} />
               {/* what it is, beside a given name only (Kim: no name - just "작품 이름", faint) */}
               {extra.sub && extra.name.value.trim() && extra.name.value.trim() !== extra.sub && <small>{extra.sub}</small>}</label>
           : <p className="yw-name">{extra?.title ?? "3D 미리 보기"}{extra?.sub && <small>{extra.sub}</small>}</p>}
-        {extra?.binder && <Binder b={extra.binder} />}
         {/* the way back as a plain X at the right end (Kim), 도안 수정하기 beside it; the view tools are on the stage */}
         <span ref={backRef} className="yw-x">
           {extra?.onEdit && <button type="button" className="yw-act yw-edit" onClick={editNow}><Ic s={18} d={EDIT_D} />도안 수정하기</button>}
@@ -305,7 +313,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
         )}
         {/* the lower right (Kim): 제작 시뮬레이션 (the piece made round by round) just left of Yarni */}
         <div className="yw-corner">
-          {!noGL && !empty && <button type="button" className="yw-act yw-sim" title="한 단씩 떠 올라가는 모습을 보여 드립니다" onClick={() => { setIntro(false); viewer.current?.playDraw(); }}><Ic s={18} d="M7 4.5v15l12-7.5z" />제작 시뮬레이션</button>}
+          {!noGL && !empty && !intro && <button type="button" className="yw-act yw-sim" title="한 단씩 떠 올라가는 모습을 보여 드립니다" onClick={() => { setIntro(false); viewer.current?.playDraw(); }}><Ic s={18} d="M7 4.5v15l12-7.5z" />제작 시뮬레이션</button>}
           <button type="button" className="ai-badge yw-badge" aria-label="Yarni에게 물어보기" onClick={() => setChat(c => ({ ...c, open: true }))}>
             <span className="ai-badge__label" aria-hidden="true">Yarni에게 물어보기</span>
           </button>
@@ -324,10 +332,14 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               </div>
             </div>
             {!empty && !intro && !ruler && !frameOn && <p className="yw-hint yw-keys"><span><kbd>드래그</kbd> 돌리기</span><span><kbd>스크롤</kbd> 확대</span><span><kbd>스페이스+드래그</kbd> 옮기기</span></p>}
-            {!empty && (
+            {(!empty || intro) && (
               <div className="yw-views" role="group" aria-label="보는 방향">
-                <Opt onClick={() => { setIntro(false); look("front"); }}>앞</Opt><Opt onClick={() => { setIntro(false); look("side"); }}>옆</Opt><Opt onClick={() => { setIntro(false); look("top"); }}>위</Opt><Opt onClick={() => { setIntro(false); look("inside"); }}>안쪽</Opt>
-                <Opt label="처음 각도로" onClick={() => { setIntro(false); viewer.current?.home(); }}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
+                {!empty && <><Opt onClick={() => { setIntro(false); look("front"); }}>앞</Opt><Opt onClick={() => { setIntro(false); look("side"); }}>옆</Opt><Opt onClick={() => { setIntro(false); look("top"); }}>위</Opt><Opt onClick={() => { setIntro(false); look("inside"); }}>안쪽</Opt>
+                {/* the magnifiers with the directions (Kim: one tool): on the yarn check they work its piece */}
+                <i className="yw-views-sep" aria-hidden="true" /></>}
+                <Opt label="확대" onClick={() => zoomBy(.8)}><Ic s={16} d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 0 0 0-13zM15.5 15.5l5 5M10.5 8v5M8 10.5h5" /></Opt>
+                <Opt label="축소" onClick={() => zoomBy(1.25)}><Ic s={16} d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 0 0 0-13zM15.5 15.5l5 5M8 10.5h5" /></Opt>
+                <Opt label="처음 각도로" onClick={() => { if (intro) window.dispatchEvent(new Event("yc:home")); else viewer.current?.home(); }}><Ic s={16} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
               </div>
             )}
           </div>

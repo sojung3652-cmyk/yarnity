@@ -20,7 +20,7 @@ const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undef
  *  screen (the yarn check), so it follows changes even while the book's page 3D waits */
 /** `far`: the piece first seen this much further away (the yarn check: smaller in a full stage, Kim); `movable`:
  *  the three tools at the top right, dragged anywhere by their grip */
-export function YarnPagePreview({ source, plan, fabric, caption, live, far, movable }: { source: YarnSource; plan: Plan; fabric?: boolean; caption?: string; live?: boolean; far?: number; movable?: boolean }) {
+export function YarnPagePreview({ source, plan, fabric, caption, live, far, movable, bus }: { source: YarnSource; plan: Plan; fabric?: boolean; caption?: string; live?: boolean; far?: number; movable?: boolean; bus?: boolean }) {
   const farDone = useRef(false), [toolsAt, setToolsAt] = useState<{ x: number; y: number } | null>(null);
   const grab = (e: React.PointerEvent) => {
     const b = box.current?.getBoundingClientRect(), t = (e.currentTarget.parentElement as HTMLElement).getBoundingClientRect(); if (!b) return;
@@ -29,6 +29,13 @@ export function YarnPagePreview({ source, plan, fabric, caption, live, far, mova
     const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
     window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
   };
+  // `bus` (the yarn check): no tools of its own - the work screen's 확대 / 축소 / 처음 각도 work it (Kim: one tool)
+  useEffect(() => {
+    if (!bus) return;
+    const z = (e: Event) => viewer.current?.zoom((e as CustomEvent<number>).detail), h = () => { viewer.current?.home(); if (far) viewer.current?.zoom(far); };
+    window.addEventListener("yc:zoom", z); window.addEventListener("yc:home", h);
+    return () => { window.removeEventListener("yc:zoom", z); window.removeEventListener("yc:home", h); };
+  }, [bus, far]);
   const pattern = useMemo(() => { const p = toYarnPattern(source, plan); return p && fabric ? { ...p, focus: "fabric" as const } : p; }, [source, plan, fabric]);
   const box = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), viewer = useRef<YarnViewer | null>(null), shown = useRef<YarnPattern | null>(null);
   const latest = useRef(pattern); latest.current = pattern;
@@ -65,7 +72,7 @@ export function YarnPagePreview({ source, plan, fabric, caption, live, far, mova
     <div ref={box} className="y3-page">
       {noGL ? <p className="y3-page-nogl">이 기기에서는 3D 보기를 쓸 수 없습니다.</p>
         : <canvas ref={cv} className="y3-page-canvas" aria-label="지금까지의 도안 3D" />}
-      {!noGL && (
+      {!noGL && !bus && (
         <div className={"y3-page-tools" + (movable ? " is-movable" : "")} role="group" aria-label="3D 보기 도구" style={movable && toolsAt ? { left: toolsAt.x, top: toolsAt.y, right: "auto", bottom: "auto" } : undefined}>
           {movable && <span className="y3-grip" title="끌어서 옮기기" aria-hidden="true" onPointerDown={grab} />}
           <button type="button" aria-label="확대" title="확대" onClick={() => viewer.current?.zoom(.8)}><I d="M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 0 0 0-13zM15.5 15.5l5 5M10.5 8v5M8 10.5h5" /></button>
