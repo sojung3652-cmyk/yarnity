@@ -5,12 +5,16 @@
 // added - on load and for whatever appears later, never at the moment of the hover (the first hover then jumped:
 // Kim's "왜 어떤 건 한번에 뜨고 어떤 건 아니야"). Its own transitions are kept as they are.
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export const FLOAT_SEL = 'button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary, .float-card, .my-prof-main, .my-data, .my-login, .my-row, .my-row-new, .my-wish, .my-gal-pic, .my-hook';
 // transform too: some hovers lift with their own transform (My Page's buttons) and jumped without it
 const ADD = ["translate", "transform", "box-shadow", "filter", "background-color", "color", "border-color"];
 
 export function Floating() {
+  // the home page is marked, so the page-wide fade leaves it as it is
+  const path = usePathname();
+  useEffect(() => { document.documentElement.toggleAttribute("data-home", path === "/"); }, [path]);
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const seen = new WeakSet<Element>();
@@ -47,6 +51,7 @@ export function Floating() {
     // a screen changing inside the page (Kim: 실 도감, FAQ - "띡" 하고 나오지 않게): what came in, when it is a screen's
     // worth, floats up and fades in - before the browser paints it (this runs before the paint)
     const enter = (els: HTMLElement[]) => {
+      if (location.pathname === "/") return; // the home page keeps its own (Kim: 홈화면 제외)
       els.slice(0, 60).forEach(el => {
         el.classList.add("y-enter");
         el.addEventListener("animationend", () => el.classList.remove("y-enter"), { once: true });

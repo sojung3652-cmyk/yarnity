@@ -130,3 +130,9 @@ html body .gl-title{line-height:1}
 @media (hover:hover){
   :where(button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary):not(:disabled):not([aria-disabled="true"]):hover{translate:0 -2px}
 }
+/* slower and from a little lower (Kim: 너무 빨라 - 올라오는 위치를 높이고 속도를 낮춰), the home page left out */
+@keyframes y-rise-in{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+.y-enter{animation:y-rise-in .6s cubic-bezier(.22,.61,.36,1) both}
+:where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation:y-rise-in .55s cubic-bezier(.22,.61,.36,1) both}
+html[data-home] main,html[data-home] .y-enter{animation:none}
+@media (prefers-reduced-motion:reduce){.y-enter,:where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation:none}}
