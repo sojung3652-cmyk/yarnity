@@ -14,7 +14,8 @@ import { useApp, type Removed } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
 import { BookCover, GoldDefs, ProgressBar, tagOf, whereOf } from "@/components/BookCover";
 import { CopyLot } from "@/components/YarnInfo";
-import { ClothPatch, LaceButton } from "@/components/diary/Diary";
+import { ClothPatch } from "@/components/diary/Diary";
+import { ClothLabel } from "@/components/newbook/ClothLabel";
 import { CoverPicker } from "@/components/diary/CoverPicker";
 import { PhotoLog } from "@/components/PhotoLog";
 import { dropOrphans, photoSummary } from "@/lib/photos";
@@ -115,13 +116,14 @@ function Detail({ p, onClose, act, photos }: { p: Project; onClose: () => void; 
           </div>
         </div>
         <div className="bk-pop-btns">
-          {/* Girl's Diary (components/diary): two cloth patches and the lavender lace tag */}
+          {/* Girl's Diary (components/diary): two cloth patches, then the cloth label to knit */}
           <ClothPatch color="cream" href="/pattern" onClick={() => act("view")}>도안 보기</ClothPatch>
           <ClothPatch color="lavender" onClick={() => act("photos")}>{/* the pink cloth (Kim; "pink" draws the blue one) */}사진 기록{photos ? ` ${photos}` : ""}</ClothPatch>
           <YarnPreviewButton source={p} look="patch" onEdit={() => act("edit")} />
+          {/* no lace buttons (Kim, 11/25): the linen cloth label the pattern page's 뜨기 시작 wears */}
           {w.done
-            ? <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("again")}>다시 뜨기</LaceButton>
-            : <LaceButton variant="lavender" width={300} className="bk-lace" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</LaceButton>}
+            ? <ClothLabel side="next" type="button" onClick={() => act("again")}>다시 뜨기</ClothLabel>
+            : <ClothLabel side="next" type="button" onClick={() => act("resume")}>{w.started ? `이어서 뜨기 · ${w.next}부터 →` : "뜨기 시작 →"}</ClothLabel>}
         </div>
         {asking && (
           <p className="bk-ask" role="alert">이 작품을 지우시겠습니까? <span>6초 안에는 되돌릴 수 있습니다.</span>

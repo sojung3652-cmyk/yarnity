@@ -50,7 +50,6 @@ import { useMobile, usePhone } from "@/components/mobile/useMobile";
 import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import { AskAiLine } from "@/components/AskAiLine";
 import { AiTab } from "@/components/AiTab";
-import { LaceButton } from "@/components/diary/Diary";
 import { partsOf, useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
 import { bookPause } from "@/src/features/yarn3d/pause";

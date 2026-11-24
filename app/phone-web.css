@@ -3,7 +3,7 @@
    CSS is left as it is for wide screens. The phone home and opening keep their own screens (Kim: 건들지마). */
 @media (max-width:767.98px){
   /* the page's frame: the web keeps 52px from the walls; a phone keeps 16px */
-  html body .wrap{padding-left:16px;padding-right:16px}
+  html body .wrap:not(:has(#view-m-home)){padding-left:16px;padding-right:16px}
 
   /* ---- 마이페이지 (/my): the profile and the menu above, the shelf under them ---- */
   html body .my{padding:16px 0 64px}
@@ -67,4 +67,22 @@
   /* ---- 최종 도안 (/pattern): the sheet narrower inside ---- */
   html body .ps-sheet{padding:28px 18px 24px}
   html body .ps-actions{margin:16px 0 12px}
+}
+@media (max-width:767.98px){
+  /* ---- no lace buttons (Kim, 11/25): the book's labels (새로 시작 · 이어서 하기, the name tag) on the web's plain
+     linen cloth label - the cream patch every cloth label uses - instead of the phone's ivory lace ---- */
+  html body .nb-page .tp-label{--pw:14px;width:100%;max-width:360px;aspect-ratio:auto;height:auto;overflow:visible;padding:12px 22px 11px;gap:2px;
+    border-style:solid;border-width:var(--pw);border-image-source:url(/mobile/diary/patch_cream.webp);border-image-slice:62 fill;border-image-repeat:stretch;
+    background:none;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.16))}
+}
+@media (max-width:767.98px){
+  /* ---- 도안 만들기's one page on a phone: the web's paper, not the pink-covered book (Kim: 웹을 따라가도록) ---- */
+  html body form.nb-book{padding:0;border-radius:6px;background:#FBF7EF;box-shadow:0 0 0 1px rgba(142,131,121,.18),-8px 14px 30px -18px rgba(50,35,25,.35)}
+}
+@media (max-width:767.98px){
+  /* ---- Yarni's window: the screen's width, from under the bar to the bottom (the web's small floating window
+     is wider than a phone) ---- */
+  html body .aic-root.is-win .aic-panel{left:8px!important;right:8px!important;top:auto!important;bottom:8px!important;width:auto!important;height:min(640px,calc(100svh - 72px))!important;max-height:none}
+  html body .aic-root.is-win .aic-chat{width:auto}
+  html body .aic-root.is-win .aic-bar{width:auto}
 }

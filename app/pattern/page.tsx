@@ -7,7 +7,7 @@ import { MobilePatternScreen } from "@/components/mobile/MobilePatternScreen";
 // numbered sections (01 바닥, 02 몸통...) as a ruled table, with notes in the margin where to measure.
 // The buttons (고치기 / 인쇄 / 뜨기 시작) sit above the sheet; printing shows the sheet alone (pattern.css).
 import { useRouter } from "next/navigation";
-import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
+import { DiaryIcon, StitchButton } from "@/components/diary/Diary";
 import { ClothLabel } from "@/components/newbook/ClothLabel";
 import { Fragment, useEffect, useState } from "react";
 import { useApp } from "@/components/AppProvider";
