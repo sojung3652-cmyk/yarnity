@@ -9,6 +9,7 @@ import { readSpec, specToDraft } from "@/lib/sketchShape";
 import { guessSpec } from "@/lib/assemble";
 import { PROTO_GROUPS, PROTOS, protoDraft, type Proto } from "@/lib/prototypes";
 import { ClothLabel } from "./ClothLabel";
+import { useApp } from "@/components/AppProvider";
 
 /** 기본형 (Kim): pressed, the piece comes up ready - bags and pouches in a few kinds, the rest as they are */
 function Protos({ onPick }: { onPick: (p: Proto) => void }) {
@@ -92,19 +93,24 @@ export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d
   );
 }
 
-/** the same question inside 모양, while nothing is made yet (no list of items to pick: the reader's own words) */
+/** 모양, while nothing is made yet (Kim: 1. Yarni와 대화하기 2. 기본형으로 시작하기, nothing else). Yarni asks
+ *  what it needs and what it settles is drawn at once (chat.shape, components/newbook/AiPanel); without the AI
+ *  the 기본형 are still there (Rule 6) */
 export function AskInline({ draft, onApply }: { draft: Draft; onApply: (d: Draft) => void }) {
-  const q = useAsk(draft, onApply), [list, setList] = useState(false);
+  const { chat, setChat } = useApp();
+  const [list, setList] = useState(false), off = !!chat.off;
   return (
     <div className="ask-in">
       <p className="ask-in-h">무엇을 떠 볼까요</p>
-      {/* Kim: 기본형에서 시작하기 first, easy to see */}
-      <button type="button" className="ask-proto" aria-expanded={list} onClick={() => setList(v => !v)}><b>기본형에서 시작하기</b><span>{list ? "닫기" : "토트백, 버킷백, 파우치… 바로 고르기"}</span></button>
+      <button type="button" className="ask-proto ask-pick" disabled={off} onClick={() => setChat(c => ({ ...c, open: true, conv: "new", shape: true, prefill: null }))}>
+        <b><i aria-hidden="true">1</i>Yarni와 대화하기</b>
+        <span>{off ? "지금은 Yarni를 쓸 수 없습니다. 기본형으로 시작해 주십시오." : "뜨고 싶은 것을 말하면, 필요한 것만 물어본 뒤 바로 만들어 드립니다"}</span>
+      </button>
+      <button type="button" className="ask-proto ask-pick" aria-expanded={list} onClick={() => setList(v => !v)}>
+        <b><i aria-hidden="true">2</i>기본형으로 시작하기</b>
+        <span>{list ? "닫기" : "토트백, 버킷백, 파우치… 바로 고르기"}</span>
+      </button>
       {list && <Protos onPick={p => onApply(protoDraft(draft, p))} />}
-      <p className="ask-in-or">또는 말로 적어서 만들기</p>
-      {q.field}
-      {q.err && <p className="ask-err" role="alert">{q.err}</p>}
-      <button type="button" className="sk-make" onClick={q.prepare} disabled={q.busy}>{q.busy ? "조립하는 중…" : "조립하기"}</button>
     </div>
   );
 }

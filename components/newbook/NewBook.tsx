@@ -31,7 +31,6 @@ import { ClothLabel } from "./ClothLabel";
 import { CoverChoice } from "./CoverChoice";
 import { ColorStudio } from "./ColorStudio";
 import { PhotoShape } from "./PhotoShape";
-import { YarniBar } from "./YarniBar";
 import { YarnCheck } from "./YarnCheck";
 import { StartChoice } from "./StartChoice";
 import { specToDraft } from "@/lib/sketchShape";
@@ -184,7 +183,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   useEffect(() => {
     if ((chat.applied ?? 0) === seenApplied.current) return;
     seenApplied.current = chat.applied ?? 0; setNums(numsOf(draft)); setRev(r => r + 1);
+    // Yarni settled what to make in 모양 (Kim: 바로 그래픽 적용한 다음 다음 화면으로): drawn now, on to the bottom
+    if (draft.itemPicked && !pickedSeen.current) { setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(draft)].kind === "base-body" ? "bottom" : "size"); window.dispatchEvent(new Event("yw:shape")); }
   }, [chat.applied, draft]);
+  // whether a piece was made before the last proposal was applied (only the first one moves the screen on)
+  const pickedSeen = useRef(!!draft.itemPicked);
+  useEffect(() => { if ((chat.applied ?? 0) === seenApplied.current) pickedSeen.current = !!draft.itemPicked; });
   // 새 도안 (Kim): start fresh or go on with something, asked once on the first page
   const [startMode, setStartMode] = useState<"new" | "go" | null>(null), [startDone, setStartDone] = useState(false);
   const [drawOn, setDrawOn] = useState(false); // 사진으로 만들기 (was 직접 그리기): the photo instead of the item tiles
@@ -1015,13 +1019,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     oneAsm = (
       <div className="nb-web">
         <button type="button" className="nb-link asm-yarn" onClick={() => window.dispatchEvent(new Event("yw:yarncheck"))}>실 설정으로 돌아가기</button>
-        <div className="nb-needle asm-mode" role="radiogroup" aria-label="모양을 만드는 방법">
-          {([["asm", "조립하기"], ["draw", "사진"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={shapeMode === k} onClick={() => setShapeMode(k)}>{t}</button>)}
-        </div>
-        {/* Yarni at the top of 모양, whichever way it is made (Kim) */}
-        <YarniBar onWords={() => setAsked(false)} />
-        {/* 그리기 too (Kim: 왜 여기는 아무것도 못해): once a drawing is read, every part is here to adjust under it */}
-        {shapeMode === "asm" ? asmPanel : <>{drawPanel}{picked && <div className="asm-after"><p className="nb-wsubhead">읽은 모양 다듬기</p>{asmPanel}</div>}</>}
+        {/* Kim: 모양 starts with two ways only - Yarni와 대화하기, 기본형으로 시작하기 (AskInline) - then the parts */}
+        {asmPanel}
       </div>
     );
     // 확인: short rows with 고치기, the yarn amount, the counts as small cards

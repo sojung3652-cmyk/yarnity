@@ -19,7 +19,10 @@ export interface ChatState { msgs: ChatMsg[]; chips: string[]; off: boolean; ima
   open?: boolean; prefill?: string | null; applied?: number;
   /** the conversation shown (lib/conversations.ts id; "new" for a new one; null: the list on phones);
    *  sheet: opened inside 도안 만들기 on a phone (a half sheet until 전체 화면) */
-  conv?: string | null; sheet?: boolean }
+  conv?: string | null; sheet?: boolean;
+  /** opened from 모양 to decide what to make (Kim): Yarni asks what it needs, and what it settles is taken at once
+   *  (no 이 값으로 바꾸기) - the shape is drawn and the screen goes on to the parts */
+  shape?: boolean }
 
 interface AppCtx {
   ready: boolean;

@@ -192,7 +192,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
     if (!phone) {
       // the small window sinks 12px and fades (0.2s), then it is gone
       setSinking(true);
-      setTimeout(() => { setSinking(false); setChat(c => ({ ...c, open: false })); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200);
+      setTimeout(() => { setSinking(false); setChat(c => ({ ...c, open: false, shape: false })); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200);
       return;
     }
     // phones: the sheet goes back down first (0.22s), then it is gone
@@ -282,6 +282,8 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
 
   // ---- asking ----
   /** the answer to the conversation's last question; streams into `busy`, then is saved */
+  // 모양's Yarni (chat.shape): read when the answer comes back, after the send that started it
+  const shapeRef = useRef(!!chat.shape); shapeRef.current = !!chat.shape;
   async function run(id: string, image?: ChatRequest["image"]) {
     const c0 = chats.get(id); if (!c0) return;
     const ctl = new AbortController(); setBusy({ id, text: "", ctl }); setStick(true);
@@ -300,6 +302,13 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
         chats.push(id, { role: "assistant", text: r.reply || "알겠습니다.", turn: res.raw, at: Date.now(),
           ...(res.stopped ? { stopped: true } : { chips: r.chips.slice(0, 4), proposal: proposalFrom(r.set, base) ?? undefined }) });
         if (r.title && !c.titled) chats.patch(id, { title: r.title, titled: true });
+        // 모양 (Kim: 물어보고 바로 그래픽 적용한 다음 다음 화면으로): what Yarni settled is taken now, the window closes
+        const pr = chats.get(id)?.msgs, last = pr ? pr.length - 1 : -1, lm = last >= 0 ? pr![last] : null;
+        if (shapeRef.current && !projectOf(c) && lm?.proposal && !res.stopped) {
+          onApply({ ...lm.proposal.patch, itemPicked: true });
+          chats.setMsg(id, last, { done: "applied" });
+          setChat(x => ({ ...x, applied: (x.applied ?? 0) + 1, shape: false, open: false }));
+        }
       }
     }
     setBusy(b => (b && b.id === id ? null : b));
@@ -319,7 +328,9 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
     const img = file ?? pending?.file;
     setInputState(""); chats.setDraft(c.id, ""); setPending(null);
     const thumb = img ? await thumbOf(img).catch(() => undefined) : undefined;
-    chats.push(c.id, { role: "user", text, img: thumb, at: Date.now(), turn: `${text}\n\n${stateLine(base, where)}${img ? " 사진 한 장이 첨부됐어." : ""}` });
+    // 모양's Yarni: ask only what is needed (one short question at a time), then settle the piece in set
+    const shapeHint = chat.shape && !projectOf(c) ? " 지금 모양 화면에서 무엇을 뜰지 정하는 중이야. 품목·크기·손잡이·입구 중 꼭 필요한 것만 한 번에 하나씩 짧게 물어보고, 정해지면 바로 set에 품목과 크기를 넣어 제안해." : "";
+    chats.push(c.id, { role: "user", text, img: thumb, at: Date.now(), turn: `${text}\n\n${stateLine(base, where)}${shapeHint}${img ? " 사진 한 장이 첨부됐어." : ""}` });
     let image: ChatRequest["image"];
     if (img) { try { image = await encodeImage(img); } catch { chats.push(c.id, { role: "note", text: ERR.image_rejected, err: "image_rejected", at: Date.now() }); return; } }
     await run(c.id, image);
