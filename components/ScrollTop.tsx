@@ -15,10 +15,13 @@ export function ScrollTop() {
       const t = target.current; if (!t) { setAt(null); return; }
       if (t === window) { setAt(window.scrollY > MIN ? { left: 14, top: window.innerHeight - 50 } : null); return; }
       const el = t as HTMLElement;
-      if (!el.isConnected || el.scrollTop <= MIN) { setAt(null); return; }
+      // the box gone or hidden (Kim: an arrow left over the bag once the 3D screen closed): no arrow
+      if (!el.isConnected || !el.getClientRects().length || el.scrollTop <= MIN) { target.current = null; setAt(null); return; }
       const r = el.getBoundingClientRect();
       setAt(r.height > 200 ? { left: Math.max(6, r.left + 10), top: Math.min(window.innerHeight - 44, r.bottom - 42) } : null);
     };
+    // the box can close or move without a scroll (a screen closing, a page changing): looked at again now and then
+    const iv = window.setInterval(() => { if (target.current && target.current !== window) place(); }, 400);
     const onScroll = (e: Event) => {
       const t = e.target === document || e.target === document.documentElement ? window : e.target as Element;
       if (t !== window && !((t as HTMLElement).clientHeight > 200)) return; // small lists, inputs: no arrow
@@ -26,7 +29,7 @@ export function ScrollTop() {
     };
     document.addEventListener("scroll", onScroll, { capture: true, passive: true });
     window.addEventListener("resize", place);
-    return () => { document.removeEventListener("scroll", onScroll, { capture: true }); window.removeEventListener("resize", place); };
+    return () => { window.clearInterval(iv); document.removeEventListener("scroll", onScroll, { capture: true }); window.removeEventListener("resize", place); };
   }, []);
 
   if (!at) return null;
