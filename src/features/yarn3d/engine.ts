@@ -550,12 +550,20 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       return prev;
     };
     // the body raised from the bottom's edge
-    const wall = (base: number[], counts: number[]) => {
+    // `soft`: a rect bottom's wall (Kim: 왜 벽만 각져있어) - a crocheted bag's corners are soft, not folded square:
+    // each round's outline is drawn in from its square corners to a rounded box (a superellipse), a little at
+    // the foot (it meets the bottom's corners) and fully two rounds up
+    const wall = (base: number[], counts: number[], soft = false) => {
       let prev = base;
-      counts.forEach(c => {
+      counts.forEach((c, r) => {
         const pc = prev.length; let cx = 0, cz = 0, mr = 0;
         prev.forEach(n => { cx += P[n].x; cz += P[n].z; }); cx /= pc; cz /= pc; prev.forEach(n => { mr += Math.hypot(P[n].x - cx, P[n].z - cz); }); mr /= pc;
         const k = c / pc, dr = Math.max(-rh * .98, Math.min(rh * .98, mr * (k - 1))), yy = P[prev[0]].y + Math.sqrt(rh * rh - dr * dr), poly = prev.map(n => [cx + (P[n].x - cx) * k, cz + (P[n].z - cz) * k]), idx: number[] = [];
+        if (soft) {
+          let hx = 1e-6, hz = 1e-6; poly.forEach(([x, z]) => { hx = Math.max(hx, Math.abs(x - cx)); hz = Math.max(hz, Math.abs(z - cz)); });
+          const e = r === 0 ? 7 : r === 1 ? 5 : 4; // the superellipse's power: 4 is a soft box, higher is squarer
+          poly.forEach(q => { const u = Math.abs(q[0] - cx) / hx, v = Math.abs(q[1] - cz) / hz, ln = Math.pow(u ** e + v ** e, 1 / e); if (ln < 1e-9) return; const f = 1 / ln; /* onto the curve (a round already on it stays) */ q[0] = cx + (q[0] - cx) * f; q[1] = cz + (q[1] - cz) * f; });
+        }
         for (let i = 0; i < c; i++) { const f = (i + .5) / c * pc - .5, a = Math.floor(f), t = f - a, A = poly[((a % pc) + pc) % pc], B = poly[(((a + 1) % pc) + pc) % pc]; idx.push(V(A[0] + (B[0] - A[0]) * t, yy, A[1] + (B[1] - A[1]) * t)); }
         ring(idx, true); C.push({ idx, closed: true, bot: linkFrac(idx, prev), ci: nextCi(), body: true }); prev = idx;
       });
@@ -623,7 +631,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     let knit: Knit | null = null, fixed = false, skip: ItemData["skip"] = null, rhOut = rh, swOut = sw;
     if (kk > 1) skip = { stitch: kk, row: kk };
     if (s.kind === "round") round(s.counts, s.flat);
-    else if (s.kind === "oval" || s.kind === "rect") { const b = aroundChain(s.chain, s.bottom, s.kind === "oval" ? stad : rectPath); if (s.body.length) wall(b, s.body); }
+    else if (s.kind === "oval" || s.kind === "rect") { const b = aroundChain(s.chain, s.bottom, s.kind === "oval" ? stad : rectPath); if (s.body.length) wall(b, s.body, s.kind === "rect"); }
     else if (s.kind === "rows") {
       const k = skipOf(s.W, s.H), W = Math.max(2, Math.round(s.W / k)), H = Math.max(2, Math.round(s.H / k));
       const ex = s.wCm * 10 / MM / W, ey = s.hCm * 10 / MM / H, swap = s.hCm > s.wCm;

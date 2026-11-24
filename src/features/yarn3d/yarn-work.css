@@ -326,6 +326,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 /* the yarn's own part under its colour (one 실 section) */
 .yw-sub{margin-top:18px;padding-top:16px;border-top:1px solid rgba(181,168,148,.4)}
 .asm-yarn{display:inline-block;margin:0 0 12px}
+.asm-again{display:inline-flex;gap:14px;margin:0 0 12px 18px}
 
 /* 보는 방향 on the stage, top right (Kim) */
 .yw-views{position:absolute;top:14px;right:14px;z-index:3;display:flex;border-radius:4px;background:rgba(255,253,248,.94);box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #D9CCBF}

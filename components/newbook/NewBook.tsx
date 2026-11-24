@@ -239,18 +239,24 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // (모양 만들기 on the yarn check). The yarn can still be changed afterwards (its sections, 실 확인 on the top).
   const [yarnSet, setYarnSet] = useState(false), [named, setNamed] = useState(false);
   /** what to make, answered (the window or 모양): the parts on at once, the first part's sliders open */
-  const applyAsk = (d: Draft) => { setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); if (yarnSet) window.dispatchEvent(new Event("yw:shape")); };
+  const applyAsk = (d: Draft) => { setRepick(false); setDraft(d); setNums(numsOf(d)); setAsked(true); setShapeMode("asm"); setAsmPart(ITEM[itemIdOf(d)].kind === "base-body" ? "body" : "size"); if (yarnSet) window.dispatchEvent(new Event("yw:shape")); };
   useEffect(() => { const f = () => setYarnSet(true); window.addEventListener("yw:yarnset", f); return () => window.removeEventListener("yw:yarnset", f); }, []);
   // back to the yarn (실 다시 정하기): the right column is the yarn's section again
   useEffect(() => { const f = () => setYarnSet(false); window.addEventListener("yw:yarncheck", f); return () => window.removeEventListener("yw:yarncheck", f); }, []);
 
   // a new item starts from its own defaults (no values carried over from the previous item)
+  const fromDefaults = (id: ItemId): Draft => {
+    const it = ITEM[id], dv = it.defaults;
+    return { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined };
+  };
   const pickItem = (id: ItemId) => {
     if (id === item.id && !draft.free) { if (!draft.itemPicked) patch({ itemPicked: true }); return; }
-    const it = ITEM[id], dv = it.defaults;
-    const d: Draft = { ...draft, item: id, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0, handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, topA: null, flapCm: null, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined };
-    setDraft(d); setNums(numsOf(d));
+    const d = fromDefaults(id); setDraft(d); setNums(numsOf(d));
   };
+  // after what to make is settled (Kim: 재선택이나 초기화도 가능하게): 다른 것 고르기 brings back the two ways to
+  // start (Yarni, 기본형) over the parts; 처음 값으로 puts the same item back to its own defaults
+  const [repick, setRepick] = useState(false);
+  const resetItem = () => { const d = fromDefaults(item.id); setDraft(d); setNums(numsOf(d)); setRepick(false); window.dispatchEvent(new Event("yw:shape")); };
   const pickShape = (s: Shape) => {
     const d: Partial<Draft> = { shape: s };
     if (s === "oval" && item.ovalDefault) { d.a = item.ovalDefault.a; d.b = item.ovalDefault.b; }
@@ -948,8 +954,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const ra = rng("a", [6, 40]), rb = rng("b", [4, 30]), rh = rng("h", [5, 40]);
     const widest = base ? Math.round(Math.max(...[0, .25, .5, .75, 1].map(t => bodyWidth(draft.a, form, t))) * 10) / 10 : 0;
     // nothing made yet (Kim: 주관식): the reader's own words, no list of items to pick from
-    const asmPanel = !picked ? (
-      <div className="nb-web"><AskInline draft={draft} onApply={applyAsk} /></div>
+    const asmPanel = !picked || repick ? (
+      <div className="nb-web"><AskInline draft={draft} onApply={applyAsk} />
+        {repick && <button type="button" className="nb-link" onClick={() => setRepick(false)}>고르던 것으로 돌아가기</button>}</div>
     ) : (draft.free || draft.paint) ? (
       <div className="nb-web">{oneSize}<div className="nb-wg">{extrasGroup}</div>
         <p className="nb-help">직접 그린 모양은 그린 대로 뜹니다. 손잡이·입구까지 부품으로 조립하려면 부품으로 다시 시작해 주십시오.</p>
@@ -1053,6 +1060,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     oneAsm = (
       <div className="nb-web">
         <button type="button" className="nb-link asm-yarn" onClick={() => window.dispatchEvent(new Event("yw:yarncheck"))}>실 설정으로 돌아가기</button>
+        {picked && !repick && !draft.free && !draft.paint && <span className="asm-again">
+          <button type="button" className="nb-link" onClick={() => setRepick(true)}>다른 것 고르기</button>
+          <button type="button" className="nb-link" onClick={resetItem}>처음 값으로</button>
+        </span>}
         {/* Kim: 모양 starts with two ways only - Yarni와 대화하기, 기본형으로 시작하기 (AskInline) - then the parts */}
         {asmPanel}
       </div>
