@@ -1140,7 +1140,11 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (pat.outline && layOnOutline(D, pat.outline, wideX(b), cx, cz)) { if (pat.gravity) drape(D); return; }
     if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
     // every yarn a notch softer than its own measure (Kim: 좀만 더 흐물거리게); a stiff one (cord, raffia, jute) stays stiff
-    const s = opts.phone || pat.firm ? 0 : Math.max(0, Math.min(1, st.soft * 1.25 * (pat.softK ?? 1) * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm))));
+    const raw = opts.phone || pat.firm ? 0 : st.soft * 1.25 * (pat.softK ?? 1) * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm));
+    const s = Math.max(0, Math.min(1, raw));
+    // past fully soft (탄성 turned far up, Kim's sketch): the bag slumps - lower, its upper wall rounding out and
+    // over into a dome, a soft crease where it folds at the middle
+    const o = Math.max(0, Math.min(1, (raw - 1) / 2));
     if (s < .03) return;
     if (H < D.rh * 3) { // flat: the edge lifts in three soft waves
       const soft = Math.max(0, s - .25) / .75, A = Math.min(D.rh, rm * .07); // soft: 0 for firm yarns (cotton, cord), up to 1 for mohair; A: gentle against the piece's size
@@ -1158,6 +1162,11 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const t = p.y / H, th = Math.atan2(p.z - cz, p.x - cx);
       const k = (1 + s * (.07 * Math.sin(Math.PI * Math.min(1, t * 1.1)) - .055 * t * t) * (.6 + .4 * slim)) * (1 + s * .04 * t * (Math.sin(2 * th + .6) + .5 * Math.sin(3 * th + 2.1)));
       p.x = cx + (p.x - cx) * k; p.z = cz + (p.z - cz) * k; p.y -= s * .075 * t * t * H * (.6 + .4 * slim);
+      if (o > 0) {
+        const top = Math.max(0, (t - .55) / .45), crease = Math.exp(-(((t - .5) / .07) ** 2));
+        const ko = 1 + o * (.2 * Math.sin(Math.PI * Math.min(1, t * 1.05)) - .38 * top * top - .07 * crease);
+        p.x = cx + (p.x - cx) * ko; p.z = cz + (p.z - cz) * ko; p.y -= o * H * (.32 * t * t + .1 * top * top);
+      }
     }
     // a soft yarn's bag rounds at its bottom (Kim): the bottom's edge comes up and the wall's foot comes in - a U
     // seen from the front, not a box's square corners; the firmer the yarn, the less

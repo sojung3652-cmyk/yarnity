@@ -1028,7 +1028,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           {tryMat && <div className="try-acts"><span>{tryMat}(으)로 보는 중입니다.</span>
             <button type="button" className="nb-link" onClick={() => { patch({ materials: [tryMat] }); setTryMat(null); }}>이 실로 바꾸기</button>
             <button type="button" className="nb-link st-muted" onClick={() => setTryMat(null)}>원래 실로</button></div>}
-          <div className="nb-sliders nb-sliders-1"><Slide label="탄성" min={.3} max={2.5} step={.1} value={draft.softK ?? 1} onChange={v => patch({ softK: v })} text={softWord(draft.softK ?? 1)} /></div>
+          <div className="nb-sliders nb-sliders-1"><Slide label="탄성" min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={v => patch({ softK: v })} text={softWord(draft.softK ?? 1)} /></div>
           <p className="nb-help">권장보다 큰 바늘로 뜨거나 느슨하게 뜨면 편물이 더 흐물흐물해집니다. 3D 모양만 바뀝니다.</p>
         </div>
       ) }] : []),

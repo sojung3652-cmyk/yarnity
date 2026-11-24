@@ -65,13 +65,14 @@ type Tool = "rotate" | "pan";
 const MATS: [YarnMaterial, string][] = [["cotton", "면"], ["wool", "울"], ["cashmere", "캐시미어"], ["alpaca", "알파카"], ["mohair", "모헤어"], ["angora", "앙고라"], ["sleep", "수면사"], ["chenille", "셔닐"], ["boucle", "부클레"],
   ["fur", "털실"], ["scrub", "수세미실"], ["linen", "리넨"], ["silk", "실크"], ["raffia", "라피아"], ["tshirt", "패브릭얀"], ["ribbon", "리본얀"], ["jute", "황마"], ["cord", "코드사"], ["nylon", "나일론"], ["metal", "메탈릭"]];
 const Ic = ({ d, s = 22 }: { d: string; s?: number }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
-const HINT = "드래그 돌리기 · 스크롤 확대 · 스페이스+드래그 옮기기";
+const EDIT_D = "M4 20l1-4.5L16.5 4a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L8.5 19zM14.5 6l3.5 3.5";
+const HINT ="드래그 돌리기 · 스크롤 확대 · 스페이스+드래그 옮기기";
 
 /** how light a colour is, 0 (black) to 1 (white) */
 const lum = (h?: string) => { if (!h || !/^#[0-9a-f]{6}$/i.test(h)) return 1; const n = parseInt(h.slice(1), 16), c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= .04 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
 
 /** 탄성's words: firm to very limp */
-export const softWord = (k: number) => k < .6 ? "단단하게" : k < .9 ? "조금 단단하게" : k <= 1.15 ? "실 그대로" : k < 1.7 ? "흐물흐물" : "아주 흐물흐물";
+export const softWord = (k: number) => k < .6 ? "단단하게" : k < .9 ? "조금 단단하게" : k <= 1.15 ? "실 그대로" : k < 1.7 ? "흐물흐물" : k < 3 ? "아주 흐물흐물" : "훌렁훌렁";
 
 const Opt = ({ on, onClick, children, label }: { on?: boolean; onClick: () => void; children: ReactNode; label?: string }) => <button type="button" className="yw-opt" aria-pressed={on} aria-label={label} title={label} onClick={onClick}>{children}</button>;
 /** one labelled control on the top bar: its name above, the choices joined in one woven strip under it */
@@ -104,7 +105,6 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
   };
   const [view, setView] = useState<"yarn" | "holo">("yarn");
-  const [mat, setMat] = useState<YarnMaterial | null>(null); // another yarn to look at (read-only screens)
   const [info, setInfo] = useState<YarnInfo | null>(null);
   const [rules, setRules] = useState<YarnRule[] | null>(null);
   const [noGL, setNoGL] = useState(false);
@@ -184,16 +184,15 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   useEffect(() => {
     const v = viewer.current; if (!v || pattern === shown.current) return;
     const key = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm]);
-    if (key(pattern) === key(shown.current)) { v.setPattern(pattern); shown.current = pattern; setMat(null); return; }
-    const t = setTimeout(() => { v.setPattern(pattern); shown.current = pattern; setMat(null); }, 200);
+    if (key(pattern) === key(shown.current)) { v.setPattern(pattern); shown.current = pattern; return; }
+    const t = setTimeout(() => { v.setPattern(pattern); shown.current = pattern; }, 200);
     return () => clearTimeout(t);
   }, [pattern]);
 
   const toggleRuler = () => { const on = !ruler; setRuler(on); viewer.current?.setRuler(on); if (!on) setRules(null); };
   const show = (v: "yarn" | "holo") => { setView(v); viewer.current?.setView(v); };
   const look = (v: YarnLook) => viewer.current?.look(v);
-  const tryMat = (m: YarnMaterial) => { setMat(m); viewer.current?.setMaterial(m); };
-  const [softK, setSoftK] = useState(pattern.softK ?? 1);
+  const editNow = () => { const go = extra?.onEdit; if (!go) return; onClose(); go(); };
   const mk = extra?.making, empty = !!extra?.empty;
   // the index shows which section is being read (the column scrolls; the index stays)
   const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0);
@@ -216,23 +215,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               {/* what it is, beside a given name only (Kim: no name - just "작품 이름", faint) */}
               {extra.sub && extra.name.value.trim() && extra.name.value.trim() !== extra.sub && <small>{extra.sub}</small>}</label>
           : <p className="yw-name">{extra?.title ?? "3D 미리 보기"}{extra?.sub && <small>{extra.sub}</small>}</p>}
-        {!noGL && <>
-          <div className="yw-bar">
-            {/* how it is looked at: one-off moves (no state), then two either-or choices */}
-            <Group name="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></Group>
-            <Group name="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></Group>
-            {/* tools: each on or off by itself (재기, 실 확인) or played once (뜨는 순서) */}
-            <div className="yw-acts" role="group" aria-label="도구">
-              {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => { if (intro) toShape(); else window.dispatchEvent(new Event("yw:yarncheck")); }}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
-              <button type="button" className="yw-act" aria-pressed={ruler} onClick={toggleRuler}><Ic s={18} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />치수</button>
-              {extra?.onResize && !empty && <button type="button" className="yw-act" aria-pressed={frameOn} title="크기 틀 (Ctrl+T)" onClick={toggleFrame}><Ic s={18} d="M5 5h14v14H5zM3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4z" />크기 틀</button>}
-              <button type="button" className="yw-act" onClick={() => viewer.current?.playDraw()}><Ic s={18} d="M7 4.5v15l12-7.5z" />뜨는 순서</button>
-              {extra?.onEdit && <button type="button" className="yw-act yw-edit" onClick={() => { const go = extra.onEdit!; onClose(); go(); }}><Ic s={18} d="M4 20l1-4.5L16.5 4a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L8.5 19zM14.5 6l3.5 3.5" />고치기</button>}
-            </div>
-          </div>
-        </>}
-        {/* the way back as a plain X at the right end (Kim) */}
-        <span ref={backRef} className="yw-x"><button type="button" aria-label={(extra?.backLabel ?? "돌아가기").replace(/[←\s]+/, "").trim() + " 돌아가기"} title="닫기 (Esc)" onClick={tryClose}><Ic s={22} d="M6 6l12 12M18 6L6 18" /></button></span>
+        {/* the way back as a plain X at the right end (Kim), 도안 수정하기 beside it; the view tools are on the stage */}
+        <span ref={backRef} className="yw-x">
+          {extra?.onEdit && <button type="button" className="yw-act yw-edit" onClick={editNow}><Ic s={18} d={EDIT_D} />도안 수정하기</button>}
+          <button type="button" aria-label={(extra?.backLabel ?? "돌아가기").replace(/[←\s]+/, "").trim() + " 돌아가기"} title="닫기 (Esc)" onClick={tryClose}><Ic s={22} d="M6 6l12 12M18 6L6 18" /></button>
+        </span>
       </div>
 
 
@@ -273,18 +260,35 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               value={extra.extraTools.current(pickEx.k)} onPick={p => { extra.extraTools!.replace(pickEx.k, p.id); setSwap(false); }} /></div>}
           </div>
         )}
-        {/* Yarni, called from the stage's lower right (Kim) */}
-        <button type="button" className="ai-badge yw-badge" aria-label="Yarni에게 물어보기" onClick={() => setChat(c => ({ ...c, open: true }))}>
-          <span className="ai-badge__label" aria-hidden="true">Yarni에게 물어보기</span>
-        </button>
-        {/* 보는 방향 on the stage itself, top right (Kim) */}
-        {!noGL && !empty && (
-          <div className="yw-views" role="group" aria-label="보는 방향">
-            <Opt onClick={() => { setIntro(false); look("front"); }}>앞</Opt><Opt onClick={() => { setIntro(false); look("side"); }}>옆</Opt><Opt onClick={() => { setIntro(false); look("top"); }}>위</Opt><Opt onClick={() => { setIntro(false); look("inside"); }}>안쪽</Opt>
-            <Opt label="처음 각도로" onClick={() => { setIntro(false); viewer.current?.home(); }}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
+        {/* the lower right (Kim): 제작 시뮬레이션 (the piece made round by round) just left of Yarni */}
+        <div className="yw-corner">
+          {!noGL && !empty && <button type="button" className="yw-act yw-sim" title="한 단씩 떠 올라가는 모습을 보여 드립니다" onClick={() => { setIntro(false); viewer.current?.playDraw(); }}><Ic s={18} d="M7 4.5v15l12-7.5z" />제작 시뮬레이션</button>}
+          <button type="button" className="ai-badge yw-badge" aria-label="Yarni에게 물어보기" onClick={() => setChat(c => ({ ...c, open: true }))}>
+            <span className="ai-badge__label" aria-hidden="true">Yarni에게 물어보기</span>
+          </button>
+        </div>
+        {/* the stage's top right (Kim: together, easy to read): how it is shown and the tools, how to move it,
+            and the directions to look from */}
+        {!noGL && (
+          <div className="yw-dock">
+            <div className="yw-dock-tools">
+              <Group name="보기"><Opt on={view === "yarn"} onClick={() => show("yarn")}>실</Opt><Opt on={view === "holo"} onClick={() => show("holo")}>구조</Opt></Group>
+              <Group name="배경"><Opt on={!dark} onClick={() => pickBg(false)}>밝게</Opt><Opt on={dark} onClick={() => pickBg(true)}>어둡게</Opt></Group>
+              <div className="yw-acts" role="group" aria-label="도구">
+                {extra?.intro && <button type="button" className="yw-act" aria-pressed={intro} onClick={() => { if (intro) toShape(); else window.dispatchEvent(new Event("yw:yarncheck")); }}><Ic s={18} d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM5 8c4 2 10 2 14 0M4 13c5 2.5 11 2.5 16 0M8 20c1-5 1-11 0-16M16 20c-1-5-1-11 0-16" />실 확인</button>}
+                <button type="button" className="yw-act" aria-pressed={ruler} onClick={toggleRuler}><Ic s={18} d="M3.5 8h17a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM6.5 8v3M10.5 8v4M14.5 8v3M18.5 8v4" />치수</button>
+                {extra?.onResize && !empty && <button type="button" className="yw-act" aria-pressed={frameOn} title="크기 틀 (Ctrl+T)" onClick={toggleFrame}><Ic s={18} d="M5 5h14v14H5zM3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4z" />크기 틀</button>}
+              </div>
+            </div>
+            {!empty && !intro && !ruler && !frameOn && <p className="yw-hint yw-keys"><span><kbd>드래그</kbd> 돌리기</span><span><kbd>스크롤</kbd> 확대</span><span><kbd>스페이스+드래그</kbd> 옮기기</span></p>}
+            {!empty && (
+              <div className="yw-views" role="group" aria-label="보는 방향">
+                <Opt onClick={() => { setIntro(false); look("front"); }}>앞</Opt><Opt onClick={() => { setIntro(false); look("side"); }}>옆</Opt><Opt onClick={() => { setIntro(false); look("top"); }}>위</Opt><Opt onClick={() => { setIntro(false); look("inside"); }}>안쪽</Opt>
+                <Opt label="처음 각도로" onClick={() => { setIntro(false); viewer.current?.home(); }}><Ic s={17} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></Opt>
+              </div>
+            )}
           </div>
         )}
-        {!noGL && !empty && !intro && !ruler && !frameOn && <p className="yw-hint yw-keys"><span><kbd>드래그</kbd> 돌리기</span><span><kbd>스크롤</kbd> 확대</span><span><kbd>스페이스+드래그</kbd> 옮기기</span></p>}
         {!noGL && !empty && !intro && (ruler || frameOn) && <p className="yw-hint">{frameOn ? "틀의 옆 손잡이는 가로, 위 손잡이는 높이, 모서리는 전체 크기를 바꿉니다" : ruler ? "가로와 높이를 cm로 보여 드립니다" : HINT}</p>}
         {empty && <div className="yw-empty"><i aria-hidden="true" /><p>모양을 그리면<br />여기에 실로 뜬 모습이 나타납니다.</p></div>}
         {box && frameOn && !empty && !intro && (() => {
@@ -332,15 +336,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           <section className="yw-pan" aria-label="실">
             <h3>실</h3>
             <dl className="yw-facts"><div><dt>굵기</dt><dd>{pattern.yarnMm}mm</dd></div><div><dt>바늘</dt><dd>{pattern.hookMm}mm</dd></div>
-              <div><dt>색</dt><dd><i className="yw-sw" style={{ background: pattern.colors[0] }} /></dd></div></dl>
-            {!noGL && <>
-              <p className="yw-lab">다른 실로 보기<small>도안은 바뀌지 않습니다</small></p>
-              <div className="yw-tiles" role="group" aria-label="다른 실로 보기">
-                {MATS.map(([k, label]) => <button key={k} type="button" aria-pressed={(mat ?? pattern.material) === k} onClick={() => tryMat(k)}>{label}</button>)}
-              </div>
-              {/* 탄성 (Kim): a looser hand or a bigger hook makes a limper fabric - seen here, the pattern unchanged */}
-              <label className="yw-soft"><span>탄성</span><input type="range" min={.3} max={2.5} step={.1} value={softK} onChange={e => { const k = Number(e.target.value); setSoftK(k); const p = { ...shown.current, softK: k }; viewer.current?.setPattern(p); shown.current = p; }} /><output>{softWord(softK)}</output></label>
-            </>}
+              <div><dt>실 종류</dt><dd>{MATS.find(([k]) => k === pattern.material)?.[1] ?? "—"}</dd></div>
+              <div><dt>색</dt><dd><i className="yw-sw" style={{ background: pattern.colors[0] }} />{pattern.marl && <i className="yw-sw" style={{ background: pattern.marl, marginLeft: 6 }} />}</dd></div>
+              {pattern.marl && <div><dt>합사</dt><dd>두 가닥</dd></div>}
+              <div><dt>탄성</dt><dd>{softWord(pattern.softK ?? 1)}</dd></div></dl>
+            {/* what it is made of, said only (Kim: no trying-on here); changes go through 도안 수정하기 */}
+            {extra?.onEdit && <button type="button" className="yw-act yw-edit yw-pan-edit" onClick={editNow}><Ic s={18} d={EDIT_D} />도안 수정하기</button>}
           </section>
         )}
         {!!extra?.parts?.length && (

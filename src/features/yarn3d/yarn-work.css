@@ -433,3 +433,21 @@ body:has(.yw) .aic-root{z-index:460}
 .yw-leave-sub{margin:0 0 18px;font-size:13px;line-height:1.6;color:#6A5B55}
 .yw-leave-acts{display:flex;align-items:center;justify-content:flex-end;gap:12px}
 .yw-leave-acts .nb-link{margin-right:auto;font-size:13px}
+/* the view tools together at the stage's top right (Kim): how it is shown and the tools, then how to move it,
+   then the directions; 도안 수정하기 beside the X; 제작 시뮬레이션 just left of Yarni */
+.yw-dock{position:absolute;top:14px;right:14px;z-index:3;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
+.yw-dock>*{pointer-events:auto}
+.yw-dock-tools{display:flex;align-items:flex-end;gap:16px;padding:8px 10px 9px;border-radius:4px;background:rgba(251,248,241,.96);box-shadow:-2px 3px 8px -5px rgba(70,50,30,.45),inset 0 0 0 1px #D9CCBF}
+.yw-dock-tools .yw-acts{padding-left:14px}
+.yw-dock-tools .yw-act{height:34px;padding:0 11px;font-size:13.5px}
+.yw .yw-dock .yw-hint.yw-keys,.yw .yw-dock .yw-views{position:static;inset:auto}
+.yw .yw-hint:not(.yw-keys){right:auto;left:16px}
+.yw-corner{position:absolute;right:18px;bottom:16px;z-index:3;display:flex;align-items:center;gap:12px}
+.yw-stage .yw-corner .ai-badge.yw-badge{position:relative;right:auto;bottom:auto}
+.yw-sim{height:36px}
+.yw-x{gap:10px}
+.yw-x .yw-edit{height:36px}
+.yw-pan-edit{margin-top:14px;width:100%;justify-content:center}
+.yw-intro .y3-page-tools.is-movable{top:118px}/* the yarn check's title at the lower left (the tools fill the top right) */
+.yw-intro h2{top:auto;bottom:20px}
+.yw-intro .y3-page-tools.is-movable{top:132px}
