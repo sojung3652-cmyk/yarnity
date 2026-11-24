@@ -5,7 +5,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useApp } from "@/components/AppProvider";
 import { drawTrack } from "@/lib/drawMap";
 import { StitchLegend } from "@/components/StitchLegend";
-import { DiaryIcon, LaceButton, StitchButton } from "@/components/diary/Diary";
+import { DiaryIcon, StitchButton } from "@/components/diary/Diary";
 import "../pattern/pattern.css";
 import { WorkMore } from "@/components/WorkMore";
 import { useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
@@ -273,7 +273,7 @@ export function TrackScreen() {
             <StitchButton icon={DiaryIcon.undo} patch="/brand/btn_undo.webp" label="되돌리기" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
             <div className="ms-go">
               {/* the slim lavender lace: 한 단 끝 alone on its satin (two lines crowded it, Kim); the next row under it */}
-              <LaceButton variant="lavender" width="fill" disabled={done} onClick={() => step(1)}>한 단 끝</LaceButton>
+              <button type="button" className="tk-patch tk-patch-fill" disabled={done} onClick={() => step(1)}><span className="tk-done-main">한 단 끝</span></button>
               <p className="ms-go-sub">{done ? "다 떴습니다" : nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단"}</p>
             </div>
             {/* Yarni right beside 한 단 끝 (Kim): the AI badge patch, the lace shorter by its width */}
@@ -366,10 +366,11 @@ export function TrackScreen() {
             {/* Girl's Diary (components/diary): a round cloth undo, and the lavender lace tag to tap */}
             <div className="tk-acts">
               <StitchButton icon={DiaryIcon.undo} patch="/brand/btn_undo.webp" label="되돌리기" id="undoBtn" aria-label="한 단 되돌리기" disabled={current === 0} onClick={() => step(-1)} />
-              <LaceButton variant="lavender" width={360} className="tk-done" id="doneBtn" disabled={done} onClick={() => step(1)}>
+              {/* 한 단 끝 on the cloth label 뜨개 사전 uses (Kim): the glossary's baby-pink patch, one stretched piece */}
+              <button type="button" className="tk-patch tk-done" id="doneBtn" disabled={done} onClick={() => step(1)}>
                 <span className="tk-done-main">한 단 끝</span>
                 <small id="doneNext">{done ? "" : (nx ? `다음 ${nx.label} · ${nx.n}코` : "마지막 단")}</small>
-              </LaceButton>
+              </button>
             </div>
             {/* the keys as a small paper note taped under the ribbon (Kim: the key caps felt too digital) */}
             <p className="tk-keys">
