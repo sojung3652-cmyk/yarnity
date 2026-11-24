@@ -451,3 +451,30 @@ body:has(.yw) .aic-root{z-index:460}
 .yw-intro .y3-page-tools.is-movable{top:118px}/* the yarn check's title at the lower left (the tools fill the top right) */
 .yw-intro h2{top:auto;bottom:20px}
 .yw-intro .y3-page-tools.is-movable{top:132px}
+/* 바인더 (Kim): the drafts being made as tabs on the top bar, + a new one, 불러오기 the put-away ones */
+.yw-binder{flex:1 1 auto;min-width:0;display:flex;align-items:flex-end;align-self:stretch;gap:10px;margin-left:10px}
+.yw-tabs{display:flex;align-items:flex-end;gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.yw-tabd{flex:none;display:flex;align-items:center;height:36px;max-width:180px;border-radius:5px 5px 0 0;background:#EFE7D9;box-shadow:inset 0 0 0 1px #DCCFBE}
+.yw-tabd.is-on{background:#F6F0E4;box-shadow:inset 1px 0 0 #CDBFB4,inset -1px 0 0 #CDBFB4,inset 0 2px 0 var(--gold,#B99447)}
+.yw-tabd>button:first-child{flex:1 1 auto;min-width:0;height:100%;padding:0 6px 0 13px;border:0;background:none;font-size:13.5px;color:#6A5B55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yw-tabd.is-on>button:first-child{color:#3A322D;font-weight:600}
+.yw-tabd:only-child>button:first-child,.yw-tabd>button:only-child{padding-right:13px}
+.yw-tabx{flex:none;width:24px;height:24px;margin-right:5px;border:0;border-radius:3px;background:none;font-size:15px;line-height:1;color:#8A7A72}
+.yw-tabx:hover{background:rgba(185,148,71,.14);color:#3A322D}
+.yw-tabadd{flex:none;width:32px;height:32px;margin:0 0 2px 4px;border:0;border-radius:4px;background:none;font-size:19px;color:#6A5B55}
+.yw-tabadd:hover{background:rgba(185,148,71,.12)}
+.yw-load{position:relative;flex:none;align-self:center}
+.yw-loadbtn{height:32px;padding:0 12px;border:0;border-radius:4px;background:var(--paper,#FFFDF8);font-size:13px;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #CDBFB4}
+.yw-loadbtn[aria-expanded="true"]{background:var(--rose,#F4E0DF)}
+.yw-loadlist{position:absolute;top:calc(100% + 8px);left:0;z-index:30;width:320px;max-height:360px;overflow:auto;padding:12px 14px;border-radius:5px;background:#FBF8F1;box-shadow:-4px 8px 20px -10px rgba(40,30,20,.5),inset 0 0 0 1px #E0D2BE;white-space:normal}
+.yw-loadh{margin:0 0 8px;font-size:13.5px;font-weight:600;color:#3A322D}
+.yw-loadlist ul{margin:0;padding:0;list-style:none}
+.yw-loadlist li{display:flex;align-items:center;gap:10px;min-height:44px;border-top:1px solid #EADFCF}
+.yw-loadname{flex:1 1 auto;min-width:0;display:flex;align-items:baseline;gap:8px;padding:6px 0;border:0;background:none;text-align:left}
+.yw-loadname b{font-size:14px;font-weight:600;color:#3A322D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yw-loadname small{flex:none;font-size:12px;color:#8A7A72}
+.yw-loadname:hover b{text-decoration:underline;text-underline-offset:3px}
+.yw-loadq{flex:1 1 auto;font-size:13px;color:#3A322D}
+.yw-loadlist .nb-link{font-size:12.5px}
+.yw-loadnone{margin:0;font-size:13px;line-height:1.6;color:#6A5B55}
+.yw-binder~.yw-x{margin-left:0}

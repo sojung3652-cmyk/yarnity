@@ -37,6 +37,10 @@ export interface WorkExtra {
   onClosed?: () => void;
   /** closing with X / Esc (Kim): when something changed here, asked first - keep it, or put it back as it was */
   leave?: { changed: () => boolean; drop: () => void };
+  /** 바인더 (Kim, 3D 만들기 only): the drafts being made as tabs - pressed to go between them, + a new one, × to put
+   *  one away, 불러오기 to bring a put-away one back (or throw it out) */
+  binder?: { tabs: { id: string; name: string; on: boolean }[]; closed: { id: string; name: string; when: string }[];
+    pick: (id: string) => void; add: () => void; close: (id: string) => void; remove: (id: string) => void };
   /** 3D로 보면서 만들기 (도안 만들기, Kim): the wizard's own step in the right column - where you are among the
    *  steps, the step's question and inputs, 이전 / 다음 at the foot. Enter goes on, as in the book. */
   making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean; footNote?: string;
@@ -79,6 +83,41 @@ const Opt = ({ on, onClick, children, label }: { on?: boolean; onClick: () => vo
 const Group = ({ name, children, plain }: { name: string; children: ReactNode; plain?: boolean }) => (
   <div className={"yw-grp" + (plain ? " is-plain" : "")} role="group" aria-label={name}><span className="yw-grp-n" aria-hidden="true">{name}</span><span className="yw-seg">{children}</span></div>
 );
+
+/** 바인더: the tabs, + and 불러오기 (a list under it; 지우기 asks once, in the row) */
+function Binder({ b }: { b: NonNullable<WorkExtra["binder"]> }) {
+  const [list, setList] = useState(false), [sure, setSure] = useState<string | null>(null);
+  return (
+    <div className="yw-binder">
+      <div className="yw-tabs" role="tablist" aria-label="만들던 도안">
+        {b.tabs.map(t => (
+          <span key={t.id} className={"yw-tabd" + (t.on ? " is-on" : "")}>
+            <button type="button" role="tab" aria-selected={t.on} title={t.name} onClick={() => { if (!t.on) b.pick(t.id); }}>{t.name}</button>
+            {b.tabs.length > 1 && <button type="button" className="yw-tabx" aria-label={t.name + " 탭 닫기"} title="탭 닫기 (불러오기로 다시 열 수 있습니다)" onClick={() => b.close(t.id)}>×</button>}
+          </span>
+        ))}
+        <button type="button" className="yw-tabadd" aria-label="새 도안" title="새 도안" onClick={b.add}>+</button>
+      </div>
+      <div className="yw-load">
+        <button type="button" className="yw-loadbtn" aria-expanded={list} onClick={() => { setList(v => !v); setSure(null); }}>불러오기{b.closed.length ? ` ${b.closed.length}` : ""}</button>
+        {list && (
+          <div className="yw-loadlist" role="dialog" aria-label="만들던 도안 불러오기">
+            <p className="yw-loadh">만들던 도안 불러오기</p>
+            {b.closed.length ? (
+              <ul>{b.closed.map(e => (
+                <li key={e.id}>
+                  {sure === e.id
+                    ? <><span className="yw-loadq">이 도안을 지우시겠습니까?</span><button type="button" className="nb-link" onClick={() => { b.remove(e.id); setSure(null); }}>지우기</button><button type="button" className="nb-link st-muted" onClick={() => setSure(null)}>취소</button></>
+                    : <><button type="button" className="yw-loadname" onClick={() => { b.pick(e.id); setList(false); }}><b>{e.name}</b><small>{e.when}</small></button><button type="button" className="nb-link st-muted" onClick={() => setSure(e.id)}>지우기</button></>}
+                </li>
+              ))}</ul>
+            ) : <p className="yw-loadnone">닫아 둔 도안이 없습니다. 탭의 ×로 닫거나 새로 시작한 도안이 여기에 모입니다.</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: YarnPattern; onClose: () => void; extra?: WorkExtra }) {
   const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), backRef = useRef<HTMLSpanElement>(null), viewer = useRef<YarnViewer | null>(null);
@@ -215,6 +254,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               {/* what it is, beside a given name only (Kim: no name - just "작품 이름", faint) */}
               {extra.sub && extra.name.value.trim() && extra.name.value.trim() !== extra.sub && <small>{extra.sub}</small>}</label>
           : <p className="yw-name">{extra?.title ?? "3D 미리 보기"}{extra?.sub && <small>{extra.sub}</small>}</p>}
+        {extra?.binder && <Binder b={extra.binder} />}
         {/* the way back as a plain X at the right end (Kim), 도안 수정하기 beside it; the view tools are on the stage */}
         <span ref={backRef} className="yw-x">
           {extra?.onEdit && <button type="button" className="yw-act yw-edit" onClick={editNow}><Ic s={18} d={EDIT_D} />도안 수정하기</button>}

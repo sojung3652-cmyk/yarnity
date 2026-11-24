@@ -18,6 +18,7 @@ import { drawing } from "@/lib/drawing";
 import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, LEN_RANGE, type FieldKey, type Item, type ItemId } from "@/lib/items";
 import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
+import { binder } from "@/lib/binder";
 import { BUTTONS, LABEL_GROUPS, extraPic } from "@/lib/extras";
 import { shots } from "@/lib/shots";
 import { softWord } from "@/src/features/yarn3d/YarnWorkspace";
@@ -385,6 +386,25 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // if the changes are not kept
   const atOpen = useRef<Draft | null>(null);
   useEffect(() => { atOpen.current = big3d.open ? draft : null; }, [big3d.open]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 바인더 (Kim): the drafts being made as tabs on the 3D 만들기 screen - one pressed is worked on at once, the one
+  // left kept as it was; + a new one; × puts one away, 불러오기 brings it back. Not while a saved work is changed.
+  const [, setBinRev] = useState(0);
+  useEffect(() => binder.subscribe(() => setBinRev(r => r + 1)), []);
+  const loadDraft = (d: Draft | null) => {
+    if (!d) return;
+    const p = !!d.itemPicked;
+    startStep.current = p ? 4 : 1; setDraft(d); setNums(numsOf(d)); atOpen.current = d; setTryMat(null); setTried(false); setAsked(p); setYarnSet(p); setRev(r => r + 1);
+    if (p) { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); } else window.dispatchEvent(new Event("yw:yarncheck"));
+  };
+  const tabName = (d: Draft) => d.name.trim() || (d.itemPicked ? ITEM[itemIdOf(d)].name : "새 도안");
+  const binderX = editId ? undefined : {
+    tabs: binder.tabs(draft).map(t => ({ id: t.id, name: t.on && (!!draft.itemPicked || startStep.current > 2) && !t.draft.name.trim() ? ITEM[itemIdOf(t.draft)].name : tabName(t.draft), on: t.on })),
+    closed: binder.closed().map(e => ({ id: e.id, name: tabName(e.draft), when: new Date(e.at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) })),
+    pick: (id: string) => loadDraft(binder.open(id, draft)),
+    add: () => loadDraft(binder.add(draft)),
+    close: (id: string) => loadDraft(binder.close(id, draft)),
+    remove: (id: string) => binder.remove(id),
+  };
   const leave3d = {
     changed: () => !!atOpen.current && JSON.stringify(atOpen.current) !== JSON.stringify(draft),
     drop: () => { const d = atOpen.current; if (d) { setDraft(d); setNums(numsOf(d)); } },
@@ -470,7 +490,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // wide screens, in the 3D book: the book sinks and the finished pattern is shown (Kim: 완성 · 최종 도안 보기
     // used to put the book away and show nothing); the next 새 도안 starts clean
     // saved (Kim): nothing of it stays as a draft to go on with - a made work is changed only with 고치기
-    setDraft(freshDraft()); store.set(STEP_KEY, 1);
+    setDraft(freshDraft()); store.set(STEP_KEY, 1); if (!editId) binder.renew();
     if (inBook && !phone) { book.sinkTo("/pattern"); return; }
     router.push("/pattern");
   };
@@ -592,7 +612,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     left = <TitleCover month={new Date(when).toLocaleString("en-US", { month: "long", year: "numeric" }).toUpperCase()} />;
     const start = editId || startDone ? null : (
       <StartChoice draft={draft} projects={projects} mode={startMode} onMode={setStartMode}
-        onFresh={() => { const f = freshDraft(); startStep.current = 1; setAsked(false); setYarnSet(false); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); }}
+        onFresh={() => { binder.stash(draft); const f = freshDraft(); startStep.current = 1; setAsked(false); setYarnSet(false); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); }}
         onDraft={() => setStartDone(true)} onOpen={id => { setStartDone(true); book.editHere(id); }} />
     );
     // wide screens with the 3D (Kim): the first page asks only where to start - no steps, no name (the name is
@@ -600,7 +620,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     right = webStart ? (
       <div className="tp tp-start">
         <StartChoice always draft={draft} projects={projects} mode={startMode} onMode={setStartMode}
-          onFresh={() => { const f = freshDraft(); startStep.current = 1; setAsked(false); setYarnSet(false); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); next(); }}
+          onFresh={() => { binder.stash(draft); const f = freshDraft(); startStep.current = 1; setAsked(false); setYarnSet(false); setDraft(f); setNums(numsOf(f)); setDrawOn(false); setStartDone(true); next(); }}
           onDraft={() => { setStartDone(true); next(); }} onOpen={id => { setStartDone(true); book.editHere(id); }} />
       </div>
     ) : <TitlePage name={draft.name} onName={v => patch({ name: v })} onEnter={next} progress={progress} before={start} />;
@@ -1046,7 +1066,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       { label: "모양", on: yarnSet, onClick: () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); } },
     ],
   } : undefined;
-  const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, leave: leave3d, panel: making ? undefined : workPanel,
+  const workNode = web ? big3d.render({ title: draft.name.trim() || NO_NAME, name: { value: draft.name, onChange: v => patch({ name: v }) }, sub: picked ? itemLabel : undefined, caption: sizeCaption, backLabel: "← 책으로", making, leave: leave3d, binder: binderX, panel: making ? undefined : workPanel,
     empty: !picked,
     // 조립하기: what to make, asked first (Kim); the 크기 틀 dragged on the 3D
     // what to make, asked first (Kim: 맨 처음에); the yarn next, the shape after; the name at the end, on 확인
