@@ -275,9 +275,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     <div className="nb-soft">
       <div className="nb-sliders nb-sliders-1"><Slide label={label} min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={v => { setSoftPeek(false); patch({ softK: v }); }} text={softWord(draft.softK ?? 1)} /></div>
       <div className="nb-soft-acts">
-        <button type="button" className="nb-link" aria-pressed={softPeek} disabled={(draft.softK ?? 1) === 1} onClick={() => setSoftPeek(v => !v)}>{softPeek ? "지금 탄성으로 보기" : "실 그대로와 비교"}</button>
-        {(draft.softK ?? 1) !== 1 && <button type="button" className="nb-link st-muted" onClick={() => { setSoftPeek(false); patch({ softK: 1 }); }}>실 그대로로 되돌리기</button>}
-        {softPeek && <span className="nb-soft-on">실 그대로의 모양을 보는 중입니다</span>}
+        {/* Kim: no 비교 button; 되돌리기 only */}
+        {(draft.softK ?? 1) !== 1 && <button type="button" className="nb-link st-muted" onClick={() => { setSoftPeek(false); patch({ softK: 1 }); }}>되돌리기</button>}
       </div>
       <p className="nb-help">권장보다 큰 바늘로 뜨거나 느슨하게 뜨면 편물이 더 흐물흐물해집니다. 3D 모양만 바뀝니다.</p>
     </div>

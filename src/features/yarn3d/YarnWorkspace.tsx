@@ -135,7 +135,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const root = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), backRef = useRef<HTMLSpanElement>(null), viewer = useRef<YarnViewer | null>(null);
   const shown = useRef<YarnPattern>(pattern), latest = useRef(pattern); latest.current = pattern;
   const moveEx = useRef(extra?.onExtraMove); moveEx.current = extra?.onExtraMove;
-  const [pickEx, setPickEx] = useState<{ k: string; x: number; y: number } | null>(null), [swap, setSwap] = useState(false);
+  const [pickEx, setPickEx] = useState<{ k: string; x: number; y: number } | null>(null), [swap, setSwap] = useState(false), [moveHint, setMoveHint] = useState(false);
+  useEffect(() => { if (!moveHint) return; const t = setTimeout(() => setMoveHint(false), 3500); return () => clearTimeout(t); }, [moveHint]);
   const { setChat } = useApp();
   const [tool, setTool] = useState<Tool>("rotate"), [ruler, setRuler] = useState(false);
   // 크기 틀: the piece's box on the screen, and the pull on it while a handle is dragged
@@ -225,8 +226,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       const p = latest.current;
       const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onBusy: setBusy, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y),
         onExtraPick: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) { setSwap(false); setPickEx({ k, x: x - r.left, y: y - r.top }); } },
-        // the pointer on one (Kim: 위치에 커서를 올리면 조절 옵션): its tools show beside it
-        onExtraHover: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) setPickEx(p => p?.k === k ? p : (setSwap(false), { k, x: x - r.left, y: y - r.top })); } }) : null;
+        // the tools open on a click only (Kim: 왜 자꾸 떠있어 - they came up on every hover and stayed)
+        onExtraHover: () => {} }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
     });
@@ -248,11 +249,18 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const editNow = () => { const go = extra?.onEdit; if (!go) return; onClose(); go(); };
   const mk = extra?.making, empty = !!extra?.empty;
   // the index shows which section is being read (the column scrolls; the index stays)
-  const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0);
+  const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0), [more, setMore] = useState(false);
   useEffect(() => {
     const el = body.current; if (!el) return;
-    const f = () => { const secs = [...el.querySelectorAll<HTMLElement>(".yw-sec")], top = el.getBoundingClientRect().top + 24; let k = 0; secs.forEach((x, i) => { if (x.getBoundingClientRect().top <= top) k = i; }); if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4) k = secs.length - 1; setCur(k); };
-    f(); el.addEventListener("scroll", f, { passive: true }); return () => el.removeEventListener("scroll", f);
+    const f = () => {
+      const secs = [...el.querySelectorAll<HTMLElement>(".yw-sec")], top = el.getBoundingClientRect().top + 24; let k = 0; secs.forEach((x, i) => { if (x.getBoundingClientRect().top <= top) k = i; }); if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4) k = secs.length - 1; setCur(k);
+      // more below (Kim: 아래로 향하는 화살표 - so it is plain the list goes on)
+      setMore(el.scrollHeight - el.scrollTop - el.clientHeight > 28);
+    };
+    f(); el.addEventListener("scroll", f, { passive: true });
+    const ro = new ResizeObserver(f); ro.observe(el); if (el.firstElementChild) ro.observe(el.firstElementChild);
+    const mo = new MutationObserver(f); mo.observe(el, { childList: true, subtree: true });
+    return () => { el.removeEventListener("scroll", f); ro.disconnect(); mo.disconnect(); };
   }, [mk?.sections.length]);
   const size = empty ? "" : extra?.caption ?? (!info ? "" : (info.round ? `지름 약 ${info.widthCm}cm` : `약 ${info.widthCm} × ${info.depthCm}cm`) + (info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : ""));
 
@@ -306,14 +314,17 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             <button type="button" aria-label="작게" onClick={() => extra.extraTools!.size(pickEx.k, 1 / 1.15)}>−</button>
             <button type="button" aria-label="크게" onClick={() => extra.extraTools!.size(pickEx.k, 1.15)}>+</button>
             <button type="button" aria-expanded={swap} onClick={() => setSwap(v => !v)}>교체</button>
+            {/* 이동 (Kim): the tools step aside and say how - press on it and drag */}
+            <button type="button" onClick={() => { setPickEx(null); setMoveHint(true); }}>이동</button>
             <button type="button" onClick={() => { extra.extraTools!.remove(pickEx.k); setPickEx(null); }}>빼기</button>
             <button type="button" aria-label="닫기" onClick={() => setPickEx(null)}>×</button>
-            {/* 교체 (Kim): another picture of the same kind in its place */}
+            {/* 교체 (Kim): another picture of the same kind in its place - chosen, the tools close */}
             {swap && <div className="yw-swap"><ExtraPicker label="다른 것으로 교체" wide={!extra.extraTools.isButton(pickEx.k)}
               groups={extra.extraTools.isButton(pickEx.k) ? [["단추", BUTTONS]] : LABEL_GROUPS.map(([g, l]): [string, typeof l] => [g + " 라벨", l])}
-              value={extra.extraTools.current(pickEx.k)} onPick={p => { extra.extraTools!.replace(pickEx.k, p.id); setSwap(false); }} /></div>}
+              value={extra.extraTools.current(pickEx.k)} onPick={p => { extra.extraTools!.replace(pickEx.k, p.id); setSwap(false); setPickEx(null); }} /></div>}
           </div>
         )}
+        {moveHint && <p className="yw-busy yw-movehint" role="status">장식을 눌러 끌면 옮겨집니다</p>}
         {/* 생성 중 (Kim): while a shape is being made, said on the stage */}
         {busy && !noGL && !empty && !intro && <p className="yw-busy" role="status"><i aria-hidden="true" />생성 중…</p>}
         {/* the lower right (Kim): 제작 시뮬레이션 (the piece made round by round) just left of Yarni */}
@@ -383,6 +394,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
                 {x.body}
               </section>
             ))}
+            {more && <button type="button" className="yw-more" aria-label="아래에 더 있습니다" title="아래에 더 있습니다" onClick={() => body.current?.scrollBy({ top: body.current.clientHeight * .7, behavior: "smooth" })}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>}
           </div>
           <div className="yw-mkfoot">
             <span className="yw-mknote">{mk.footNote ?? (mk.blocked ? "정하지 않은 항목이 있습니다. 누르면 그곳으로 갑니다." : "다 정하셨으면 책으로 돌아가 확인합니다.")}</span>

@@ -975,9 +975,24 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const half = (u: number) => f.shape === "square" ? hw : f.shape === "triangle" ? hw * Math.max(.06, 1 - u) : hw * Math.sqrt(Math.max(.01, 1 - u * u));
     let prev: THREE.Vector3[] | null = null, tip: THREE.Vector3 | null = null;
     const left: THREE.Vector3[] = [], right: THREE.Vector3[] = []; // the front part's edges, for its border
+    // worked on from the back's own top edge (Kim: 뒤쪽 편물과 이어져야 - it lay on top like a lid): the back half of
+    // the last round, across the flap's width only (a body with width: its back long side, the short sides left
+    // out). The first rows start on that edge, following its curve and height, and turn into the line over the top
+    const czm = (z0 + z1) / 2, back = top.idx.map(i => D.P[i]).filter(q => q.z < czm && Math.abs(q.x - cx) <= hw * 1.02).sort((a, b) => a.x - b.x);
+    const rimAt = (x: number): [number, number] | null => {
+      if (back.length < 2) return null;
+      if (x <= back[0].x) return [back[0].z, back[0].y]; if (x >= back[back.length - 1].x) return [back[back.length - 1].z, back[back.length - 1].y];
+      let j = 1; while (j < back.length - 1 && back[j].x < x) j++; const a = back[j - 1], b = back[j], t = (x - a.x) / Math.max(1e-9, b.x - a.x);
+      return [a.z + (b.z - a.z) * t, a.y + (b.y - a.y) * t];
+    };
+    const JOIN = 3; // rows over which the flap leaves the back's edge for its own line
     for (let r0 = 0; r0 <= rows; r0++) {
       const [z, y, u] = at(total * r0 / rows), w = u < 0 ? hw : half(u), n = Math.max(2, Math.round(2 * w / D.sw)), row: THREE.Vector3[] = [];
-      for (let i = 0; i <= n; i++) row.push(new THREE.Vector3(cx - w + 2 * w * i / n, y, z));
+      const fj = r0 >= JOIN ? 1 : r0 / JOIN, ease = fj * fj * (3 - 2 * fj);
+      for (let i = 0; i <= n; i++) {
+        const x = cx - w + 2 * w * i / n, rim = fj < 1 ? rimAt(x) : null;
+        row.push(rim ? new THREE.Vector3(x, rim[1] + (y - rim[1]) * ease + R * .5 * (1 - ease), rim[0] + (z - rim[0]) * ease) : new THREE.Vector3(x, y, z));
+      }
       const mk = (pts: THREE.Vector3[], rr: number) => { if (pts.length < 2) return; const cv = new THREE.CatmullRomCurve3(pts, false, "catmullrom", .5), sp = cv.getSpacedPoints(Math.max(8, Math.ceil(cv.getLength() / (rr * .75 * step)))); const g = buildYarn(sp, rr, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g); };
       mk(row, R * .9);
       if (prev) { const saw: THREE.Vector3[] = []; const pv = prev; row.forEach(q => { let best = pv[0], bd = 1e9; for (const o of pv) { const d = Math.abs(o.x - q.x); if (d < bd) { bd = d; best = o; } } saw.push(q.clone(), best.clone().lerp(q, .35)); }); mk(saw, R); }

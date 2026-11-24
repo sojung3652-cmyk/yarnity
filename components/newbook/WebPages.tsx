@@ -326,9 +326,14 @@ export function WebYarn({ draft, patch, tried, noColor, sub, soft }: { draft: Dr
  *  boxes in view, every one optional */
 function LabelInfo({ draft, patch }: { draft: Draft; patch: Patch }) {
   const num = (k: "skeinG" | "skeinM" | "skeins") => (raw: string) => { const v = parseNum(raw); patch({ [k]: Number.isFinite(v) ? v : null } as Partial<Draft>); };
+  // a toggle, closed at first (Kim): only its name and what is written so far, until opened
+  const [open, setOpen] = useState(false);
+  const sum = [draft.yarn, draft.colorNo, draft.lot ? `LOT ${draft.lot}` : "", draft.skeins ? `${draft.skeins}타래` : ""].filter(Boolean).join(" · ");
   return (
-      <div className="nb-wg nb-labelbox">
-        <Head note="선택 · 적으면 실 양과 타래 수가 정확해집니다">실 라벨 정보</Head>
+      <div className={"nb-wg nb-labelbox" + (open ? " is-open" : "")}>
+        <button type="button" className="nb-labeltoggle" aria-expanded={open} onClick={() => setOpen(v => !v)}>
+          <i aria-hidden="true">{open ? "▾" : "▸"}</i><b>실 라벨 정보</b><small>{sum || "선택 · 적으면 실 양과 타래 수가 정확해집니다"}</small></button>
+        {open && <>
           <div className="nb-grid2">
             <div className="nb-mini"><label htmlFor="yName">실 이름 / 브랜드</label><input id="yName" className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: 면 혼방 합사" value={draft.yarn} onChange={e => patch({ yarn: e.target.value })} onBlur={e => patch({ yarn: clean(e.target.value) })} /></div>
             <div className="nb-mini"><label htmlFor="yNo">색 번호</label><input id="yNo" className="nb-input nb-input-sm" autoComplete="off" maxLength={MAX_TEXT} placeholder="예: No. 214" value={draft.colorNo ?? ""} onChange={e => patch({ colorNo: e.target.value })} onBlur={e => patch({ colorNo: clean(e.target.value) })} /></div>
@@ -340,6 +345,7 @@ function LabelInfo({ draft, patch }: { draft: Draft; patch: Patch }) {
           </div>
           <div className="nb-mini"><label htmlFor="yMemo">메모</label><input id="yMemo" className="nb-input nb-input-sm nb-wide" maxLength={MAX_TEXT} value={draft.memo ?? ""} onChange={e => patch({ memo: e.target.value })} onBlur={e => patch({ memo: clean(e.target.value) })} /></div>
           <p className="nb-help">LOT(염색 로트)는 같은 색 실을 더 살 때 필요합니다. 실 라벨에 적혀 있습니다.</p>
+        </>}
       </div>
   );
 }

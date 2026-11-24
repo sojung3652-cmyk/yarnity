@@ -283,9 +283,14 @@ function planSc(p: PlanInput): Plan {
     if (p.flapCm && p.flapCm > 0) {
       // over the top (Kim): it crosses the top's width first (as wide as the bottom is, b), then falls - more rows
       const over = p.flapOver === "top" && p.shape !== "circle" && p.gusset !== "flat" ? Math.max(0, (p.b as number) || 0) : 0;
-      const fn = Math.max(4, Math.round(rimN / 2) - 2), fr = Math.max(2, rnd((p.flapCm + over) / g.h)), fo = over ? rnd(over / g.h) : 0;
-      for (let i = 0; i < fr; i++) rows.push({ part: "flap", n: fn, how: i === 0 ? `뒤판 가운데 ${fn}코에 실을 걸고 짧은뜨기 ${fn}코` : i === fr - 1 ? `사슬 1, 뒤집어서 짧은뜨기 ${fn}코 · 가운데에 사슬 고리(단추 구멍)` : `사슬 1, 뒤집어서 짧은뜨기 ${fn}코${fo && i === fo ? " · 여기서부터 앞으로 꺾여 내려옵니다" : ""}`,
-        why: i === 0 ? `입구의 절반 ${Math.round(rimN / 2)}코 - 양옆 1코씩 · ${over ? `윗면 ${over}cm + ` : ""}덮개 ${p.flapCm}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${fr}단` : `${fn}코 그대로`, inc: 0 } as Row);
+      // where the flap is worked from (Kim): the back's own top edge. The top closed (오므림): half the rim. A body
+      // with width: the top a rectangle, the flap from its back long side only - the two short (depth) sides and
+      // the front left out
+      const bw = (p.b as number) || 0, thick = p.shape !== "circle" && p.gusset !== "flat" && bw > 0 && (p.gusset === "box" || p.flapOver === "top");
+      const fn = Math.max(4, thick ? Math.round(rimN * p.a / (2 * p.a + 2 * bw)) : Math.round(rimN / 2)), fr = Math.max(2, rnd((p.flapCm + over) / g.h)), fo = over ? rnd(over / g.h) : 0;
+      const from = thick ? `뒤판 윗변 ${fn}코 (옆면 두 변과 앞판은 빼고)` : `입구 둘레의 절반, 뒤판 ${fn}코`;
+      for (let i = 0; i < fr; i++) rows.push({ part: "flap", n: fn, how: i === 0 ? `뒤판 마지막 단에 이어서 ${from}에 짧은뜨기 ${fn}코` : i === fr - 1 ? `사슬 1, 뒤집어서 짧은뜨기 ${fn}코 · 가운데에 사슬 고리(단추 구멍)` : `사슬 1, 뒤집어서 짧은뜨기 ${fn}코${fo && i === fo ? " · 여기서부터 앞으로 꺾여 내려옵니다" : ""}`,
+        why: i === 0 ? `${thick ? `윗면 ${p.a} × ${bw}cm 중 뒤쪽 가로 한 변` : `입구 ${rimN}코의 절반`} = ${fn}코 · ${over ? `윗면 ${over}cm + ` : ""}덮개 ${p.flapCm}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${fr}단` : `${fn}코 그대로`, inc: 0 } as Row);
     }
     if (p.handle !== "none") {
       const len = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25, ch = rnd(len / (g.w * 0.85));
