@@ -6,9 +6,23 @@
 import { useState } from "react";
 import type { Draft } from "@/lib/types";
 import { readSpec, specToDraft } from "@/lib/sketchShape";
-import { GROUPS, ITEMS } from "@/lib/items";
 import { guessSpec } from "@/lib/assemble";
+import { PROTO_GROUPS, PROTOS, protoDraft, type Proto } from "@/lib/prototypes";
 import { ClothLabel } from "./ClothLabel";
+
+/** 기본형 (Kim): pressed, the piece comes up ready - bags and pouches in a few kinds, the rest as they are */
+function Protos({ onPick }: { onPick: (p: Proto) => void }) {
+  return (
+    <div className="ask-protos">
+      <p className="ask-protos-lead">누르면 바로 그 모양이 3D로 나옵니다. 크기와 부품은 모양에서 고쳐 나가면 됩니다.</p>
+      {PROTO_GROUPS.map(g => (
+        <div key={g} className="ask-grp"><b>{g}</b>
+          <span>{PROTOS.filter(p => p.group === g).map(p => <button key={p.id} type="button" title={p.note || undefined} onClick={() => onPick(p)}>{p.name}{p.note && <small>{p.note}</small>}</button>)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 
 /** the first window (Kim: 이름을 먼저): the piece's name; may stay empty */
@@ -65,17 +79,9 @@ export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d
         <h2 id="ask-h">무엇을 떠 볼까요</h2>
         <p className="ask-lead">자유롭게 적어 주십시오. Yarni가 부품을 맞춰 두고, 실을 고른 뒤 모양에서 크기와 부품을 정합니다.</p>
         {q.field}
-        {/* not sure what to make: what Yarnity can make, in a few words each (a press puts it in the box) */}
-        <button type="button" className="nb-link ask-listbtn" aria-expanded={list} onClick={() => setList(v => !v)}>{list ? "목록 닫기" : "뜰 수 있는 것 보기"}</button>
-        {list && (
-          <div className="ask-list2">
-            {GROUPS.map(g => (
-              <div key={g} className="ask-grp"><b>{g}</b>
-                <span>{ITEMS.filter(i => i.group === g).map(i => <button key={i.id} type="button" onClick={() => q.put(i.name)}>{i.name}</button>)}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* an option (Kim): a ready 기본형 at once, changed afterwards in 모양 - words and drawing stay first */}
+        <button type="button" className="nb-link ask-listbtn" aria-expanded={list} onClick={() => setList(v => !v)}>{list ? "기본형 닫기" : "또는 기본형에서 시작하기"}</button>
+        {list && <Protos onPick={p => onApply(protoDraft(draft, p))} />}
         {q.err && <p className="ask-err" role="alert">{q.err}</p>}
         <div className="ask-foot">
           <ClothLabel side="back" type="button" onClick={onSkip}>나중에</ClothLabel>
@@ -88,13 +94,15 @@ export function AskStart({ draft, onApply, onSkip }: { draft: Draft; onApply: (d
 
 /** the same question inside 모양, while nothing is made yet (no list of items to pick: the reader's own words) */
 export function AskInline({ draft, onApply }: { draft: Draft; onApply: (d: Draft) => void }) {
-  const q = useAsk(draft, onApply);
+  const q = useAsk(draft, onApply), [list, setList] = useState(false);
   return (
     <div className="ask-in">
       <p className="ask-in-h">무엇을 떠 볼까요</p>
       {q.field}
       {q.err && <p className="ask-err" role="alert">{q.err}</p>}
       <button type="button" className="sk-make" onClick={q.prepare} disabled={q.busy}>{q.busy ? "조립하는 중…" : "조립하기"}</button>
+      <button type="button" className="nb-link ask-listbtn" aria-expanded={list} onClick={() => setList(v => !v)}>{list ? "기본형 닫기" : "또는 기본형에서 시작하기"}</button>
+      {list && <Protos onPick={p => onApply(protoDraft(draft, p))} />}
     </div>
   );
 }
