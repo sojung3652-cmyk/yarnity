@@ -119,7 +119,8 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     const rounds = counts("rounds"); if (!rounds.length) return null;
     shape = { kind: "tube", W: rounds[0], H: rounds.length, circCm: p.a, hCm: p.h ?? 1 };
   } else {
-    const bottom = counts("bottom"), body = p.object === "bag" ? counts("body", "rim") : [];
+    // a stitch pattern's taller rounds (Row.hk ~2 for 한길긴뜨기) drawn as as many rounds, so the body keeps its height
+    const bottom = counts("bottom"), body = p.object === "bag" ? drawnRounds(pp.rows.filter(r => r.part === "body" || r.part === "rim")).map(x => x.n) : [];
     if (!bottom.length) return null;
     shape = p.shape === "circle" ? { kind: "round", counts: [...bottom, ...body], flat: bottom.length }
       : { kind: p.shape === "oval" ? "oval" as const : "rect" as const, chain: Math.max(2, pp.c), bottom, body };
@@ -135,7 +136,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   const more = (p.moreColors ?? []).filter(c => !c?.held).map(c => c?.hex).filter((h): h is string => !!h && /^#[0-9a-f]{6}$/i.test(h));
   const colors = rowColors ? rowColors.map(c => c ?? color) : shape.kind === "chart" ? [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] : [color];
   // the stitch pattern picked, on a bag's body (the bottom stays plain, as it is worked)
-  const wc = p.object === "bag" && !p.free && !isKnit(p) ? (p.crochetChart ? { W: WALL[p.crochetChart][0].length, H: WALL[p.crochetChart].length, t: WALL[p.crochetChart] }
+  const wc = p.object === "bag" && !p.free && !isKnit(p) ? (p.crochetChart ? wallOfRounds(p.crochetChart, pp)
     : p.chartName && chartFor(p.chartName) ? wallOfChart(chartFor(p.chartName)!) : null) : null;
   const wall = wc ? { ...wc, colors: [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] } : null;
   return { shape, colors, yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
@@ -172,6 +173,22 @@ const WALL: Record<ChartKey, WallStitch[][]> = {
   net: [["sc", "ch", "ch", "ch"], ["ch", "ch", "sc", "ch"]],
 };
 const WALL_OF: Partial<Record<string, WallStitch>> = { sc: "sc", sl: "sc", crab: "sc", loop: "sc", picot: "sc", bar: "sc", hdc: "hdc", dc: "dc", tr: "tr", dtr: "tr", bob: "pop", puff: "pop", pop: "pop", cl: "pop", bull: "pop", yo: "ch" };
+/** the body's rounds as drawn: a round hk times as tall as a single-crochet round is drawn as that many (the
+ *  heights added up, so 2.05-high rounds give 2, 2, 2, ... and now and then a 3rd) */
+function drawnRounds(rows: Plan["rows"]): { n: number; at: number }[] {
+  const out: { n: number; at: number }[] = []; let acc = 0;
+  rows.forEach((r, i) => { acc += r.hk ?? 1; const want = Math.max(out.length + 1, Math.round(acc)); while (out.length < want) out.push({ n: Math.max(1, Math.round(r.n)), at: i }); });
+  return out;
+}
+/** a picked pattern on the body, round by round as drawn: the evening round and the rim plain, each pattern
+ *  round its repeat row (shell: the fans, then the fans half a repeat over...) */
+function wallOfRounds(k: ChartKey, pp: Plan): { W: number; H: number; t: WallStitch[][] } {
+  const rows = pp.rows.filter(r => r.part === "body" || r.part === "rim"), W = WALL[k][0].length, plain = Array<WallStitch>(W).fill("sc");
+  let pi = 0; const pat = rows.map(r => r.hk ? WALL[k][pi++ % WALL[k].length] : plain);
+  const t = drawnRounds(rows).map(x => pat[x.at]);
+  return { W, H: t.length, t };
+}
+
 /** a chart built on a grid (lib/stitchCharts: each stitch with its cell) as a repeat for the body; null for a
  *  knitted one (its knit and purl are drawn by the knitting engine, not round a crocheted bag) */
 function wallOfChart(ch: Chart): { W: number; H: number; t: WallStitch[][]; c: number[][] } | null {

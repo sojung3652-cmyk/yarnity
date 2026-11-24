@@ -3,6 +3,8 @@
 // tests/pattern.test.ts checks every output against a verbatim copy of the original,
 // so keep the arithmetic (including rnd()'s toFixed(6) rounding) exactly as is.
 
+import { CHART_MULT, type ChartKey } from "./crochetChart";
+
 export type HookKey = "2호" | "3호" | "4호" | "5호" | "6호" | "7호" | "8호" | "10호";
 export type Weight = "thin" | "medium" | "thick";
 export type Shape = "circle" | "oval" | "rect";
@@ -57,6 +59,8 @@ export interface PlanInput {
   /** the crochet stitch the piece is worked in (Kim: 코바늘 무늬): 짧은뜨기 (sc, the default), 이랑뜨기 (sc in
    *  the back loop: ridges, the same height), 긴뜨기 (hdc), 한길긴뜨기 (dc) - taller stitches, fewer rows */
   crochetStitch?: CrochetStitch | null;
+  /** a stitch pattern for a bag's body (Kim: 모양 - 무늬, written into the rounds with its own stitch multiple) */
+  crochetChart?: ChartKey | null;
   /** a body drawn as a silhouette (Kim: round forms - a hobo swells and gathers, it is no box): the widths up its
    *  height, bottom first, as shares of the widest; the bottom (a) is the first width. The rows' counts follow it. */
   profile?: number[] | null;
@@ -111,6 +115,9 @@ export interface Row {
   label: string;
   /** a drawn shape's round in its own colour (unset: the pattern's yarn colour) */
   color?: string;
+  /** how tall the round is against a single-crochet round (a stitch pattern's 한길긴뜨기 rounds ~2): the 3D
+   *  draws it as that many rounds */
+  hk?: number;
 }
 
 export interface Plan {
@@ -236,6 +243,39 @@ export function plan(p: PlanInput): Plan {
   return { ...pp, rows, turn: c.turn };
 }
 
+/** a crochet stitch pattern worked in the round up a bag's body (lib/crochetChart CHART_ROWS, in rounds: each
+ *  round closed with a slip stitch and the next begun where the pattern needs it). The stitches are evened to the
+ *  pattern's multiple first, so every repeat closes; the count stays the same up the body (straight). */
+const WALL_HT: Record<ChartKey, number> = { shell: 2.05, mesh: 2.05, vst: 2.05, moss: 1, net: 1.45 };
+function bodyPattern(k: ChartKey, last: number, hCm: number, g: Gauge): { rows: RawRow[]; n: number; reps: number; rim: string } {
+  const m = CHART_MULT[k][0], n = Math.max(m * 2, Math.round(last / m) * m), r = n / m, d = n - last, ht = WALL_HT[k];
+  const rows: RawRow[] = [{ part: "body", n, inc: d,
+    how: d > 0 ? `짧은뜨기 ${n}코 (늘림 ${d}코를 고르게 나눠서)` : d < 0 ? `짧은뜨기 ${n}코 (줄임 ${-d}번을 고르게 나눠서)` : `늘림 없이 짧은뜨기 ${n}코`,
+    why: `여기서부터 위로 올라갑니다 · 무늬가 ${m}코 단위라 ${n}코(${m} × ${r})로 맞춥니다${d ? ` (${last}${d > 0 ? " + " : " - "}${Math.abs(d)})` : ""}` }];
+  const pr = Math.max(2, rnd(Math.max(0, hCm - g.h) / (g.h * ht)));
+  const text: Record<ChartKey, [string, string, string]> = {
+    shell: [`기둥사슬 1, (짧은뜨기 1, 2코 건너뛰고 한 코에 한길긴뜨기 5, 2코 건너뛰기) × ${r}, 첫 코에 빼뜨기`,
+      `빼뜨기 3코로 첫 부채 가운데까지 옮겨 기둥사슬 1, (부채 가운데에 짧은뜨기 1, 아래 짧은뜨기에 한길긴뜨기 5) × ${r}, 첫 코에 빼뜨기`,
+      `부채 ${r}개 · 단마다 반 칸씩 엇갈립니다`],
+    mesh: [`사슬 4(한길긴뜨기 1 + 사슬 1), (1코 건너뛰고 한길긴뜨기 1, 사슬 1) × ${r - 1}, 사슬 4의 3번째 코에 빼뜨기`,
+      `사슬 4, (아래 한길긴뜨기에 한길긴뜨기 1, 사슬 1) × ${r - 1}, 사슬 4의 3번째 코에 빼뜨기`,
+      `구멍 ${r}개 · 구멍이 세로로 줄지어 섭니다`],
+    vst: [`사슬 4(한길긴뜨기 1 + 사슬 1), 같은 코에 한길긴뜨기 1, (2코 건너뛰고 한 코에 한길긴뜨기 1 · 사슬 1 · 한길긴뜨기 1) × ${r - 1}, 사슬 4의 3번째 코에 빼뜨기`,
+      `빼뜨기 1코로 첫 V의 사슬 사이로 옮겨 사슬 4, 같은 곳에 한길긴뜨기 1, (다음 V의 사슬 사이에 한길긴뜨기 1 · 사슬 1 · 한길긴뜨기 1) × ${r - 1}, 3번째 코에 빼뜨기`,
+      `V ${r}개 · V 위에 V가 쌓입니다`],
+    moss: [`기둥사슬 1, (짧은뜨기 1, 사슬 1, 1코 건너뛰기) × ${r}, 첫 코에 빼뜨기`,
+      `빼뜨기 1코로 첫 사슬 사이로 옮겨 기둥사슬 1, (사슬 사이에 짧은뜨기 1, 사슬 1) × ${r}, 첫 코에 빼뜨기`,
+      `${r}번 반복 · 단마다 반 칸씩 엇갈립니다`],
+    net: [`기둥사슬 1, (짧은뜨기 1, 사슬 5, 3코 건너뛰기) × ${r}, 첫 코에 빼뜨기`,
+      `빼뜨기 3코로 첫 아치 가운데까지 옮겨 기둥사슬 1, (아치 가운데에 짧은뜨기 1, 사슬 5) × ${r}, 첫 코에 빼뜨기`,
+      `아치 ${r}개 · 아치가 반 칸씩 엇갈려 마름모 구멍이 됩니다`],
+  };
+  const [first, next, why] = text[k];
+  for (let i = 0; i < pr; i++) rows.push({ part: "body", n, inc: 0, hk: ht, how: i === 0 ? first : next, why: i === 0 ? why : `${n}코 그대로` });
+  const rim: Record<ChartKey, string> = { shell: "부채마다 6코", mesh: "한길긴뜨기에 1코, 사슬 사이에 1코", vst: "V의 사슬 사이에 2코, V 사이에 1코", moss: "짧은뜨기에 1코, 사슬 사이에 1코", net: "아치마다 4코" };
+  return { rows, n, reps: r, rim: rim[k] };
+}
+
 function planSc(p: PlanInput): Plan {
   if (p.paint) return planPaint(p);
   if (p.free) return planFree(p);
@@ -261,7 +301,11 @@ function planSc(p: PlanInput): Plan {
       ? Math.round(last * (p.shape === "circle" ? p.topA / p.a : (2 * (p.a - b0) + Math.PI * (b0 + p.topA - p.a)) / (2 * (p.a - b0) + Math.PI * b0)))
       : last;
     let prevN = last;
-    for (let i = 0; i < bodyRows; i++) {
+    // a stitch pattern on the body (Kim: 무늬 별로 코 수 주의): the first round evens the stitches to the
+    // pattern's multiple, then the pattern's rounds - as many as its taller rounds take to reach the height
+    const wall = p.crochetChart ? bodyPattern(p.crochetChart, last, (p.h as number) || 0, g) : null;
+    if (wall) { rows.push(...(wall.rows as Row[])); prevN = wall.n; }
+    else for (let i = 0; i < bodyRows; i++) {
       if (!prof && top === last) { rows.push({ part: "body", n: last, how: `늘림 없이 짧은뜨기 ${last}코`, why: i === 0 ? "여기서부터 위로 올라갑니다" : `${last}코 그대로`, inc: 0 } as Row); continue; }
       // widening body: the extra stitches spread evenly over the rows (round 1 of the body stays straight)
       // a drawn silhouette: each row as wide as the drawing is at its height (never more than half again, nor less
@@ -279,7 +323,7 @@ function planSc(p: PlanInput): Plan {
       rows.push({ part: "rim", n: rimN, how: `끈 구멍 단: (사슬 1, 1코 건너뛰고 짧은뜨기 1) × ${holes}${rimN % 2 ? ", 짧은뜨기 1" : ""}`,
         why: `구멍 ${holes}개 · 사슬 끈 약 ${cord}cm를 꿰어 조입니다`, inc: 0 } as Row);
     }
-    for (let i = 0; i < 2; i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? `짧은뜨기 ${rimN}코` : `빼뜨기 ${rimN}코로 마무리`, why: "입구를 단단하게", inc: 0 } as Row);
+    for (let i = 0; i < 2; i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${CHART_MULT[p.crochetChart!][0]}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
     if (p.flapCm && p.flapCm > 0) {
       // over the top (Kim): it crosses the top's width first (as wide as the bottom is, b), then falls - more rows
       const over = p.flapOver === "top" && p.shape !== "circle" && p.gusset !== "flat" ? Math.max(0, (p.b as number) || 0) : 0;

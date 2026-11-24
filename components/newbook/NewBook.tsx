@@ -35,6 +35,7 @@ import { YarnCheck } from "./YarnCheck";
 import { StartChoice } from "./StartChoice";
 import { specToDraft } from "@/lib/sketchShape";
 import { CROCHET, type CrochetStitch } from "@/lib/pattern";
+import { CHART_MULT, type ChartKey } from "@/lib/crochetChart";
 import { DrawPad } from "./DrawPad";
 import { PaintPad } from "./PaintPad";
 import { GoldX } from "@/components/GoldX";
@@ -76,6 +77,9 @@ const HANDLE_RANGE = LEN_RANGE; // any length (Kim: no limits)
 
 /** The draft as the engine reads it (item -> engine path, beanie conversion, handle and the bag options
  *  only where offered; 0 = an option left with an invalid number, read as unset). */
+/** the stitches 모양 offers for a bag's body (Kim): worked in the round, each with how many it needs */
+const BAG_STITCHES: [string, string][] = [["c2", "기본 · 아무 코 수"], ["c3", "조금 높게"], ["c4", "높고 성글게"], ["c7", "가로 이랑"], ["c12", "2코 단위"], ["c44", "6코 단위"], ["c45", "3코 단위"], ["c48", "4코 단위 · 구멍"]];
+
 export function engineInput(d: Draft): PlanInput {
   const it = ITEM[itemIdOf(d)], e = engineDims(it, d), bag = isBag(it);
   // every piece with walls can take a handle (Kim: not only the bags the list says) - a pouch, a basket, a pot cover
@@ -919,7 +923,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const railParts: [string, string, boolean][] = base
       // every part for every piece with walls (Kim: 뭘 뜰지에 따라 소환하지 말고, 전체적으로 다) - a pouch can have a
       // wrist loop, a basket a flap
-      ? [["bottom", "바닥", true], ["body", "몸통", true], ["handle", "손잡이", draft.handle !== "none"], ["top", "입구", hasFlap || closureNow !== "open" || !!exNow.zipper], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]]
+      ? [["bottom", "바닥", true], ["body", "몸통", true], ["handle", "손잡이", draft.handle !== "none"], ["top", "입구", hasFlap || closureNow !== "open" || !!exNow.zipper], ["stitch", "무늬", !!(draft.crochetChart || (draft.crochetStitch && draft.crochetStitch !== "sc"))], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]]
       : [["size", "크기", true], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]];
     const partNow = railParts.some(([k]) => k === asmPart) ? asmPart : railParts[0][0];
     const setBody = (f: Partial<typeof form>) => apply(bodyPatch(draft, { ...form, ...f }));
@@ -1012,6 +1016,15 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             </>}
             {closureNow === "drawstring" && <p className="nb-help">입구 아래에 끈 구멍 단을 한 단 더 뜨고, 사슬로 뜬 끈을 꿰어 조입니다.</p>}
             <p className="nb-help">단추와 라벨은 "장식"에서 붙입니다.</p>
+          </>}
+          {partNow === "stitch" && <>
+            {/* 무늬 (Kim: 모양에서 무늬 적용): the stitches that are worked round a bag - each written into the body's
+                rounds with its own stitch multiple (lib/pattern bodyPattern), and seen on the 3D at once */}
+            <h3>무늬<small>몸통에 들어갑니다</small></h3>
+            <Tiles label="무늬" value={draft.pattern && BAG_STITCHES.some(([id]) => id === draft.pattern) ? draft.pattern : "c2"} cols={2}
+              onPick={id => { const [k, v] = (PATTERN_BY_ID[id].draw ?? "st:sc").split(":"); patch({ pattern: id, craft: "crochet", ...(k === "st" ? { crochetStitch: v === "sc" ? undefined : v as CrochetStitch, crochetChart: undefined } : { crochetChart: v as ChartKey, crochetStitch: undefined }) }); }}
+              options={BAG_STITCHES.map(([id, sub]) => [id, PATTERN_BY_ID[id].ko.replace(/ \(.*\)$/, ""), sub])} />
+            <p className="nb-help">{draft.crochetChart ? `몸통 첫 단에서 코를 ${CHART_MULT[draft.crochetChart][0]}코 단위로 맞춘 뒤 무늬를 뜨고, 테두리에서 다시 짧은뜨기로 정리합니다. 무늬 몸통은 곧게 올라갑니다.` : draft.crochetStitch && draft.crochetStitch !== "sc" ? "바닥과 몸통을 모두 이 코로 뜹니다. 코가 높을수록 단 수가 줄어듭니다." : "바닥부터 몸통까지 짧은뜨기로 촘촘하게 뜹니다."}</p>
           </>}
           {partNow === "extra" && extrasGroup}
         </div>
