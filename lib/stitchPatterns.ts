@@ -51,7 +51,7 @@ export const STITCH_PATTERNS: StitchPattern[] = [{"id":"c2","needle":"crochet","
 {"id":"c45","needle":"crochet","fam":"조개·구멍","ko":"V 스티치","en":"V stitch","how":"한 코에 (한길긴뜨기, 사슬 1, 한길긴뜨기). 다음 단은 V 가운데에","mult":"3코 배수 (또는 2코)","level":"쉬움","draw":"ch:vst"},
 {"id":"c46","needle":"crochet","fam":"조개·구멍","ko":"그래니 무늬","en":"granny stitch","how":"한 구멍에 한길긴뜨기 3코 묶음, 묶음 사이 구멍에 다음 단을 뜸","mult":"3코 배수","level":"쉬움","draw":"cc:그래니 무늬"},
 {"id":"c47","needle":"crochet","fam":"조개·구멍","ko":"방안뜨기 (필레)","en":"filet crochet","how":"한길긴뜨기 + 사슬 2로 빈 칸, 한길긴뜨기 3코로 찬 칸. 칸으로 그림을 그림","mult":"3코 배수 + 1","level":"보통","draw":"cc:방안뜨기 (필레)"},
-{"id":"c48","needle":"crochet","fam":"조개·구멍","ko":"그물뜨기","en":"mesh / net stitch","how":"사슬 5 아치를 짧은뜨기로 고정. 다음 단은 아치 가운데에","mult":"4코 배수(+여유)","level":"쉬움","draw":"ch:mesh"},
+{"id":"c48","needle":"crochet","fam":"조개·구멍","ko":"그물뜨기","en":"mesh / net stitch","how":"사슬 5 아치를 짧은뜨기로 고정. 다음 단은 아치 가운데에","mult":"4코 배수(+여유)","level":"쉬움","draw":"ch:net"},
 {"id":"c49","needle":"crochet","fam":"조개·구멍","ko":"솔로몬 매듭","en":"Solomon's knot (love knot)","how":"고리를 길게 뽑아 그 뒤 가닥에 짧은뜨기로 매듭. 아주 성긴 그물","mult":"—","level":"보통","draw":"cc:솔로몬 매듭"},
 {"id":"c50","needle":"crochet","fam":"조개·구멍","ko":"파인애플 무늬","en":"pineapple stitch","how":"부채 밑동 위에 사슬 아치를 단마다 줄여 올려 파인애플 모양을 만듦","mult":"도안마다 다름","level":"어려움","draw":"cc:파인애플 무늬"},
 {"id":"c51","needle":"crochet","fam":"조개·구멍","ko":"라크스풋 무늬","en":"larksfoot stitch","how":"한길긴뜨기 3 + 사슬 1 반복, 다음 단에서 구멍 아래로 길게 내려 뜸","mult":"4코 배수 + 1","level":"보통","draw":"cc:라크스풋 무늬"},

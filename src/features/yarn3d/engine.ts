@@ -653,9 +653,21 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       };
       const loop = (c: THREE.Vector3, ax: THREE.Vector3, al: THREE.Vector3, w: number, d: number, h: number) => { const pts: THREE.Vector3[] = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; pts.push(c.clone().addScaledVector(ax, Math.cos(a) * w).addScaledVector(al, Math.sin(a) * d).setY(h * (1 + .35 * Math.sin(a)))); } return pts; };
       const X1 = new THREE.Vector3(1, 0, 0), Z1 = new THREE.Vector3(0, 0, 1), r = R * .82, WRAPS: Partial<Record<string, number>> = { hdc: 1, dc: 1, cl: 1, bob: 1, pop: 1, tr: 2, dtr: 3, bull: 5 };
-      s.chart.ch.forEach(q => add(loop(at(q[0], q[1]), X1, Z1, D.sw * .4, D.rh * .2, r), true, r * .9, colorOf(q[2] ?? 0)));
+      // 3D 정밀 (Kim: 무늬가 실제와 다르다): a chain is a run of linked ovals lying along its own path (they all
+      // pointed one way, like beads, even up an arch), each a little longer than the step to the next so they link
+      const chs = s.chart.ch;
+      chs.forEach((q, i) => {
+        const near = (j: number) => { const o = chs[j]; return o && Math.hypot(o[0] - q[0], o[1] - q[1]) < 1.8 ? o : null; };
+        const a = near(i - 1), z = near(i + 1), p0 = at(q[0], q[1]);
+        let ax = X1.clone(), step = D.sw * .8;
+        if (a || z) { const from = a ? at(a[0], a[1]) : p0.clone(), to = z ? at(z[0], z[1]) : p0.clone(), d = to.clone().sub(from).setY(0); if (d.length() > 1e-9) { step = d.length() / (a && z ? 2 : 1); ax = d.normalize(); } }
+        const side = new THREE.Vector3(-ax.z, 0, ax.x);
+        add(loop(p0, ax, side, Math.max(D.sw * .3, step * .62), D.rh * .17, r), true, r * .9, colorOf(q[2] ?? 0));
+      });
+      // a hand-made look: every stitch a touch off the grid, the same each time (from where it sits)
+      const jit = (x: number, y: number, k: number) => { const v = Math.sin(x * 12.9898 + y * 78.233 + k * 37.719) * 43758.5453; return (v - Math.floor(v)) * 2 - 1; };
       s.chart.st.forEach(c => {
-        const b = at(c.b[0], c.b[1]), t = at(c.t[0], c.t[1]), dir = t.clone().sub(b), len = dir.length() || D.rh, dn = len > 1e-9 ? dir.clone().divideScalar(len) : Z1.clone().negate();
+        const b = at(c.b[0], c.b[1]), t = at(c.t[0], c.t[1]).add(new THREE.Vector3(jit(c.t[0], c.t[1], 1) * D.sw * .07, 0, jit(c.t[0], c.t[1], 2) * D.rh * .05)), dir = t.clone().sub(b), len = dir.length() || D.rh, dn = len > 1e-9 ? dir.clone().divideScalar(len) : Z1.clone().negate();
         const across = new THREE.Vector3(-dn.z, 0, dn.x), w = D.sw * .15, color = colorOf(c.c ?? 0), up = Math.max(r * .6, r + (c.z ?? 0) * D.rh * .9);
         const P = (p: THREE.Vector3, y: number) => p.clone().setY(y);
         switch (c.type) {
@@ -676,8 +688,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
             return;
           }
         }
-        // crochet stitches: the head loop, then the post
-        add(loop(t, across, dn, D.sw * .44, D.rh * .2, up * 1.3), true, r, color);
+        // crochet stitches: the head, then the post. A head is wide enough to overlap its neighbours' (Kim: the
+        // tops were separate rings, like beads) - side by side they read as the braid of V's a real row's top is
+        add(loop(t, across, dn, D.sw * .6, D.rh * .24, up * 1.3), true, r, color);
         const bulge = c.type === "bob" || c.type === "pop" ? D.rh * .9 : c.type === "puff" ? D.rh * .6 : 0;
         if (bulge) {
           // a bobble: its strands from the base, out and up over a dome, to the top
