@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppProvider";
 import { store } from "@/lib/store";
 import { Tiles } from "./WebPages";
+import { shots } from "@/lib/shots";
 
 export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, onOpen, always }: {
   draft: Draft; projects: Project[]; mode: "new" | "go" | null;
@@ -21,8 +22,10 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
   const [picking, setPicking] = useState(false), [picked, setPicked] = useState<string[]>([]), [ask, setAsk] = useState<string[] | null>(null);
   const [undo, setUndo] = useState<{ n: number; r?: Removed; d?: Draft } | null>(null);
   useEffect(() => { if (!undo) return; const t = setTimeout(() => setUndo(null), 6000); return () => clearTimeout(t); }, [undo]);
+  // 이어서 하기 (Kim): the draft opens a window first, with the piece as it looked when the 3D was closed
+  const [preview, setPreview] = useState(false), shot = preview ? shots.get("draft") : null;
   const rows: { id: string; name: string; sub: string; open: () => void }[] = [
-    ...(hasDraft ? [{ id: "draft", name: draft.name.trim() || "이름 없는 도안", sub: `만들던 도안${draft.itemPicked ? ` · ${draft.free || draft.paint ? "직접 그린 모양" : ITEM[itemIdOf(draft)].name}` : ""}`, open: onDraft }] : []),
+    ...(hasDraft ? [{ id: "draft", name: draft.name.trim() || "이름 없는 도안", sub: `만들던 도안${draft.itemPicked ? ` · ${draft.free || draft.paint ? "직접 그린 모양" : ITEM[itemIdOf(draft)].name}` : ""}`, open: () => setPreview(true) }] : []),
     // saved works are not here (Kim): they are in 나의 도안집, changed only with 고치기
   ];
   const allIds = rows.map(r => r.id), allOn = allIds.length > 0 && allIds.every(id => picked.includes(id));
@@ -34,8 +37,22 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
     setUndo({ n: ids.length, r, d }); setAsk(null); setPicked([]); setPicking(false);
   };
   if (!hasDraft && !always) return null;
+  const previewWin = preview && hasDraft && (
+    <div className="st-pv-dim" onMouseDown={e => { if (e.target === e.currentTarget) setPreview(false); }}>
+      <div className="st-pv" role="dialog" aria-modal="true" aria-label="만들던 도안">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {shot ? <img src={shot} alt={`${rows[0].name} - 닫기 직전의 모습`} /> : <p className="st-pv-none">아직 사진이 없습니다. 3D를 닫을 때 그 모습이 남습니다.</p>}
+        <p className="st-pv-name"><b>{rows[0].name}</b><span>{rows[0].sub}</span></p>
+        <div className="st-pv-acts">
+          <button type="button" className="nb-link st-muted" onClick={() => setPreview(false)}>닫기</button>
+          <button type="button" className="tp-label st-pv-go" autoFocus onClick={() => { setPreview(false); onDraft(); }}><b>이어서 만들기</b></button>
+        </div>
+      </div>
+    </div>
+  );
   if (always) return (
     <div className="st st-big">
+      {previewWin}
       <p className="st-kicker" lang="en">new pattern</p>
       <p className="st-ask">어디서부터 시작하시겠습니까?</p>
       <span className="st-rule" aria-hidden="true" />
@@ -81,6 +98,7 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
   );
   return (
     <div className="st nb-web">
+      {previewWin}
       <p className="st-ask">어디서부터 시작하시겠습니까?</p>
       <Tiles label="시작" value={mode ?? ""} cols={2} onPick={v => { onMode(v as "new" | "go"); if (v === "new") onFresh(); }}
         options={[["new", "새로 시작", "빈 종이에서"], ["go", "이어서 하기", "만들던 것 불러오기"]]} />
@@ -88,7 +106,7 @@ export function StartChoice({ draft, projects, mode, onMode, onFresh, onDraft, o
       {mode === "go" && hasDraft && (
         <ul className="st-list">
           {hasDraft && (
-            <li><button type="button" onClick={onDraft}>
+            <li><button type="button" onClick={() => setPreview(true)}>
               <b>{draft.name.trim() || "이름 없는 도안"}</b><span>만들던 도안{draft.itemPicked ? ` · ${draft.free || draft.paint ? "직접 그린 모양" : ITEM[itemIdOf(draft)].name}` : ""}</span>
             </button></li>
           )}

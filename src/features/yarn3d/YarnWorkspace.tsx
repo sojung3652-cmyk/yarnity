@@ -137,6 +137,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const moveEx = useRef(extra?.onExtraMove); moveEx.current = extra?.onExtraMove;
   const [pickEx, setPickEx] = useState<{ k: string; x: number; y: number } | null>(null), [swap, setSwap] = useState(false), [moveHint, setMoveHint] = useState(false);
   useEffect(() => { if (!moveHint) return; const t = setTimeout(() => setMoveHint(false), 3500); return () => clearTimeout(t); }, [moveHint]);
+  const leaveT = useRef(0), overPick = useRef(false);
   const { setChat } = useApp();
   const [tool, setTool] = useState<Tool>("rotate"), [ruler, setRuler] = useState(false);
   // 크기 틀: the piece's box on the screen, and the pull on it while a handle is dragged
@@ -187,9 +188,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   // X / Esc: asked first when something changed (Kim); the window's own Esc goes back to the work
   const leaveRef = useRef(extra?.leave); leaveRef.current = extra?.leave;
   const [leaving, setLeaving] = useState(false), leavingRef = useRef(false); leavingRef.current = leaving;
-  const tryClose = () => { if (leaveRef.current?.changed()) setLeaving(true); else onClose(); };
+  // closed and kept: the piece as it looks now is kept as its picture (이어서 하기 shows it, Kim)
+  const closeWithShot = () => { const u = !empty ? viewer.current?.snapshot() : null; if (u) extra?.onShot?.(u); onClose(); };
+  const tryClose = () => { if (leaveRef.current?.changed()) setLeaving(true); else closeWithShot(); };
   const tryCloseRef = useRef(tryClose); tryCloseRef.current = tryClose;
-  useEffect(() => { if (leaving) root.current?.querySelector<HTMLElement>(".yw-leave-acts > :last-child")?.focus(); }, [leaving]);
+  useEffect(() => { if (leaving && !extra?.name) root.current?.querySelector<HTMLElement>(".yw-leave-acts > :last-child")?.focus(); }, [leaving]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // the book stops, the page stays still, the way back takes the focus; Esc closes, Tab stays inside
   useEffect(() => {
@@ -225,9 +228,16 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       if (gone || !cv.current) return;
       const p = latest.current;
       const v = hasWebGL() ? createYarnViewer(cv.current, p, { phone: false, fit: true, onInfo: setInfo, onBuilt: setBuiltMs, onBusy: setBusy, onRuler: setRules, onFrame: setBox, onExtraMove: (k, x, y) => moveEx.current?.(k, x, y),
-        onExtraPick: (k, x, y) => { const r = cv.current?.getBoundingClientRect(); if (r) { setSwap(false); setPickEx({ k, x: x - r.left, y: y - r.top }); } },
-        // the tools open on a click only (Kim: 왜 자꾸 떠있어 - they came up on every hover and stayed)
-        onExtraHover: () => {} }) : null;
+        // a press is for moving it (Kim): let go without moving, the tools stay put away
+        onExtraPick: () => { setPickEx(null); },
+        // the pointer on one (Kim): its tools show above it; off it, they go after a moment (time to reach them).
+        // Pressed: straight into moving it, the tools put away
+        onExtraHover: (k, x, y) => {
+          if (leaveT.current) { clearTimeout(leaveT.current); leaveT.current = 0; }
+          if (!k) { leaveT.current = window.setTimeout(() => { if (!overPick.current) setPickEx(null); }, 700); return; }
+          const r = cv.current?.getBoundingClientRect(); if (r) setPickEx(p => p?.k === k ? p : (setSwap(false), { k, x: x - r.left, y: y - r.top }));
+        },
+        onExtraGrab: () => { setPickEx(null); setSwap(false); } }) : null;
       if (!v) { setNoGL(true); return; }
       viewer.current = v; shown.current = p;
     });
@@ -291,10 +301,14 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           <div className="yw-leave-card">
             <p id="yw-leave-q" className="yw-leave-q">바꾼 내용을 저장하시겠습니까?</p>
             <p className="yw-leave-sub">저장하지 않으면 3D를 열었을 때의 도안으로 돌아갑니다.</p>
+            {/* the name it is kept under (Kim: 저장명 물어봐) - the piece's own name, changeable here */}
+            {extra?.name && <label className="yw-leave-name"><span>저장할 이름</span>
+              <input value={extra.name.value} maxLength={40} placeholder="작품 이름 (비우면 자동으로)" autoComplete="off" spellCheck={false} autoFocus
+                onChange={e => extra.name!.onChange(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); setLeaving(false); closeWithShot(); } }} /></label>}
             <div className="yw-leave-acts">
               <button type="button" className="nb-link st-muted" onClick={() => setLeaving(false)}>계속 만들기</button>
               <ClothLabel side="back" type="button" onClick={() => { leaveRef.current?.drop(); setLeaving(false); onClose(); }}>저장 안 함</ClothLabel>
-              <ClothLabel side="next" type="button" onClick={() => { setLeaving(false); onClose(); }}>저장</ClothLabel>
+              <ClothLabel side="next" type="button" onClick={() => { setLeaving(false); closeWithShot(); }}>저장</ClothLabel>
             </div>
           </div>
         </div>
@@ -309,7 +323,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
           : <canvas ref={cv} onPointerDown={() => setPickEx(null)} className={"yw-canvas" + (tool === "pan" ? " is-pan" : "")} aria-label="완성 모양 3D" style={empty ? { visibility: "hidden" } : undefined} />}
         {/* a picked button or label (Kim: 클릭해서 크기를 조절하거나 옮기기): its size and 빼기, beside it */}
         {pickEx && extra?.extraTools && (
-          <div className="yw-pick" style={{ left: pickEx.x, top: pickEx.y }} role="group" aria-label="고른 장식">
+          <div className="yw-pick" style={{ left: pickEx.x, top: pickEx.y }} role="group" aria-label="고른 장식"
+            onPointerEnter={() => { overPick.current = true; if (leaveT.current) { clearTimeout(leaveT.current); leaveT.current = 0; } }}
+            onPointerLeave={() => { overPick.current = false; if (!swap) leaveT.current = window.setTimeout(() => setPickEx(null), 500); }}>
             <b>{extra.extraTools.name(pickEx.k)}</b>
             <button type="button" aria-label="작게" onClick={() => extra.extraTools!.size(pickEx.k, 1 / 1.15)}>−</button>
             <button type="button" aria-label="크게" onClick={() => extra.extraTools!.size(pickEx.k, 1.15)}>+</button>

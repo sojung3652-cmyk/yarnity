@@ -155,7 +155,10 @@ export interface ViewerOpts { phone: boolean; detail?: "full" | "page"; fit?: bo
   /** a button or label pressed without dragging (Kim: 클릭해서 크기 조절): which, and where on the screen */
   onExtraPick?: (kind: string, x: number, y: number) => void;
   /** the pointer resting on one: which, and where (its tools show there) */
-  onExtraHover?: (kind: string, x: number, y: number) => void;
+  /** the pointer on one (kind) or off it again (null) */
+  onExtraHover?: (kind: string | null, x: number, y: number) => void;
+  /** one pressed: it is being moved now */
+  onExtraGrab?: () => void;
   /** 크기 틀 (Kim: Ctrl+T처럼 화면 안에서): the piece's outline on the screen as a box [left, top, right, bottom] in px */
   onFrame?: (r: [number, number, number, number] | null) => void }
 
@@ -245,6 +248,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const group = new THREE.Group(); scene.add(group);
   // 단추 / 라벨 that can be dragged over the piece (Kim): the sewn-on things, and how to put one at a place
   let exObjs: THREE.Object3D[] = [], exPlace: ((o: THREE.Object3D, across: number, up: number) => void) | null = null;
+  /** where the flap lies over the front (its middle, half width, top and bottom heights, how far out of the wall) */
+  let flapArea: { cx: number; hw: number; yTop: number; yBot: number; out: number } | null = null;
   // Kim's button and label pictures, loaded once each (the 3D is drawn again when one arrives)
   const pics = new Map<string, THREE.Texture>();
   const picTex = (id: string) => {
@@ -793,6 +798,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
     }
     strapH = 0; strapEnds = [];
+    const strapFrom = meshes.length; // the handle's meshes, tagged below for 제작 시뮬레이션's order
     if (pat.strap !== "none" && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
       const L = D.C[D.C.length - 1].idx, c = L.length, color = pat.strapColor ?? colorOf(D.C[D.C.length - 1].ci); let ry = 0, cx = 0, cz = 0, rr = 0;
       L.forEach(n => { const q = D.P[n]; ry += q.y; cx += q.x; cz += q.z; }); ry /= c; cx /= c; cz /= c; L.forEach(n => { rr += Math.hypot(D.P[n].x - cx, D.P[n].z - cz); }); rr /= c;
@@ -803,14 +809,22 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         // 손목 고리 (Kim): from the rim's right end, a loop of the strap's length hanging down beside the piece, flat
         // to the front, as a wristlet's strap hangs
         let P = D.P[L[0]].clone(); L.forEach(n => { if (D.P[n].x > P.x) P = D.P[n].clone(); }); P.y = ry;
-        const r0 = len / (2 * Math.PI), ax = r0 * .62, ay = r0 * 1.38, nrm = new THREE.Vector3(0, 0, 1), N = 72;
-        // the loop hangs from the corner: its upper left at the corner, the rest down and out beside the wall
-        const A0 = P.clone().add(new THREE.Vector3(R * 2, 0, 0)), ctr = new THREE.Vector3(A0.x + ax * .7, A0.y - ay * .72, P.z);
-        const th0 = Math.atan2((A0.y - ctr.y) / ay, (A0.x - ctr.x) / ax);
-        const all = Array.from({ length: N + 1 }, (_, i) => { const th = th0 - 2 * Math.PI * i / N; return new THREE.Vector3(ctr.x + ax * Math.cos(th), ctr.y + ay * Math.sin(th), ctr.z); });
-        all[0].copy(A0); all[N].copy(A0);
-        strapEnds.push(all[0].clone());
-        strapBand(all, nrm, color, R, M, step, mat, geos, D.rh, false);
+        const r0 = len / (2 * Math.PI), N = 72;
+        // Kim's drawing: a thin cord rising from the top corner in a loop above it, leaning out a little - a teardrop,
+        // its point at the corner (it was a wide band hanging down the side). Two strands twisted, as a cord is made.
+        const A0 = P.clone().add(new THREE.Vector3(-R * 1.5, R * .5, 0));
+        const lean = new THREE.Vector3(.42, 1, 0).normalize(), side = new THREE.Vector3(lean.y, -lean.x, 0), H = r0 * 2.3, Wl = r0 * 1.15;
+        const all = Array.from({ length: N + 1 }, (_, i) => {
+          const t = i / N, a = t * Math.PI * 2, up = (1 - Math.cos(a)) / 2, across = Math.sin(a) * Math.pow(up, .6);
+          return A0.clone().addScaledVector(lean, H * up).addScaledVector(side, Wl * across * .5);
+        });
+        strapEnds.push(A0.clone());
+        const cr = R * .8 /* thin from the start (Kim: 처음부터 얇게) */, cv = new THREE.CatmullRomCurve3(all, true, "catmullrom", .5), sp = cv.getSpacedPoints(Math.max(96, Math.ceil(cv.getLength() / (R * .5))));
+        for (const ph of [0, Math.PI]) {
+          const pts = sp.map((q, i) => { const tw = i / sp.length * Math.PI * 2 * Math.max(8, Math.round(cv.getLength() / (R * 6))) + ph, T = sp[(i + 1) % sp.length].clone().sub(sp[(i - 1 + sp.length) % sp.length]).normalize(), B = new THREE.Vector3(0, 0, 1), Nn = new THREE.Vector3().crossVectors(B, T).normalize();
+            return q.clone().addScaledVector(Nn, Math.cos(tw) * cr).addScaledVector(B, Math.sin(tw) * cr); });
+          const g = buildYarn(pts, R * .95, { M, closed: true, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
+        }
       } else {
       const arcs: [number, number, number][] = pat.strap === "long" ? [[0, .5, 0]] : [[.15, .35, 1], [.65, .85, 1]];
       arcs.forEach(([a, b, lean]) => {
@@ -884,7 +898,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       });
       }
     }
+    meshes.slice(strapFrom).forEach(m => { m.userData.part = "strap"; });
+    const flapFrom = meshes.length;
     flapTip = addFlap(D, R, mat, M, step, geos);
+    meshes.slice(flapFrom).forEach(m => { m.userData.part = "flap"; });
     haloShell(geos); fz = fuzzLines(geos); if (fz) group.add(fz);
     if (!opts.phone) addExtras(D, R);
   }
@@ -952,6 +969,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // is long; its outline below the front edge is the picked shape (반달 / 네모 / 세모). Returns where its tip is.
   let flapTip: { p: THREE.Vector3; n: THREE.Vector3 } | null = null;
   function addFlap(D: ItemData, R: number, mat: THREE.Material, M: number, step: number, geos: THREE.BufferGeometry[]) {
+    flapArea = null;
     const f = pat.flap, k = pat.shape.kind; if (!f || !(f.cm > 0) || !(k === "round" || k === "oval" || k === "rect")) return null;
     const top = D.C[D.C.length - 1]; if (!top || !top.closed || top.idx.length < 6) return null;
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, ry = 0;
@@ -960,6 +978,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // two handles: the flap as wide as fits between them (Kim: 손잡이 안쪽에 위치하는 너비)
     const inner = pat.strap === "two" && strapEnds.length ? Math.min(...strapEnds.map(q => Math.abs(q.x - cx))) - Math.max(.8, pat.strapWcm ?? 2.5) * 10 / MM / 2 - R * 2.5 : Infinity;
     const hw = Math.max(hw0 * .35, Math.min(hw0, inner));
+    flapArea = { cx, hw, yTop: ry + lift, yBot: ry + lift - drop, out };
     // the centre line in (z, y): on from the back wall's last round (it is worked from there), a low curve over
     // the top - as wide as the top is left open - then down the front
     const line: [number, number, number][] = []; // z, y, share of the drop (-1 on the top)
@@ -1030,10 +1049,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       return { p: best.clone(), n };
     };
     const face = (o: THREE.Object3D, n: THREE.Vector3) => o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+    // put where the flap covers the front (Kim: 덮개에 장식 - it sat under the flap, half hidden): on the flap's face
+    const onFlap = (p: THREE.Vector3, n: THREE.Vector3) => flapArea && n.z > .3 && Math.abs(p.x - flapArea.cx) < flapArea.hw && p.y > flapArea.yBot - R ? flapArea.out + R * 1.4 : 0;
     // a dragged one follows the pointer over the front wall (pieces with walls only)
     if (wall) exPlace = (o, across, up) => {
       const { p, n } = at(up, across * Math.PI * .42); face(o, n);
-      o.position.copy(p).addScaledVector(n, R * 1.5 + (o.userData.btn ? .16 : .05) * U);
+      o.position.copy(p).addScaledVector(n, R * 1.5 + onFlap(p, n) + (o.userData.btn ? .16 : .05) * U);
     };
     // 단추 고리 (Kim's round handbag): a short crocheted strap from inside the opening, over the rim at the front's
     // middle and down the front wall, its end where the button sits
@@ -1068,7 +1089,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const rim = new THREE.Mesh(new THREE.TorusGeometry(r * .82, .05 * U * 2, 8, 32), std(col, .6)); rim.position.z = .15 * U; g.add(rim);
         for (const [hx, hy] of [[-.28, .28], [.28, .28], [-.28, -.28], [.28, -.28]]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(.13 * U, .13 * U, .36 * U, 10), std(0x4a372a, .9)); h.rotation.x = Math.PI / 2; h.position.set(hx * r, hy * r, 0); g.add(h); }
       }
-      face(g, n); g.position.copy(p).addScaledVector(n, R * 1.5 + .16 * U); put(g);
+      face(g, n); g.position.copy(p).addScaledVector(n, R * 1.5 + (ba && !tabTip ? onFlap(p, n) : 0) + .16 * U); put(g);
       if (wall && !tabTip && !(flapTip && !ba)) { g.userData.extra = "button"; g.userData.btn = true; exObjs.push(g); }
     }
     if (ex.label) {
@@ -1082,7 +1103,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const bar = new THREE.Mesh(new THREE.BoxGeometry(w * .42, h * .1, .02 * U), std(0x9c5d63, .9)); bar.position.z = .045 * U; g.add(bar);
       }
       if (wall) face(g, n); else { g.rotation.x = -Math.PI / 2; g.rotation.z = -.3; }
-      g.position.copy(p).addScaledVector(n, R * 1.5 + .05 * U); if (!wall) { g.position.x -= w * .3; g.position.z -= h * .6; } put(g);
+      g.position.copy(p).addScaledVector(n, R * 1.5 + (wall ? onFlap(p, n) : 0) + .05 * U); if (!wall) { g.position.x -= w * .3; g.position.z -= h * .6; } put(g);
       if (wall) { g.userData.extra = "label"; exObjs.push(g); }
     }
     // more of them (Kim: 여러 개): each its picture, where it was put, as big as it was made
@@ -1091,7 +1112,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const btn = it.pic.startsWith("b-"), w = it.at[2] * U, h = btn ? w / Math.max(1, pc.r) * Math.min(1, pc.r) : w / pc.r;
       const g = picCard(pc.id, btn ? w * Math.min(1, pc.r) : w, h, (btn ? .14 : .06) * U);
       const { p, n } = wall ? at(it.at[1], it.at[0] * Math.PI * .42) : { p: new THREE.Vector3(cx + it.at[0] * (b.x1 - b.x0) / 2, b.my, cz - (it.at[1] - .5) * (b.z1 - b.z0)), n: new THREE.Vector3(0, 1, 0) };
-      face(g, n); g.position.copy(p).addScaledVector(n, R * 1.5 + (btn ? .16 : .05) * U); put(g);
+      face(g, n); g.position.copy(p).addScaledVector(n, R * 1.5 + (wall ? onFlap(p, n) : 0) + (btn ? .16 : .05) * U); put(g);
       if (wall) { g.userData.extra = "item:" + i; g.userData.btn = btn; exObjs.push(g); }
     });
     const top = D.C[D.C.length - 1];
@@ -1475,12 +1496,17 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (IT.view === "holo" || !IT.data?.done) { startItem(); return; }
     if (anim) cancelAnimationFrame(anim);
     if (reduced()) return;
-    if (fz) fz.visible = false; halos.forEach(h => h.visible = false); const totals = meshes.map(m => m.geometry.index!.count), sum = totals.reduce((a, b) => a + b, 0); meshes.forEach(m => m.geometry.setDrawRange(0, 0));
+    // the order it is made (Kim): the body, then the flap (worked on from the back), then the handle - and what is
+    // sewn on (단추, 라벨) last, once the piece is whole
+    const rank = (m: THREE.Mesh) => m.userData.part === "flap" ? 1 : m.userData.part === "strap" ? 2 : 0;
+    const order = [...meshes].sort((a, b) => rank(a) - rank(b));
+    if (fz) fz.visible = false; halos.forEach(h => h.visible = false); exObjs.forEach(o => { o.visible = false; });
+    const totals = order.map(m => m.geometry.index!.count), sum = totals.reduce((a, b) => a + b, 0); order.forEach(m => m.geometry.setDrawRange(0, 0));
     const s0 = performance.now(), dur = Math.min(9000, 3500 + IT.data.C.length * 60);
     const stepFn = (now: number) => {
       let k = Math.min(1, (now - s0) / dur) * sum;
-      meshes.forEach((m, i) => { const pr = m.geometry.userData.perRing, c = Math.max(0, Math.min(totals[i], k)); m.geometry.setDrawRange(0, Math.floor(c / pr) * pr); k -= totals[i]; });
-      if (now - s0 < dur) anim = requestAnimationFrame(stepFn); else { meshes.forEach(m => m.geometry.setDrawRange(0, Infinity)); if (fz) fz.visible = true; halos.forEach(h => h.visible = true); anim = 0; }
+      order.forEach((m, i) => { const pr = m.geometry.userData.perRing, c = Math.max(0, Math.min(totals[i], k)); m.geometry.setDrawRange(0, Math.floor(c / pr) * pr); k -= totals[i]; });
+      if (now - s0 < dur) anim = requestAnimationFrame(stepFn); else { order.forEach(m => m.geometry.setDrawRange(0, Infinity)); if (fz) fz.visible = true; halos.forEach(h => h.visible = true); exObjs.forEach(o => { o.visible = true; }); anim = 0; }
       kick();
     };
     anim = requestAnimationFrame(stepFn);
@@ -1552,10 +1578,11 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const exDown = (e: PointerEvent) => {
     if (!opts.onExtraMove || e.button !== 0) return; const o = hitExtra(e); if (!o || !exPlace) return;
     e.stopImmediatePropagation(); e.preventDefault(); dragO = o; dragAt = null; downXY = [e.clientX, e.clientY]; ctl.enabled = false; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = "grabbing";
+    opts.onExtraGrab?.(); // pressed: straight into moving it (Kim) - the screen puts its tools away
   };
   const exMove = (e: PointerEvent) => {
     if (!dragO) {
-      if (opts.onExtraMove && e.buttons === 0) { const o = hitExtra(e); canvas.style.cursor = o ? "grab" : ""; if (o && o.userData.extra !== hoverK) opts.onExtraHover?.(o.userData.extra, e.clientX, e.clientY); hoverK = o ? o.userData.extra : null; }
+      if (opts.onExtraMove && e.buttons === 0) { const o = hitExtra(e); canvas.style.cursor = o ? "grab" : ""; if (o && o.userData.extra !== hoverK) opts.onExtraHover?.(o.userData.extra, e.clientX, e.clientY); else if (!o && hoverK) opts.onExtraHover?.(null, e.clientX, e.clientY); hoverK = o ? o.userData.extra : null; }
       return;
     }
     if (!dragAt && Math.hypot(e.clientX - downXY[0], e.clientY - downXY[1]) < 4) return; // a press, not yet a drag
