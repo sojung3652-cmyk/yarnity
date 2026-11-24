@@ -157,6 +157,7 @@
 .aic-prop li span{color:var(--ink2)}
 .aic-prop s{color:#9A8B82}
 .aic-prop-note{margin:6px 0 0;font-size:12px;color:var(--ink2)}
+.aic-prop-ask{margin:10px 0 0;font-size:13px;line-height:1.55;color:var(--ink)}
 .aic-prop-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .aic-prop-done{margin:8px 0 0;font-size:13px;font-weight:600;color:#5E7A4C}
 

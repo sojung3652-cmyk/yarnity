@@ -1554,6 +1554,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const out = [line([b.x0 - e, 0, b.z1 + ez + g], [b.x1 + e, 0, b.z1 + ez + g], b.x1 - b.x0 + e * 2)];
     if (b.my > D.rh * 2) out.push(line([b.x1 + g, 0, b.z1], [b.x1 + g, b.my, b.z1], b.my + (pat.shape.kind === "tube" ? D.rh : 0)));
     else out.push(line([b.x1 + e + g, 0, b.z0 - ez], [b.x1 + e + g, 0, b.z1 + ez], b.z1 - b.z0 + ez * 2));
+    // outside the fabric as the screen shows it (Kim: 점선이 편물 안에 침범하지 않도록): past the stitches' outermost
+    // points on the screen by the yarn's thickness and its hairs' reach (angora, mohair... reach far), and a gap
+    const reach = yarnR(D) * (1 + 1.4 * (.35 + Math.min(6, fuzzOf())) * st.hair * hk()) , q0 = px(b.x1, 0, b.z1), q1 = px(b.x1 + reach, 0, b.z1);
+    const mPx = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]) + 10;
+    let sx = -1e9, sy = -1e9; D.P.forEach(v => { const [x, y] = px(v.x, v.y, v.z); if (x > sx) sx = x; if (y > sy) sy = y; });
+    const w0 = out[0], dy = Math.max(0, sy + mPx - Math.min(w0.y1, w0.y2)); w0.y1 += dy; w0.y2 += dy;
+    const h0 = out[1], dx = Math.max(0, sx + mPx - Math.min(h0.x1, h0.x2)); h0.x1 += dx; h0.x2 += dx;
     const key = out.map(o => [o.x1, o.y1, o.x2, o.y2, o.cm].map(Math.round).join()).join(";");
     if (key !== lastRule) { lastRule = key; opts.onRuler(out); }
   }

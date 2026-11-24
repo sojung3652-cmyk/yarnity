@@ -302,13 +302,6 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
         chats.push(id, { role: "assistant", text: r.reply || "알겠습니다.", turn: res.raw, at: Date.now(),
           ...(res.stopped ? { stopped: true } : { chips: r.chips.slice(0, 4), proposal: proposalFrom(r.set, base) ?? undefined }) });
         if (r.title && !c.titled) chats.patch(id, { title: r.title, titled: true });
-        // 모양 (Kim: 물어보고 바로 그래픽 적용한 다음 다음 화면으로): what Yarni settled is taken now, the window closes
-        const pr = chats.get(id)?.msgs, last = pr ? pr.length - 1 : -1, lm = last >= 0 ? pr![last] : null;
-        if (shapeRef.current && !projectOf(c) && lm?.proposal && !res.stopped) {
-          onApply({ ...lm.proposal.patch, itemPicked: true });
-          chats.setMsg(id, last, { done: "applied" });
-          setChat(x => ({ ...x, applied: (x.applied ?? 0) + 1, shape: false, open: false }));
-        }
       }
     }
     setBusy(b => (b && b.id === id ? null : b));
@@ -354,6 +347,8 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   const apply = (i: number, msg: CMsg) => {
     if (!conv || !msg.proposal) return;
     if (work) updateProject(work.id, msg.proposal.patch as Partial<Project>); // the pattern is planned from these values: it recalculates
+    // 모양 (Kim: 이대로 적용하고 다음 단계로): the piece made at once, the window closes, the parts open
+    else if (shapeRef.current) { onApply({ ...msg.proposal.patch, itemPicked: true }); setChat(c => ({ ...c, applied: (c.applied ?? 0) + 1, shape: false, open: false })); }
     else { onApply(msg.proposal.patch); setChat(c => ({ ...c, applied: (c.applied ?? 0) + 1 })); }
     chats.setMsg(conv.id, i, { done: "applied" });
   };
@@ -560,7 +555,7 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
               <div className="aic-ai-body">
                 <Markdown text={x.text} />
                 {x.stopped && <p className="aic-stopped">여기서 멈췄습니다</p>}
-                {x.proposal && <ProposalCard lines={diffLines(work ?? draft, x.proposal)} done={x.done} onApply={() => apply(i, x)} onKeep={() => chats.setMsg(conv.id, i, { done: "kept" })} />}
+                {x.proposal && <ProposalCard lines={diffLines(work ?? draft, x.proposal)} done={x.done} shape={!!chat.shape && !work} onApply={() => apply(i, x)} onKeep={() => { chats.setMsg(conv.id, i, { done: "kept" }); if (chat.shape) inputRef.current?.focus(); }} />}
                 <div className="aic-acts aic-ai-acts">
                   <button type="button" onClick={() => copy(`a${i}`, x.text)}>{Ic.copy}<span>{copied === `a${i}` ? "복사했습니다" : "복사"}</span></button>
                   {i === lastAi && i === conv.msgs.length - 1 && <button type="button" disabled={!!busy || chat.off} onClick={() => again(i)}>{Ic.again}<span>다시 답하기</span></button>}
@@ -738,13 +733,20 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   );
 }
 
-function ProposalCard({ lines, done, onApply, onKeep }: { lines: { k: string; from?: string; to: string }[]; done?: CMsg["done"]; onApply: () => void; onKeep: () => void }) {
+function ProposalCard({ lines, done, shape, onApply, onKeep }: { lines: { k: string; from?: string; to: string }[]; done?: CMsg["done"]; shape?: boolean; onApply: () => void; onKeep: () => void }) {
   return (
     <div className="aic-prop">
       <p className="aic-prop-kick">제안 · 도안에 반영</p>
       <ul>{lines.map((l, i) => <li key={i}>{l.k && <span>{l.k} </span>}{l.from && <><s>{l.from}</s> → </>}<b>{l.to}</b></li>)}</ul>
       <p className="aic-prop-note">코 수는 앱의 공식이 다시 계산합니다.</p>
-      {done ? <p className="aic-prop-done">{done === "applied" ? "✓ 도안에 반영했습니다" : "그대로 두었습니다"}</p> : (
+      {done ? <p className="aic-prop-done">{done === "applied" ? "✓ 도안에 반영했습니다" : shape ? "이야기를 이어 갑니다" : "그대로 두었습니다"}</p> : shape ? <>
+        {/* 모양 (Kim): asked, not taken by itself - on to the next step as it is, or more talk first */}
+        <p className="aic-prop-ask">이대로 적용하고 다음 단계로 넘어가시겠습니까, 아니면 더 이야기를 나누시겠습니까?</p>
+        <div className="aic-prop-btns">
+          <ClothPatch color="yellow" small onClick={onApply}>이대로 적용하고 다음 단계로</ClothPatch>
+          <ClothPatch color="cream" small onClick={onKeep}>더 이야기하기</ClothPatch>
+        </div>
+      </> : (
         <div className="aic-prop-btns">
           <ClothPatch color="yellow" small onClick={onApply}>이 값으로 바꾸기</ClothPatch>
           <ClothPatch color="cream" small onClick={onKeep}>그대로 두겠습니다</ClothPatch>
