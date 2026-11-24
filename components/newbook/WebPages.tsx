@@ -130,8 +130,8 @@ function HairSliders({ draft, patch }: { draft: Draft; patch: Patch }) {
   const f = draft.fuzzK ?? 1, h = draft.hairK ?? 1;
   return (
     <div className="nb-sliders">
-      <Slide label="털 양" min={0} max={3} step={0.1} value={f} onChange={v => patch({ fuzzK: v })} text={f === 0 ? "없음" : `${Math.round(f * 100)}%`} />
-      <Slide label="털 길이" min={0.3} max={3} step={0.1} value={h} onChange={v => patch({ hairK: v })} text={`${Math.round(h * 100)}%`} />
+      <Slide label="털 양" min={0} max={8} step={0.1} value={f} onChange={v => patch({ fuzzK: v })} text={f === 0 ? "없음" : `${Math.round(f * 100)}%`} />
+      <Slide label="털 길이" min={0.3} max={6} step={0.1} value={h} onChange={v => patch({ hairK: v })} text={`${Math.round(h * 100)}%`} />
     </div>
   );
 }

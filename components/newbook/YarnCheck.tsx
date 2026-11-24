@@ -12,7 +12,7 @@ export function YarnCheck({ source, plan, big }: { source: YarnSource; plan: Pla
   const photo = useYarnPhoto();
   return (
     <div className={"yc" + (big ? " yc-big" : "")}>
-      <div className="yc-swatch"><YarnPagePreview source={source} plan={plan} fabric live /></div>
+      <div className="yc-swatch"><YarnPagePreview source={source} plan={plan} fabric live far={2.04} movable /></div>
       {photo && (
         <figure className="yc-photo">
           {/* eslint-disable-next-line @next/next/no-img-element */}

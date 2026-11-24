@@ -299,7 +299,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     LOD = want >= BASE_VPS ? { M: maxM, step: 1 } : { M: want >= BASE_VPS * .6 ? Math.min(8, maxM) : 6, step: 1 };
     if (want < BASE_VPS) LOD.step = Math.min(4, Math.max(1, (17 * (LOD.M + 1)) / want));
   }
-  const fuzzCap = () => page ? (st.fur ? 9_000 : 16_000) : opts.phone ? (st.fur ? 12_000 : 18_000) : 60_000;
+  // raised a lot (Kim: at the slider's top the hairs were still too few) - line segments stay cheap to draw
+  const fuzzCap = () => page ? (st.fur ? 40_000 : 60_000) : opts.phone ? (st.fur ? 30_000 : 40_000) : 220_000;
 
   function yarnMat(R: number) {
     // sheen: the soft light along fibres (wool, chenille, silk), the colour stays the yarn's own
@@ -389,7 +390,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       for (let k = 0; k < count; k++) {
         const f = fr[Math.random() * fr.length | 0], ph = Math.random() * 6.283, c = Math.cos(ph), s = Math.sin(ph);
         d.set(0, 0, 0).addScaledVector(f.n, c).addScaledVector(f.b, s); p.copy(f.p).addScaledVector(d, R * .8);
-        const L = R * (.25 + Math.random() * Math.random() * 2.2) * (.35 + Math.min(2.5, fuzz)) * st.hair * hk() * .75;
+        const L = R * (.25 + Math.random() * Math.random() * 2.2) * (.35 + Math.min(6, fuzz)) * st.hair * hk() * .75;
         const along = Math.random() < .5 ? -1 : 1, out = d.clone();
         t2.copy(f.t).multiplyScalar(along);
         const br = st.fur ? .75 + Math.random() * .25 : 1, k0 = st.fur ? .8 : .9, glint = st.glint > 0 && Math.random() < st.glint, h = c2 && Math.random() < .5 ? c2 : cc;
