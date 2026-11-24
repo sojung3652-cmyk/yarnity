@@ -225,7 +225,8 @@ export const RECIPES: Record<string, () => Chart> = {
   }),
   "말굽 레이스": () => grid(W0, 12, (i, j) => (j % 2 ? K() : i % 10 === 1 || i % 10 === 9 ? S("yo") : K(0, { dx: i % 10 < 5 ? -.25 : .25 }))),
   "사다리 무늬": () => grid(W0, 12, (i, j) => (i % 6 === 2 ? (j % 2 ? S("yo") : null) : K())),
-  "늘어뜨린 코 (드롭 스티치)": () => grid(W0, 12, (i, j) => (i % 5 === 2 ? (j % 6 === 0 ? K() : null) : K())),
+  // 3D 정밀 (Kim): the dropped stitch leaves a ladder - a bar of yarn across the gap at every row (it was only a gap)
+  "늘어뜨린 코 (드롭 스티치)": () => grid(W0, 12, (i, j) => (i % 5 === 2 ? (j === 0 ? K() : { t: "sc", chain: true }) : K())),
   "에스토니아 누프": () => grid(W0, 12, (i, j) => (j % 4 === 2 && i % 4 === 1 ? S("bob", { z: .3 }) : K())),
   // ---------------- 대바늘 · 걸러뜨기 · 짜임
   "리넨 스티치": () => grid(W0, 14, (i, j) => ((i + j) % 2 ? K(0, { z: .12, dx: .2 }) : Pp())),
@@ -235,7 +236,9 @@ export const RECIPES: Record<string, () => Chart> = {
   "걸러뜨기 벌집": () => grid(W0, 12, (i, j) => (i % 4 === (j % 8 < 4 ? 1 : 3) ? K(0, { down: 2, z: .2 }) : K())),
   // ---------------- 대바늘 · 볼록
   "보블": () => grid(W0, 12, (i, j) => (j % 6 === 3 && i % 6 === 2 ? S("bob", { z: .55 }) : j % 6 === 3 && i % 6 === 5 ? S("bob", { z: .55 }) : Pp())),
-  "트리니티 (블랙베리)": () => grid(W0, 12, (i, j) => (j % 2 ? Pp() : S("cl", { join: [-1, 1], z: .2 }))),
+  // 3D 정밀 (Kim): knit, not crochet - little round berries ((k1,p1,k1) in one, p3tog) close on a purl ground,
+  // half a berry over each time (they were crochet clusters, posts crossing)
+  "트리니티 (블랙베리)": () => grid(W0, 12, (i, j) => (j % 2 === 0 && (i + (j % 4 === 0 ? 0 : 2)) % 4 === 1 ? S("bob", { z: .4 }) : Pp())),
   "별 무늬 (데이지)": () => grid(W0, 12, (i, j) => (j % 4 === 1 && i % 3 === 1 ? S("cl", { join: [-1, 1], z: .25 }) : K())),
   "고리 뜨기": () => grid(W0, 12, (_i, j) => (j % 2 ? S("loop", { z: .35 }) : K())),
   // ---------------- 대바늘 · 배색
