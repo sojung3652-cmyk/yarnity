@@ -4,18 +4,23 @@
 // 이어서 뜨기 (a dusty-rose band) when a work is on the hook -> its 따라 뜨기; 나의 도안집 (n권); AI와 상의
 // (a gold embroidered star) -> the existing AI sheet; 뜨개 용어집.
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useApp } from "@/components/AppProvider";
-import { GoldDefs } from "@/components/BookCover";
+import { BookCover, GoldDefs, ProgressBar, whereOf } from "@/components/BookCover";
+import { statusOf } from "@/lib/status";
 import { useBook } from "@/components/Book/BookProvider";
 import "./mine-mobile.css";
 
 export function MobileHomeScreen() {
-  const { setChat } = useApp(), router = useRouter(), book = useBook();
+  const { ready, projects, setActive, setChat } = useApp(), router = useRouter(), book = useBook();
   // 도안 만들기 opens step 1 (Kim); a pattern half made keeps what it has (the draft is not cleared)
   const start = () => book.startWizard(1);
-  // 이어서 만들기 (Kim): step 1 with its 이어서 하기 window open (StartChoice reads the note once)
-  const goOn = () => { try { sessionStorage.setItem("iyarn.openGoOn", "1"); } catch {} book.startWizard(1); };
+  // 이어서 뜨기 (Kim): the work on the hook - the most recently knitted one that is going - straight to 따라 뜨기;
+  // with none going, 나의 도안집 where the works are
+  const hook = useMemo(() => [...projects].filter(p => statusOf(p) === "knitting" && (p.current || 0) > 0)
+    .sort((a, b) => (b.updatedAt ?? b.created) - (a.updatedAt ?? a.created))[0] ?? null, [projects]);
+  const w = hook ? whereOf(hook) : null;
+  const resume = () => { if (!hook) { router.push("/my"); return; } setActive(hook.id); router.push("/track"); };
   // the opening's card rise (body.m-intro-cards, PhoneOpening) stays on while this home is shown: taking it off
   // there would hand the cards back their own arrival animation, which then plays a second time (the flash)
   useEffect(() => () => document.body.classList.remove("m-intro-cards"), []);
@@ -33,7 +38,7 @@ export function MobileHomeScreen() {
       </header>
 
       <div className="mfh-actions">
-      {/* Kim (11/25): My Page | Handbook, then 이어서 만들기 across, then New Pattern | Yarni */}
+      {/* Kim (11/25): My Page | Handbook, then 이어서 뜨기 across, then New Pattern | Yarni */}
       <nav className="mfh-foot mfh-top" aria-label="둘러보기">
         <button type="button" className="mf-patch is-pink" onClick={() => router.push("/my")}>
           <span className="mfh-two mfh-en" lang="en"><b>My Page</b></span>
@@ -42,10 +47,22 @@ export function MobileHomeScreen() {
           <span className="mfh-two mfh-en" lang="en"><b>Handbook</b></span>
         </button>
       </nav>
-      {/* the drafts left half made: the new pattern book's 이어서 하기 window, opened at once */}
-      <button type="button" className="mf-patch is-cream mfh-go" onClick={goOn}>
-        <span className="mfh-two"><b>이어서 만들기</b></span>
-      </button>
+      {ready && hook && w ? (
+        <button type="button" className="mf-patch is-cream mfh-resume" onClick={resume}>
+          <BookCover p={hook} w={38} />
+          <span className="mfh-resume-text">
+            <small>이어서 뜨기</small>
+            <b>{hook.name}</b>
+            <span className="mfh-where">{w.long}</span>
+            <ProgressBar pct={w.pct} />
+          </span>
+          <span className="mfh-chev" aria-hidden="true">›</span>
+        </button>
+      ) : (
+        <button type="button" className="mf-patch is-cream mfh-go" onClick={resume}>
+          <span className="mfh-two"><b>이어서 뜨기</b></span>
+        </button>
+      )}
       <nav className="mfh-foot" aria-label="만들기">
         <button type="button" className="mf-patch is-yellow mfh-make" onClick={start}>
           <span className="mfh-two mfh-en" lang="en"><b>New Pattern</b></span>
