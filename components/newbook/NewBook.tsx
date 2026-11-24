@@ -46,7 +46,7 @@ import { yarnUse } from "@/lib/yarnUse";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { Fold, useOneOpen } from "./Fold";
 import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTurn";
-import { useMobile } from "@/components/mobile/useMobile";
+import { useMobile, usePhone } from "@/components/mobile/useMobile";
 import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import { AskAiLine } from "@/components/AskAiLine";
 import { AiTab } from "@/components/AiTab";
@@ -171,6 +171,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const { ready, draft, setDraft, addProject, updateProject, projects, setActive, chat } = useApp();
   const router = useRouter();
   const book = useBook(), step = inBook ?? book.step, phone = useMobile();
+  // phones take the web's way too (Kim, 11/25): no 3D book there, but the same first page, 3D work screen and
+  // 확인 - "staged" is the 3D book's, or a phone's one page
+  const onPhone = usePhone() === true, staged = inBook != null || onPhone;
   // wide screens (Kim): step 3 is up to three spreads, the yarn (sheet 0), the hook and the size (sheet 1)
   // and, for a bag, its shape (sheet 2: body, flap, handle); the 3D book turns its page between them
   // (Book3D reads the sheet). Phones keep their own sheets.
@@ -462,8 +465,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   useEffect(() => { if (web && big3d.open && step === 2) { setSheet(3, 0); go(3); } }, [web, big3d.open, step]); // eslint-disable-line react-hooks/exhaustive-deps
   // 3D로 보면서 만들기 (Kim): wide screens with the 3D book - after the name, the steps are made in the work
   // screen over the whole window, and the last page (확인) is in the book again
-  const canMake = () => web && inBook != null && big3d.supported && matchMedia("(min-width: 901px)").matches;
-  const webStart = web && inBook != null && big3d.supported && !editId;
+  const canMake = () => web && staged && big3d.supported && (matchMedia("(min-width: 901px)").matches || onPhone);
+  const webStart = web && staged && big3d.supported && !editId;
   useEffect(() => {
     if (!ready || step !== 1 || !store.get<number>("iyarn.go3d", 0)) return;
     // the 3D comes a moment after the page (inBook, WebGL): wait for it; phones keep the first page
@@ -475,7 +478,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const edit3d = useRef(false);
   useEffect(() => {
     if (!ready || !editId || !store.get<number>("iyarn.edit3d", 0)) return;
-    if (!(web && inBook != null && big3d.supported)) { if (phone) { store.set("iyarn.edit3d", 0); endEdit3d(); } return; }
+    if (!(web && staged && big3d.supported)) { if (phone) { store.set("iyarn.edit3d", 0); endEdit3d(); } return; }
     const t = setTimeout(() => { store.set("iyarn.edit3d", 0); edit3d.current = true; setNamed(true); setYarnSet(true); bookPause.set(true); big3d.show(); setSheet(3, 0); go(3); setTimeout(() => window.dispatchEvent(new Event("yw:shape")), 400); }, 60);
     return () => clearTimeout(t);
   }, [ready, editId, web, inBook, big3d.supported]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -565,20 +568,20 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // wide screens with the 3D: the book's pages between are gone (Kim) - the work screen closed on them goes to
   // 확인 (something made) or back to the first page
   useEffect(() => {
-    if (web && inBook != null && big3d.supported && (step === 2 || step === 3) && !big3d.open) {
+    if (web && staged && big3d.supported && (step === 2 || step === 3) && !big3d.open) {
       const t = setTimeout(() => { if (!leaving.current) go(picked ? 4 : 1, true); }, 60); return () => clearTimeout(t);
     }
     // 확인 with nothing chosen to make (a step number left from another draft): back to the first page
-    if (web && inBook != null && step === 4 && !picked && !big3d.open) { const t = setTimeout(() => { if (!leaving.current) go(1, true); }, 60); return () => clearTimeout(t); }
+    if (web && staged && step === 4 && !picked && !big3d.open) { const t = setTimeout(() => { if (!leaving.current) go(1, true); }, 60); return () => clearTimeout(t); }
   }, [web, inBook, step, big3d.open, picked]); // eslint-disable-line react-hooks/exhaustive-deps
   const back = () => {
-    if (web && inBook != null && big3d.supported && step === 4) { go(1); return; }
+    if (web && staged && big3d.supported && step === 4) { go(1); return; }
     if (web && step === 3 && sheet > 0) { setSheet(3, sheet - 1); return; }
     if (web && step === 4) setSheet(3, sheets3 - 1);
     go((step - 1) as Step);
   };
   /** 확인's 고치기: back to the spread of step 3 that holds it */
-  const fixAt = (sh: number) => { if (web && inBook != null && big3d.supported) { bookPause.set(true); big3d.show(); setSheet(3, 0); go(3); return; } if (web) setSheet(3, Math.min(sh, sheets3 - 1)); go(3); };
+  const fixAt = (sh: number) => { if (web && staged && big3d.supported) { bookPause.set(true); big3d.show(); setSheet(3, 0); go(3); return; } if (web) setSheet(3, Math.min(sh, sheets3 - 1)); go(3); };
 
   const onSubmit = (e: React.FormEvent) => { e.preventDefault(); next(); };
   // Enter = next step from anywhere in the book (inputs submit by themselves; chips, cards and the
@@ -631,7 +634,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
 
 
   const titles: Record<Step, string> = { 1: "이 작품의 이름은 무엇입니까?", 2: "무엇을 뜨시겠습니까?", 3: web ? (["어떤 실로 뜨시겠습니까?", "바늘과 크기를 정합니다", bagNow ? "가방 모양을 정합니다" : "어떤 무늬로 뜨시겠습니까?"][sheet]) : "어떤 실로, 어떤 크기로 뜨시겠습니까?", 4: "준비물을 확인합니다" };
-  const nextLabel: Record<Step, string> = { 1: web && inBook != null && big3d.supported ? "3D로 보면서 만들기 →" : "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : web && sheet === 1 && bagNow ? "다음 · 가방 모양 →" : web && sheet === 1 && knitNow ? "다음 · 무늬 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
+  const nextLabel: Record<Step, string> = { 1: web && staged && big3d.supported ? "3D로 보면서 만들기 →" : "다음 · 품목 →", 2: "다음 · 실과 바늘 →", 3: web && sheet === 0 ? "다음 · 바늘과 크기 →" : web && sheet === 1 && bagNow ? "다음 · 가방 모양 →" : web && sheet === 1 && knitNow ? "다음 · 무늬 →" : "다음 · 준비물 확인 →", 4: "완성 · 최종 도안 보기 →" };
   // folios (web): 1-2 이름, 3-4 품목, then two pages per spread of step 3 (실, 바늘과 크기, 가방 모양), then 확인;
   // four spreads on the one-page book
   const folio = web ? (step <= 2 ? step * 2 - 1 : step === 3 ? 5 + sheet * 2 : 5 + sheets3 * 2) : step * 2 - 1;
@@ -1208,7 +1211,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     ),
     right: (
       <section className="nb-page nb-right" aria-labelledby={web && step > 1 ? "nbTitle" : undefined} aria-label={web && step > 1 ? undefined : step === 4 ? "미리 보기" : step === 3 ? "모양과 크기" : "지금까지"}>
-        {web && step > 1 && !(inBook != null && big3d.supported) && progress}
+        {web && step > 1 && !(staged && big3d.supported) && progress}
         <div key={"r" + pos + "-" + rev} className={"nb-turn " + (dir > 0 ? "nb-dir-fwd" : "nb-dir-back")} onAnimationEnd={e => e.currentTarget.classList.remove("nb-dir-fwd", "nb-dir-back")}>
           {web && step > 1 ? <>
             <h1 id="nbTitle" ref={titleRef} tabIndex={-1}>{titles[step]}</h1>

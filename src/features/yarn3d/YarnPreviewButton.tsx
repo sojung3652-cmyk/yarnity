@@ -14,7 +14,7 @@ import { toYarnPattern, type YarnSource } from "./fromPattern";
 import "./yarn3d-place.css";
 
 const YarnPreview = dynamic(() => import("./YarnPreview"), { ssr: false });
-// wide screens (web): the work screen - tools, the 3D, panels; phones keep YarnPreview
+// the work screen - tools, the 3D, panels - on every screen; phones take the web's (Kim, 11/25)
 const YarnWorkspace = dynamic(() => import("./YarnWorkspace"), { ssr: false });
 
 /** a plan's parts in the order they are made, with their counts (the work screen's 부분) */
@@ -42,7 +42,7 @@ export function useYarn3D(source: YarnSource | null | undefined, pp?: Plan | nul
   const pattern = last.current.pattern;
   const [open, setOpen] = useState<false | "phone" | "wide">(false);
   const back = useRef<HTMLElement | null>(null), ex = useRef(extra); ex.current = extra;
-  const show = useCallback(() => { back.current = document.activeElement as HTMLElement | null; setOpen(matchMedia("(min-width: 901px)").matches ? "wide" : "phone"); }, []);
+  const show = useCallback(() => { back.current = document.activeElement as HTMLElement | null; setOpen("wide"); }, []); // phones too: the web's work screen, laid out narrow (Kim, 11/25)
   // focus goes back to what opened it (when it is still on the screen)
   const close = useCallback(() => { setOpen(false); ex.current?.onClosed?.(); requestAnimationFrame(() => { if (back.current?.isConnected) back.current.focus({ preventScroll: true }); }); }, []);
   const parts = useMemo(() => (thePlan ? partsOf(thePlan) : []), [thePlan]);

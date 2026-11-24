@@ -34,3 +34,37 @@
   html body .gl-wide .gl-col-list{padding:14px 10px 6px 12px}
   html body .dict-article{scroll-margin-top:64px}
 }
+@media (max-width:767.98px){
+  /* ---- 3D 작업 화면: the 3D above, the settings under it (the web's columns stacked) ---- */
+  html body .yw,html body .yw.yw-mk{grid-template:"top" 48px "stage" 38svh "right" minmax(0,1fr) "stat" 28px / minmax(0,1fr)}
+  html body .yw .yw-tools{display:none}
+  html body .yw-stage{min-height:0}
+  html body .yw-right{box-shadow:0 -1px 0 rgba(142,131,121,.35)}
+  html body .yw-top{zoom:1;gap:8px;padding:0 8px;overflow-x:auto;scrollbar-width:none}
+  html body .yw-top::-webkit-scrollbar{display:none}
+  html body .yw-stat{zoom:1;padding:0 10px;font-size:11.5px;overflow:hidden}
+  html body .yw-stat>:not(:first-child){display:none}
+  /* the stage's own tools (보기, 배경, 앞·옆·위...) smaller, tucked into the corner */
+  html body .yw .yw-dock,html body .yw.yw-mk .yw-dock{zoom:.74;top:8px;right:8px}
+  html body .yw .yw-dock .yw-hint.yw-keys{display:none}
+  html body .yw-hint{display:none}
+  html body .yw-mkbody{padding:12px 14px 14px}
+  html body .yw-mkfoot{height:56px;padding:0 14px}
+  html body .yw-mkbody .nb-tiles-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:767.98px){
+  /* ---- 확인 (the book's last page on a phone's one page): the piece's 3D on top, as tall as it needs ---- */
+  html body .nb-page.nb-3dleft{min-height:400px;padding-bottom:12px}
+  html body .nb-3dleft .y3-page{flex:none;height:320px}
+}
+@media (max-width:767.98px){
+  /* ---- 뜨기 기록 (/track): the title, then its buttons on a row of their own ---- */
+  html body .tk-head{flex-wrap:wrap;gap:10px}
+  html body .tk-head-l{flex:1 1 100%}
+  html body .tk-head-r{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;gap:8px}
+  html body .tk-sheet-page{padding-left:16px;padding-right:16px}
+  html body .tk-acts .tk-done{max-width:none}
+  /* ---- 최종 도안 (/pattern): the sheet narrower inside ---- */
+  html body .ps-sheet{padding:28px 18px 24px}
+  html body .ps-actions{margin:16px 0 12px}
+}
