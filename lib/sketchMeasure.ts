@@ -52,11 +52,16 @@ export function maskOf(rgba: Uint8ClampedArray, w: number, h: number): Mask | nu
   };
   for (let i = 0; i < w * h; i++) { const j = i * 4; if (rgba[j + 3] > 40 && !paper(j)) { ink[i] = 1; n++; } }
   if (n < 50) return null;
-  // the paper reachable from the edge without crossing ink is outside
+  // the paper reachable from the edge without crossing ink is outside. The lines are first thickened a little
+  // (Kim's card wallet: a hand-drawn outline with a small break at a corner let the outside in, only the pen lines
+  // were left as the piece, every row read as the hole under a handle - a handbag, round as a jar)
+  const R = Math.max(3, Math.round(Math.min(w, h) / 90)), wall = new Uint8Array(w * h), tmp = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) { let last = -1e9; for (let x = 0; x < w; x++) { if (ink[y * w + x]) last = x; if (x - last <= R) tmp[y * w + x] = 1; } last = 1e9; for (let x = w - 1; x >= 0; x--) { if (ink[y * w + x]) last = x; if (last - x <= R) tmp[y * w + x] = 1; } }
+  for (let x = 0; x < w; x++) { let last = -1e9; for (let y = 0; y < h; y++) { if (tmp[y * w + x]) last = y; if (y - last <= R) wall[y * w + x] = 1; } last = 1e9; for (let y = h - 1; y >= 0; y--) { if (tmp[y * w + x]) last = y; if (last - y <= R) wall[y * w + x] = 1; } }
   const out = new Uint8Array(w * h), st: number[] = [];
   for (let x = 0; x < w; x++) st.push(x, x + (h - 1) * w);
   for (let y = 0; y < h; y++) st.push(y * w, y * w + w - 1);
-  while (st.length) { const k = st.pop()!; if (out[k] || ink[k]) continue; out[k] = 1; const x = k % w; if (x > 0) st.push(k - 1); if (x < w - 1) st.push(k + 1); if (k >= w) st.push(k - w); if (k < w * (h - 1)) st.push(k + w); }
+  while (st.length) { const k = st.pop()!; if (out[k] || wall[k]) continue; out[k] = 1; const x = k % w; if (x > 0) st.push(k - 1); if (x < w - 1) st.push(k + 1); if (k >= w) st.push(k - w); if (k < w * (h - 1)) st.push(k + w); }
   let inside = 0; for (let i = 0; i < w * h; i++) if (!out[i]) inside++;
   const filled = n / Math.max(1, inside) > .55;
   return { w, h, on: filled ? (x, y) => ink[y * w + x] === 1 : (x, y) => out[y * w + x] === 0 };
@@ -133,5 +138,7 @@ export function withMeasure(s: ShapeSpec, front: Measured | null, side: Measured
   }
   // a handle drawn makes it a bag (a "basket" or "pouch" has none to carry it by)
   if (front.handle) { out.handles = 1; out.handleCm = Math.round(front.handle.lenPx * cm); if (out.kind !== "bag") out.kind = "bag"; }
+  // nothing drawn above the body: no handle, whatever the AI guessed (Kim's card wallet got one)
+  else { out.handles = 0; out.handleCm = undefined; }
   return out;
 }

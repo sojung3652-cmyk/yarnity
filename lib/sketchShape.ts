@@ -61,7 +61,8 @@ export function readSpec(o: unknown): ShapeSpec | null {
  *  what is sewn on, the colour */
 export function specToDraft(d: Draft, s: ShapeSpec): Draft {
   if (s.item && ITEM[s.item].kind !== "base-body" && ITEM[s.item].kind !== "flat-round") return wordsToFlat(d, s);
-  const id: ItemId = s.item ?? (s.kind === "pouch" ? "pouch" : s.kind === "basket" ? "basket" : s.kind === "coaster" ? (s.bottom === "oval" ? "placemat" : "coaster") : "minibag");
+  // no handle drawn: never the handbag (Kim: a card wallet came out as 미니 손가방) - a closed piece is a pouch
+  const id: ItemId = s.item ?? (s.kind === "pouch" || (s.kind === "bag" && !s.handles) ? "pouch" : s.kind === "basket" ? "basket" : s.kind === "coaster" ? (s.bottom === "oval" ? "placemat" : "coaster") : "minibag");
   // a soft, rounded piece has no square corners (Kim: a crocheted hobo is no box): a rect bottom becomes an oval
   const want: Shape = s.rounded && s.bottom === "rect" ? "oval" : s.bottom;
   const it = ITEM[id], r = it.range, shape = (it.shapes ?? ["circle"]).includes(want) ? want : (it.shapes ?? ["circle"])[0];

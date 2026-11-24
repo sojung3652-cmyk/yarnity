@@ -56,6 +56,8 @@ const TOOL: Anthropic.Tool = {
 const RULES = `You read a hand-drawn sketch of a piece someone wants to crochet and describe its intended shape for a pattern maker.
 Keep the shape the maker meant: proportions, a narrowing or widening body, a flap and its outline, the handle's arc, a button and where it sits.
 Lines that are clearly the same edge drawn twice are one edge; a small spiral or circle on a flap is usually a button or clasp.
+A handle is only one that is drawn (a loop or strap above the body): with none drawn, handles is 0. A wallet, card case, envelope or anything closed by a flap with no handle is kind pouch.
+Lines inside the body (a flap's edge, a V or curve across the front) are a flap or decoration, not the outline: the body's outline is its outermost edge, so a rectangle with a V drawn on it is a box (profile all ~1) with a triangle flap.
 Measure the drawing: read the body's outline as widths up its height (profile) - a crocheted bag is worked round by round, so a soft round form (a hobo that swells and gathers into its handle, a half-moon, a dumpling pouch) is a curve, never a box.
 The picture may hold several views side by side, named 앞면 (front), 옆면 (side) and 뒷면 (back): the front gives the width and profile, the side the depth and how rounded it is.
 Colours: a part filled or drawn in a colour is that part's colour; a black line is only an outline.

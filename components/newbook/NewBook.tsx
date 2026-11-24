@@ -18,7 +18,7 @@ import { drawing } from "@/lib/drawing";
 import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, LEN_RANGE, type FieldKey, type Item, type ItemId } from "@/lib/items";
 import { gauge, plan, SHAPE_KO, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
-import { binder } from "@/lib/binder";
+import { binder, hasContent } from "@/lib/binder";
 import { BUTTONS, LABEL_GROUPS, extraPic } from "@/lib/extras";
 import { shots } from "@/lib/shots";
 import { softWord } from "@/src/features/yarn3d/YarnWorkspace";
@@ -203,6 +203,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       d = { ...saved, editOf: p.id, itemPicked: true, name: p.name === NO_NAME ? "" : p.name, item: it.id, circ: p.circ ?? it.defaults.circ, depth: p.depth ?? it.defaults.depth,
         yarnMode: p.yarnMode ?? (p.yarnMm ? "mm" : "level") }; // older works: their thin/medium/thick stays
       setDraft(d); setEditId(p.id);
+    } else if (!d.itemPicked && startStep.current > 2 && hasContent(d)) {
+      // an older draft past step 2 carries no flag: given it once, so nothing else has to guess from the step
+      d = { ...d, itemPicked: true }; setDraft(d);
     }
     setNums(numsOf(d));
   }, [ready, draft, projects, setDraft]);
@@ -262,7 +265,20 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the 3D preview reads the pattern's own colour, yarn thickness and material besides the plan input
   // 다른 실로 보기 at the end (Kim): a material tried on the 3D before it is taken - here only, never saved
   const [tryMat, setTryMat] = useState<string | null>(null);
-  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: tryMat ? [tryMat] : draft.materials, softK: draft.softK, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, topGapCm: draft.topGapCm, topFold: draft.topFold, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch, chartName: chartNameOf(draft.pattern, draft.craft ?? (knitNow ? "knit" : "crochet")), moreColors: draft.moreColors }), [input, draft.pattern, draft.craft, knitNow, draft.moreColors, draft.item, draft.color, draft.yarnMm, draft.materials, tryMat, draft.softK, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.topGapCm, draft.topFold, draft.extras, draft.crochetChart, draft.crochetStitch]);
+  // 탄성 compared (Kim: in the yarn, the shape and 확인): the 3D shown as the yarn is by itself while 비교 is on
+  const [softPeek, setSoftPeek] = useState(false);
+  const softRow = (
+    <div className="nb-soft">
+      <div className="nb-sliders nb-sliders-1"><Slide label="탄성" min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={v => { setSoftPeek(false); patch({ softK: v }); }} text={softWord(draft.softK ?? 1)} /></div>
+      <div className="nb-soft-acts">
+        <button type="button" className="nb-link" aria-pressed={softPeek} disabled={(draft.softK ?? 1) === 1} onClick={() => setSoftPeek(v => !v)}>{softPeek ? "지금 탄성으로 보기" : "실 그대로와 비교"}</button>
+        {(draft.softK ?? 1) !== 1 && <button type="button" className="nb-link st-muted" onClick={() => { setSoftPeek(false); patch({ softK: 1 }); }}>실 그대로로 되돌리기</button>}
+        {softPeek && <span className="nb-soft-on">실 그대로의 모양을 보는 중입니다</span>}
+      </div>
+      <p className="nb-help">권장보다 큰 바늘로 뜨거나 느슨하게 뜨면 편물이 더 흐물흐물해집니다. 3D 모양만 바뀝니다.</p>
+    </div>
+  );
+  const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: tryMat ? [tryMat] : draft.materials, softK: softPeek ? 1 : draft.softK, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, topGapCm: draft.topGapCm, topFold: draft.topFold, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch, chartName: chartNameOf(draft.pattern, draft.craft ?? (knitNow ? "knit" : "crochet")), moreColors: draft.moreColors }), [input, draft.pattern, draft.craft, knitNow, draft.moreColors, draft.item, draft.color, draft.yarnMm, draft.materials, tryMat, draft.softK, softPeek, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.topGapCm, draft.topFold, draft.extras, draft.crochetChart, draft.crochetStitch]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
   const itemLabel = draft.free || draft.paint ? "직접 그린 모양" : item.name;
@@ -398,7 +414,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   };
   const tabName = (d: Draft) => d.name.trim() || (d.itemPicked ? ITEM[itemIdOf(d)].name : "새 도안");
   const binderX = editId ? undefined : {
-    tabs: binder.tabs(draft).map(t => ({ id: t.id, name: t.on && (!!draft.itemPicked || startStep.current > 2) && !t.draft.name.trim() ? ITEM[itemIdOf(t.draft)].name : tabName(t.draft), on: t.on })),
+    tabs: binder.tabs(draft).map(t => ({ id: t.id, name: tabName(t.draft), on: t.on })),
     closed: binder.closed().map(e => ({ id: e.id, name: tabName(e.draft), when: new Date(e.at).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) })),
     pick: (id: string) => loadDraft(binder.open(id, draft)),
     add: () => loadDraft(binder.add(draft)),
@@ -440,7 +456,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   const bagBad = isBag(item) && (draft.topA === 0 || draft.flapCm === 0 || (!!item.handles && draft.handle !== "none" && draft.handleCm === 0));
   // steps 3 and 4: yarn, hook, size and bag options all valid (step 3 holds every input; step 4 checks again)
   // step 2: an item has to be picked (nothing is shown until then)
-  const picked = !!draft.itemPicked || !!editId || startStep.current > 2;
+  // what to make is chosen only by the maker (the ask window, a tile, a drawing read) - never the default item
+  // (Kim: 미니 손가방 showed before anything was said)
+  const picked = !!draft.itemPicked || !!editId;
   const stepOk = step === 2 ? picked : step < 3 || (yarnStepOk(draft) && Object.keys(errors).length === 0 && !bagBad);
   const blockNext = (step === 4 || step === 2) && !stepOk; // step 3 is never disabled: pressing it shows what is missing
 
@@ -513,7 +531,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     if (web && inBook != null && big3d.supported && (step === 2 || step === 3) && !big3d.open) {
       const t = setTimeout(() => go(picked ? 4 : 1, true), 60); return () => clearTimeout(t);
     }
-  }, [web, inBook, step, big3d.open]); // eslint-disable-line react-hooks/exhaustive-deps
+    // 확인 with nothing chosen to make (a step number left from another draft): back to the first page
+    if (web && inBook != null && step === 4 && !picked && !big3d.open) { const t = setTimeout(() => go(1, true), 60); return () => clearTimeout(t); }
+  }, [web, inBook, step, big3d.open, picked]); // eslint-disable-line react-hooks/exhaustive-deps
   const back = () => {
     if (web && inBook != null && big3d.supported && step === 4) { go(1); return; }
     if (web && step === 3 && sheet > 0) { setSheet(3, sheet - 1); return; }
@@ -1013,7 +1033,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     rightWeb = step === 3
       ? [<WebYarn key="y" draft={draft} patch={patch} tried={tried} />, webSize, bagNow ? webBag : <WebStitch key="s" draft={draft} patch={patch} n={pp.last} />][sheet]
       // the cover first (Kim: picked before the pattern is made; none = a random one), then the check
-      : <><CoverChoice draft={draft} patch={patch} /><WebCheck draft={draft} itemName={itemLabel} rows={checkRows} facts={facts} onName={v => patch({ name: v })}
+      : <><CoverChoice draft={draft} patch={patch} /><WebCheck draft={draft} itemName={itemLabel} rows={checkRows} facts={facts} onName={v => patch({ name: v })} soft={web ? softRow : undefined}
           use={{ g: use.g, m: use.m, skeins: use.skeins ?? null, short: !!use.short, labelOdd: !!use.labelOdd, perColor: !!use.perColor, colors: ucolors.length, per100: use.per100, basis, skeinText }}
           measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} /></>;
   }
@@ -1037,6 +1057,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       { id: "yarn", title: "실", body: <><ColorStudio draft={draft} patch={patch} /><div className="yw-sub">{oneYarn}</div></> },
       { id: "needle", title: "바늘", body: oneHook },
       { id: "stitch", title: "무늬 테스트해보기", note: "선택", body: oneStitch },
+      { id: "soft", title: "탄성", note: "선택", body: softRow },
     ] : [
       { id: "draw", title: "모양", note: picked ? itemLabel : undefined, body: oneAsm },
       // the last step (Kim): another yarn tried on the piece, taken if it is liked better; and how limp it is
@@ -1048,8 +1069,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           {tryMat && <div className="try-acts"><span>{tryMat}(으)로 보는 중입니다.</span>
             <button type="button" className="nb-link" onClick={() => { patch({ materials: [tryMat] }); setTryMat(null); }}>이 실로 바꾸기</button>
             <button type="button" className="nb-link st-muted" onClick={() => setTryMat(null)}>원래 실로</button></div>}
-          <div className="nb-sliders nb-sliders-1"><Slide label="탄성" min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={v => patch({ softK: v })} text={softWord(draft.softK ?? 1)} /></div>
-          <p className="nb-help">권장보다 큰 바늘로 뜨거나 느슨하게 뜨면 편물이 더 흐물흐물해집니다. 3D 모양만 바뀝니다.</p>
+          {softRow}
         </div>
       ) }] : []),
     ],

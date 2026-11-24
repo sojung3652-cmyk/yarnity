@@ -378,8 +378,8 @@ export function WebHook({ draft, patch, tried }: { draft: Draft; patch: Patch; t
 // ---------------------------------------------------------------- 확인
 /** The web's 확인 page: what was picked as short rows, each with 고치기 (back to its spread), the yarn
  *  amount, and the counts as small cards. Fits the page (Kim: the old one ran under the final button). */
-export function WebCheck({ draft, itemName, rows, use, facts, measureNote, onName }: {
-  draft: Draft; itemName: string; onName?: (v: string) => void;
+export function WebCheck({ draft, itemName, rows, use, facts, measureNote, onName, soft }: {
+  draft: Draft; itemName: string; onName?: (v: string) => void; soft?: ReactNode;
   rows: { k: string; v: ReactNode; fix: () => void }[];
   use: { g: number; m: number; skeins: number | null; short: boolean; labelOdd: boolean; perColor: boolean; colors: number; per100: number; basis: string; skeinText: string };
   facts: [string, string][]; measureNote: string;
@@ -393,6 +393,8 @@ export function WebCheck({ draft, itemName, rows, use, facts, measureNote, onNam
         {rows.map(r => <div key={r.k}><dt>{r.k}</dt><dd>{r.v}</dd><dd className="nb-wfix"><button type="button" className="nb-link" onClick={r.fix}>고치기</button></dd></div>)}
       </dl>
       <div className="nb-wfacts">{facts.map(([k, v]) => <div key={k}><span>{k}</span>{v}</div>)}</div>
+      {/* 탄성 (Kim): compared and changed here too, before it is made - the 3D on the left page follows */}
+      {soft}
       <p className="nb-help">{measureNote}</p>
     </div>
   );

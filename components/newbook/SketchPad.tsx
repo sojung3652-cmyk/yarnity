@@ -32,11 +32,67 @@ const ERR: Record<string, string> = {
 };
 const hexRgb = (h: string) => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
 
+// 선 정돈 (Kim: the hand-drawn lines shown tidy): each pen stroke thinned to the points that carry its shape
+// (a wobbly straight line becomes straight), drawn through them in soft curves with its corners kept, and the
+// ends that nearly meet another line joined to it (an outline closed, a V reaching the corners)
+type P = [number, number];
+type Stroke = { pts: P[]; color: string; width: number };
+const rdp = (p: P[], eps: number): P[] => {
+  if (p.length < 3) return p;
+  const [a, b] = [p[0], p[p.length - 1]], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+  let k = 0, dm = 0;
+  for (let i = 1; i < p.length - 1; i++) { const d = Math.abs(dy * p[i][0] - dx * p[i][1] + b[0] * a[1] - b[1] * a[0]) / L; if (d > dm) { dm = d; k = i; } }
+  return dm > eps ? [...rdp(p.slice(0, k + 1), eps).slice(0, -1), ...rdp(p.slice(k), eps)] : [a, b];
+};
+const near = (p: P[], q: P): [P, number] => {
+  let best: P = p[0], bd = Infinity;
+  for (let i = 1; i < p.length; i++) {
+    const a = p[i - 1], b = p[i], vx = b[0] - a[0], vy = b[1] - a[1], t = Math.max(0, Math.min(1, ((q[0] - a[0]) * vx + (q[1] - a[1]) * vy) / ((vx * vx + vy * vy) || 1)));
+    const c: P = [a[0] + vx * t, a[1] + vy * t], d = Math.hypot(c[0] - q[0], c[1] - q[1]); if (d < bd) { bd = d; best = c; }
+  }
+  return [best, bd];
+};
+function tidy(strokes: Stroke[]): Stroke[] {
+  const out = strokes.filter(s => s.pts.length > 1).map(s => ({ ...s, pts: rdp(s.pts, Math.max(9, s.width * 1.6)) })); // a hand's wobble is a few px either way
+  const J = 18;
+  out.forEach((s, si) => {
+    for (const end of [0, s.pts.length - 1]) {
+      const q = s.pts[end];
+      // its own other end: closed
+      const other = s.pts[end ? 0 : s.pts.length - 1];
+      if (s.pts.length > 3 && Math.hypot(other[0] - q[0], other[1] - q[1]) < J * 1.4) { s.pts[end] = [other[0], other[1]]; continue; }
+      // another line: met at its nearest point
+      let best: P | null = null, bd = J;
+      out.forEach((o, oi) => { if (oi === si) return; const [c, d] = near(o.pts, q); if (d < bd) { bd = d; best = c; } });
+      if (best) s.pts[end] = best;
+    }
+  });
+  return out;
+}
+/** a stroke drawn: as it was, or tidied (soft curves through its points, sharp turns kept as corners) */
+function paint(g: CanvasRenderingContext2D, s: Stroke, neat: boolean) {
+  const p = s.pts; if (!p.length) return;
+  g.strokeStyle = s.color; g.lineWidth = s.width; g.lineCap = "round"; g.lineJoin = "round"; g.beginPath(); g.moveTo(p[0][0], p[0][1]);
+  if (!neat || p.length < 3) { for (let i = 1; i < p.length; i++) g.lineTo(p[i][0], p[i][1]); if (p.length === 1) g.lineTo(p[0][0] + .01, p[0][1]); g.stroke(); return; }
+  for (let i = 1; i < p.length - 1; i++) {
+    const a = p[i - 1], b = p[i], c = p[i + 1], t1 = Math.atan2(b[1] - a[1], b[0] - a[0]), t2 = Math.atan2(c[1] - b[1], c[0] - b[0]);
+    const turn = Math.abs(((t2 - t1 + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+    if (turn > .75) g.lineTo(b[0], b[1]); else g.quadraticCurveTo(b[0], b[1], (b[0] + c[0]) / 2, (b[1] + c[1]) / 2);
+  }
+  g.lineTo(p[p.length - 1][0], p[p.length - 1][1]); g.stroke();
+}
+
 export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
   const cv = useRef<HTMLCanvasElement>(null), file = useRef<HTMLInputElement>(null);
   // each sheet: its own ink layer (transparent where nothing is drawn) and its undo steps
   const sheets = useRef<Record<View, HTMLCanvasElement | null>>({ front: null, side: null, back: null });
   const undos = useRef<Record<View, ImageData[]>>({ front: [], side: [], back: [] });
+  // the pen strokes of each sheet (for 선 정돈), and whether the sheet is pen only (a fill, the eraser, 유동화 or a
+  // photo make it a picture that cannot be redrawn from strokes)
+  const strokes = useRef<Record<View, Stroke[]>>({ front: [], side: [], back: [] }), plain = useRef<Record<View, boolean>>({ front: true, side: true, back: true });
+  const sUndo = useRef<Record<View, [Stroke[], boolean][]>>({ front: [], side: [], back: [] });
+  const [neat, setNeat] = useState<Record<View, boolean>>({ front: false, side: false, back: false });
+  const render = (v: View, on = neat[v]) => { const g = sheet(v).getContext("2d")!; g.clearRect(0, 0, S, S); (on ? tidy(strokes.current[v]) : strokes.current[v]).forEach(s => paint(g, s, on)); };
   const [view, setView] = useState<View>("front"), [tool, setTool] = useState<Tool>("pen");
   const [ink, setInk] = useState(INKS[0]), [width, setWidth] = useState(4);
   const [note, setNote] = useState(""), [busy, setBusy] = useState(false), [msg, setMsg] = useState<string | null>(null);
@@ -60,7 +116,10 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
   useEffect(draw);
 
   const at = (e: { clientX: number; clientY: number }): [number, number] => { const r = cv.current!.getBoundingClientRect(), k = S / r.width; return [(e.clientX - r.left) * k, (e.clientY - r.top) * k]; };
-  const snap = () => { const u = undos.current[view], g = sheet(view).getContext("2d")!; u.push(g.getImageData(0, 0, S, S)); if (u.length > 30) u.shift(); };
+  const snap = () => {
+    const u = undos.current[view], g = sheet(view).getContext("2d")!; u.push(g.getImageData(0, 0, S, S)); if (u.length > 30) u.shift();
+    const su = sUndo.current[view]; su.push([strokes.current[view].map(s => ({ ...s, pts: [...s.pts] })), plain.current[view]]); if (su.length > 30) su.shift();
+  };
   const stroke = (a: [number, number], b: [number, number]) => {
     const g = sheet(view).getContext("2d")!; g.save();
     g.globalCompositeOperation = tool === "eraser" ? "destination-out" : "source-over";
@@ -99,20 +158,29 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
 
   const onDown = (e: React.PointerEvent) => {
     e.preventDefault(); cv.current!.focus({ preventScroll: true }); cv.current!.setPointerCapture(e.pointerId); const p = at(e); snap(); setMsg(null);
+    if (tool !== "pen") { plain.current[view] = false; if (neat[view]) setNeat(n => ({ ...n, [view]: false })); }
     if (tool === "fill") { fill(p); redraw(n => n + 1); return; }
+    if (tool === "pen") strokes.current[view].push({ pts: [p], color: ink, width });
     last.current = p; if (tool !== "liquify") stroke(p, [p[0] + .01, p[1]]); draw();
   };
   const onMove = (e: React.PointerEvent) => {
     const p = at(e); hover.current = p;
-    if (last.current) { if (tool === "liquify") liquify(last.current, p); else stroke(last.current, p); last.current = p; }
+    if (last.current) { if (tool === "liquify") liquify(last.current, p); else stroke(last.current, p); if (tool === "pen") strokes.current[view].at(-1)?.pts.push(p); last.current = p; }
     draw();
   };
-  const onUp = () => { if (last.current) { last.current = null; redraw(n => n + 1); } };
-  const undo = () => { const u = undos.current[view].pop(); if (u) { sheet(view).getContext("2d")!.putImageData(u, 0, 0); redraw(n => n + 1); } };
-  const clear = () => { snap(); sheet(view).getContext("2d")!.clearRect(0, 0, S, S); redraw(n => n + 1); };
+  // with 선 정돈 on, a line just drawn is tidied with the rest as it is let go
+  const onUp = () => { if (last.current) { last.current = null; if (tool === "pen" && neat[view] && plain.current[view]) render(view); redraw(n => n + 1); } };
+  const undo = () => {
+    const u = undos.current[view].pop(), su = sUndo.current[view].pop(); if (!u) return;
+    if (su) { strokes.current[view] = su[0]; plain.current[view] = su[1]; }
+    if (su?.[1] && neat[view]) render(view); else sheet(view).getContext("2d")!.putImageData(u, 0, 0);
+    redraw(n => n + 1);
+  };
+  const clear = () => { snap(); sheet(view).getContext("2d")!.clearRect(0, 0, S, S); strokes.current[view] = []; plain.current[view] = true; redraw(n => n + 1); };
+  const toggleNeat = () => { if (!plain.current[view]) return; const on = !neat[view]; snap(); setNeat(n => ({ ...n, [view]: on })); render(view, on); redraw(n => n + 1); };
   const onFile = (f?: File) => {
     if (!f || !f.type.startsWith("image/")) return; const r = new FileReader();
-    r.onload = () => { const im = new Image(); im.onload = () => { snap(); const g = sheet(view).getContext("2d")!, k = Math.min(S / im.width, S / im.height), w = im.width * k, h = im.height * k; g.drawImage(im, (S - w) / 2, (S - h) / 2, w, h); redraw(n => n + 1); }; im.src = String(r.result); };
+    r.onload = () => { const im = new Image(); im.onload = () => { snap(); plain.current[view] = false; setNeat(n => ({ ...n, [view]: false })); const g = sheet(view).getContext("2d")!, k = Math.min(S / im.width, S / im.height), w = im.width * k, h = im.height * k; g.drawImage(im, (S - w) / 2, (S - h) / 2, w, h); redraw(n => n + 1); }; im.src = String(r.result); };
     r.readAsDataURL(f);
   };
 
@@ -170,6 +238,10 @@ export function SketchPad({ onShape }: { onShape: (s: ShapeSpec) => void }) {
       <div className="sk-acts">
         <button type="button" className="pp-mini" onClick={undo} title="되돌리기 (Ctrl+Z)"><Ic d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />되돌리기</button>
         <button type="button" className="pp-mini" onClick={clear}>이 면 지우기</button>
+        {/* 선 정돈 (Kim): the lines shown tidy - on and off, the drawn lines kept underneath */}
+        <button type="button" className="pp-mini" aria-pressed={neat[view]} disabled={!plain.current[view] || !strokes.current[view].length}
+          title={plain.current[view] ? "삐뚤빼뚤한 선을 곧게, 곡선은 부드럽게, 벌어진 끝은 이어서 보여 드립니다" : "펜으로만 그린 면에서 쓸 수 있습니다"} onClick={toggleNeat}>
+          <Ic d="M4 18c3-8 6-8 8-4s5 4 8-4M4 6h16" />{neat[view] ? "원래 선" : "선 정돈"}</button>
         <button type="button" className="pp-mini" onClick={() => file.current?.click()}><Ic d="M4 7h3l2-2.5h6L17 7h3v12H4zM12 10a3.5 3.5 0 1 0 0 7a3.5 3.5 0 0 0 0-7z" />사진 불러오기</button>
         <input ref={file} type="file" accept="image/*" hidden onChange={e => onFile(e.target.files?.[0])} />
       </div>
