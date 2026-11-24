@@ -136,3 +136,7 @@ html body .gl-title{line-height:1}
 :where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation:y-rise-in .55s cubic-bezier(.22,.61,.36,1) both}
 html[data-home] main,html[data-home] .y-enter{animation:none}
 @media (prefers-reduced-motion:reduce){.y-enter,:where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation:none}}
+/* the rise leaves nothing behind once done (a kept `translate`, even 0, made the page the frame for windows
+   pinned to the screen - 실 도감's window came out low, Kim): only the start is held, before it plays */
+.y-enter{animation-fill-mode:backwards}
+:where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation-fill-mode:backwards}
