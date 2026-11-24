@@ -1136,3 +1136,25 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .st-pv-head .st-pv-title{margin:0}
 .st-pv-head .st-tools{margin:0;gap:12px;white-space:nowrap}
 .st-pv .st-list .st-row.is-on>button:first-child{padding-right:44px}
+
+/* 이어서 하기: 지우기 asked in its own window (Kim: as 내 도안 - components/my - asks it: the lace title, the
+   cream patch buttons), and 지웠습니다 at the bottom as 나의 도안집 shows it (app/mine: .mine-undo) - copied
+   here, as those files load only on their own pages */
+.st-ask-dim{position:fixed;inset:0;z-index:320;display:grid;place-items:center;padding:24px;background:rgba(60,42,34,.32)}
+.st-ask-sheet{width:min(400px,100%);box-sizing:border-box;padding:26px 28px 22px;border-radius:6px;
+  background:repeating-linear-gradient(to bottom,transparent 0 33px,rgba(176,141,87,.12) 33px 34px) local,#FBF7EF;
+  box-shadow:0 0 0 1px rgba(142,131,121,.16),-12px 18px 36px -16px rgba(50,35,25,.45),-2px 3px 6px -3px rgba(60,42,34,.12)}
+.st-ask-sheet h2{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:230px;aspect-ratio:900 / 264;margin:0 auto 18px;padding:0 24px;
+  background:url(/glossary/lace_ivory.webp) center / 100% 100% no-repeat;filter:drop-shadow(-1.5px 2.5px 2px rgba(90,62,44,.16));
+  font:700 14.5px/1.2 "Noto Serif KR",serif;color:#3A322D;white-space:nowrap}
+.st-ask-text{margin:0;font-size:13.5px;line-height:1.65;color:#4A423C;text-align:center}
+.st-ask-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.st-ask-btn{padding:0 8px;border-style:solid;border-width:12px;border-image-source:url(/mobile/diary/patch_cream.webp);border-image-slice:62 fill;border-image-repeat:stretch;
+  background:none;font:700 13px/1.25 "Noto Serif KR",serif;color:#3F3532;cursor:pointer;filter:drop-shadow(-1.5px 2px 1.5px rgba(90,62,44,.16))}
+.st-ask-btn.is-sub{font-weight:500;color:#5E554E}
+.st-ask-btn:hover{transform:translateY(-1px)}
+.st-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:330;display:flex;align-items:center;gap:18px;padding:11px 20px;background:#FFFBF6;border:1px solid #E6DACF;
+  font-size:13.5px;color:#4A3D38;box-shadow:0 2px 0 rgba(70,50,40,.04),0 8px 20px -10px rgba(60,42,34,.3);white-space:nowrap;animation:st-toast .2s ease-out}
+.st-toast button{border:0;background:none;padding:2px 0;font:inherit;font-size:13.5px;color:#6E5350;border-bottom:1px solid currentColor;cursor:pointer}
+.st-toast button:focus-visible{outline:2px solid #4A3D38;outline-offset:3px}
+@keyframes st-toast{from{opacity:0;transform:translate(-50%,6px)}}

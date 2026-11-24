@@ -51,9 +51,25 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
   const allIds = rows.map(r => r.id), allOn = allIds.length > 0 && allIds.every(id => picked.includes(id));
   if (!hasDraft && !always && !kept.length) return null;
   const hv = hover && rows.find(r => r.id === hover.id), pic = hv ? shots.get(hv.shot) : null;
-  // 되돌리기: in the window while it is open (the page under it cannot be pressed), on the page once it is closed
-  const undoLine = undo && <p className="st-undo" role="status">{undo.n > 1 ? `${undo.n}개를 지웠습니다.` : "지웠습니다."} <button type="button" className="nb-link" onClick={bringBack}>되돌리기</button></p>;
-  const back = !(win && rows.length > 0) && undoLine;
+  // 지우기, asked in a window of its own over the list (Kim: as 내 도안 asks it) - never a browser dialog
+  const askWin = ask && createPortal(
+    <div className="st-ask-dim" onMouseDown={e => { if (e.target === e.currentTarget) setAsk(null); }}>
+      <div className="st-ask-sheet" role="alertdialog" aria-modal="true" aria-label="도안 지우기">
+        <h2>{ask.length > 1 ? `${ask.length}개를 지우시겠습니까?` : "이 도안을 지우시겠습니까?"}</h2>
+        {ask.length === 1 && <p className="st-ask-text"><b>{rows.find(r => r.id === ask[0])?.name ?? ""}</b></p>}
+        <p className="st-ask-text">지운 뒤에도 잠시 되돌릴 수 있습니다.</p>
+        <div className="st-ask-foot">
+          <button type="button" className="st-ask-btn is-sub" autoFocus onClick={() => setAsk(null)}>취소</button>
+          <button type="button" className="st-ask-btn" onClick={() => del(ask)}>지우기</button>
+        </div>
+      </div>
+    </div>, document.body);
+  // 지웠습니다, short at the bottom of the screen with 되돌리기 (Kim: as 나의 도안집 shows it)
+  const back = undo && createPortal(
+    <div className="st-toast" role="status">
+      <span>{undo.n > 1 ? `${undo.n}개를 지웠습니다` : "지웠습니다"}</span>
+      <button type="button" onClick={bringBack}>되돌리기</button>
+    </div>, document.body);
   // Kim: the list opens in a window of its own when 이어서 하기 is pressed, not under the button
   const list = win && any && createPortal(
     <div className="st-pv-dim" onMouseDown={e => { if (e.target === e.currentTarget) { setWin(false); setHover(null); endPick(); } }}>
@@ -68,14 +84,6 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
           </> : <button type="button" className="nb-link" onClick={() => { setPicking(true); setHover(null); }}>선택</button>}
         </div>
       </div>
-      {ask && (
-        <div className="st-ask-del" role="alertdialog" aria-label="지우기">
-          {/* asked here, never with a browser dialog; it can be brought back for a few seconds */}
-          <p>{ask.length > 1 ? `고른 도안 ${ask.length}개를 지우시겠습니까?` : `'${rows.find(r => r.id === ask[0])?.name ?? ""}'을(를) 지우시겠습니까?`}</p>
-          <button type="button" className="nb-link" autoFocus onClick={() => setAsk(null)}>취소</button>
-          <button type="button" className="nb-link st-danger" onClick={() => del(ask)}>지우기</button>
-        </div>
-      )}
       <ul className="st-list" onScroll={() => setHover(null)}>
         {rows.map(r => {
           // beside the window, on its left (or its right when there is no room)
@@ -102,7 +110,6 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
           <b>{hv.name}</b>
         </div>, document.body
       )}
-      {undoLine}
       <div className="st-pv-acts"><button type="button" className="nb-link st-muted" onClick={() => { setWin(false); setHover(null); endPick(); }}>닫기</button></div>
     </div>
     </div>, document.body
@@ -121,7 +128,7 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
           <span className="tp-label-top" lang="en">continue</span><b>이어서 하기</b><span className="st-desc">만들던 것 불러오기</span>
         </button>
       </div>
-      {none}{list}{back}
+      {none}{list}{askWin}{back}
       <p className="st-foot" lang="en">with love · yarnity</p>
     </div>
   );
@@ -130,7 +137,7 @@ export function StartChoice({ draft, mode, onMode, onFresh, onDraft, onKept, alw
       <p className="st-ask">어디서부터 시작하시겠습니까?</p>
       <Tiles label="시작" value={mode ?? ""} cols={2} onPick={v => { onMode(v as "new" | "go"); if (v === "new") onFresh(); else setWin(true); }}
         options={[["new", "새로 시작", "빈 종이에서"], ["go", "이어서 하기", "만들던 것 불러오기"]]} />
-      {none}{list}{back}
+      {none}{list}{askWin}{back}
     </div>
   );
 }
