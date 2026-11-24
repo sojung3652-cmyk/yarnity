@@ -153,3 +153,7 @@
 .ps-actions{position:relative}
 .ps-back{flex:none;align-self:center;margin-right:auto}
 .ps-start .cloth-face{height:44px;padding:0 26px;font-size:14px;font-weight:600}
+/* 생성 중 while the pattern is made (Kim) */
+.ps-making{display:flex;align-items:center;justify-content:center;min-height:60vh;margin:0;font-family:"Noto Serif KR",serif;font-size:15px;color:#7A6A63;animation:ps-making 1.4s ease-in-out infinite alternate}
+@keyframes ps-making{from{opacity:.45}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ps-making{animation:none}}

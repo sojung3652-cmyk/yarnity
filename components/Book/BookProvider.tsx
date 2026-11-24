@@ -255,9 +255,12 @@ export function BookProvider({ children }: { children: ReactNode }) {
   const sinkTo = useCallback((to: string) => {
     if (sinking) return;
     setInstant(false);
-    if (!floating) { router.push(to, { scroll: false }); return; }
+    // the finished pattern from a book on /new: 생성 중 over it too (Hero .sink-cover) until /pattern is there
+    if (!floating) { if (to === "/pattern") { setSinking(true); setSinkPath(to); } router.push(to, { scroll: false }); return; }
     setSinking(true); setSinkPath(to); // the path change ends it (above), once the new screen is there
-    setTimeout(() => { setOverlay(false); router.push(to, { scroll: false }); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700);
+    // the finished pattern (Kim: 최종 도안 확인 showed another screen first): no sinking first - straight there, its
+    // ground and 생성 중 under the book until the pattern is on the screen
+    setTimeout(() => { setOverlay(false); router.push(to, { scroll: false }); }, to === "/pattern" || matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700);
   }, [floating, sinking, router]);
   const leaveTo = useCallback((to: string) => { if (asks()) setLeaving({ path: to }); else { setInstant(false); router.push(to, { scroll: false }); } }, [asks, router]);
 

@@ -445,3 +445,5 @@ html.y-edit3d #book{visibility:hidden}
 .sink-cover{position:fixed;inset:0;z-index:59;background:var(--bg);animation:sink-cover .25s ease-out}
 @keyframes sink-cover{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.sink-cover{animation:none}}
+.sink-cover{display:grid;place-items:center;z-index:200} /* over the book: the pattern is coming */
+.sink-making{margin:0;font-family:"Noto Serif KR",serif;font-size:15px;color:#7A6A63}

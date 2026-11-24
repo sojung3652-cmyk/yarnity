@@ -500,7 +500,11 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   }, [pos]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => turn.current?.finish(), []);
 
+  // saved and on the way to the finished pattern (Kim: 최종 도안 확인 showed the first page instead): the fresh
+  // draft left behind must not send the book back to step 1 - that replaced the way to /pattern
+  const leaving = useRef(false);
   const save = () => {
+    leaving.current = true; setTimeout(() => { leaving.current = false; }, 4000); // the book may stay mounted for the next 새 도안
     const e = engineInput(draft);
     const d: Draft = { ...draft, shape: e.shape, a: e.a, b: e.b as number, h: e.h as number, object: e.object, handle: e.handle as Handle, handleCm: e.handleCm ?? null, topA: e.topA ?? null, flapCm: e.flapCm ?? null, name: draft.name.trim() || autoName(draft) || NO_NAME, item: item.id };
     if (d.object === "bag" && d.shape !== "circle" && d.b >= d.a) d.b = Math.max(4, d.a - 2); // as the old form did
@@ -543,10 +547,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // 확인 (something made) or back to the first page
   useEffect(() => {
     if (web && inBook != null && big3d.supported && (step === 2 || step === 3) && !big3d.open) {
-      const t = setTimeout(() => go(picked ? 4 : 1, true), 60); return () => clearTimeout(t);
+      const t = setTimeout(() => { if (!leaving.current) go(picked ? 4 : 1, true); }, 60); return () => clearTimeout(t);
     }
     // 확인 with nothing chosen to make (a step number left from another draft): back to the first page
-    if (web && inBook != null && step === 4 && !picked && !big3d.open) { const t = setTimeout(() => go(1, true), 60); return () => clearTimeout(t); }
+    if (web && inBook != null && step === 4 && !picked && !big3d.open) { const t = setTimeout(() => { if (!leaving.current) go(1, true); }, 60); return () => clearTimeout(t); }
   }, [web, inBook, step, big3d.open, picked]); // eslint-disable-line react-hooks/exhaustive-deps
   const back = () => {
     if (web && inBook != null && big3d.supported && step === 4) { go(1); return; }

@@ -25,12 +25,17 @@ import { WorkMore } from "@/components/WorkMore";
 import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import "./pattern.css";
 
+/** 생성 중 (Kim: 최종 도안 확인 - the pattern at once, 생성 중 while it is made): the page's ground, never a blank */
+function Making() {
+  return <main id="view-pattern" className="ps-main"><p className="ps-making" role="status">도안을 만드는 중입니다…</p></main>;
+}
+
 // phones: 완성 도안 as its own screen (components/mobile/MobilePatternScreen.tsx)
 export default function PatternPage() {
   const m = useMobile();
   // nothing until the screen is known: the wide screen's PatternScreen must not take the phone's "just made"
   // signal (sessionStorage m.justMade: the links and the book covers) in the render before
-  if (m === null) return <main id="view-pattern" />;
+  if (m === null) return <Making />;
   if (m) return <MobilePatternScreen />;
   return <PatternScreen />;
 }
@@ -44,7 +49,7 @@ export function PatternScreen() {
   useEffect(() => { try { sessionStorage.removeItem("m.justMade"); } catch {} }, []);
   // the 3D's front view, taken when the work was finished on the work screen (lib/shots; this browser only)
   const shot = useShot(p?.id, p, p ? shownPlan(p) : null, p?.updatedAt ?? 0);
-  if (!ready || !p) return <main id="view-pattern" />;
+  if (!ready || !p) return <Making />;
 
   const pp = shownPlan(p), it = ITEM[itemIdOf(p)];
   const rounds = p.object === "coaster" || p.object === "bag";
