@@ -61,6 +61,7 @@ Lines inside the body (a flap's edge, a V or curve across the front) are a flap 
 Measure the drawing: read the body's outline as widths up its height (profile) - a crocheted bag is worked round by round, so a soft round form (a hobo that swells and gathers into its handle, a half-moon, a dumpling pouch) is a curve, never a box.
 The picture may hold several views side by side, named 앞면 (front), 옆면 (side) and 뒷면 (back): the front gives the width and profile, the side the depth and how rounded it is.
 Colours: a part filled or drawn in a colour is that part's colour; a black line is only an outline.
+The picture may instead be a PHOTO of a real bag or pouch (a shop photo, a finished piece, a picture saved from the web): read the piece itself, not its background, props or the person holding it; leather or fabric pieces are read for their shape only, as if they were to be crocheted. Read its colours from the photo.
 Use the maker's note for colours and materials when given. Answer only by calling the tool. The summary is Korean in 합니다체.`;
 
 const WORD_RULES = `Someone describes in words a piece they want to crochet or knit. Choose the closest thing the app makes (item) and lay out its parts for a beginner: the bottom's outline and size, the body's height and silhouette, handles (how many, how long, how made), a flap, a button, a zipper, a label.

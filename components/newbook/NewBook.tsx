@@ -30,7 +30,8 @@ import { TitleCover, TitlePage } from "./TitlePage";
 import { ClothLabel } from "./ClothLabel";
 import { CoverChoice } from "./CoverChoice";
 import { ColorStudio } from "./ColorStudio";
-import { SketchPad } from "./SketchPad";
+import { PhotoShape } from "./PhotoShape";
+import { YarniBar } from "./YarniBar";
 import { YarnCheck } from "./YarnCheck";
 import { StartChoice } from "./StartChoice";
 import { specToDraft } from "@/lib/sketchShape";
@@ -186,7 +187,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   }, [chat.applied, draft]);
   // 새 도안 (Kim): start fresh or go on with something, asked once on the first page
   const [startMode, setStartMode] = useState<"new" | "go" | null>(null), [startDone, setStartDone] = useState(false);
-  const [drawOn, setDrawOn] = useState(false), [drawKind, setDrawKind] = useState<"sketch" | "paint" | "half">("sketch"); // 직접 그리기: the pad instead of the item tiles
+  const [drawOn, setDrawOn] = useState(false); // 사진으로 만들기 (was 직접 그리기): the photo instead of the item tiles
   const [hRev, setHRev] = useState(0); // the handle length was dragged: its typed box takes the new value
   const [ownHandle, setOwnHandle] = useState(false); // handle: "직접 입력" picked (stays custom even on a preset value)
   const loaded = useRef(false), titleRef = useRef<HTMLHeadingElement>(null), shownStep = useRef(pos);
@@ -574,20 +575,13 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       setDraft({ ...draft, paint: f, free: undefined, item: "dishcloth", object: ENGINE[ITEM.dishcloth.kind], shape: "rect", a: f.wCm, b: f.hCm, h: 0, handle: "none", handleCm: null, topA: null, flapCm: null, itemPicked: true });
     };
     const drawInfo = draft.free || draft.paint ? `전체 ${pp.rows.filter(r => r.part !== "start").length}단 · 가장 넓은 단 ${Math.max(...pp.rows.map(r => r.n))}코` : undefined;
-    const kindNow = draft.free ? "half" : draft.paint ? "paint" : drawKind;
     const drawPanel = (
       <div className="nb-web">
-        {/* Kim: the bag in my head - draw the whole piece and the AI reads its shape; the square paper (holes and
-            all) and half a side view (turned into a round piece) are the other ways */}
-        <Tiles label="그리는 방식" value={kindNow} cols={3} onPick={v => {
-          setDrawKind(v as "sketch" | "paint" | "half");
-          if (v !== "half" && draft.free) patch({ free: undefined, itemPicked: false });
-          if (v !== "paint" && draft.paint) patch({ paint: undefined, itemPicked: false });
-        }} options={[["sketch", "통째로 그리기", "AI가 모양을 읽음"], ["paint", "칸 그림판", "구멍까지 칸으로"], ["half", "옆모습 반쪽", "좌우 대칭 · 둥글게"]]} />
-        {kindNow === "sketch" ? <SketchPad onShape={sp => { const nd = specToDraft(draft, sp); setDraft(nd); setNums(numsOf(nd)); window.dispatchEvent(new Event("yw:shape")); }} />
-          : kindNow === "paint"
-          ? <PaintPad value={draft.paint ?? undefined} base={draft.color || "#EFE6D4"} onChange={setPaint} info={draft.paint ? drawInfo : undefined} />
-          : <DrawPad value={draft.free ?? undefined} base={draft.color || "#EFE6D4"} onChange={setFree} info={draft.free ? drawInfo : undefined} />}
+        {/* Kim (그리기 너무 머리아프다): a photo in place of drawing - the AI reads it as it read a drawing. A draft drawn
+            before on the square paper or as half a side view keeps its pad, so it can still be changed */}
+        {draft.paint ? <PaintPad value={draft.paint} base={draft.color || "#EFE6D4"} onChange={setPaint} info={drawInfo} />
+          : draft.free ? <DrawPad value={draft.free} base={draft.color || "#EFE6D4"} onChange={setFree} info={drawInfo} />
+          : <PhotoShape onShape={sp => { const nd = specToDraft(draft, sp); setDraft(nd); setNums(numsOf(nd)); window.dispatchEvent(new Event("yw:shape")); }} />}
       </div>
     );
     oneDraw = drawPanel;
@@ -599,7 +593,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       <>
         <Tiles label="고르는 방법" value={drawOn || draft.free || draft.paint ? "draw" : "list"} cols={2}
           onPick={v => { if (v === "draw") setDrawOn(true); else { setDrawOn(false); if (draft.free || draft.paint) patch({ free: undefined, paint: undefined, itemPicked: false }); } }}
-          options={[["list", "목록에서 고르기"], ["draw", "직접 그리기"]]} />
+          options={[["list", "목록에서 고르기"], ["draw", "사진으로 만들기"]]} />
         {listOrDraw}
       </>
     );
@@ -1011,7 +1005,6 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         </div>
         <div className="asm-sum"><h3>지금 조립된 것</h3>
           <ul>{partLines(draft).map(([a, b]) => <li key={a}><b>{a}</b><span>{b}</span></li>)}</ul>
-          <button type="button" className="nb-link" onClick={() => setAsked(false)}>Yarni에게 다시 말로 설명하기</button>
         </div>
       </div>
     );
@@ -1019,10 +1012,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       <div className="nb-web">
         <button type="button" className="nb-link asm-yarn" onClick={() => window.dispatchEvent(new Event("yw:yarncheck"))}>실 설정으로 돌아가기</button>
         <div className="nb-needle asm-mode" role="radiogroup" aria-label="모양을 만드는 방법">
-          {([["asm", "조립하기"], ["draw", "그리기"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={shapeMode === k} onClick={() => setShapeMode(k)}>{t}</button>)}
+          {([["asm", "조립하기"], ["draw", "사진"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={shapeMode === k} onClick={() => setShapeMode(k)}>{t}</button>)}
         </div>
+        {/* Yarni at the top of 모양, whichever way it is made (Kim) */}
+        <YarniBar onWords={() => setAsked(false)} />
         {/* 그리기 too (Kim: 왜 여기는 아무것도 못해): once a drawing is read, every part is here to adjust under it */}
-        {shapeMode === "asm" ? asmPanel : <>{drawPanel}{picked && <div className="asm-after"><p className="nb-wsubhead">그린 모양 다듬기</p>{asmPanel}</div>}</>}
+        {shapeMode === "asm" ? asmPanel : <>{drawPanel}{picked && <div className="asm-after"><p className="nb-wsubhead">읽은 모양 다듬기</p>{asmPanel}</div>}</>}
       </div>
     );
     // 확인: short rows with 고치기, the yarn amount, the counts as small cards

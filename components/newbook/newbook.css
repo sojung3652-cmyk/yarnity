@@ -1106,3 +1106,27 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .st-peek p{margin:6px 0;font-size:12.5px;line-height:1.5;color:#6A5B55}
 .st-peek b{display:block;margin-top:6px;font-size:13.5px;font-weight:600;color:#3A322D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @keyframes st-peek{from{opacity:0;transform:translateX(6px)}}
+/* 사진으로 만들기 (Kim: in place of drawing) */
+.ph{display:grid;gap:8px}
+.ph-drop{display:grid;place-items:center;align-content:center;gap:4px;width:100%;min-height:170px;padding:10px;border:1.5px dashed #CDBFB4;border-radius:8px;background:#FFFDF8;font:inherit;color:#3A322D;cursor:pointer}
+.ph-drop:hover,.ph-drop.is-over{border-color:#A39A92;background:#FBF6EC}
+.ph-drop b{font-size:15px;font-weight:600}.ph-drop span{font-size:12.5px;color:#7A6A63}
+.ph-drop.has-pic{border-style:solid;padding:6px}
+.ph-drop img{display:block;max-width:100%;max-height:260px;object-fit:contain;border-radius:4px}
+.ph-note{display:flex;align-items:center;gap:10px}.ph-note span{flex:none;font-size:13.5px;color:#3A322D}.ph-note input{flex:1 1 auto;min-width:0}
+.ph-sub{margin-top:-4px}
+.ph-acts{display:flex;align-items:center;justify-content:flex-end;gap:14px}
+.ph-go{padding:6px 18px}.ph-go:disabled{opacity:.45;cursor:default}
+.ph-msg{margin:0}
+
+/* Yarni at the top of 모양 (Kim) */
+.yb{display:grid;gap:6px;margin:0 0 14px;padding:10px 12px;border-radius:8px;background:#FBF4E6;box-shadow:inset 0 0 0 1px #E3D4BC}
+.yb-row{display:flex;align-items:center;gap:8px;margin:0}
+.yb-star{flex:none;width:14px;height:14px;fill:#C29A48}
+.yb-lb{flex:none;font-size:14px;font-weight:600;color:#3A322D}
+.yb-in{flex:1 1 auto;min-width:0;height:34px}
+.yb-go{height:34px}
+
+.yb-chips{display:flex;flex-wrap:wrap;gap:6px}
+.yb-chip{padding:5px 10px;border:0;border-radius:14px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #D9C9B0;font:inherit;font-size:12.5px;color:#3A322D;cursor:pointer;white-space:nowrap}
+.yb-chip:hover{box-shadow:inset 0 0 0 1.5px #B9A27C}
