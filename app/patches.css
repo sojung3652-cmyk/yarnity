@@ -119,3 +119,14 @@ html body .gl-title{line-height:1}
 /* a screen's new content (Kim: 창으로 들어갈 때 띄우는 효과 - 실 도감, FAQ): floats up and fades in */
 .y-enter{animation:y-fade-in .34s cubic-bezier(.2,.7,.3,1) both}
 @media (prefers-reduced-motion:reduce){.y-enter{animation:none}}
+/* calmer (Kim: 너무 과해, 덜 역동적으로): what comes in only drifts 2px as it fades; cards rise 2px, buttons 1px */
+@keyframes y-fade-in{from{opacity:0;translate:0 2px}to{opacity:1;translate:0 0}}
+.y-enter{animation-duration:.26s;animation-timing-function:ease-out}
+:where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation-duration:.24s}
+@media (hover:hover){
+  :where(button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary):not(:disabled):not([aria-disabled="true"]):hover{translate:0 -1px}
+  :is(.float-card, .my-prof-main, .my-data, .my-login, .my-row, .my-row-new, .my-newslot, .my-wish, .my-gal-pic, .my-hook):not(:disabled):not([aria-disabled="true"]):hover{translate:0 -2px;filter:drop-shadow(0 4px 7px rgba(70,50,40,.09))}
+}/* every pressable thing alike (Kim: 뜨개 사전, 뜨개의 종류 still did not float - 1px was not seen): 2px, calm */
+@media (hover:hover){
+  :where(button, a[href], [role="button"], [role="tab"], [role="radio"], [role="menuitem"], [role="option"], summary):not(:disabled):not([aria-disabled="true"]):hover{translate:0 -2px}
+}
