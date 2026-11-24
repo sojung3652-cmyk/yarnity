@@ -16,6 +16,7 @@ import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMi
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
 import { familiesOf, PATTERN_BY_ID, STITCH_PATTERNS, type StitchPattern } from "@/lib/stitchPatterns";
 import { CHART_MULT, CHART_ROWS, type Chart, type ChartKey } from "@/lib/crochetChart";
+import { chartFromSteps } from "@/lib/stitchGrammar";
 import { chartFor } from "@/lib/stitchCharts";
 import { GROUPS, ITEM, ITEMS, type Item, type ItemId } from "@/lib/items";
 import { Fold, useOneOpen } from "./Fold";
@@ -554,6 +555,27 @@ export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly }: { draft:
           {!cur.draw && <p className="nb-patfit">이 무늬는 도안에 이름으로 적어 둡니다. 3D와 단별 글은 아직 기본 코로 보여 드립니다.</p>}
         </div>
       )}
+      {craft === "crochet" && <OwnSteps draft={draft} patch={patch} />}
+    </div>
+  );
+}
+
+const OWN_EX = "1단: 짧은뜨기 1, (2코 건너뛰고 한 코에 한길긴뜨기 5, 2코 건너뛰고 짧은뜨기 1)을 끝까지\n2단: 사슬 3, 첫 코에 한길긴뜨기 2, (부채 가운데에 짧은뜨기 1, 짧은뜨기에 한길긴뜨기 5)를 끝까지\n1단과 2단을 반복";
+/** 직접 적기 (Kim: 뜨는 원리대로): a crochet pattern written row by row as patterns are written; the 3D works out
+ *  every stitch from where it goes (한 코에, 사슬 사이에, N코 모아, 구슬, 팝콘, 앞·뒤 걸어, N코 건너) */
+function OwnSteps({ draft, patch }: { draft: Draft; patch: Patch }) {
+  const [open, setOpen] = useState(!!draft.ownSteps), text = draft.ownSteps ?? "";
+  const read = text.trim() ? chartFromSteps(text.split(/\n+/), 19, 4) : null;
+  return (
+    <div className="nb-wg nb-own">
+      <button type="button" className="nb-link" aria-expanded={open} onClick={() => setOpen(v => !v)}>{open ? "직접 적기 닫기" : "뜨는 법을 직접 적어서 3D로 보기"}</button>
+      {open && <>
+        <label className="nb-own-f"><span className="sr">뜨는 법</span>
+          <textarea rows={4} value={text} placeholder={OWN_EX} spellCheck={false} onChange={e => patch({ ownSteps: e.target.value, ownOn: !!e.target.value.trim() })} /></label>
+        <p className="nb-help">한 줄에 한 단씩 적습니다. "한 코에", "사슬 사이에", "N코 모아", "구슬", "팝콘", "앞걸어·뒤걸어", "N코 건너뛰고", "(…)을 끝까지", "N단부터", "반복"을 읽어서, 코마다 어디에 떠 넣는지대로 3D를 만듭니다.</p>
+        {text.trim() && <p className={"nb-patfit" + (read ? "" : " is-warn")} role="status">{read ? `${read.st.length}코를 읽었습니다. 3D가 이 뜨는 법으로 바뀌었습니다.` : "읽을 수 있는 코가 없습니다. 예시처럼 코 이름과 수를 적어 주십시오."}</p>}
+        {text.trim() && <button type="button" className="nb-link st-muted" onClick={() => patch({ ownOn: !draft.ownOn })}>{draft.ownOn ? "고른 무늬로 다시 보기" : "적은 뜨는 법으로 보기"}</button>}
+      </>}
     </div>
   );
 }

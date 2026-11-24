@@ -70,6 +70,10 @@ export interface Draft {
   gusset?: "flat" | "box";
   /** 손목 고리 (Kim: a wristlet): the handle is one loop at the top's corner to slip the hand through */
   handleKind?: "wrist";
+  /** 직접 적기 (Kim): a crochet pattern written in the reader's own words, row by row - the 3D works it out
+   *  stitch by stitch (lib/stitchGrammar); `ownOn` shows it instead of the picked pattern */
+  ownSteps?: string;
+  ownOn?: boolean;
   /** how far a bag's top stays open, cm (Kim: with a flap the top closes to this; 0 shut as a zipper's) */
   topGapCm?: number | null;
   /** the draft holds a saved work opened with 고치기 (Kim: a made work is changed only that way) - never shown as

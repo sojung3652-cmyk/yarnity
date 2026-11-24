@@ -11,6 +11,7 @@ import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
 import { compileChart, type Chart, type ChartKey } from "@/lib/crochetChart";
 import { chartFor } from "@/lib/stitchCharts";
+import { chartFromSteps } from "@/lib/stitchGrammar";
 import type { YarnMaterial, YarnPattern, YarnShape } from "./engine";
 
 /** the pattern's own fields the engine reads (Draft and Project both have them) */
@@ -25,6 +26,9 @@ export interface YarnSource extends PlanInput {
   gusset?: "flat" | "box" | null;
   /** wrist: one loop to slip the hand through (손목 고리) */
   handleKind?: "wrist" | null;
+  /** 직접 적기: the reader's own crochet steps, shown when `ownOn` */
+  ownSteps?: string | null;
+  ownOn?: boolean | null;
   handleCount?: 1 | 2;
   flapColor?: string;
   handleColor?: string;
@@ -73,6 +77,13 @@ export function yarn3dSupported(p: PlanInput): boolean {
   return ["coaster", "bag", "rows", "tube"].includes(p.object);
 }
 
+/** 직접 적기: the reader's rows on as many stitches as the piece has, as many rows as reach its height (null
+ *  when nothing in the text can be read - the picked pattern shows instead) */
+function ownChart(p: YarnSource, pp: Plan, counts: (...parts: string[]) => number[]): Chart | null {
+  const g = pp.g, cols = Math.min(41, Math.max(7, counts("rows")[0] || Math.round(p.a / g.w))), rows = Math.max(2, Math.min(12, Math.round((p.b ?? p.a) / (g.h * 1.6))));
+  return chartFromSteps((p.ownSteps ?? "").split(/\n+/), cols, rows);
+}
+
 export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   if (!yarn3dSupported(p) || !pp.rows.length) return null;
   const counts = (...parts: string[]) => pp.rows.filter(r => parts.includes(r.part)).map(r => Math.max(1, Math.round(r.n)));
@@ -86,6 +97,10 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     // a drawn shape: its rounds as they are, each in the colour drawn at its height
     const rr = pp.rows.filter(r => r.part === "bottom" || r.part === "body"); if (!rr.length) return null;
     shape = { kind: "round", counts: rr.map(r => Math.max(1, Math.round(r.n))), flat: pp.bottomRounds }; rowColors = rr.map(r => r.color);
+  } else if (p.object === "rows" && p.ownOn && p.ownSteps && !isKnit(p) && ownChart(p, pp, counts)) {
+    // 직접 적기: the reader's own steps, worked out stitch by stitch
+    const ch = ownChart(p, pp, counts)!, g = pp.g;
+    shape = { kind: "chart", chart: ch, wCm: ch.W * g.w, hCm: ch.H * g.h };
   } else if (p.object === "rows" && p.chartName && chartFor(p.chartName)) {
     // a named pattern (쉐브론, 꽈배기, 페어아일...): its chart, repeated to the piece's size (up to 3 x 3)
     const c0 = chartFor(p.chartName)!, g = pp.g, cols = counts("rows")[0] || Math.round(p.a / g.w), hc = (p.b ?? p.a);
