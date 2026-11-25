@@ -27,7 +27,7 @@ export function loadCoverAssets() {
   // in as an empty 1px image, so the cloth, the band and the label are still drawn
   const BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
   const load = (src: string) => new Promise<HTMLImageElement>(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => { const b = new Image(); b.onload = () => ok(b); b.src = BLANK; }; i.src = src; });
-  assets ??= Promise.all([load("/pic/bird.png"), load("/pic/logo-mark.svg")]).then(([bird, logo]) => ({ bird, logo }));
+  assets ??= Promise.all([load("/pic/bird.webp"), load("/pic/logo-mark.svg")]).then(([bird, logo]) => ({ bird, logo }));
   return assets;
 }
 

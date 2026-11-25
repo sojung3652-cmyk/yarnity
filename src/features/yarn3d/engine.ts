@@ -689,6 +689,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // a big flat piece drawn every k-th stitch: its yarn stands for k strands
     return D.skip ? Math.min(R * D.skip.stitch, Math.min(D.rh, D.sw) * .42) : R;
   };
+  // a stitch's own strand (a head's ring, a leg) is a curve through 3 to 12 points: its length is measured in six
+  // steps a point, not the 200 a curve is given by default - that measuring was half the time a big piece took
+  const shortDiv = (n: number) => Math.max(24, n * 6);
   function buildItemYarn(D: ItemData) {
     const R = yarnR(D), geos: THREE.BufferGeometry[] = [];
     const mat = yarnMat(R), M = LOD.M, step = LOD.step, lp = (b: Bot) => D.P[b[0]].clone().lerp(D.P[b[1]], b[2]);
@@ -699,7 +702,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       // a loop stitch a loop standing up; each chain its own loop. A stitch standing out (a front post, the
       // crossing of a cable) is lifted, one sunk lowered; each in its own colour. All of it is one mesh.
       const s = pat.shape, at = chartAt, parts: THREE.BufferGeometry[] = [], add = (pts: THREE.Vector3[], closed: boolean, rad: number, color: string) => {
-        const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5);
+        const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); cv.arcLengthDivisions = shortDiv(pts.length);
         parts.push(buildYarn(cv.getSpacedPoints(Math.max(12, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color }));
       };
       const loop = (c: THREE.Vector3, ax: THREE.Vector3, al: THREE.Vector3, w: number, d: number, h: number) => { const pts: THREE.Vector3[] = []; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; pts.push(c.clone().addScaledVector(ax, Math.cos(a) * w).addScaledVector(al, Math.sin(a) * d).setY(h * (1 + .35 * Math.sin(a)))); } return pts; };
@@ -765,7 +768,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     //          한길긴뜨기 two strands down side by side, the yarn-over wound across the middle
     // every piece, however big (Kim: 느려지면 생성 중을 띄우고 그냥 만들어) - the screen says 생성 중 while it is made
     const sH = pat.stitchH ?? 1, loops = !D.knit, postParts: THREE.BufferGeometry[] = [];
-    const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(loPts(closed), Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color })); };
+    const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); cv.arcLengthDivisions = shortDiv(pts.length); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(loPts(closed), Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color })); };
     // the fewest points along a strand: 10 at full detail; a big piece's thinned strands go down to 6 round a head
     // and 4 along a leg (the floor of 10 held every stitch at 231 vertices however far the detail was turned down)
     function loPts(closed: boolean) { return step <= 1 ? 10 : Math.max(closed ? 6 : 4, Math.round(10 / step)); }

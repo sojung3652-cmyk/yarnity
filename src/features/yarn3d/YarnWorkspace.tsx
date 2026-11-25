@@ -229,7 +229,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   // the engine: made once, disposed on the way out. Phones (Kim, 11/25: 모바일에서 3D를 틀면 자꾸 꺼진다): while the
   // yarn check shows its own 3D, this one is not made - two 3D views at once ran the phone's graphics memory out
   // and the browser closed the page; it is made when the check gives way to the shape (and let go if it comes back)
-  const hold = intro && typeof window !== "undefined" && matchMedia("(max-width: 767.98px)").matches;
+  // Nothing picked yet (the stage is empty, its canvas hidden): no 3D is made for a piece nobody chose - it used to
+  // be built whole behind the empty stage. Made when the first piece is picked, and kept from then on.
+  const [started, setStarted] = useState(!extra?.empty);
+  useEffect(() => { if (!extra?.empty) setStarted(true); }, [extra?.empty]);
+  const hold = !started || (intro && typeof window !== "undefined" && matchMedia("(max-width: 767.98px)").matches);
   useEffect(() => {
     if (hold) return;
     let gone = false;
