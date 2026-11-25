@@ -193,7 +193,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const [leaving, setLeaving] = useState(false), leavingRef = useRef(false); leavingRef.current = leaving;
   // closed and kept: the piece as it looks now is kept as its picture (이어서 하기 shows it, Kim)
   const closeWithShot = () => { const u = !empty ? viewer.current?.snapshot() : null; if (u) extra?.onShot?.(u); onClose(); };
-  const tryClose = () => { if (leaveRef.current?.changed()) setLeaving(true); else closeWithShot(); };
+  // Kim (11/25: x 누르면 저장하고 나갈 건지 확인해): asked every time there is a work to keep, changed or not
+  const [leaveChanged, setLeaveChanged] = useState(false);
+  const tryClose = () => { if (leaveRef.current) { setLeaveChanged(!!leaveRef.current.changed()); setLeaving(true); } else closeWithShot(); };
   const tryCloseRef = useRef(tryClose); tryCloseRef.current = tryClose;
   useEffect(() => { if (leaving && !extra?.name) root.current?.querySelector<HTMLElement>(".yw-leave-acts > :last-child")?.focus(); }, [leaving]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -316,8 +318,8 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       {leaving && (
         <div className="yw-leave" role="alertdialog" aria-modal="true" aria-labelledby="yw-leave-q" onClick={e => { if (e.target === e.currentTarget) setLeaving(false); }}>
           <div className="yw-leave-card">
-            <p id="yw-leave-q" className="yw-leave-q">바꾼 내용을 저장하시겠습니까?</p>
-            <p className="yw-leave-sub">저장하지 않으면 3D를 열었을 때의 도안으로 돌아갑니다.</p>
+            <p id="yw-leave-q" className="yw-leave-q">{leaveChanged ? "바꾼 내용을 저장하시겠습니까?" : "저장하고 나가시겠습니까?"}</p>
+            {leaveChanged && <p className="yw-leave-sub">저장하지 않으면 3D를 열었을 때의 도안으로 돌아갑니다.</p>}
             {/* the name it is kept under (Kim: 저장명 물어봐) - the piece's own name, changeable here */}
             {extra?.name && <label className="yw-leave-name"><span>저장할 이름</span>
               <input value={extra.name.value} maxLength={40} placeholder="작품 이름 (비우면 자동으로)" autoComplete="off" spellCheck={false} autoFocus

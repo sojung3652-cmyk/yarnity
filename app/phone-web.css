@@ -166,12 +166,22 @@
   html body .yw-mkbody{padding-bottom:72px}
 }
 
-/* phones (Kim, 11/25: 3D 화면 닫기가 없어): the closing X stays at the top bar's right end, over the tabs as they
-   scroll - it was pushed off the screen by the tabs */
+/* phones (Kim, 11/25: 3D 화면 닫기가 없어 / +위에 겹치게 하면 어떡해): the tabs (and their +) scroll in their own strip;
+   the closing X sits beside it at the right end, never over the + and never pushed off */
 @media (max-width:767.98px){
-  html body .yw-top{position:relative}
-  html body .yw-x{position:sticky;right:0;z-index:5;margin-left:auto;padding-left:8px;align-self:stretch;
-    background:linear-gradient(90deg,rgba(246,239,227,0),#F4ECDF 10px)}
+  html body .yw-top{overflow:visible}
+  html body .yw-top .yw-binder{flex:1 1 auto;min-width:0;display:flex;align-items:center}
+  /* no scrolling strip (the + list would be cut off): the tabs narrow instead, their names cut with … */
+  html body .yw-top .yw-tabs{flex:1 1 0;min-width:0;overflow:visible}
+  html body .yw-top .yw-tabd{flex:0 1 auto;min-width:0;overflow:hidden}
+  html body .yw-top .yw-tabd.is-on{flex:0 1.5 auto;min-width:72px}
+  html body .yw-top .yw-tabd>button:first-child,html body .yw-top .yw-tabd .yw-tabname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  html body .yw-top .yw-load{flex:none}
+  html body .yw-leave-acts .nb-link{white-space:nowrap}
+  /* room for the names: the label's stitched ends thinner, and only the open tab keeps its × */
+  html body .yw-top .yw-tabd:not(.is-on){border-width:0 9px}
+  html body .yw-top .yw-tabd:not(.is-on) .yw-tabx{display:none}
+  html body .yw-top .yw-tabd>button:first-child{padding:0 2px;font-size:12.5px}
+  html body .yw-x{flex:none;margin-left:4px}
   html body .yw-x button{width:42px;height:42px}
-  html body .yw-x button svg,html body .yw-x button .gold-x{width:20px;height:20px}
 }
