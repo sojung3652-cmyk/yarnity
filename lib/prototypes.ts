@@ -9,6 +9,8 @@ export type Proto = { id: string; group: string; name: string; note: string; ite
 const KINDS: Proto[] = [
   { id: "tote", group: "가방", name: "토트백", note: "네모 · 손잡이 2개", item: "minibag", over: { shape: "rect", a: 26, b: 9, h: 22, handle: "short", handleCm: 50, handleCount: 2, gusset: "box" } },
   { id: "shoulder", group: "가방", name: "숄더백", note: "타원 · 어깨끈", item: "minibag", over: { shape: "oval", a: 24, b: 8, h: 18, handle: "long", handleCm: 100, handleCount: 1 } },
+  // (Kim: 호보백 - its handle is the body itself going on up, lib/pattern grownHandle)
+  { id: "hobo", group: "가방", name: "호보백", note: "타원 · 이어 뜨는 손잡이", item: "minibag", over: { shape: "oval", a: 28, b: 10, h: 18, handle: "short", handleKind: "grown", handleCount: 1, handleCm: 56, handleWcm: 3 } },
   { id: "round", group: "가방", name: "둥근 손가방", note: "원 · 손잡이 1개", item: "minibag", over: { shape: "circle", a: 15, h: 15, handle: "short", handleCm: 50, handleCount: 1 } },
   { id: "flapbag", group: "가방", name: "덮개 크로스백", note: "네모 · 덮개 · 긴 끈", item: "minibag", over: { shape: "rect", a: 20, b: 6, h: 15, gusset: "box", closure: "flap", flapCm: 9, flapShape: "half", flapOver: "top", handle: "long", handleCm: 120, handleCount: 1 } },
   { id: "bucket", group: "가방", name: "버킷백", note: "원 · 끈 조이기", item: "bucket", over: { closure: "drawstring" } },
@@ -31,7 +33,7 @@ export function protoDraft(d: Draft, p: Proto): Draft {
   const it = ITEM[p.item], dv = it.defaults;
   return {
     ...d, item: p.item, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0,
-    handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
+    handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, handleBaseCm: undefined, handleStitch: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
     closure: "open", gusset: undefined, asm: undefined, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, extras: {},
     circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined, paint: undefined,
     ...p.over,
