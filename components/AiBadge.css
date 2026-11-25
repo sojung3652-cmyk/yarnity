@@ -37,3 +37,5 @@ body:has(.oh.home) .ai-badge{z-index:125}
 body:has(.oh.home) .ai-badge{animation:aib-in .4s ease both}
 @keyframes aib-in{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){body:has(.oh.home) .ai-badge{animation:none}}
+/* the 3D work screen has its own Yarni (Kim, 11/25): the round badge stays off it, phones and web */
+body:has(.yw) .ai-badge{display:none}

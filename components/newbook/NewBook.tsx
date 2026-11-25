@@ -1142,6 +1142,18 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         edit3d.current = false; endEdit3d(); big3d.close(); setSheet(3, sheets3 - 1); go(4, true);
       },
     doneLabel: !yarnSet ? "모양 만들기 →" : "확인하기 →", blocked: yarnSet && (!picked || !stepOk),
+    // what is still missing, said in a short notice when 확인하기 is pressed (Kim: xx가 선택되지 않았습니다)
+    missing: (() => {
+      const m: string[] = [];
+      if (!picked) m.push("뜰 것");
+      if (!yarnThickOk(draft)) m.push("실 굵기");
+      else if (!yarnStepOk(draft)) m.push("바늘");
+      if (Object.keys(errors).length) m.push("크기");
+      if (bagBad) m.push("부품 길이");
+      if (!m.length) return undefined;
+      const last = m[m.length - 1], c = last.charCodeAt(last.length - 1) - 0xAC00, jong = c >= 0 && c < 11172 && c % 28 !== 0;
+      return `${m.join(", ")}${jong ? "이" : "가"} 선택되지 않았습니다.`;
+    })(),
     tabs: [
       { label: "실 설정", on: !yarnSet, onClick: () => window.dispatchEvent(new Event("yw:yarncheck")) },
       { label: "모양", on: yarnSet, onClick: () => { window.dispatchEvent(new Event("yw:shape")); window.dispatchEvent(new Event("yw:yarnset")); } },

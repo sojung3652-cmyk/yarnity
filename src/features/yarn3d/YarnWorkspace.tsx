@@ -44,6 +44,8 @@ export interface WorkExtra {
   /** 3D로 보면서 만들기 (도안 만들기, Kim): the wizard's own step in the right column - where you are among the
    *  steps, the step's question and inputs, 이전 / 다음 at the foot. Enter goes on, as in the book. */
   making?: { sections: { id: string; title: string; note?: string; body: ReactNode }[]; done: () => void; doneLabel: string; blocked?: boolean; footNote?: string;
+    /** what is not picked yet, shown in a short notice when the button is pressed */
+    missing?: string;
     /** the bar over the column (Kim): the parts of the work - 실 설정, 모양 - to go between */
     tabs?: { label: string; on: boolean; onClick: () => void }[] };
   /** 단추 / 라벨 dragged on the 3D and let go: where (Kim: moved freely) */
@@ -262,6 +264,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const zoomBy = (f: number) => { if (intro) window.dispatchEvent(new CustomEvent("yc:zoom", { detail: f })); else viewer.current?.zoom(f); };
   const editNow = () => { const go = extra?.onEdit; if (!go) return; onClose(); go(); };
   const mk = extra?.making, empty = !!extra?.empty;
+  // a short notice (Kim: 덜 선택된 경우 알림, 곧바로 사라지게) and the phones' folded panel (Kim: 전체적으로 닫아둘 수 있게)
+  const [note, setNote] = useState(""), noteT = useRef(0), [folded, setFolded] = useState(false);
+  const say = (t: string) => { setNote(t); clearTimeout(noteT.current); noteT.current = window.setTimeout(() => setNote(""), 1800); };
   // the index shows which section is being read (the column scrolls; the index stays)
   const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0), [more, setMore] = useState(false);
   useEffect(() => {
@@ -403,9 +408,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       </div>
 
       {mk ? (
-        <form className="yw-right yw-mkr" noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); if (!mk.blocked && extra?.onShot) { const u = viewer.current?.snapshot(); if (u) extra.onShot(u); } mk.done(); }}>
+        <form className={"yw-right yw-mkr" + (folded ? " is-folded" : "")} noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); if (mk.blocked && mk.missing) say(mk.missing); if (!mk.blocked && extra?.onShot) { const u = viewer.current?.snapshot(); if (u) extra.onShot(u); } mk.done(); }}>
           <nav className="yw-index" aria-label="항목">
-            {mk.tabs ? mk.tabs.map((t, i) => <a key={t.label} href="#" className="yw-tab" aria-current={t.on ? "step" : undefined} onClick={e => { e.preventDefault(); t.onClick(); }}><b>{i + 1}</b>{t.label}</a>) : mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); toSec("#yw-" + x.id); }}><b>{i + 1}</b>{x.title}</a>)}
+            {/* phones: the whole panel folds down out of the way, and opens again (Kim) */}
+            <button type="button" className="yw-fold" aria-expanded={!folded} aria-label={folded ? "설정 펼치기" : "설정 접기"} onClick={() => setFolded(v => !v)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={folded ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} /></svg></button>
+            {mk.tabs ? mk.tabs.map((t, i) => <a key={t.label} href="#" className="yw-tab" aria-current={t.on ? "step" : undefined} onClick={e => { e.preventDefault(); setFolded(false); t.onClick(); }}><b>{i + 1}</b>{t.label}</a>) : mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); toSec("#yw-" + x.id); }}><b>{i + 1}</b>{x.title}</a>)}
           </nav>
           <div className="yw-mkbody" ref={body}>
             {mk.sections.map((x, i) => (
@@ -422,6 +430,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
             <span className="yw-mknote">{mk.blocked ? "정하지 않은 항목이 있습니다." : ""}</span>
             <ClothLabel side="next" type="submit" blocked={mk.blocked}>{mk.doneLabel}</ClothLabel>
           </div>
+          {note && <p className="yw-toast" role="status">{note}</p>}
         </form>
       ) : (
       <div className="yw-right">

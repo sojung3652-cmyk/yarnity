@@ -1233,7 +1233,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // walls gives a little under its own weight - the top drops and leans in, the belly comes out, the rim is
   // no perfect circle; a flat piece lifts at its edge. How much: the material (a cord basket stands, mohair
   // slumps) and how loose it is worked. The settled shape is kept (rest), so another material starts from it.
-  // Not on phones (their 3D stays as it was).
+  // Phones too (Kim, 11/25: 탄성 적용이 전혀 안 된다 - it was left off on phones).
   let rest: Float32Array | null = null;
   // the top closed (Kim: 덮개 설정에 따라 가방 윗면을 다물어지게; a zipper closes it too): the front and back walls
   // come together over the top part, to the gap asked (0: shut as a zipper's), the width kept a little wider
@@ -1310,7 +1310,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (pat.outline && layOnOutline(D, pat.outline, wideX(b), cx, cz)) { if (pat.gravity) drape(D); return; }
     if (pat.depth && pat.depth.length >= 2 && H > D.rh * 3) pressFlat(D, pat.depth, b, cx, cz, H);
     // every yarn a notch softer than its own measure (Kim: 좀만 더 흐물거리게); a stiff one (cord, raffia, jute) stays stiff
-    const raw = opts.phone || pat.firm ? 0 : st.soft * 1.25 * (pat.softK ?? 1) * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm));
+    const raw = pat.firm ? 0 : st.soft * 1.25 * (pat.softK ?? 1) * (.6 + .4 * Math.min(2, pat.hookMm / pat.yarnMm));
     const s = Math.max(0, Math.min(1, raw));
     // past fully soft (탄성 turned far up): limp but held up by its top, as if hung on a hook (Kim: it keeps its
     // form, no slumping) - the height stays, the walls fall in at the waist and the bottom sags round under the weight
