@@ -149,3 +149,19 @@
   html body .yw-mkr.is-folded .yw-subtabs{display:none}
 }
 @media (min-width:768px){.yw-subtabs{display:none}}
+
+/* phones (Kim, 11/25): every binder tab is the same stitched label picture, only its colour telling which is picked -
+   the parts on the ivory patch (the picked one the pink patch), their sections a lighter pair (cream, baby pink);
+   the 모양 만들기 / 확인하기 button alone at the sheet's lower right, no bar under it */
+@media (max-width:767.98px){
+  html body .yw-index a.yw-tab,html body .yw-index a.yw-tab[aria-current="step"]{min-height:36px;padding:0 10px;background:none;box-shadow:none;border-radius:0;
+    border-style:solid;border-width:8px;border-image:url(/glossary/patch_ivory.webp) 46 fill / 8px stretch}
+  html body .yw-index a.yw-tab::before,html body .yw-index a.yw-tab::after{display:none}
+  html body .yw-index a.yw-tab[aria-current="step"]{min-height:40px;border-image:url(/mobile/diary/patch_pink.webp) 62 fill / 8px stretch}
+  html body .yw-subtab,html body .yw-subtab[aria-current="true"]{min-height:30px;padding:0 6px;background:none;box-shadow:none;border-radius:0;
+    border-style:solid;border-width:6px;border-image:url(/mobile/diary/patch_cream.webp) 62 fill / 6px stretch;color:#6A605A}
+  html body .yw-subtab[aria-current="true"]{min-height:33px;color:#4A2F33;font-weight:600;border-image:url(/mobile/diary/patch_babypink.webp) 62 fill / 6px stretch}
+  html body .yw-mkr{position:relative}
+  html body .yw-mkfoot{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;height:auto;padding:0;border:0;background:none!important;box-shadow:none!important}
+  html body .yw-mkbody{padding-bottom:72px}
+}
