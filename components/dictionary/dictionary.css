@@ -249,3 +249,7 @@
 .dict .dict-find input,.dict.my .gl-search input{font:13px/1 "Noto Serif KR",serif;color:#5B4F49}
 .dict .dict-find input::placeholder,.dict.my .gl-search input::placeholder{color:#B8ADA6}
 .dict .dict-find.is-faq{width:min(320px,100%)}
+
+/* phones (Kim: 앱에서 실 도감이 겹친다): the yarn's page in one column - the photo, 실의 성격 and its tags, then the
+   reading; the photo-row rule above kept two columns down to the narrowest screens */
+@media (max-width:767.98px){html body .dict-yarn-cols.has-photo{grid-template-columns:minmax(0,1fr);gap:0}html body .dict-yarn-photo{width:min(180px,60%)}html body .my-memo.my-memo-pop.dict-pop.is-yarn{padding:44px 22px 36px}}

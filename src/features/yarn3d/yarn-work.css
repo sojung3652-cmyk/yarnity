@@ -635,3 +635,7 @@ body:has(.yw) .aic-root{z-index:460}
 /* Kim (11/25: 3D 내부에 쓸데없는 말 없애 - "~하면 ~해 드립니다" - 다 알아): the work screen shows no explaining
    paragraphs; what goes wrong (.nb-err) still says so */
 .yw .nb-help,.yw .ask-protos-lead,.yw .ask-lead{display:none!important}
+
+/* Kim (11/25: 3D창 우측상단 버튼들 더 작게, 너무 침범하지 않도록): the dock's cloth panels, their buttons and the key line
+   drawn at about three quarters of their size; the dock keeps its own place in the corner */
+.yw .yw-dock>*{zoom:.78}

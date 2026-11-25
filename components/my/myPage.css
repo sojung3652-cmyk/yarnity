@@ -448,3 +448,7 @@
   .my-me:hover b{text-decoration:none;transform:translateY(-1px)}
 }
 @media (prefers-reduced-motion:reduce){.my-me b{transition:none}.my-me:hover b{transform:none}}
+
+/* closing X (Kim: 외곽에 원 없이 심플하게 X만): no round plate, no ring - the gold X alone, a light wash on hover */
+.my-pop-x,.my-lb-x{background:none!important;box-shadow:none!important;border-radius:6px}
+.my-pop-x:hover,.my-lb-x:hover{background:rgba(110,83,80,.08)!important}
