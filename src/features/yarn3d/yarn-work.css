@@ -289,7 +289,7 @@ html body .yw .cloth-label{position:relative;inset:auto;margin:0}
 .yw-stat{zoom:.9}
 .yw-hint{font-size:12px}
 .yw-intro h2{font-size:16px}.yw-intro h2 small{font-size:12.5px}
-.sk-pop{zoom:.92}
+
 .yw{grid-template-rows:56px minmax(0,1fr) 32px}
 /* the way back: a plain X at the top bar's right end (Kim) */
 .yw-x{margin-left:auto;flex:none;display:flex;align-items:center}

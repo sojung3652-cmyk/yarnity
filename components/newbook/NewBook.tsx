@@ -9,7 +9,6 @@
 // one-page CSS book (<NewBook />: phones, no WebGL).
 // Editing a saved work: /new?edit=<id> opens step 3 (every input) prefilled; "도안 보기" overwrites that work (its
 // knitting progress restarts if the pattern changed - the old row position would no longer match).
-// The AI chat (components/Chat.tsx, /api/chat) is not shown here for now; the code is kept.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
@@ -146,7 +145,7 @@ export interface NewBookView {
   threeD: ReactNode;
   left: ReactNode;
   right: ReactNode;
-  /** the same step for the phone's notebook (components/mobile/MobileWizard.tsx): one page, top to bottom */
+  /** the same step for the phone's notebook: one page, top to bottom */
   phone?: PhoneStep;
 }
 

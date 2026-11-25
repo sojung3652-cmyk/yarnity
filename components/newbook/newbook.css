@@ -552,7 +552,6 @@ button.nb-ribbon:hover,button.nb-ribbon:focus-visible{transform:scale(1.1)}
   .tp-cover .tp-logo-web+.tp-cap{margin-top:-1px;font-size:10px}
 }
 
-
 /* ---- the web's step 3 and 확인, right page (WebPages.tsx; Kim: "가독성이 너무 안좋아") ----
    one heading per group (15px, dark), the main choices open as square tiles (no pill chips), numbers in
    boxes, the yarn label details in one folded row; dusty rose for what is picked, a gold edge on it.
@@ -782,12 +781,7 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 /* 그려서 만들기 (SketchPad): a plain sheet, the note, the one button that sends it */
 .sk-pad{background:#FFFDF8}
 .sk-pad:not(.is-eraser){cursor:crosshair}
-.sk-note{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:10px;font-size:13.5px;color:#5E554E}
-.sk-note input{height:38px;padding:0 10px;border:0;border-radius:5px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #CDBFB4;font:inherit;font-size:14px;color:#3A322D}
-.sk-note input:focus{outline:none;box-shadow:inset 0 0 0 1.5px #A39A92}
-.sk-go{display:grid;gap:6px}
-.sk-make{height:44px;border:0;border-radius:6px;background:#F6E3E2;box-shadow:-2px 3px 6px -4px rgba(70,50,30,.45),inset 0 0 0 1.5px #A39A92;font:inherit;font-size:15px;font-weight:600;color:#3A322D;cursor:pointer}
-.sk-make:disabled{opacity:.6;cursor:progress}
+
 .nb-wsubhead{margin:14px 0 6px;font-size:13.5px;font-weight:600;color:#3A322D}
 
 /* 실 확인 (YarnCheck): the yarn on the screen as a small piece, close up, and a photo of your own beside it */
@@ -814,13 +808,11 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .st-list span{font-size:13.5px;color:#5E554E;white-space:nowrap}
 
 /* 그려서 만들기: the three sheets as tabs (a dot on the drawn ones), the pen colours */
-.sk-views{display:flex;gap:4px;border-bottom:1px solid #DCCFC2}
+
 .sk-view{position:relative;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:none;font:inherit;font-size:14.5px;color:#5E554E;cursor:pointer}
 .sk-view[aria-selected="true"]{color:#3A322D;font-weight:600;border-bottom-color:#A39A92}
 .sk-view i{display:block;width:6px;height:6px;border-radius:50%;background:#A39A92}
-.sk-inks{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.sk-ink{width:28px;height:28px;padding:0;border:0;border-radius:50%;cursor:pointer;box-shadow:-1px 2px 3px -1px rgba(70,50,30,.4),inset 0 0 0 1px rgba(90,70,50,.25)}
-.sk-ink[aria-checked="true"]{outline:2px solid #A39A92;outline-offset:2px}
+
 .sk-pad.is-pen,.sk-pad.is-eraser,.sk-pad.is-liquify{cursor:none}
 
 /* the big yarn check on the work screen's stage: the piece large, a photo beside it, larger words */
@@ -837,17 +829,9 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .yc-big .yc-up{align-self:flex-start;font-size:13px;height:30px}
 
 /* the pad, easier (Kim: 펜, 채우기… 너무 어렵다): four tools in one row, each with its key; the rest below */
-.sk-head{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+
 .sk-bigbtn{margin-bottom:5px}
-.sk-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
-.sk-tool{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:5px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #CDBFB4;font:inherit;font-size:13px;color:#3A322D;cursor:pointer}
-.sk-tool svg{width:17px;height:17px}
-.sk-tool kbd{position:absolute;top:2px;right:4px;font:inherit;font-size:9.5px;color:#9A8B80}
-.sk-tool:hover{background:#FBF4EC}
-.sk-tool[aria-pressed="true"]{background:#F6E3E2;box-shadow:inset 0 0 0 1.5px #A39A92;font-weight:600}
-.sk-acts{display:flex;flex-wrap:wrap;gap:6px}
-.sk-make{height:38px;font-size:14px}
-.sk-tip{font-size:12.5px}
+
 /* 크게 그리기: on the 3D stage itself - the paper as large as the stage is high, the tools in a column beside it */
 .sk-big{position:absolute;inset:0;z-index:4;display:flex;gap:24px;padding:18px 24px;background:#F6F0E4}
 .sk-paper{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center}
@@ -855,7 +839,7 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .sk-side{flex:0 0 300px;align-content:start;margin:0;overflow-y:auto}
 .sk-away{display:flex;align-items:center;gap:10px}
 .sk-away .nb-help{margin:0}
-.sk-tool kbd{position:static;margin-left:1px;font-size:10px;color:#A89A8E}
+
 .nb-wg.yp-row,.yw-mkbody .nb-wg.yp-row{display:flex;flex-direction:row}
 .yp-row .yp-up{flex:none;width:auto}
 
@@ -893,30 +877,6 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .nb-patdet ol{margin:6px 0 8px;padding-left:18px;font-size:13.5px;line-height:1.7;color:#3A322D}
 .nb-patdet .nb-patfit{color:#9C5D63}
 /* the pad as a pop-up window on the work screen (Kim: Photoshop's layout) */
-.sk-card{display:flex;flex-direction:column;gap:10px}
-.sk-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.sk-thumb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border:0;border-radius:6px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #E0D5C7;cursor:pointer;font:inherit;font-size:12.5px;color:#4A403B}
-.sk-thumb:hover{box-shadow:inset 0 0 0 1px #B9A58E}
-.sk-thumb img,.sk-thumb i{display:block;width:100%;aspect-ratio:1;border-radius:4px;background:#F7F1E6;object-fit:contain}
-.sk-open{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:0;border-radius:4px;background:#3A322D;color:#FFFDF8;font:inherit;font-size:13.5px;cursor:pointer}
-.sk-open svg{width:16px;height:16px}
-.sk-pop-dim{position:absolute;inset:0;z-index:40;background:rgba(30,24,20,.42)}
-.sk-pop{position:absolute;z-index:41;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1120px,calc(100% - 64px));height:min(760px,calc(100% - 64px));
-  display:grid;grid-template-columns:150px 1fr 268px;grid-template-rows:48px 1fr;background:#EFE8DC;border-radius:8px;box-shadow:0 18px 50px -12px rgba(30,20,10,.55);overflow:hidden}
-.sk-pop-top{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 14px;background:#FFFDF8;border-bottom:1px solid #E0D5C7}
-.sk-pop-top>b{font-size:14px;font-weight:600;color:#3A322D}
-.sk-pop-top .sk-views{margin:0}
-.sk-pop-x{margin-left:auto;display:inline-flex;align-items:center;gap:6px}
-.sk-pop-x kbd{font:inherit;font-size:11px;color:#8A7F78}
-.sk-pop-tools{display:flex;flex-direction:column;gap:14px;padding:12px 10px;background:#FFFDF8;border-right:1px solid #E0D5C7;overflow:auto}
-.sk-pop-tools .sk-tools{display:flex;flex-direction:column;gap:4px}
-.sk-pop-tools .sk-tool{justify-content:flex-start;width:100%}
-.sk-pop-tools .sk-acts{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding-top:12px;border-top:1px solid #E8DFD2}
-.sk-pop-tools .sk-acts .pp-mini{justify-content:flex-start;white-space:nowrap}
-.sk-pop-paper{display:flex;align-items:center;justify-content:center;padding:20px;min-width:0;min-height:0}
-.sk-pop-paper .sk-pad{width:auto;height:100%;max-width:100%;aspect-ratio:1;box-shadow:0 2px 10px -4px rgba(60,40,20,.4)}
-.sk-pop-side{display:flex;flex-direction:column;gap:14px;padding:14px;background:#FFFDF8;border-left:1px solid #E0D5C7;overflow:auto}
-.sk-pop-side .sk-inks{flex-wrap:wrap}
 
 /* 재질: two rows, the next one showing faintly under them (Kim) */
 .nb-matbox{position:relative}
@@ -940,8 +900,6 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .st-foot{margin:28px 0 0;font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-style:italic;font-size:13px;color:#9A8778}
 .tp-start{display:flex;flex-direction:column;justify-content:center;min-height:100%}
 /* 그림판 열기 as a light label button (readable on the column) */
-.sk-card .sk-open{background:#FFFDF8;color:#3A322D;box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1px #B9A58E}
-.sk-card .sk-open:hover{box-shadow:-2px 3px 6px -5px rgba(70,50,30,.45),inset 0 0 0 1.5px #A39A92}
 
 /* 단추 / 라벨 고르기 (Kim's pictures) */
 .xp{display:flex;flex-direction:column;gap:10px;margin:4px 0 10px}
@@ -975,7 +933,7 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .ask-in{display:flex;flex-direction:column;gap:10px}
 .ask-in-h{margin:0;font-size:15px;font-weight:600;color:#3A322D}
 .ask-in .ask-f textarea{width:100%;box-sizing:border-box}
-.ask-in .sk-make{align-self:flex-start}
+
 /* a slider's value, pressed to type it (Kim: 직접 입력) */
 .nb-slide-b{padding:2px 4px;border:0;border-radius:3px;background:none;font:inherit;color:inherit;cursor:text;box-shadow:inset 0 -1px 0 #CBBBA8}
 .nb-slide-b:hover{background:#FFFDF8;box-shadow:inset 0 0 0 1px #CBBBA8}
@@ -1006,7 +964,7 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 .st-danger{color:#9F4A50}
 .st-undo{margin:8px 0 0;font-size:13px;color:#5E554E}
 /* no page numbers in the book (Kim) */
-.nb-folio,.mw-folio,.m-folio{display:none}
+.nb-folio,.m-folio{display:none}
 /* 이어서 하기, easy to read (Kim): one card per work - its name on top, what and when under it, a soft x inside */
 .st-big .st-go .st-list{gap:8px;max-height:300px;padding:2px}
 .st-row{display:block}
@@ -1121,15 +1079,6 @@ input.nb-range{display:block;width:100%;height:24px;margin:4px 0 0;accent-color:
 
 /* Yarni at the top of 모양 (Kim) */
 .yb{display:grid;gap:6px;margin:0 0 14px;padding:10px 12px;border-radius:8px;background:#FBF4E6;box-shadow:inset 0 0 0 1px #E3D4BC}
-.yb-row{display:flex;align-items:center;gap:8px;margin:0}
-.yb-star{flex:none;width:14px;height:14px;fill:#C29A48}
-.yb-lb{flex:none;font-size:14px;font-weight:600;color:#3A322D}
-.yb-in{flex:1 1 auto;min-width:0;height:34px}
-.yb-go{height:34px}
-
-.yb-chips{display:flex;flex-wrap:wrap;gap:6px}
-.yb-chip{padding:5px 10px;border:0;border-radius:14px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #D9C9B0;font:inherit;font-size:12.5px;color:#3A322D;cursor:pointer;white-space:nowrap}
-.yb-chip:hover{box-shadow:inset 0 0 0 1.5px #B9A27C}
 
 /* 이어서 하기 window: 선택 beside the title (Kim: 나의 도안집처럼) */
 .st-pv-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 10px}

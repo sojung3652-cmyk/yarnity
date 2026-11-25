@@ -18,7 +18,7 @@ export interface ShapeSpec {
   zipper?: boolean; label?: boolean;
   bodyColor?: string; colorName?: string;
   profile?: number[]; rounded?: boolean; flapColor?: string; handleColor?: string;
-  /** measured, not from the AI: depth against width, bottom to top (lib/sketchMeasure, from the side view) */
+  /** measured, not from the AI: depth against width, bottom to top (measured from a side-view drawing) */
   depthProfile?: number[];
   summary?: string;
   /** from words (조립하기, app/api/shape with `text`): the app's own item, and how the handle is made */

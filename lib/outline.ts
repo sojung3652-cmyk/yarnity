@@ -1,7 +1,7 @@
 // A drawn body's own shape in space (Kim: the 3D came out a lemon, not the bag I drew). The drawing is the
 // answer: at every height the body is as wide as the drawing is there. So the 3D no longer lets the stitches
 // settle into whatever their counts give and then bends the result; every round is laid on this surface.
-//   prof   the drawn widths from the bottom to the opening (lib/sketchMeasure), any scale
+//   prof   the drawn widths from the bottom to the opening (measured from a drawing), any scale
 //   a, h   the bottom's width and the body's height in cm (the pattern's own: lib/pattern PlanInput)
 //   depth  depth against width at evenly spaced heights
 // Rounds are worked along the wall, so a round's place is a share of the wall's length (as lib/pattern counts

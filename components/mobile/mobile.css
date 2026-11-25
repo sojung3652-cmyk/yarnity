@@ -143,23 +143,23 @@
 
 /* ---- (C) 도안 만들기 in the notebook ---- */
 @media (max-width:767.98px){
-  .mw-form{--paper:#FBF7F0;--ink2:#4B3F3A;--accent:#864D59;--rule:#E6DCCF;display:flex;flex-direction:column;min-height:100%;color:var(--m-ink)}
-  .mw .mn-scroll{display:flex;flex-direction:column}
-  .mw-progress{margin:0 0 18px}
-  .mw-progress ol{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;list-style:none;margin:0;padding:0}
-  .mw-progress li{height:4px;border-radius:2px;background:#E6DCCF}
-  .mw-progress li.done{background:var(--m-gold)}
-  .mw-progress li.on{background:linear-gradient(90deg,var(--m-gold) 0 50%,#E6DCCF 50%)}
-  .mw-progress p{margin:8px 0 0;font-size:12px;color:var(--m-soft)}
-  .mw-progress p b{color:var(--m-ink);font-weight:500}
-  .mw-title{margin:0 0 6px;font-size:21px;line-height:1.35}
-  .mw-title:focus{outline:none}
-  .mw-form .ask-line{margin:0 0 14px;min-height:44px}
-  .mw-body{flex:1;display:flex;flex-direction:column;gap:14px;font-size:14px}
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   .mw-split{height:1px;margin:10px 0;background:var(--m-line)}
   /* step 1: the woven name label fits the page */
-  .mw-body .tp{min-height:0;padding:12px 0 6px}
-  .mw-body .tp-progress{display:none}
+  
+  
   /* step 2: groups as folds, items as woven label chips (lavender when picked, ivory otherwise) */
   .mw-groups .nb-fold-row{min-height:48px}
   .mw-groups .nb-chips{gap:8px;padding:6px 0 12px}
@@ -169,8 +169,8 @@
   .mw-groups .nb-chip[aria-checked="true"]{background:var(--m-linen);color:var(--m-ink)}
   .mw-groups .nb-chip[aria-checked="true"] .m-label-in{border-color:rgba(78,44,51,.4)}
   /* the other chips on the phone's steps: lavender when picked */
-  .mw-body .nb-chip[aria-checked="true"],.mw-body .nb-chip[aria-pressed="true"]{background:var(--m-linen);border-color:transparent;color:var(--m-ink)}
-  .mw-body .nb-chip{min-height:44px}
+  
+  
   .mw-note{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--m-line);border-radius:4px;background:rgba(255,255,255,.45);animation:m-up .3s ease}
   .mw-note .nb-art{flex:none;width:56px;height:56px}
   .mw-note-text{min-width:0}
@@ -179,16 +179,16 @@
   .mw-note p{margin:0 0 4px;font-size:12.5px;line-height:1.55;color:#5A4D46}
   .mw-note .mw-note-facts{color:var(--m-soft)}
   /* steps 3 and 4: the book's two pages one under the other */
-  .mw-body .nb-two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .mw-body .nb-input{font-size:16px} /* iOS does not zoom into 16px fields */
-  .mw-body .nb-drawing svg{max-width:100%;height:auto}
+  
+   /* iOS does not zoom into 16px fields */
+  
   /* the foot: 이전 as text, 다음 as the lavender label with a folded corner */
-  .mw-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;padding-top:4px}
-  .mw-back{min-height:44px;min-width:44px;padding:0 6px;border:0;background:none;font:inherit;font-size:14px;color:var(--m-soft);cursor:pointer}
-  .mw-next{width:auto;max-width:70%;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);position:relative}
-  .mw-next .m-label-in{justify-content:center;padding:10px 18px;font:600 14.5px/1.3 var(--m-serif);white-space:nowrap}
-  .mw-next::after{content:"";position:absolute;right:0;bottom:0;width:12px;height:12px;background:linear-gradient(135deg,#D1909D 0 50%,transparent 50%);box-shadow:-1px -1px 2px rgba(78,42,49,.2)}
-  .mw-next[aria-disabled="true"]{opacity:.55}
+  
+  
+  
+  
+  
+  
 }
 
 /* ---- (D) 따라 뜨기: a ruled notebook page ---- */
@@ -320,17 +320,17 @@
   .m-root h1,.m-root h2,.m-root h3{font-weight:500}
   .mn-scroll{padding:44px 26px 30px}
   /* 도안 만들기 */
-  .mw-progress{margin:0 0 30px}
-  .mw-progress p{margin-top:10px;font-size:11.5px;letter-spacing:.02em}
-  .mw-title{margin:0 0 10px;font-size:22px;letter-spacing:-.01em;line-height:1.35}
-  .mw-form .ask-line{margin:0 0 26px}
-  .mw-body{gap:26px;font-size:14px;line-height:1.7}
-  .mw-body .nb-sec+.nb-sec,.mw-body .nb-sec-title{margin-top:8px}
+  
+  
+  
+  
+  
+  
   .mw-split{margin:18px 0}
   .mw-groups .nb-chips{gap:10px;padding:10px 0 18px}
   .mw-note{gap:16px;padding:18px 16px;border-color:#EDE4D8;background:rgba(255,255,255,.35)}
   .mw-note p{line-height:1.7}
-  .mw-foot{margin-top:40px;padding-top:0}
+  
   /* 따라 뜨기: fewer boxes, more line space */
   .mt .mn-scroll{padding:44px 22px 0 56px}
   .mt-head{padding-bottom:20px}
@@ -380,11 +380,11 @@
 
   /* 도안 만들기: chips as in the book (hairline pills, the picked one dark brown), the cream cloth label for
      다음, the dark ribbon with gold lettering for the last step */
-  .mw-groups .nb-chip,.mw-body .nb-chip{min-height:44px;padding:0 16px;border:1px solid var(--rule);border-radius:999px;background:transparent;box-shadow:none;color:var(--ink2);font-size:14px}
+  .mw-groups .nb-chip{min-height:44px;padding:0 16px;border:1px solid var(--rule);border-radius:999px;background:transparent;box-shadow:none;color:var(--ink2);font-size:14px}
   .mw-groups .nb-chip .m-label-in{display:contents}
   .mw-groups .nb-chip .m-label-in::before,.mw-groups .nb-chip .m-label-in::after{content:none}
-  .mw-groups .nb-chip[aria-checked="true"],.mw-body .nb-chip[aria-checked="true"],.mw-body .nb-chip[aria-pressed="true"]{background:#6E5350;border-color:#6E5350;color:#FBF3EA}
-  .mw-next .m-label-in{font-weight:500}
+  .mw-groups .nb-chip[aria-checked="true"]{background:#6E5350;border-color:#6E5350;color:#FBF3EA}
+  
   .mw-final{flex:1;display:flex;justify-content:flex-end;min-width:0;padding:0;border:0;background:none;font:inherit;cursor:pointer}
   .mw-final-face{display:flex;align-items:center;justify-content:center;width:100%;max-width:280px;min-height:52px;padding:8px 26px;box-sizing:border-box;color:#E9D4A0;
     background:linear-gradient(180deg,#46372F,#33271F);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 50%,100% 100%,0 100%,12px 50%);box-shadow:0 2px 4px rgba(50,35,25,.25);
@@ -413,21 +413,20 @@
   .lb-going{background:rgba(246,239,226,.8);box-shadow:inset 0 0 0 1px #EDE3D5}
   .lb-going-text small{color:#8C7B72}
 }
-@media (max-width:767.98px){.mw-next::after{background:linear-gradient(135deg,#DCCFBC 0 50%,transparent 50%)}}
 
 /* ---- 도안 만들기: the book's own pages laid on the notebook's sheets (their book-only parts hidden) ---- */
 @keyframes mn-leaf-down{from{transform:rotateX(92deg)}to{transform:none}}
 @media (max-width:767.98px){
-  .mw .nb-page{display:block;min-width:0;padding:0;border-radius:0;background:none;box-shadow:none;color:var(--m-ink)}
-  .mw .nb-foot,.mw .nb-progress,.mw .nb-ribbon,.mw .nb-marker{display:none}
-  .mw .nb-turn{animation:none!important}
-  .mw .nb-page h1{margin:0 0 10px;font-size:22px;font-weight:500;line-height:1.35}
-  .mw .nb-page h1.sr{margin:0}
-  .mw .nb-page .ask-line{margin:0 0 26px}
-  .mw .tp{min-height:0}
-  .mw .tp-cover{padding:24px 0 8px}
-  .mw-foot{position:relative}
-  .mw-folio{position:absolute;left:50%;transform:translateX(-50%);font:500 12px/1 var(--m-latin);letter-spacing:.1em;color:var(--m-soft);pointer-events:none}
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   /* the turning sheet carries its page */
   .mn-leaf>.mn-scroll{pointer-events:none}
   .mn-leaf.is-up{animation:mn-leaf .55s cubic-bezier(.45,.05,.55,.95) forwards}
@@ -559,7 +558,6 @@
   .m-tap,.m-stage[data-zoom="1"] .m-tap{top:calc(46% + 62vw * .5)}
 }
 
-
 /* the first moment on a phone, before the page has started: the desktop hero (photo, logo, start link) in the
    server's HTML must not show; the splash's wall is already there under it */
 @media (max-width:767.98px){
@@ -588,9 +586,6 @@
   .m-stage .ai-ftab-menu .ai-ftab-tip{display:none}
 }
 @media (max-width:767.98px){.mbp .lb-cover-label span{font-size:10px;padding:5px 3px}}
-
-
-
 
 /* the app's background (Kim): pale linen with a few gold and silver stars, one picture held still behind every
    phone screen (a fixed layer: it neither scrolls nor stretches on a long page); its own cream under it */
