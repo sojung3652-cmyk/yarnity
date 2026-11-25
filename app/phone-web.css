@@ -122,8 +122,12 @@
   html body .yw-index a.yw-tab[aria-current="step"]{min-height:40px;color:#4A2F33;font-weight:600;
     background:repeating-linear-gradient(0deg,rgba(108,62,71,.07) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(108,62,71,.06) 0 1px,transparent 1px 3px),#D9AEB1;
     box-shadow:inset 0 0 0 1px rgba(150,100,105,.45)}
-  html body .yw-fold{order:9;margin-left:auto;align-self:center;display:grid;place-items:center;width:36px;height:32px;padding:0;border:0;border-radius:6px;background:none;color:#5E554E;cursor:pointer}
-  html body .yw-fold:hover{background:rgba(110,83,80,.08)}
+  /* the grab bar (as Yarni's sheet): a short pill on the sheet's top edge, over the tabs; a wide target to pull or tap */
+  html body .yw-mkr{position:relative}
+  html body .yw-index{padding-top:18px}
+  html body .yw-fold{position:absolute;left:50%;top:0;z-index:2;width:96px;height:18px;margin-left:-48px;padding:0;border:0;background:none;cursor:grab;touch-action:none}
+  html body .yw-fold i{display:block;width:40px;height:4px;margin:7px auto 0;border-radius:2px;background:#DCCFC6}
+  html body .yw-fold:focus-visible{outline:2px solid #A39A92;outline-offset:-2px;border-radius:6px}
 }
 /* the fold is the phones' only */
 @media (min-width:768px){.yw-fold{display:none}}

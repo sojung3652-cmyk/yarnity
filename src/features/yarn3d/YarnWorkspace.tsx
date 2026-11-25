@@ -266,6 +266,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const mk = extra?.making, empty = !!extra?.empty;
   // a short notice (Kim: 덜 선택된 경우 알림, 곧바로 사라지게) and the phones' folded panel (Kim: 전체적으로 닫아둘 수 있게)
   const [note, setNote] = useState(""), noteT = useRef(0), [folded, setFolded] = useState(false);
+  const grabY = useRef<number | null>(null);
   const say = (t: string) => { setNote(t); clearTimeout(noteT.current); noteT.current = window.setTimeout(() => setNote(""), 1800); };
   // the index shows which section is being read (the column scrolls; the index stays)
   const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0), [more, setMore] = useState(false);
@@ -410,9 +411,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       {mk ? (
         <form className={"yw-right yw-mkr" + (folded ? " is-folded" : "")} noValidate onSubmit={e => { e.preventDefault(); e.stopPropagation(); if (mk.blocked && mk.missing) say(mk.missing); if (!mk.blocked && extra?.onShot) { const u = viewer.current?.snapshot(); if (u) extra.onShot(u); } mk.done(); }}>
           <nav className="yw-index" aria-label="항목">
-            {/* phones: the whole panel folds down out of the way, and opens again (Kim) */}
-            <button type="button" className="yw-fold" aria-expanded={!folded} aria-label={folded ? "설정 펼치기" : "설정 접기"} onClick={() => setFolded(v => !v)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={folded ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} /></svg></button>
+            {/* phones: a grab bar on the sheet's top, as Yarni's sheet has (Kim) - pulled down it folds the whole panel
+                away, pulled up (or tapped) it opens again */}
+            <button type="button" className="yw-fold" aria-expanded={!folded} aria-label={folded ? "설정 펼치기" : "설정 접기"}
+              onPointerDown={e => { grabY.current = e.clientY; }}
+              onPointerUp={e => { const dy = e.clientY - (grabY.current ?? e.clientY); grabY.current = null; setFolded(v => dy > 24 ? true : dy < -24 ? false : !v); }}
+              onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setFolded(v => !v); } }}><i aria-hidden="true" /></button>
             {mk.tabs ? mk.tabs.map((t, i) => <a key={t.label} href="#" className="yw-tab" aria-current={t.on ? "step" : undefined} onClick={e => { e.preventDefault(); setFolded(false); t.onClick(); }}><b>{i + 1}</b>{t.label}</a>) : mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); toSec("#yw-" + x.id); }}><b>{i + 1}</b>{x.title}</a>)}
           </nav>
           <div className="yw-mkbody" ref={body}>
