@@ -187,6 +187,20 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
   const setInput = (t: string) => { setInputState(t); chats.setDraft(key, t); };
   const go = (id: string | null) => { setRowMenu(null); setActs(null); setDrawer(false); setEditing(null); setMsgActs(null); setChat(c => ({ ...c, conv: id ?? "new" })); };
   const offChat = () => setChat(c => ({ ...c, off: true, checked: true }));
+  // the web's small window (Kim, 11/25: 팝업 외부를 눌러도 닫히도록): a press anywhere outside it closes it
+  const winRef = useRef<HTMLDivElement>(null), closeRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    if (!win || !chat.open) return;
+    const down = (e: PointerEvent) => {
+      const el = winRef.current, t = e.target as Node | null;
+      if (!el || !t || el.contains(t) || !(t as Element).isConnected) return;
+      // a button that opens the AI itself (the badge, a "Yarni" button) does its own opening
+      if ((t as Element).closest?.(".ai-badge,[data-ai-open]")) return;
+      closeRef.current();
+    };
+    document.addEventListener("pointerdown", down, true);
+    return () => document.removeEventListener("pointerdown", down, true);
+  }, [win, chat.open]);
   const close = () => {
     // /ai: back to the book, where the small window is open again on the same conversation
     if (page) { if (!phone) setChat(c => ({ ...c, open: true })); if (history.length > 1) router.back(); else router.push("/"); return; }
@@ -708,9 +722,10 @@ export function AiPanel({ draft, step: stepProp, onApply, page = false }: { draf
       </div>
     );
   }
+  closeRef.current = close;
   if (win) {
     return (
-      <div className={"aic-root is-wide is-win" + (sinking ? " is-sinking" : "")}>
+      <div ref={winRef} className={"aic-root is-wide is-win" + (sinking ? " is-sinking" : "")}>
         <div className="aic-panel" role="dialog" aria-label="Yarni와 상의">
           {chatPane}
           {drawer && (
