@@ -29,8 +29,3 @@ body.m-intro-cards .mfh-actions>*:nth-child(3){animation-delay:.36s}
 @keyframes m-intro-card{from{opacity:0;transform:translateY(32px)}}
 @media (prefers-reduced-motion:reduce){.pho,.pho-bg,.pho-sv,.pho-stage{transition:none}body.m-intro-cards .mfh-actions>*{animation:none}}
 
-/* 바로 넘기기 (Kim): a quiet line at the foot while the opening plays - the opening's gold, serif, small */
-.pho-hint{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));margin:0;text-align:center;font:400 12px/1.4 "Noto Serif KR",serif;letter-spacing:.08em;color:#B08D57;opacity:0;transition:opacity 1.2s ease;pointer-events:none}
-.pho-hint.is-on{opacity:.85}
-.pho.is-rising .pho-hint,.pho.is-out .pho-hint{opacity:0;transition:opacity .3s ease}
-@media (prefers-reduced-motion:reduce){.pho-hint{transition:none}}

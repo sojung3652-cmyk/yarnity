@@ -21,13 +21,13 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
   const home = mode === "home";
   const root = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), sv = useRef<HTMLCanvasElement>(null), btn = useRef<HTMLButtonElement>(null);
   const sceneRef = useRef<ReturnType<typeof makeOpeningHomeScene> | null>(null), fadeFrom = useRef(0), placed = useRef(false);
-  const t0Ref = useRef(0), [hint, setHint] = useState(false);
+  const t0Ref = useRef(0);
   const [loaded, setLoaded] = useState(false), [shown, setShown] = useState(false), [phase, setPhase] = useState<"" | "rise" | "kept" | "out">(home ? "kept" : "");
 
   useEffect(() => {
     const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const r = root.current!, b = btn.current!;
-    let alive = true, raf = 0, hintT = 0, t0 = 0, done = false;
+    let alive = true, raf = 0, t0 = 0, done = false;
     const img = {} as OHImages;
     const load = (k: keyof typeof OH_SRC) => new Promise<void>(res => { const i = new Image(); i.onload = i.onerror = () => res(); i.src = k === "bg" ? PHONE_BG : OH_SRC[k]; img[k] = i; });
     const size = () => {
@@ -65,11 +65,10 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
       sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img, PHONE_STARS, true); size();
       if (home) sceneRef.current.setText(0); else setLoaded(true);
       t0 = performance.now() - (rm || home ? OH_END * 1000 : 0); t0Ref.current = t0;
-      if (!home && !rm) hintT = window.setTimeout(() => { if (alive) setHint(true); }, 1000);
       attach();
       raf = requestAnimationFrame(tick);
     });
-    return () => { alive = false; cancelAnimationFrame(raf); clearTimeout(hintT); ro.disconnect(); window.removeEventListener("scroll", onScroll); document.removeEventListener("visibilitychange", vis); };
+    return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener("scroll", onScroll); document.removeEventListener("visibilitychange", vis); };
   }, []);
 
   useEffect(() => {
@@ -116,7 +115,6 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
         <canvas ref={cv} className="pho-cv" role="img" aria-label="Yarnity 오프닝: 파랑새 메달리온 아래로 금실 로고와 문구가 수놓아집니다." />
         <button ref={btn} type="button" className="pho-start" hidden={!shown} onClick={e => { e.stopPropagation(); go(); }}>Start making my own pattern book</button>
       </div>
-      {!home && <p className={"pho-hint" + (hint && !phase ? " is-on" : "")} aria-hidden={!hint || !!phase}>화면을 누르면 바로 시작합니다</p>}
     </div>
   );
 }

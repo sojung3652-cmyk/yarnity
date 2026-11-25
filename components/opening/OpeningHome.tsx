@@ -4,7 +4,7 @@
 // is (lowered a little to sit under the NavBar), the NavBar slides down and the AI badge fades in; the glints go on.
 // At home the sentence raises the book onto 도안 만들기 step 1. A load or reload at / always plays the opening; coming
 // to / inside the site shows the home at once. Reduced motion: the home at once. A press anywhere (or Enter, Space,
-// Esc) while it plays goes to the home at once, by Start's own change (Kim); a quiet line says so.
+// Esc) while it plays goes to the home at once, by Start's own change (Kim).
 import { useEffect, useRef, useState } from "react";
 import { useBook } from "@/components/Book/BookProvider";
 import { makeOpeningHomeScene, OH_END, OH_SRC, type OHImages } from "./openingHomeScene";
@@ -18,7 +18,7 @@ export function OpeningHome() {
   const book = useBook();
   const root = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), sv = useRef<HTMLCanvasElement>(null);
   const startBtn = useRef<HTMLButtonElement>(null);
-  const [hint, setHint] = useState(false), [home, setHome] = useState(false), [instant, setInstant] = useState(false), [shown, setShown] = useState(false), [loaded, setLoaded] = useState(false), [narrow, setNarrow] = useState(false);
+  const [home, setHome] = useState(false), [instant, setInstant] = useState(false), [shown, setShown] = useState(false), [loaded, setLoaded] = useState(false), [narrow, setNarrow] = useState(false);
   const firstRef = useRef<boolean | null>(null);
   const ctl = useRef<{ skip: () => void; again: () => void; home: (instant: boolean) => void; now: () => void }>({ skip: () => {}, again: () => {}, home: () => {}, now: () => {} });
 
@@ -31,7 +31,7 @@ export function OpeningHome() {
     const first = firstRef.current;
     const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const r = root.current!, st = stage.current!, b = startBtn.current!;
-    let alive = true, raf = 0, hintT = 0, t0 = 0, manual = false, manualT = 0, isHome = false, done = false;
+    let alive = true, raf = 0, t0 = 0, manual = false, manualT = 0, isHome = false, done = false;
     let scene: ReturnType<typeof makeOpeningHomeScene> | null = null;
     const img = {} as OHImages;
     const load = (k: keyof typeof OH_SRC) => new Promise<void>(res => { const i = new Image(); i.onload = i.onerror = () => res(); i.src = OH_SRC[k]; img[k] = i; });
@@ -74,10 +74,10 @@ export function OpeningHome() {
       }
       const straightHome = !first || rm;
       t0 = performance.now() - (straightHome ? OH_END * 1000 : 0);
-      if (straightHome) goHome(true); else hintT = window.setTimeout(() => { if (alive) setHint(true); }, 1000);
+      if (straightHome) goHome(true);
       raf = requestAnimationFrame(tick);
     });
-    return () => { alive = false; cancelAnimationFrame(raf); clearTimeout(hintT); window.removeEventListener("keydown", key); ro.disconnect(); document.removeEventListener("visibilitychange", vis); setHomeState({ home: false, instant: false }); };
+    return () => { alive = false; cancelAnimationFrame(raf); window.removeEventListener("keydown", key); ro.disconnect(); document.removeEventListener("visibilitychange", vis); setHomeState({ home: false, instant: false }); };
   }, []);
 
   return (
@@ -90,7 +90,6 @@ export function OpeningHome() {
         {/* the opening: Start turns it into the home; at home the same words raise the book onto step 1 (Kim) */}
         <button ref={startBtn} type="button" className="oh-start" hidden={!shown && !home} onClick={e => { e.stopPropagation(); if (home) book.newPattern(); else ctl.current.now(); }}>Start making my own pattern book</button>
       </div>
-      {!home && <p className={"oh-hint" + (hint ? " is-on" : "")} aria-hidden={!hint}>화면을 누르면 바로 시작합니다</p>}
     </div>
   );
 }
