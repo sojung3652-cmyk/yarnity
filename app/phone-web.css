@@ -100,6 +100,10 @@
    level with the closing X, not in the middle of the page under the cover's lines */
 @media (max-width:767.98px){
   html body .nb-book{position:relative}
+  /* 도안 만들기's first page (Kim, 11/26: NEW PATTERN 빼고 다 없애): under the logo only NEW PATTERN stays above the two
+     labels - no "a crochet pattern book", no month, no 어디서부터 시작하시겠습니까?, no hairline under it */
+  html body .nb-left .tp-cover .tp-sub,html body .nb-left .tp-cover .tp-month,html body .tp-start .st-big .st-ask,html body .tp-start .st-big .st-rule{display:none}
+  html body .tp-start .st-big .st-kicker{margin-bottom:22px}
   html body .nb-left .nb-foot.is-menu{position:absolute;left:14px;top:14px;z-index:3;margin:0;padding:0;border:0}
   html body .nb-left .nb-foot.is-menu .nb-folio{display:none}
 }
