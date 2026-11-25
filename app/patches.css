@@ -140,3 +140,12 @@ html[data-home] main,html[data-home] .y-enter{animation:none}
    pinned to the screen - 실 도감's window came out low, Kim): only the start is held, before it plays */
 .y-enter{animation-fill-mode:backwards}
 :where(main, [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="tooltip"], [role="tabpanel"], details[open] > :not(summary)){animation-fill-mode:backwards}
+/* Kim (11/25: 라벨 종이컨셉으로 삐뚤어지게 둔 거 다 그냥 돌려놔): every cloth / paper label and tag sits straight.
+   The tilt variables are 0 and the labels drawn at a slant lose it; their hover / press lift stays (those rules are
+   more specific). The tape strips, the check marks and the tag string keep their own small turns. */
+html body .cloth-label,html body .cloth-next,html body .cloth-back,html body .nav-label,html body .nav-label+.nav-label,
+html body .ps-label,html body .ps-label:nth-child(2){--tilt:0deg}
+html body .bk-new>span,html body .mm-new>span,html body .mtb-new>span,html body .pg-actions .pg-link,html body .pg-actions .pg-link-rose,
+html body .tp-label,html body .sh-tag,html body .sh-empty-tag,html body .st-label-b,html body .yw-index a.yw-tab,html body .yw .yw-name.yw-name-in,
+html body .yw-tabd,html body .yw-tabd:nth-child(even),html body .yw .yw-tabadd,html body .yw .yw-sim,html body .tk-keys,
+html body .m-label,html body .m-label.is-rose,html body .mfw-tag,html body .mbz-back .mbz-face,html body .mbz-next .mbz-face{transform:none}
