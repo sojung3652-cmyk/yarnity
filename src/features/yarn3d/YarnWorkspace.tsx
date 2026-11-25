@@ -221,8 +221,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     return () => { window.removeEventListener("keydown", onKey, true); window.removeEventListener("keydown", spaceDown); window.removeEventListener("keyup", spaceUp); document.body.style.overflow = prev; bookPause.set(false); window.scrollTo(sx, sy); requestAnimationFrame(() => window.scrollTo(sx, sy)); };
   }, [onClose]);
 
-  // the engine: made once, disposed on the way out
+  // the engine: made once, disposed on the way out. Phones (Kim, 11/25: 모바일에서 3D를 틀면 자꾸 꺼진다): while the
+  // yarn check shows its own 3D, this one is not made - two 3D views at once ran the phone's graphics memory out
+  // and the browser closed the page; it is made when the check gives way to the shape (and let go if it comes back)
+  const hold = intro && typeof window !== "undefined" && matchMedia("(max-width: 767.98px)").matches;
   useEffect(() => {
+    if (hold) return;
     let gone = false;
     import("./engine").then(({ createYarnViewer, hasWebGL }) => {
       if (gone || !cv.current) return;
@@ -242,7 +246,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
       viewer.current = v; shown.current = p;
     });
     return () => { gone = true; viewer.current?.dispose(); viewer.current = null; };
-  }, []);
+  }, [hold]);
   // the pattern changed in a panel: colour and material at once, the shape after 0.2s of quiet
   useEffect(() => {
     const v = viewer.current; if (!v || pattern === shown.current) return;

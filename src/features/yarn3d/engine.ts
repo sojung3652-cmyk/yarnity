@@ -232,10 +232,10 @@ interface ItemData { P: THREE.Vector3[]; E: Edge[]; C: Course[]; rh: number; sw:
 
 export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, opts: ViewerOpts): YarnViewer | null {
   let renderer: THREE.WebGLRenderer;
-  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch { return null; }
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: !opts.phone, alpha: true, powerPreference: opts.phone ? "low-power" : "default" }); /* phones: no multisampling (its buffers are memory a phone runs out of; Kim 11/25) */ } catch { return null; }
   const page = opts.detail === "page";
   // phones: 1.5x at most - a phone's GPU memory runs out at 2x with a big piece, and the browser closes the page
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.phone ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.phone ? 1.25 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   const scene = new THREE.Scene();
@@ -244,7 +244,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // light from the upper right -> shadows fall to the lower left
   scene.add(new THREE.HemisphereLight(lin(0xfffaf2), lin(0xe6dccd), 0.62 * Math.PI));
   const sun = new THREE.DirectionalLight(lin(0xfff6ea), 0.88 * Math.PI); sun.position.set(7, 9, 10); sun.castShadow = true;
-  sun.shadow.mapSize.set(page ? 1024 : 2048, page ? 1024 : 2048); const sc = sun.shadow.camera; sc.near = 1; sun.shadow.bias = -0.0006; sun.shadow.radius = 4;
+  sun.shadow.mapSize.set(page || opts.phone ? 1024 : 2048, page || opts.phone ? 1024 : 2048); const sc = sun.shadow.camera; sc.near = 1; sun.shadow.bias = -0.0006; sun.shadow.radius = 4;
   scene.add(sun);
   const fill = new THREE.DirectionalLight(lin(0xf2e9df), 0.16 * Math.PI); fill.position.set(-8, -2, 6); scene.add(fill);
   // the yarn casts its shadow on the ground but not on itself: self-shadowing greyed every colour (Kim:
@@ -310,9 +310,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const colorOf = (ci: number) => pat.colors[Math.max(0, Math.min(ci, pat.colors.length - 1))] || "#EFE6D4";
 
   // ---------- level of detail from the stitch count (the page's preview is lighter than the full screen)
-  const VERT_BUDGET = page ? 350_000 : opts.phone ? 500_000 : 1_400_000, BASE_VPS = 187; // ~17 points x 11 ring vertices per stitch at full detail
+  const VERT_BUDGET = page ? (opts.phone ? 220_000 : 350_000) : opts.phone ? 320_000 : 1_400_000, BASE_VPS = 187; // ~17 points x 11 ring vertices per stitch at full detail
   // flat rows and tubes: past this many stitches every k-th stitch and row is drawn
-  const DRAW_STITCHES = page ? 9_000 : opts.phone ? 12_000 : 24_000;
+  const DRAW_STITCHES = page ? (opts.phone ? 6_000 : 9_000) : opts.phone ? 8_000 : 24_000;
   let LOD = { M: 10, step: 1 };
   function lodFor(drawn: number) {
     const want = VERT_BUDGET / Math.max(1, drawn), maxM = page ? 12 : 12; // 12 round the strand: four plies twist
@@ -320,7 +320,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (want < BASE_VPS) LOD.step = Math.min(4, Math.max(1, (17 * (LOD.M + 1)) / want));
   }
   // raised a lot (Kim: at the slider's top the hairs were still too few) - line segments stay cheap to draw
-  const fuzzCap = () => page ? (st.fur ? 40_000 : 60_000) : opts.phone ? (st.fur ? 30_000 : 40_000) : 220_000;
+  const fuzzCap = () => page ? (opts.phone ? 15_000 : st.fur ? 40_000 : 60_000) : opts.phone ? (st.fur ? 18_000 : 24_000) : 220_000;
 
   function yarnMat(R: number) {
     // sheen: the soft light along fibres (wool, chenille, silk), the colour stays the yarn's own
