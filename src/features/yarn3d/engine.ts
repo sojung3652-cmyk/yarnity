@@ -297,8 +297,11 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   })();
   // made the first time a yarn or a button needs it (metallic, silk; a metal button): making it compiles shaders
   // of its own - 0.7s of the page standing still at every opening, for a map cotton and wool never use
+  // Of the four shaders three puts together for it, the one it lets be asked for ahead (the picture's own) is
+  // handed to the driver now, to be ready by then; the other three are three's own business until it is made.
   let ENV: THREE.Texture | null = null;
-  const env = () => { if (!ENV) { const pm = new THREE.PMREMGenerator(renderer); ENV = pm.fromEquirectangular(envSrc).texture; pm.dispose(); } return ENV; };
+  const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
+  const env = () => { if (!ENV) ENV = pmrem.fromEquirectangular(envSrc).texture; return ENV; };
 
   // ---------- fibre grain (stripes along the yarn)
   function fiberTex() {
@@ -1868,7 +1871,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       alive = false; cancelAnimationFrame(raf); ro.disconnect(); clearGroup(); job = null; trash.forEach(disposeTree); trash = []; ctl.dispose(); // (a half-made piece is `group`, just cleared; what it was to replace is still in the scene, let go below)
       canvas.removeEventListener("pointerdown", exDown, true); canvas.removeEventListener("pointermove", exMove); canvas.removeEventListener("pointerup", exUp); canvas.removeEventListener("pointercancel", exUp);
       scene.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | undefined; if (mt) mt.dispose(); });
-      pics.forEach(t => t.dispose()); WARM_GEO.dispose(); warmRT.dispose(); warmMat.dispose(); FTEX.dispose(); HTEX.dispose(); envSrc.dispose(); ENV?.dispose(); holoMats.forEach(m => m.dispose()); clearTimeout(restT); sun.shadow.map?.dispose();
+      pics.forEach(t => t.dispose()); WARM_GEO.dispose(); warmRT.dispose(); warmMat.dispose(); FTEX.dispose(); HTEX.dispose(); envSrc.dispose(); ENV?.dispose(); pmrem.dispose(); holoMats.forEach(m => m.dispose()); clearTimeout(restT); sun.shadow.map?.dispose();
       renderer.dispose(); renderer.forceContextLoss();
     },
   };
