@@ -1210,7 +1210,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           {step === 2 && <AskAiLine which="item" />}{step === 3 && <AskAiLine which="yarn" />}
           {left}
         </div>
-        <div className="nb-foot">
+        <div className={"nb-foot" + (step === 1 && !editId ? " is-menu" : "")}>
           {step > 1 ? <ClothLabel side="back" type="button" onClick={back}>← 이전</ClothLabel> : editId ? <ClothLabel side="back" type="button" onClick={book.close}>← 돌아가기</ClothLabel>
             : <ClothLabel side="back" type="button" onClick={book.toHome}>← 메뉴</ClothLabel>}
           <span className="nb-folio">{folio}</span>

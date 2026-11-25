@@ -95,3 +95,11 @@
   html body .aic-root.is-win .aic-chat{width:auto}
   html body .aic-root.is-win .aic-bar{width:auto}
 }
+
+/* phones (Kim, 11/25: ← 메뉴를 좌측 상단에): the book's first page puts its 메뉴 label in the book's top left corner,
+   level with the closing X, not in the middle of the page under the cover's lines */
+@media (max-width:767.98px){
+  html body .nb-book{position:relative}
+  html body .nb-left .nb-foot.is-menu{position:absolute;left:14px;top:14px;z-index:3;margin:0;padding:0;border:0}
+  html body .nb-left .nb-foot.is-menu .nb-folio{display:none}
+}
