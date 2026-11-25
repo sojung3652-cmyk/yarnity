@@ -66,3 +66,8 @@ body:has(.oh) .wrap > footer{display:none}
 /* the NavBar (56px) is over the home: the menu centres in the room under it */
 .oh-menu{top:calc(50% + 28px);max-height:calc(100% - 40px - 56px)}
 .oh.narrow .oh-menu{max-height:calc(58% - 28px)}
+
+/* 바로 넘기기 (Kim): a quiet line under the scene while the opening plays, in its own gold and serif, small */
+.oh-hint{position:absolute;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom,0px));margin:0;text-align:center;font:400 13px/1.4 var(--serif);letter-spacing:.08em;color:var(--gold);opacity:0;transition:opacity 1.2s ease;pointer-events:none}
+.oh-hint.is-on{opacity:.85}
+@media (prefers-reduced-motion:reduce){.oh-hint{transition:none}}

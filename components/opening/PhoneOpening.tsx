@@ -14,7 +14,6 @@ import PHONE_STARS from "@/lib/data/opening-web/phone-stars.json";
 const PHONE_BG = "/mobile/bg_stars.webp";
 import "./phoneOpening.css";
 
-export const OPENING_SEEN = "yarnity.opening.seen";
 
 // mode "home" (Kim: the opening's medallion and logo ARE the home's - no second home logo): the scene at its end,
 // still glinting, sat on the home's lace slot without the opening (no linen, no sentence, no Start)
@@ -22,13 +21,13 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
   const home = mode === "home";
   const root = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null), sv = useRef<HTMLCanvasElement>(null), btn = useRef<HTMLButtonElement>(null);
   const sceneRef = useRef<ReturnType<typeof makeOpeningHomeScene> | null>(null), fadeFrom = useRef(0), placed = useRef(false);
+  const t0Ref = useRef(0), [hint, setHint] = useState(false);
   const [loaded, setLoaded] = useState(false), [shown, setShown] = useState(false), [phase, setPhase] = useState<"" | "rise" | "kept" | "out">(home ? "kept" : "");
 
   useEffect(() => {
-    if (!home) { try { sessionStorage.setItem(OPENING_SEEN, "1"); } catch {} }
     const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const r = root.current!, b = btn.current!;
-    let alive = true, raf = 0, t0 = 0, done = false;
+    let alive = true, raf = 0, hintT = 0, t0 = 0, done = false;
     const img = {} as OHImages;
     const load = (k: keyof typeof OH_SRC) => new Promise<void>(res => { const i = new Image(); i.onload = i.onerror = () => res(); i.src = k === "bg" ? PHONE_BG : OH_SRC[k]; img[k] = i; });
     const size = () => {
@@ -39,7 +38,7 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
     };
     const tick = (now: number) => {
       const sc = sceneRef.current; if (!alive || !sc) return;
-      const t = (now - t0) / 1000;
+      t0 = t0Ref.current; const t = (now - t0) / 1000;
       // Start pressed: the sentence fades out in 0.3s
       if (fadeFrom.current) sc.setText(1 - (now - fadeFrom.current) / 300);
       sc.frame(t);
@@ -65,12 +64,20 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
       if (!alive || !cv.current || !sv.current) return;
       sceneRef.current = makeOpeningHomeScene(cv.current, sv.current, img, PHONE_STARS, true); size();
       if (home) sceneRef.current.setText(0); else setLoaded(true);
-      t0 = performance.now() - (rm || home ? OH_END * 1000 : 0);
+      t0 = performance.now() - (rm || home ? OH_END * 1000 : 0); t0Ref.current = t0;
+      if (!home && !rm) hintT = window.setTimeout(() => { if (alive) setHint(true); }, 1000);
       attach();
       raf = requestAnimationFrame(tick);
     });
-    return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener("scroll", onScroll); document.removeEventListener("visibilitychange", vis); };
+    return () => { alive = false; cancelAnimationFrame(raf); clearTimeout(hintT); ro.disconnect(); window.removeEventListener("scroll", onScroll); document.removeEventListener("visibilitychange", vis); };
   }, []);
+
+  useEffect(() => {
+    if (home) return;
+    const key = (e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " " || e.key === "Escape") { e.preventDefault(); goRef.current(); } };
+    window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key);
+  }, [home]);
+  const goRef = useRef<() => void>(() => {});
 
   // the medallion lands on the home's: same centre, same height (the logo comes along at the same scale)
   const place = () => {
@@ -82,8 +89,12 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
     return true;
   };
 
+  // 바로 넘기기 (Kim): a press anywhere, or Enter / Space / Esc, while the opening plays - the scene to its end, then
+  // Start's own change; only once (phase is set at once, and a ref guards a second press before React re-renders)
+  const going = useRef(false);
   const go = () => {
-    if (phase) return;
+    if (phase || going.current || home) return; going.current = true;
+    if (sceneRef.current) { t0Ref.current = performance.now() - OH_END * 1000; sceneRef.current.frame(OH_END); }
     const sc = sceneRef.current, st = stage.current, lace = document.querySelector<HTMLElement>(".mfh-lace");
     const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (rm || !sc || !st || !lace) { setPhase("out"); setTimeout(() => onDone?.(), rm ? 0 : 700); return; }
@@ -96,14 +107,16 @@ export function PhoneOpening({ onDone, onKept, mode = "intro" }: { onDone?: () =
     setTimeout(() => { setPhase("kept"); onKept?.(); }, 800);
   };
 
+  goRef.current = go;
   return (
-    <div ref={root} className={"pho" + (home ? " is-home" : "") + (loaded ? " is-on" : "") + (phase === "rise" || phase === "kept" ? " is-rising" : "") + (phase === "kept" ? " is-kept" : "") + (phase === "out" ? " is-out" : "")}>
+    <div ref={root} onClick={() => { if (!home) go(); }} className={"pho" + (home ? " is-home" : "") + (loaded ? " is-on" : "") + (phase === "rise" || phase === "kept" ? " is-rising" : "") + (phase === "kept" ? " is-kept" : "") + (phase === "out" ? " is-out" : "")}>
       <div className="pho-bg" aria-hidden="true" />
       <canvas ref={sv} className="pho-sv" aria-hidden="true" />
       <div ref={stage} className="pho-stage">
         <canvas ref={cv} className="pho-cv" role="img" aria-label="Yarnity 오프닝: 파랑새 메달리온 아래로 금실 로고와 문구가 수놓아집니다." />
-        <button ref={btn} type="button" className="pho-start" hidden={!shown} onClick={go}>Start making my own pattern book</button>
+        <button ref={btn} type="button" className="pho-start" hidden={!shown} onClick={e => { e.stopPropagation(); go(); }}>Start making my own pattern book</button>
       </div>
+      {!home && <p className={"pho-hint" + (hint && !phase ? " is-on" : "")} aria-hidden={!hint || !!phase}>화면을 누르면 바로 시작합니다</p>}
     </div>
   );
 }
