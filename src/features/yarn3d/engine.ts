@@ -238,6 +238,9 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.phone ? 1.25 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+  // the shadow is drawn again only when the piece or the light changes, not while the camera turns (the light and
+  // the yarn stand still then; drawing every triangle twice a frame was half the work of turning it)
+  renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
   const scene = new THREE.Scene();
   const cam = new THREE.PerspectiveCamera(32, 1, 0.1, 900); cam.position.set(0, 11, 13.5);
   const ctl = new OrbitControls(cam, canvas); ctl.enableDamping = true; ctl.dampingFactor = .08; ctl.enablePan = false; ctl.minDistance = 3; ctl.maxDistance = 40;
@@ -276,7 +279,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   function setShadow(half: number) {
     sc.left = -half; sc.right = half; sc.top = half; sc.bottom = -half; sc.far = Math.max(40, half * 4.5);
     sun.position.set(7, 9, 10).multiplyScalar(Math.max(1, half / 10)); sc.updateProjectionMatrix();
-    ground.scale.setScalar(Math.max(1, half / 12));
+    ground.scale.setScalar(Math.max(1, half / 12)); renderer.shadowMap.needsUpdate = true;
   }
   setShadow(10);
 
@@ -313,6 +316,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   const VERT_BUDGET = page ? (opts.phone ? 220_000 : 350_000) : opts.phone ? 320_000 : 1_400_000, BASE_VPS = 187; // ~17 points x 11 ring vertices per stitch at full detail
   // flat rows and tubes: past this many stitches every k-th stitch and row is drawn
   const DRAW_STITCHES = page ? (opts.phone ? 6_000 : 9_000) : opts.phone ? 8_000 : 24_000;
+  // crochet drawn as loops: a stitch is a head and two legs, and at the thinnest that is still ~119 vertices (17
+  // rings of 7). Past VERT_BUDGET / 130 stitches the budget cannot be kept by thinning strands, so stitches are
+  // skipped from there (Kim 11/25: 렉 - a 12,000-stitch bag came out at twice the budget, a phone's at six times)
+  const LOOP_STITCHES = Math.min(DRAW_STITCHES, Math.floor(VERT_BUDGET / 130));
   let LOD = { M: 10, step: 1 };
   function lodFor(drawn: number) {
     const want = VERT_BUDGET / Math.max(1, drawn), maxM = page ? 12 : 12; // 12 round the strand: four plies twist
@@ -456,7 +463,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // k-th round is drawn with 1/k of its stitches and the stitch k times as big, so the size and shape stay
     const s0 = pat.shape, sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
     const total = s0.kind === "round" ? sum(s0.counts) : s0.kind === "oval" || s0.kind === "rect" ? sum(s0.bottom) + sum(s0.body) : 0;
-    const kk = total > DRAW_STITCHES ? Math.ceil(Math.sqrt(total / DRAW_STITCHES)) : 1;
+    const kk = total > LOOP_STITCHES ? Math.ceil(Math.sqrt(total / LOOP_STITCHES)) : 1;
     const pick = (a: number[]) => { const o: number[] = []; for (let i = kk - 1; i < a.length; i += kk) o.push(Math.max(3, Math.round(a[i] / kk))); if (!o.length && a.length) o.push(Math.max(3, Math.round(a[a.length - 1] / kk))); return o; };
     const s: YarnShape = kk === 1 ? s0 : s0.kind === "round" ? { kind: "round", counts: pick(s0.counts), flat: s0.flat ? Math.max(1, Math.round(s0.flat / kk)) : 0 }
       : s0.kind === "oval" || s0.kind === "rect" ? { ...s0, chain: Math.max(2, Math.round(s0.chain / kk)), bottom: pick(s0.bottom), body: pick(s0.body) } : s0;
@@ -758,7 +765,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     //          한길긴뜨기 two strands down side by side, the yarn-over wound across the middle
     // every piece, however big (Kim: 느려지면 생성 중을 띄우고 그냥 만들어) - the screen says 생성 중 while it is made
     const sH = pat.stitchH ?? 1, loops = !D.knit, postParts: THREE.BufferGeometry[] = [];
-    const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(10, Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color })); };
+    const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); postParts.push(buildYarn(cv.getSpacedPoints(Math.max(loPts(closed), Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color })); };
+    // the fewest points along a strand: 10 at full detail; a big piece's thinned strands go down to 6 round a head
+    // and 4 along a leg (the floor of 10 held every stitch at 231 vertices however far the detail was turned down)
+    function loPts(closed: boolean) { return step <= 1 ? 10 : Math.max(closed ? 6 : 4, Math.round(10 / step)); }
     // the body's rounds counted from the bottom's edge, for a stitch pattern laid on them (pat.wall)
     let bodyN = 0;
     const wl = pat.wall && pat.wall.W > 0 && pat.wall.H > 0 ? pat.wall : null;
@@ -1553,17 +1563,21 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
 
   // ---------- drawing only when something changes: the shape settling, the camera moving (damping
   // included), the order animation. Nothing runs while it sits still.
-  let raf = 0, alive = true;
+  let raf = 0, alive = true, shadowDirty = true;
   function frame() {
     raf = 0; if (!alive) return;
     const settling = !!IT.data && !IT.data.done;
     tickItem();
     const moved = ctl.update();
+    if (shadowDirty || settling || anim) { renderer.shadowMap.needsUpdate = true; shadowDirty = false; }
     renderer.render(scene, cam); rules(); frameBox();
-    if (settling || moved || anim) kick();
+    if (settling || moved || anim) camKick();
   }
-  function kick() { if (alive && !raf) raf = requestAnimationFrame(frame); }
-  ctl.addEventListener("change", kick); ctl.addEventListener("start", () => { touched = true; kick(); });
+  /** a frame for the camera alone: the shadow stays as it is */
+  function camKick() { if (alive && !raf) raf = requestAnimationFrame(frame); }
+  /** a frame after something in the scene changed: the shadow is drawn again too */
+  function kick() { shadowDirty = true; camKick(); }
+  ctl.addEventListener("change", camKick); ctl.addEventListener("start", () => { touched = true; camKick(); });
   // ---------- 재기: the width along the front edge, the height (or, for a flat piece, the depth) at the right
   let rulerOn = false, lastRule = "";
   function rules() {
@@ -1674,7 +1688,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     },
     setView(v) { IT.view = v; if (IT.data) showItem(); },
     playDraw,
-    zoom(f) { const v = cam.position.clone().sub(ctl.target), l = Math.min(ctl.maxDistance, Math.max(ctl.minDistance, v.length() * f)); cam.position.copy(ctl.target).addScaledVector(v.normalize(), l); touched = true; ctl.update(); kick(); },
+    zoom(f) { const v = cam.position.clone().sub(ctl.target), l = Math.min(ctl.maxDistance, Math.max(ctl.minDistance, v.length() * f)); cam.position.copy(ctl.target).addScaledVector(v.normalize(), l); touched = true; ctl.update(); camKick(); },
     home() { touched = false; framed = true; if (IT.data) { cam.position.copy(ctl.target).addScaledVector(HOME, 10); wasFab = false; if (opts.fit) fitAll(IT.data, HOME.clone()); else frameOn(IT.data); } },
     viewShot() {
       // the view as it is now, at the canvas's own size (checking how the stitches look up close)

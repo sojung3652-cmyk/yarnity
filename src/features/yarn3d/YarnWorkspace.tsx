@@ -192,7 +192,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const leaveRef = useRef(extra?.leave); leaveRef.current = extra?.leave;
   const [leaving, setLeaving] = useState(false), leavingRef = useRef(false); leavingRef.current = leaving;
   // closed and kept: the piece as it looks now is kept as its picture (이어서 하기 shows it, Kim)
-  const closeWithShot = () => { const u = !empty ? viewer.current?.snapshot() : null; if (u) extra?.onShot?.(u); onClose(); };
+  const closeWithShot = () => { if (viewer.current && shown.current !== latest.current) { viewer.current.setPattern(latest.current); shown.current = latest.current; } /* the yarn check held a change back: taken before the picture */ const u = !empty ? viewer.current?.snapshot() : null; if (u) extra?.onShot?.(u); onClose(); };
   // Kim (11/25: x 누르면 저장하고 나갈 건지 확인해): asked every time there is a work to keep, changed or not
   const [leaveChanged, setLeaveChanged] = useState(false);
   const tryClose = () => { if (leaveRef.current) { setLeaveChanged(!!leaveRef.current.changed()); setLeaving(true); } else closeWithShot(); };
@@ -253,13 +253,15 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     return () => { gone = true; viewer.current?.dispose(); viewer.current = null; };
   }, [hold]);
   // the pattern changed in a panel: colour and material at once, the shape after 0.2s of quiet
+  // while the yarn check covers the stage with its own 3D, this one waits (one 3D at a time works on a change -
+  // both used to build the yarn again on every colour and material); it takes the latest when the check steps aside
   useEffect(() => {
-    const v = viewer.current; if (!v || pattern === shown.current) return;
+    const v = viewer.current; if (!v || intro || pattern === shown.current) return;
     const key = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm]);
     if (key(pattern) === key(shown.current)) { v.setPattern(pattern); shown.current = pattern; return; }
     const t = setTimeout(() => { v.setPattern(pattern); shown.current = pattern; }, 200);
     return () => clearTimeout(t);
-  }, [pattern]);
+  }, [pattern, intro]);
 
   const toggleRuler = () => { const on = !ruler; setRuler(on); viewer.current?.setRuler(on); if (!on) setRules(null); };
   const show = (v: "yarn" | "holo") => { setView(v); viewer.current?.setView(v); };

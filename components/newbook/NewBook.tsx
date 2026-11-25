@@ -307,6 +307,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   );
   const softRow = softRowOf("탄성");
   const yarnSrc = useMemo(() => ({ ...input, item: draft.item, color: draft.color, yarnMm: draft.yarnMm, materials: tryMat ? [tryMat] : draft.materials, softK: softPeek ? 1 : draft.softK, stitch: draft.stitch, fuzzK: draft.fuzzK, hairK: draft.hairK, handleW: draft.handleW, handleStyle: draft.handleStyle, handleWcm: draft.handleWcm, topGapCm: draft.topGapCm, topFold: draft.topFold, extras: draft.extras, crochetChart: draft.crochetChart, crochetStitch: draft.crochetStitch, chartName: chartNameOf(draft.pattern, draft.craft ?? (knitNow ? "knit" : "crochet")), moreColors: draft.moreColors }), [input, draft.pattern, draft.craft, knitNow, draft.moreColors, draft.item, draft.color, draft.yarnMm, draft.materials, tryMat, draft.softK, softPeek, draft.stitch, draft.fuzzK, draft.hairK, draft.handleW, draft.handleStyle, draft.handleWcm, draft.topGapCm, draft.topFold, draft.extras, draft.crochetChart, draft.crochetStitch]);
+  // the yarn-check swatch (a small piece in the picked yarn, hook and stitch) and its plan, kept while the yarn
+  // is the same: made new on every render, the check's 3D worked its pattern out again at every keystroke
+  const swatchSrc = useMemo(() => { const k = (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit"; return { ...yarnSrc, craft: k ? "knit" as const : "crochet" as const, object: "rows" as const, item: k ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined }; }, [yarnSrc, draft.craft, knitNow]);
+  const swatchPlan = useMemo(() => plan(swatchSrc), [swatchSrc]);
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
   const itemLabel = draft.free || draft.paint ? "직접 그린 모양" : item.name;
@@ -1107,8 +1111,6 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the work screen (3D로 보면서 만들기, Kim: "all of this is deciding the shape"): every section on one screen -
   // 뜰 것, 색, 실, 바늘과 크기, then the bag's shape and opening (or the knitted stitch) - and one way on, to 확인
   // the yarn-check swatch: a small piece in the picked yarn, hook and stitch, seen close up
-  const swatchKnit = (draft.craft ?? (knitNow ? "knit" : "crochet")) === "knit";
-  const swatchSrc = { ...yarnSrc, craft: swatchKnit ? "knit" as const : "crochet" as const, object: "rows" as const, item: swatchKnit ? "scarf" : "dishcloth", shape: "rect" as const, a: 9, b: 7, h: 0, handle: "none" as const, handleCm: null, topA: null, flapCm: null, free: undefined, paint: undefined, extras: undefined };
   const making = web && (step === 2 || step === 3) ? {
     // two parts (Kim: 무늬 테스트까지가 한 섹션): first the yarn - 실 (with its colour), 바늘, 무늬 테스트해보기 -
     // and on to 모양 만들기; then the shape alone, the parts put together. 실 다시 정하기 goes back.
@@ -1172,7 +1174,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       const nd = { ...draft, ...p }; apply({ ...p, ...(draft.asm ? bodyPatch(nd, draft.asm) : {}) });
     } : undefined,
     // the first thing on the stage (Kim): the yarn as it will look, before any shape
-    intro: <YarnCheck source={swatchSrc} plan={plan(swatchSrc)} big />, startShape: yarnSet,
+    intro: <YarnCheck source={swatchSrc} plan={swatchPlan} big />, startShape: yarnSet,
     dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
     parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1),
     // 단추 / 라벨 dragged on the 3D (Kim): kept where they were let go, their size as it was
