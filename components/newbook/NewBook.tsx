@@ -31,6 +31,7 @@ import { CoverChoice } from "./CoverChoice";
 import { ColorStudio } from "./ColorStudio";
 import { PhotoShape } from "./PhotoShape";
 import { YarnCheck } from "./YarnCheck";
+import { SmoothRange } from "./SmoothRange";
 import { StartChoice } from "./StartChoice";
 import { specToDraft } from "@/lib/sketchShape";
 import { CROCHET, type CrochetStitch } from "@/lib/pattern";
@@ -297,7 +298,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       <div className="nb-slide nb-soft-slide">
         <span>{label}</span>
         <div className="nb-soft-track">
-          <input type="range" aria-label={label} aria-valuetext={softWord(draft.softK ?? 1)} min={.3} max={5} step={.1} value={draft.softK ?? 1} onChange={e => { setSoftPeek(false); patch({ softK: Number(e.target.value) }); }} />
+          <SmoothRange aria-label={label} aria-valuetext={softWord(draft.softK ?? 1)} min={.3} max={5} step={.1} value={draft.softK ?? 1} onValue={n => { setSoftPeek(false); patch({ softK: n }); }} />
           <span className="nb-soft-ends" aria-hidden="true"><i>탄탄함</i><i>흐물거림</i></span>
         </div>
         <output><button type="button" className="nb-link nb-soft-back" disabled={(draft.softK ?? 1) === 1} onClick={() => { setSoftPeek(false); patch({ softK: 1 }); }}>되돌리기</button></output>
@@ -334,7 +335,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             ? <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={gRaw ?? (ok ? String(Math.round(v / GWANGSU * 100) / 100) : "")}
                 onChange={e => { setGRaw(e.target.value); const g = Number(e.target.value.trim()); if (e.target.value.trim() && Number.isFinite(g) && g > 0) setNum(f.key)(String(Math.round(g * GWANGSU * 2) / 2)); }} onBlur={() => setGRaw(null)} />
             : <input id={id} className="nb-input" inputMode="decimal" autoComplete="off" aria-invalid={!!errors[f.key]} aria-describedby={eb} value={nums[f.key]} onChange={e => setNum(f.key)(e.target.value)} />}
-          <input type="range" className="nb-range" aria-label={`${f.label} 조절`} min={lo} max={hi} step={0.5} value={ok ? v : lo} onChange={e => { setGRaw(null); setNum(f.key)(e.target.value); }} />
+          <SmoothRange className="nb-range" aria-label={`${f.label} 조절`} min={lo} max={hi} step={0.5} value={ok ? v : lo} onValue={(_, raw) => { setGRaw(null); setNum(f.key)(raw); }} />
           {gw && <span className="nb-gw">
             <span className="nb-seg" role="radiogroup" aria-label="길이 단위">{(["cm", "광수"] as const).map(u => <button key={u} type="button" role="radio" aria-checked={lenUnit === u} onClick={() => { setLenUnit(u); setGRaw(null); }}>{u}</button>)}</span>
             <small>{ok ? (inG ? `${v}cm` : `약 ${Math.round(v / GWANGSU * 100) / 100}광수`) : ""} · 1광수 = 190cm</small>

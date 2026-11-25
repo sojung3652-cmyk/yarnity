@@ -10,6 +10,7 @@
 // Phones keep YarnStep.tsx's pages as they are.
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import type { Draft, YarnColor } from "@/lib/types";
+import { SmoothRange } from "./SmoothRange";
 import { ColorStudio } from "./ColorStudio";
 import { CROCHET, YARN_KO, type CrochetStitch, type Weight } from "@/lib/pattern";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
@@ -118,7 +119,7 @@ export function Slide({ label, min, max, step, value, onChange, text }: { label:
   return (
     <div className="nb-slide">
       <span>{label}</span>
-      <input type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} />
+      <SmoothRange aria-label={label} min={min} max={max} step={step} value={value} onValue={n => onChange(n)} />
       <output>{ed != null
         ? <input className="nb-slide-v" autoFocus inputMode="decimal" aria-label={`${label} 직접 입력`} value={ed} onChange={e => setEd(e.target.value)} onBlur={commit}
             onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); commit(); } if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setEd(null); } }} />
@@ -218,7 +219,7 @@ export function WebYarn({ draft, patch, tried, noColor, sub, soft }: { draft: Dr
         {mode === "mm" ? (
           <div className="nb-wrow">
             <span className="nb-box"><input id="yMm" inputMode="decimal" autoComplete="off" aria-labelledby="wMmLbl" aria-invalid={showErr} aria-describedby={showErr ? "yMmErr" : undefined} value={mmRaw} onChange={e => setMm(e.target.value)} placeholder="예: 3.2" /><span>mm</span></span>
-            <label className="nb-slide nb-slide-in"><span className="sr">굵기 조절</span><input type="range" min={1} max={10} step={0.1} value={!mmErr ? mm : 3} onChange={e => setMm(e.target.value)} /></label>
+            <label className="nb-slide nb-slide-in"><span className="sr">굵기 조절</span><SmoothRange min={1} max={10} step={0.1} value={!mmErr ? mm : 3} onValue={(_, raw) => setMm(raw)} /></label>
             {!mmErr && <span className="nb-wtag">{YARN_KO[weightFromMm(Math.round(mm * 10) / 10)]} 굵기</span>}
             {/* 알 수 없음 (Kim): then only 가는 실 / 보통 / 굵은 실 to pick */}
             <button type="button" className="nb-link nb-wright" onClick={() => patch({ yarnMode: "level" })}>알 수 없음</button>

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { store } from "@/lib/store";
 import type { Draft } from "@/lib/types";
 import { COLORS } from "./YarnStep";
+import { SmoothRange } from "./SmoothRange";
 
 type Patch = (p: Partial<Draft>) => void;
 const FAV_KEY = "iyarn.favColors", MAX_FAV = 16;
@@ -93,7 +94,7 @@ export function ColorStudio({ draft, patch }: { draft: Draft; patch: Patch }) {
           <button type="button" className="cs-save" onClick={() => { saveFav(); setFavOpen(true); }} disabled={favs.includes(cur)}>{favs.includes(cur) ? "저장됨" : "이 색 저장"}</button>
         </div>
       </div>
-      <input className="cs-hue" type="range" min={0} max={359} step={1} value={Math.round(h)} aria-label="색상" onChange={e => fromHsv(Number(e.target.value), s || .5, v || .9)} />
+      <SmoothRange className="cs-hue" min={0} max={359} step={1} value={Math.round(h)} aria-label="색상" onValue={n => fromHsv(n, s || .5, v || .9)} />
 
       {/* 저장된 색 (Kim): a toggle - closed, only its name and how many */}
       <div className="cs-row cs-favrow">

@@ -206,7 +206,9 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     // the page under this screen stays where it was (Kim: the book was left under the bar): going to a section here
     // scrolls the page too, so its place is put back on the way out
     const sx = window.scrollX, sy = window.scrollY;
-    backRef.current?.querySelector("button")?.focus();
+    // in the next frame, once the screen has been laid out: asked for here, the browser laid the whole new screen
+    // out on the spot to answer (0.15s of the opening)
+    const focusF = requestAnimationFrame(() => backRef.current?.querySelector("button")?.focus());
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof Element && e.target.closest(".aic-root")) return;
       const pop = root.current?.querySelector<HTMLElement>(".yw-leave, .sk-pop");
@@ -223,7 +225,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     const spaceDown = (e: KeyboardEvent) => { if (e.code !== "Space" || typing(e.target)) return; e.preventDefault(); if (!e.repeat) { viewer.current?.setTool("pan"); setTool("pan"); } };
     const spaceUp = (e: KeyboardEvent) => { if (e.code !== "Space") return; viewer.current?.setTool("rotate"); setTool("rotate"); };
     window.addEventListener("keydown", onKey, true); window.addEventListener("keydown", spaceDown); window.addEventListener("keyup", spaceUp);
-    return () => { window.removeEventListener("keydown", onKey, true); window.removeEventListener("keydown", spaceDown); window.removeEventListener("keyup", spaceUp); document.body.style.overflow = prev; bookPause.set(false); window.scrollTo(sx, sy); requestAnimationFrame(() => window.scrollTo(sx, sy)); };
+    return () => { cancelAnimationFrame(focusF); window.removeEventListener("keydown", onKey, true); window.removeEventListener("keydown", spaceDown); window.removeEventListener("keyup", spaceUp); document.body.style.overflow = prev; bookPause.set(false); window.scrollTo(sx, sy); requestAnimationFrame(() => window.scrollTo(sx, sy)); };
   }, [onClose]);
 
   // the engine: made once, disposed on the way out. Phones (Kim, 11/25: 모바일에서 3D를 틀면 자꾸 꺼진다): while the
@@ -287,7 +289,11 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0), [more, setMore] = useState(false);
   useEffect(() => {
     const el = body.current; if (!el) return;
-    const f = () => {
+    // once a frame at most, and in the frame (not in the middle of React putting the screen in: every such ask made
+    // the browser lay the whole column out again - 0.3s of the opening)
+    let q = 0;
+    const f = () => { if (!q) q = requestAnimationFrame(() => { q = 0; measure(); }); };
+    const measure = () => {
       const secs = [...el.querySelectorAll<HTMLElement>(".yw-sec")], top = el.getBoundingClientRect().top + 24; let k = 0; secs.forEach((x, i) => { if (x.getBoundingClientRect().top <= top) k = i; }); if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4) k = secs.length - 1; setCur(k);
       // more below (Kim: 아래로 향하는 화살표 - so it is plain the list goes on)
       setMore(el.scrollHeight - el.scrollTop - el.clientHeight > 28);
@@ -295,7 +301,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
     f(); el.addEventListener("scroll", f, { passive: true });
     const ro = new ResizeObserver(f); ro.observe(el); if (el.firstElementChild) ro.observe(el.firstElementChild);
     const mo = new MutationObserver(f); mo.observe(el, { childList: true, subtree: true });
-    return () => { el.removeEventListener("scroll", f); ro.disconnect(); mo.disconnect(); };
+    return () => { cancelAnimationFrame(q); el.removeEventListener("scroll", f); ro.disconnect(); mo.disconnect(); };
   }, [mk?.sections.length]);
   const size = empty ? "" : extra?.caption ?? (!info ? "" : (info.round ? `지름 약 ${info.widthCm}cm` : `약 ${info.widthCm} × ${info.depthCm}cm`) + (info.heightCm ? ` · 높이 약 ${info.heightCm}cm` : ""));
 

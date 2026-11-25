@@ -212,7 +212,10 @@ const reduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-
 
 /** WebGL present? (the overlay shows one line instead of the viewer when not) */
 export function hasWebGL(): boolean {
-  try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; }
+  // whether the browser has WebGL at all - without making a context to find out (on Windows each one made is
+  // 0.2s of the page standing still, and this was asked before every viewer). A context that cannot be made
+  // after all: createYarnViewer gives null, and the screens say so the same way
+  return typeof window !== "undefined" && ("WebGL2RenderingContext" in window || "WebGLRenderingContext" in window);
 }
 
 /** the stitches a pattern draws (for the level of detail) */
@@ -292,7 +295,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     ([[190, 26, 26], [60, 40, 16], [120, 18, 12]] as const).forEach(([a, b, r]) => { const q = x.createRadialGradient(a, b, 0, a, b, r); q.addColorStop(0, "rgba(255,255,255,1)"); q.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = q; x.fillRect(a - r, b - r, r * 2, r * 2); });
     const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; return t;
   })();
-  const pm = new THREE.PMREMGenerator(renderer); const ENV = pm.fromEquirectangular(envSrc).texture; pm.dispose();
+  // made the first time a yarn or a button needs it (metallic, silk; a metal button): making it compiles shaders
+  // of its own - 0.7s of the page standing still at every opening, for a map cotton and wool never use
+  let ENV: THREE.Texture | null = null;
+  const env = () => { if (!ENV) { const pm = new THREE.PMREMGenerator(renderer); ENV = pm.fromEquirectangular(envSrc).texture; pm.dispose(); } return ENV; };
 
   // ---------- fibre grain (stripes along the yarn)
   function fiberTex() {
@@ -335,13 +341,14 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // sheen: the soft light along fibres (wool, chenille, silk), the colour stays the yarn's own
     // dry (Kim): only silk and nylon (drawn as silk), the tinsel and metal shine; the rest takes little light
     const shiny = st.preset === "silk" || st.preset === "nylon" || st.preset === "scrub" || st.metal > .5;
-    const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: shiny ? st.rough : Math.max(.94, st.rough), specularIntensity: shiny ? 1 : .25, metalness: st.metal, envMap: st.metal || st.preset === "silk" ? ENV : null, envMapIntensity: st.metal ? 1.25 : .35,
+    const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: shiny ? st.rough : Math.max(.94, st.rough), specularIntensity: shiny ? 1 : .25, metalness: st.metal, envMap: st.metal || st.preset === "silk" ? env() : null, envMapIntensity: st.metal ? 1.25 : .35,
       bumpMap: FTEX, bumpScale: R * (st.preset === "raffia" ? .14 : .05), sheen: st.sheen, sheenRoughness: st.preset === "silk" ? .28 : .6, sheenColor: new THREE.Color(.34, .33, .32) });
     return m;
   }
 
   // ---------- yarn: centre line (points) -> twisted ply surface
-  function buildYarn(pts: THREE.Vector3[], R: number, o: { M?: number; closed?: boolean; color: string }) {
+  /** the strand's rings filled a range at a time (`fill`), then joined into its geometry (`finish`) */
+  function yarnParts(pts: THREE.Vector3[], R: number, o: { M?: number; closed?: boolean; color: string }) {
     // every ply shown whenever there are three points round the strand for it (Kim: 실의 꼬인 모양 - at the page's
     // detail the plies were cut to two or one, the twist gone and the yarn a smooth tube)
     const n = pts.length, M = o.M || Math.max(14, st.plies * 6), N = o.M ? Math.min(st.plies, Math.max(2, Math.floor(o.M / 3))) : st.plies, tau = st.twist * 0.75 / R, K = 3;
@@ -350,7 +357,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     let s = 0; const base = new THREE.Color(o.color), slub0 = Math.random() * 9;
     // 합사 (Kim): the main yarn and a second one held together - the plies take the two colours in turn, twisting
     const base2 = pat.marl && o.color === pat.colors[0] ? new THREE.Color(pat.marl) : null, reps = Math.max(1, Math.floor(Math.max(2, N) / 2)), share = Math.max(.1, Math.min(.9, pat.marlShare ?? .5)); // already linear in r187 (no convertSRGBToLinear)
-    for (let i = 0; i < n; i++) {
+    const fill = (i0: number, i1: number) => { for (let i = i0; i < i1; i++) {
       T.copy(pts[Math.min(n - 1, i + 1)]).sub(pts[Math.max(0, i - 1)]).normalize();
       if (i === 0) { Nv.set(0, 0, 1); if (Math.abs(T.z) > .9) Nv.set(0, 1, 0); }
       Nv.sub(tmp.copy(T).multiplyScalar(Nv.dot(T))).normalize(); B.crossVectors(T, Nv);
@@ -370,10 +377,20 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         col[k * 3] = cc.r * sh; col[k * 3 + 1] = cc.g * sh; col[k * 3 + 2] = cc.b * sh;
         uv[k * 2] = s / (R * 7); uv[k * 2 + 1] = j / M * Math.max(1, N) - tau * s / (Math.PI * 2) * Math.max(1, N) * (st.braid ? 0 : 1);
       }
-    }
+    } };
+    const finish = () => {
     const idx: number[] = []; for (let i = 0; i < n - 1; i++) for (let j = 0; j < M; j++) { const a = i * (M + 1) + j, b = a + M + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.BufferAttribute(col, 3)); g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
     g.userData = { frames, R, perRing: M * 6, color: o.color }; return g;
+    };
+    return { n, fill, finish };
+  }
+  function buildYarn(pts: THREE.Vector3[], R: number, o: { M?: number; closed?: boolean; color: string }) { const y = yarnParts(pts, R, o); y.fill(0, y.n); return y.finish(); }
+  /** the same, giving way between runs of 48 rings: for a strand thousands of points long (a handle is one yarn) */
+  function* buildYarnG(pts: THREE.Vector3[], R: number, o: { M?: number; closed?: boolean; color: string }): Generator<void, THREE.BufferGeometry, void> {
+    const y = yarnParts(pts, R, o);
+    for (let i = 0; i < y.n; i += 48) { y.fill(i, Math.min(y.n, i + 48)); if (over()) yield; }
+    return y.finish();
   }
 
   /** many small strands (every stitch's head and legs) as one geometry per colour, carrying what the fuzz and
@@ -385,7 +402,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const out: THREE.BufferGeometry[] = [];
     byColor.forEach((list, color) => {
       const g = mergeGeometries(list, false) ?? list[0], frames: { p: THREE.Vector3; t: THREE.Vector3; n: THREE.Vector3; b: THREE.Vector3; s: number }[] = [];
-      let off = 0; list.forEach(p => { const fr = p.userData.frames as typeof frames; fr.forEach(f => frames.push({ ...f, s: f.s + off })); off += fr.length ? fr[fr.length - 1].s : 0; });
+      // the parts' own frames are taken over as they are (the parts are let go below), not copied one by one
+      let off = 0; list.forEach(p => { const fr = p.userData.frames as typeof frames, len = fr.length ? fr[fr.length - 1].s : 0; if (off) for (const f of fr) f.s += off; for (const f of fr) frames.push(f); off += len; });
       g.userData = { frames, R: list[0].userData.R, perRing: list[0].userData.perRing, color };
       if (g !== list[0]) list.forEach(p => p.dispose());
       out.push(g);
@@ -679,12 +697,16 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     let miny = 1e9; D.P.forEach(p => { if (p.y < miny) miny = p.y; }); D.P.forEach(p => { p.y -= miny; });
   }
   let holo: THREE.Group | null = null;
+  // the structure view's four materials are made once and kept: made new for every shape (and the old let go
+  // first), their shaders were put together again at every change of size
+  const holoMats = new Map<string, THREE.Material>();
+  const kept = <T extends THREE.Material>(k: string, make: () => T): T => { let m = holoMats.get(k) as T | undefined; if (!m) { m = make(); m.userData.keep = true; holoMats.set(k, m); } return m; };
   function buildHolo(D: ItemData) {
     const n = D.P.length, pos = new Float32Array(n * 3); const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     const ring: number[] = [], vert: number[] = []; D.E.forEach(e => { if (e[3] === 1) (Math.abs(e[2] - D.sw) < 1e-9 ? ring : vert).push(e[0], e[1]); });
-    const mk = (idx: number[], color: number, op: number) => { const g = new THREE.BufferGeometry(); g.setAttribute("position", pg.getAttribute("position")); g.setIndex(idx); return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: lin(color), transparent: true, opacity: op })); };
+    const mk = (idx: number[], color: number, op: number) => { const g = new THREE.BufferGeometry(); g.setAttribute("position", pg.getAttribute("position")); g.setIndex(idx); return new THREE.LineSegments(g, kept("l" + color + "/" + op, () => new THREE.LineBasicMaterial({ color: lin(color), transparent: true, opacity: op }))); };
     const LC = D.C[D.C.length - 1] ?? { idx: [], closed: false }, hi: number[] = []; for (let i = 0; i < LC.idx.length - (LC.closed ? 0 : 1); i++) hi.push(LC.idx[i], LC.idx[(i + 1) % LC.idx.length]);
-    const g = new THREE.Group(); g.add(mk(vert, 0xb99447, .28), mk(ring, 0xb08a3e, .9), mk(hi, 0xc0787e, 1), new THREE.Points(pg, new THREE.PointsMaterial({ color: lin(0xa8823a), size: .11, sizeAttenuation: true })));
+    const g = new THREE.Group(); g.add(mk(vert, 0xb99447, .28), mk(ring, 0xb08a3e, .9), mk(hi, 0xc0787e, 1), new THREE.Points(pg, kept("p", () => new THREE.PointsMaterial({ color: lin(0xa8823a), size: .11, sizeAttenuation: true }))));
     g.userData.pos = pg.getAttribute("position"); return g;
   }
   function updateHolo(D: ItemData) { const a = holo!.userData.pos as THREE.BufferAttribute; for (let i = 0; i < D.P.length; i++) a.setXYZ(i, D.P[i].x, D.P[i].y, D.P[i].z); a.needsUpdate = true; }
@@ -704,7 +726,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   function* buildItemYarn(D: ItemData): Generator<void, void, void> {
     const R = yarnR(D), geos: THREE.BufferGeometry[] = [];
     const mat = yarnMat(R), M = LOD.M, step = LOD.step, lp = (b: Bot) => D.P[b[0]].clone().lerp(D.P[b[1]], b[2]);
-    warmProgram(mat);
+    warmProgram(mat); yield; // handing the shader over is a frame's share by itself
     if (pat.shape.kind === "chart" && chartAt) {
       // a stitch chart (lib/crochetChart, lib/stitchCharts), stitch by stitch, lying in the fabric: a crochet
       // stitch's head a loop across its top, its post two strands from the base up, a long stitch's wraps round
@@ -779,7 +801,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // every piece, however big (Kim: 느려지면 생성 중을 띄우고 그냥 만들어) - the screen says 생성 중 while it is made
     const sH = pat.stitchH ?? 1, loops = !D.knit, postParts: THREE.BufferGeometry[] = [];
     const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); cv.arcLengthDivisions = shortDiv(pts.length); const g = buildYarn(cv.getSpacedPoints(Math.max(loPts(closed), Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color }); postV += g.getAttribute("position").count; postParts.push(g); };
-    // the stitches' strands are joined into meshes of ~60,000 vertices as they are made (in the order made), not
+    // the stitches' strands are joined into meshes of ~30,000 vertices as they are made (in the order made), not
     // all at the end in one: joining a whole bag at once was a pause of its own
     let postV = 0;
     const flushPosts = () => { if (!postParts.length) return; mergeYarn(postParts).forEach(g => { const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = false; group.add(m); meshes.push(m); geos.push(g); }); postParts.length = 0; postV = 0; };
@@ -799,7 +821,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       if (c.bot && loops) {
         const color = colorOf(c.ci), wr = wl && c.body ? (bodyN++ * (D.skip?.row ?? 1)) % wl.H : -1;
         for (let i = 0; i < c.idx.length; i++) {
-          if ((i & 7) === 7) { if (postV > 60_000) flushPosts(); if (over()) yield; }
+          if ((i & 7) === 7) { if (postV > 30_000) flushPosts(); if (over()) yield; }
           const n = c.idx[i];
           // the stitch worked here: the pattern's on the body (a drawn round standing for k of the pattern's takes
           // the repeat's row it starts on), else the piece's own stitch
@@ -928,7 +950,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
             return flat.add(offA.clone().lerp(offB, t).multiplyScalar(1 - .18 * s)); });
           const all = [...endA, ...arch, ...endB];
           strapEnds.push(endA[0].clone(), endB[endB.length - 1].clone());
-          const ht = strapBand(all, nrm, color, R, M, step, mat, geos, D.rh, belt);
+          const ht = yield* strapBand(all, nrm, color, R, M, step, mat, geos, D.rh, belt);
           strapH = Math.max(strapH, H + ht); continue;
         }
         if (pat.strap === "long" && pat.strapCm < 70) {
@@ -974,7 +996,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   //   flat-chain  a chain from end to end, widened by rows along it: its rows run the handle's length
   //   flat-rows   worked as wide as it should be, then row after row to its other end: its rows run across
   // A flat one is two layers of yarn thick, its stitches a little raised. Returns how far it stands out.
-  function strapBand(cl: THREE.Vector3[], nrm: THREE.Vector3, color: string, R: number, M: number, step: number, mat: THREE.Material, geos: THREE.BufferGeometry[], rh: number, belt = false, faces?: THREE.Vector3[]) {
+  function* strapBand(cl: THREE.Vector3[], nrm: THREE.Vector3, color: string, R: number, M: number, step: number, mat: THREE.Material, geos: THREE.BufferGeometry[], rh: number, belt = false, faces?: THREE.Vector3[]): Generator<void, number, void> {
     const U = 10 / MM, Wd = Math.max(.8, pat.strapWcm ?? 2.5) * U, N = cl.length - 1;
     const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + cl[i].distanceTo(cl[i - 1]));
     const L = cum[N];
@@ -989,12 +1011,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     };
     // one yarn for the whole handle (as it is worked: a spiral, or rows turning at their ends), its points made
     // even (no curve fitting over thousands of points) - one mesh, light enough beside the book's own 3D
-    const add = (pts: THREE.Vector3[]) => {
+    const add = function* (pts: THREE.Vector3[]): Generator<void, void, void> {
       if (pts.length < 2) return; const gap = R * .6 * step, out: THREE.Vector3[] = [pts[0]];
       for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], k = Math.ceil(a.distanceTo(b) / gap); for (let j = 1; j <= k; j++) out.push(a.clone().lerp(b, j / k)); }
       const even: THREE.Vector3[] = [out[0]]; let last = out[0];
       for (const q of out) if (q.distanceTo(last) >= gap * .9) { even.push(q); last = q; }
-      const g = buildYarn(even, R, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
+      if (over()) yield;
+      const g = yield* buildYarnG(even, R, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
     };
     const sw = R * 2.2; // one stitch across
     // a row's stitches stand up and lean back in turn (a zigzag the row's height): rows touch, as crochet's do
@@ -1010,7 +1033,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const e = Math.min(sAt, L - sAt) / endFlat, g = e >= 1 ? 1 : e * e * (3 - 2 * e), ra = r * (1 + .57 * (1 - g)), rb = r * Math.max(.12, g);
         pts.push(P.addScaledVector(Q, ra * Math.cos(a)).addScaledVector(F, rb * Math.sin(a)));
       }
-      add(pts); return r;
+      yield* add(pts); return r;
     }
     if (pat.strapStyle === "flat-chain") {
       // a chain from end to end, then rows along it, back and forth, until it is as wide as it should be
@@ -1019,7 +1042,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const o = (j - (n - 1) / 2) * Wd / n;
         for (let i = 0; i <= m; i++) { const s = L * (j % 2 ? m - i : i) / m, { P, Q, F } = frame(s); pts.push(P.addScaledVector(Q, o + zz(s / sw + j * .5)).addScaledVector(F, th * Math.cos(Math.PI * s / sw))); }
       }
-      add(pts); return th + R;
+      yield* add(pts); return th + R;
     }
     // flat-rows: worked as wide as it should be, then row after row, back and forth, to its other end
     const n = Math.max(2, Math.round(L / rh)), m = Math.max(8, Math.ceil(Wd / (R * .35)));
@@ -1027,7 +1050,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const x = ((j % 2 ? m - i : i) / m - .5) * Wd, { P, Q, F } = frame(Math.max(0, Math.min(L, L * j / n + zz(x / sw + j * .5))));
       pts.push(P.addScaledVector(Q, x).addScaledVector(F, th * Math.cos(Math.PI * x / sw)));
     }
-    add(pts); return th + R;
+    yield* add(pts); return th + R;
   }
   // ---------- 덮개: rows across the opening from the back, over the top, then down the front as far as the flap
   // is long; its outline below the front edge is the picked shape (반달 / 네모 / 세모). Returns where its tip is.
@@ -1103,7 +1126,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   function addExtras(D: ItemData, R: number) {
     const ex = pat.extras; if (!ex || !(ex.button || ex.label || ex.zipper || ex.tab || ex.items?.length) || !D.P.length) return;
     const b = boxOf(D), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, wall = b.my > D.rh * 3, U = 10 / MM; // U: 1cm
-    const std = (color: number, rough = .8, metal = 0) => new THREE.MeshStandardMaterial({ color: lin(color), roughness: rough, metalness: metal, envMap: metal ? ENV : null });
+    const std = (color: number, rough = .8, metal = 0) => new THREE.MeshStandardMaterial({ color: lin(color), roughness: rough, metalness: metal, envMap: metal ? env() : null });
     const put = (m: THREE.Object3D) => { m.traverse(o => { (o as THREE.Mesh).castShadow = true; }); group.add(m); };
     // the stitch at a height (a share of the piece's height) in the direction `a` from the middle (radians from
     // the front, towards the right), and the wall's own outward direction there (from its neighbours: an
@@ -1254,7 +1277,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     opts.onInfo({ round, widthCm: cm(Math.max(dx, dz)), depthCm: cm(Math.min(dx, dz)), heightCm: h, fit, skip: D.skip });
     return { my, mr: Math.max(dx, dz) / 2 };
   }
-  const disposeTree = (g: THREE.Object3D) => g.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | THREE.Material[] | undefined; if (mt) (Array.isArray(mt) ? mt : [mt]).forEach(x => x.dispose()); });
+  const disposeTree = (g: THREE.Object3D) => g.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | THREE.Material[] | undefined; if (mt) (Array.isArray(mt) ? mt : [mt]).forEach(x => { if (!x.userData.keep) x.dispose(); }); });
   function clearGroup() {
     if (anim) { cancelAnimationFrame(anim); anim = 0; }
     disposeTree(group);
@@ -1263,7 +1286,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   }
   // ---------- the yarn being made, a frame's share at a time
   /** the piece being put together: its generator, what is on the stage meanwhile, and what to do once it is whole */
-  let job: { gen: Generator<void, void, void>; D: ItemData; old: THREE.Group; then?: () => void } | null = null, sliceEnd = 0;
+  let job: { gen: Generator<void, void, void>; D: ItemData; old: THREE.Group; then?: () => void; built?: boolean; ready?: boolean } | null = null, sliceEnd = 0;
   /** what left the stage, let go a frame later: its shader programs are still in use by the new piece's first
    *  frame then, and are kept instead of being compiled again */
   let trash: THREE.Object3D[] = [];
@@ -1309,11 +1332,19 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   /** a frame's share of the yarn; true while there is more to make */
   function stepJob() {
     if (!job) return false;
-    sliceEnd = performance.now() + SLICE_MS;
-    const r = job.gen.next();
-    warmGeometry();
-    if (!r.done) return true;
-    const j = job; job = null;
+    if (!job.built) {
+      sliceEnd = performance.now() + SLICE_MS;
+      const r = job.gen.next();
+      warmGeometry();
+      if (!r.done) return true;
+      // made: it goes on the stage once every shader it needs is put together (the yarn's has been since the
+      // start; buttons, labels and hairs bring their own) - 4 seconds at most, then drawn the usual way
+      const made = job; made.built = true;
+      Promise.race([renderer.compileAsync(group, cam, scene).catch(() => { /* drawn the usual way */ }), new Promise(res => setTimeout(res, 4000))]).then(() => { made.ready = true; schedule(); });
+      return true;
+    }
+    if (!job.ready) return true;
+    const j = job; job = null; slowPiece = false;
     scene.remove(j.old); trash.push(j.old); scene.add(group);
     kick(); j.then?.();
     return false;
@@ -1644,18 +1675,43 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // ---------- drawing only when something changes: the shape settling, the camera moving (damping
   // included), the order animation. Nothing runs while it sits still.
   let raf = 0, alive = true, shadowDirty = true, needDraw = true;
+  // The very first frame: nothing is drawn until the scene's shaders are put together (compileAsync: in the
+  // driver's own thread where the browser can). Drawing with a shader not ready holds the page still until it is -
+  // measured 0.9s at the first frame of every viewer
+  let compileDirty = true, compiling = false;
+  // Turning a heavy piece on a slow graphics card (Kim: 렉은 안 된다): when the frames come slower than ~33 a second
+  // while it turns, it is drawn at 0.6 of the resolution for as long as it turns, and sharp again 0.2s after it
+  // rests. A piece that turned out slow starts its next turn that way; a new piece is measured anew.
+  const fullPR = renderer.getPixelRatio(); let lowRes = false, slowPiece = false, moveT = 0, moveN = 0, ema = 0, restT = 0;
+  const setRes = (low: boolean) => { if (low === lowRes) return; lowRes = low; renderer.setPixelRatio(low ? Math.max(.6, fullPR * .6) : fullPR); needDraw = true; };
+  const paceAt = new THREE.Vector3();
+  function pace(moved: boolean) {
+    // turning, as far as this goes: the camera going more than a hair a frame - the glide after the pointer lets go
+    // runs on for seconds, slower and slower, and the picture should be sharp again long before it ends
+    const d2 = cam.position.distanceToSquared(paceAt), far = cam.position.distanceToSquared(ctl.target); paceAt.copy(cam.position);
+    if (!moved || job || d2 < far * 4e-6) { moveN = 0; return; }
+    const now = performance.now(), dt = now - moveT; moveT = now;
+    if (dt > 250) moveN = 0; // a new turn
+    if (moveN++ === 0) { if (slowPiece) setRes(true); }
+    else { ema = moveN === 2 ? dt : ema * .7 + dt * .3; if (!lowRes && moveN > 6 && ema > 30) { slowPiece = true; setRes(true); } }
+    if (lowRes) { clearTimeout(restT); restT = window.setTimeout(() => { setRes(false); schedule(); }, 220); }
+  }
   function frame() {
     raf = 0; if (!alive) return;
     const settling = !!IT.data && !IT.data.done;
     tickItem();
     const building = stepJob();
-    const moved = ctl.update();
+    const moved = ctl.update(); pace(moved);
     // drawn when something is to be seen anew; while the yarn is only being made, the stage is left as it is
     if (needDraw || settling || moved || anim) {
-      needDraw = false;
-      if (shadowDirty || settling || anim) { renderer.shadowMap.needsUpdate = true; shadowDirty = false; }
-      renderer.render(scene, cam); rules(); frameBox();
-      if (trash.length) { trash.forEach(disposeTree); trash = []; }
+      if (compileDirty) { compileDirty = false; compiling = true; Promise.race([renderer.compileAsync(scene, cam).catch(() => { /* drawn the usual way */ }), new Promise(res => setTimeout(res, 4000))]).then(() => { compiling = false; camKick(); }); }
+      if (compiling) needDraw = true; // not yet: this frame is drawn once the shaders are ready
+      else {
+        needDraw = false;
+        if (shadowDirty || settling || anim) { renderer.shadowMap.needsUpdate = true; shadowDirty = false; }
+        renderer.render(scene, cam); rules(); frameBox();
+        if (trash.length) { trash.forEach(disposeTree); trash = []; }
+      }
     }
     if (settling || moved || anim) camKick(); else if (building) schedule();
   }
@@ -1784,11 +1840,11 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     home() { touched = false; framed = true; if (IT.data) { cam.position.copy(ctl.target).addScaledVector(HOME, 10); wasFab = false; if (opts.fit) fitAll(IT.data, HOME.clone()); else frameOn(IT.data); } },
     viewShot() {
       // the view as it is now, at the canvas's own size (checking how the stitches look up close)
-      renderer.render(scene, cam); return renderer.domElement.toDataURL("image/jpeg", .82);
+      setRes(false); renderer.render(scene, cam); return renderer.domElement.toDataURL("image/jpeg", .82);
     },
     snapshot() {
       const D = IT.data; if (!D?.done || job) return null; // not while the yarn is being made (the stage shows what was there before)
-      const pos = cam.position.clone(), tgt = ctl.target.clone();
+      const pos = cam.position.clone(), tgt = ctl.target.clone(); setRes(false);
       fitAll(D, new THREE.Vector3(0, .1, 1)); renderer.render(scene, cam);
       const big = renderer.domElement, k = Math.min(1, 560 / Math.max(big.width, big.height)), c = document.createElement("canvas");
       c.width = Math.round(big.width * k); c.height = Math.round(big.height * k);
@@ -1812,7 +1868,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       alive = false; cancelAnimationFrame(raf); ro.disconnect(); clearGroup(); job = null; trash.forEach(disposeTree); trash = []; ctl.dispose(); // (a half-made piece is `group`, just cleared; what it was to replace is still in the scene, let go below)
       canvas.removeEventListener("pointerdown", exDown, true); canvas.removeEventListener("pointermove", exMove); canvas.removeEventListener("pointerup", exUp); canvas.removeEventListener("pointercancel", exUp);
       scene.traverse(o => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); const mt = m.material as THREE.Material | undefined; if (mt) mt.dispose(); });
-      pics.forEach(t => t.dispose()); WARM_GEO.dispose(); warmRT.dispose(); warmMat.dispose(); FTEX.dispose(); HTEX.dispose(); envSrc.dispose(); ENV.dispose(); sun.shadow.map?.dispose();
+      pics.forEach(t => t.dispose()); WARM_GEO.dispose(); warmRT.dispose(); warmMat.dispose(); FTEX.dispose(); HTEX.dispose(); envSrc.dispose(); ENV?.dispose(); holoMats.forEach(m => m.dispose()); clearTimeout(restT); sun.shadow.map?.dispose();
       renderer.dispose(); renderer.forceContextLoss();
     },
   };
