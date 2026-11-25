@@ -106,6 +106,12 @@
   html body .tp-start .st-big .st-kicker{margin-bottom:22px}
   html body .nb-left .nb-foot.is-menu{position:absolute;left:14px;top:14px;z-index:3;margin:0;padding:0;border:0}
   html body .nb-left .nb-foot.is-menu .nb-folio{display:none}
+  /* Kim (11/26: 메뉴 버튼도 너무 커 - 라벨에서 내리고 화살표만): no cloth label, just the arrow, as big as the closing X
+     across from it; "메뉴" is still read out, and the press area stays 44px */
+  html body .nb-left .nb-foot.is-menu .cloth-label{min-width:44px;min-height:44px;padding:0}
+  html body .nb-left .nb-foot.is-menu .cloth-face{height:auto;padding:0;background:none;border:0;border-image:none;box-shadow:none;transform:none;font-size:24px;line-height:1;font-weight:400;color:#6B5B52}
+  html body .nb-left .nb-foot.is-menu .cloth-face::before,html body .nb-left .nb-foot.is-menu .cloth-face::after{content:none}
+  html body .nb-left .nb-foot.is-menu .nb-menu-word{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 }
 
 /* the 3D work screen on phones (Kim, 11/25) - at the foot only 확인하기 (no "정하지 않은 항목" line, no size line);
