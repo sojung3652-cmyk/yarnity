@@ -6,7 +6,7 @@
 //   back and forth            n stitches x the "rows" rows         -> "rows" (목도리: knitted, Kim)
 //   tube                      n stitches x the "rounds" rounds     -> "tube"
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
-import { CROCHET, paintMask, paintSize, type Plan, type PlanInput } from "@/lib/pattern";
+import { CROCHET, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
 import { compileChart, type Chart, type ChartKey } from "@/lib/crochetChart";
@@ -70,7 +70,7 @@ const MAT: Record<string, YarnMaterial> = {
   코튼: "cotton", 울: "wool", 메리노: "wool", 캐시미어: "cashmere", 아크릴: "wool", 알파카: "alpaca", 모헤어: "mohair", 앙고라: "angora",
   수면사: "sleep", 부클레: "boucle", 수세미실: "scrub", 패브릭얀: "tshirt", 리본얀: "ribbon", 황마: "jute",
   리넨: "linen", 실크: "silk", 대나무: "cotton", 나일론: "nylon", 폴리에스터: "cotton", "벨벳(셔닐)": "chenille",
-  라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈릭: "metal",
+  라피아: "raffia", 코드사: "cord", 페이크퍼: "fur", 메탈사: "metal", 메탈릭: "metal", // 메탈릭: its name before (saved works)
 };
 
 export function yarn3dSupported(p: PlanInput): boolean {
@@ -139,7 +139,9 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   const wc = p.object === "bag" && !p.free && !isKnit(p) ? (p.crochetChart ? wallOfRounds(p.crochetChart, pp)
     : p.chartName && chartFor(p.chartName) ? wallOfChart(chartFor(p.chartName)!) : null) : null;
   const wall = wc ? { ...wc, colors: [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] } : null;
-  return { shape, colors, yarnMm: p.yarnMm || LEVEL_MM[p.weight] || 3, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
+  // 메탈사 held two or three strands together (Kim): the yarn drawn as thick as the strands make it
+  const mm0 = p.yarnMm || LEVEL_MM[p.weight] || 3, yarnMm = pliesOf(p) > 1 ? pliedMm(mm0, pliesOf(p)) : mm0;
+  return { shape, colors, yarnMm, hookMm: hookMmOf(p), strap, strapCm: handleCm, material,
     ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
     ...(p.free ? {} : p.item === "pouch" && p.gusset !== "box" && p.flapOver !== "top" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),

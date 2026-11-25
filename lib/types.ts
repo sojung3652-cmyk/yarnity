@@ -35,6 +35,8 @@ export interface Draft {
   stitch?: string;
   /** yarn thickness in mm as typed; weight is derived from it (lib/yarn.ts); "level" = picked thin/medium/thick */
   yarnMm?: number | null;
+  /** 메탈사 (Kim): how many strands are held together, 1-3 (none: one) - the gauge and the 3D's yarn thicken with them */
+  plies?: 1 | 2 | 3;
   /** how hairy the 3D draws the yarn (web: 털 양 / 털 길이 on the 실 page; 1 = the material's own). Only a look. */
   fuzzK?: number;
   hairK?: number;

@@ -214,7 +214,8 @@ export function TrackScreen() {
   // the symbols this work's chart uses, in the order of a symbol table
   const syms: StitchSym[] = flat
     ? ["ch", "sc"]
-    : [p.shape === "circle" ? "ring" : "ch", "sc", "inc", ...(p.object === "bag" && pp.rows.some(x => x.part === "rim") ? ["sl" as const] : [])];
+    // (a stitch pattern's rounds are drawn in their own symbols: 한길긴뜨기 for a shell's fans, chains for 모스 and 그물)
+    : [p.shape === "circle" ? "ring" : "ch", ...(p.shape === "circle" && pp.rows.some(x => x.wall && (x.wall.k === "moss" || x.wall.k === "net")) ? ["ch" as const] : []), "sc", "inc", ...(pp.rows.some(x => x.wall?.k === "shell") ? ["dc" as const] : []), ...(p.object === "bag" && pp.rows.some(x => x.part === "rim") ? ["sl" as const] : [])];
   // sections in pattern order (01 바닥, 02 몸통...), as on the pattern sheet
   const parts = pp.rows.map(x => x.part).filter((x, i, a) => a.indexOf(x) === i);
   const secNo = (part: Row["part"]) => String(parts.indexOf(part) + 1).padStart(2, "0");

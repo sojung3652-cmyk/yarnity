@@ -10,10 +10,20 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onC
   value: number | string;
   /** the value dragged to: as a number, and as the input wrote it */
   onValue: (n: number, raw: string) => void;
+  /** an arrow key's own step (Kim: 크기는 무늬 단위로): the value one stop on in that direction, or null for the
+   *  slider's usual step. A slider that stops only at a stitch pattern's repeats needs it - a key moves it by one
+   *  `step`, and where that is less than half the way to the next stop the value fell back to where it was. */
+  nudge?: (dir: 1 | -1) => number | null;
 };
 
-export function SmoothRange({ value, onValue, ...rest }: Props) {
+export function SmoothRange({ value, onValue, nudge, ...rest }: Props) {
   const [own, setOwn] = useState<string | null>(null), [pending, start] = useTransition();
   useEffect(() => { if (!pending) setOwn(null); }, [pending]);
-  return <input type="range" {...rest} value={own ?? value} onChange={e => { const raw = e.target.value; setOwn(raw); start(() => onValue(Number(raw), raw)); }} />;
+  const go = (n: number, raw: string) => { setOwn(raw); start(() => onValue(n, raw)); };
+  return <input type="range" {...rest} value={own ?? value} onChange={e => go(Number(e.target.value), e.target.value)}
+    onKeyDown={e => {
+      const d = e.key === "ArrowRight" || e.key === "ArrowUp" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowDown" ? -1 : 0, to = d && nudge ? nudge(d) : null;
+      if (to != null) { e.preventDefault(); go(to, String(to)); }
+      rest.onKeyDown?.(e);
+    }} />;
 }

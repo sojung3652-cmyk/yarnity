@@ -20,6 +20,7 @@ import { useShot } from "@/lib/useShot";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
 import { isKnit, partName, shownPlan } from "@/lib/knit";
+import { KOREAN_LEGEND } from "@/lib/koreanNotation";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { WorkMore } from "@/components/WorkMore";
 import { YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
@@ -40,6 +41,7 @@ export default function PatternPage() {
   return <PatternScreen />;
 }
 
+const STYLE_KEY = "iyarn.notation";
 export function PatternScreen() {
   const { ready, active: p, updateProject } = useApp();
   const book = useBook();
@@ -49,9 +51,13 @@ export function PatternScreen() {
   useEffect(() => { try { sessionStorage.removeItem("m.justMade"); } catch {} }, []);
   // the 3D's front view, taken when the work was finished on the work screen (lib/shots; this browser only)
   const shot = useShot(p?.id, p, p ? shownPlan(p) : null, p?.updatedAt ?? 0);
+  // 한국식 표기로 보기 (Kim): the rows' words either way - the choice is kept on this device
+  const [style, setStyle] = useState<"plain" | "korean">("plain");
+  useEffect(() => { try { if (localStorage.getItem(STYLE_KEY) === "korean") setStyle("korean"); } catch {} }, []);
+  const pickStyle = (s: "plain" | "korean") => { setStyle(s); try { localStorage.setItem(STYLE_KEY, s); } catch {} };
   if (!ready || !p) return <Making />;
 
-  const pp = shownPlan(p), it = ITEM[itemIdOf(p)];
+  const knit = isKnit(p), pp = shownPlan(p, knit ? "plain" : style), it = ITEM[itemIdOf(p)];
   const rounds = p.object === "coaster" || p.object === "bag";
 
   // the rows in sections by part; runs of identical rows read as one line ("26–50단")
@@ -131,6 +137,12 @@ export function PatternScreen() {
 
         {/* the rows, section by section */}
         <section className="ps-rows" id="patRows" aria-label="단별 도안">
+          {!knit && <div className="ps-style">
+            <span className="ps-seg" role="radiogroup" aria-label="도안 글 표기">
+              {([["plain", "풀어 쓰기"], ["korean", "한국식 표기"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={style === k} onClick={() => pickStyle(k)}>{t}</button>)}
+            </span>
+          </div>}
+          {!knit && style === "korean" && <p className="ps-legend">{KOREAN_LEGEND}</p>}
           {sections.map((s, k) => (
             <div key={k} className="ps-part">
               <h2 className="ps-part-title"><span className="ps-part-no">{String(k + 1).padStart(2, "0")}</span>{partName(s.part, p)}

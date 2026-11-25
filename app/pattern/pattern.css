@@ -47,6 +47,13 @@
 .ps-rule b{margin-right:6px;color:var(--ps-ink);font-weight:600}
 
 /* the rows */
+/* the rows' words either way (Kim: 한국식 표기로도 보기): a joined choice at the right, and what the marks mean */
+.ps-style{display:flex;justify-content:flex-end;margin:0 0 10px}
+.ps-seg{display:inline-flex;border-radius:6px;box-shadow:inset 0 0 0 1px #CDBFB4;overflow:hidden}
+.ps-seg button{height:28px;padding:0 12px;border:0;background:#FFFDF8;font:inherit;font-size:13px;color:#5E554E;cursor:pointer}
+.ps-seg button[aria-checked="true"]{background:rgba(224,170,174,.35);color:#3A322D;font-weight:600}
+.ps-seg button:focus-visible{outline:2px solid #4A3D38;outline-offset:-2px}
+.ps-legend{margin:0 0 16px;font-size:12.5px;line-height:1.65;color:var(--ps-soft)}
 .ps-part+.ps-part{margin-top:30px}
 .ps-part-title{display:flex;align-items:baseline;gap:12px;margin:0 0 6px;padding-bottom:8px;border-bottom:1.5px solid var(--ps-ink);font-size:16px;font-weight:600}
 .ps-part-no{font-family:var(--font-cormorant),"Cormorant Garamond",serif;font-size:19px;font-weight:600;color:#DD8698;letter-spacing:.02em}

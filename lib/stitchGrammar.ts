@@ -11,6 +11,17 @@
 // Rows: "1단:", "2단:", "N단부터:" (that row from there on), "... 반복" (the rows so far over and over);
 // "( ... )을 끝까지" repeats to the end of the row, "× N" N times. What cannot be read is skipped, and a text
 // with nothing readable gives null (the caller keeps its own drawing).
+//
+// 한국식 표기 (Kim: 나중에 가져온 도안을 읽을 때): the same rows written the way Korean patterns write them are
+// read too - "3단 사슬 3(*) - [다음 코에 한길긴뜨기 2코 - 한길긴뜨기 1코] 11회 반복 - (*)빼뜨기 (36코)":
+//   (*)                      단수링 자리 (after a chain: that chain stands as the first stitch)
+//   [ ... ] n회 반복          a group n times;  { ... [ ... ] ... } n회 반복  a group with a group inside
+//   (36코) / (총 36코)        the row's count at its end
+// readKorean() counts a row (so a written count can be checked against what the row adds up to);
+// chartFromSteps() takes such rows as it takes the others.
+// Everything here works on the text it is handed and gives numbers and a chart back: nothing is stored, sent or
+// logged. A pattern someone bought and brought in stays where it was put (lib/imported) - reading it here does
+// not copy it anywhere.
 import { CHART_HT, type Chart, type ChartStitch, type ChartType } from "./crochetChart";
 
 type Slot = { x: number; y: number; kind: "st" | "sp"; type: ChartType | "ch"; w: number };
@@ -127,11 +138,113 @@ function layRow(items: Item[]): { st: ChartStitch[]; ch: Chart["ch"]; slots: Slo
   return { st, ch, slots };
 }
 
+// ------------------------------------------------------------------ 한국식 표기
+type KNode = { text: string } | { body: KNode[]; times: number };
+const K_STITCH = /(세길\s?긴뜨기|두길\s?긴뜨기|한길\s?긴뜨기|긴뜨기|짧은뜨기|빼뜨기)\s*(\d+)?/g;
+/** a row is in the Korean notation when it has its marks: (*), a [ ] or { } group, or a count closing it */
+export const isKorean = (line: string) => /\(\*\)|\[[^\]]*\]|\{[^}]*\}|\(\s*(?:총\s*)?\d+\s*코\s*\)\s*$|\(\s*아치\s*\d+\s*개\s*\)\s*$/.test(line);
+
+/** "a - [b - c] 3회 반복 - d" -> its pieces, groups nested as written; null when a bracket is left open */
+function splitKorean(s: string): KNode[] | null {
+  const out: KNode[] = []; let i = 0, cur = "";
+  const flush = () => { const t = cur.trim().replace(/^-\s*|\s*-$/g, "").trim(); if (t) for (const part of t.split(/\s+-\s+/)) if (part.trim()) out.push({ text: part.trim() }); cur = ""; };
+  while (i < s.length) {
+    const ch = s[i];
+    if (ch === "[" || ch === "{") {
+      const close = ch === "[" ? "]" : "}"; let depth = 1, j = i + 1;
+      while (j < s.length && depth) { if (s[j] === ch) depth++; else if (s[j] === close) depth--; j++; }
+      if (depth) return null;
+      const mark = /\(\*\)\s*$/.test(cur); if (mark) cur = cur.replace(/\(\*\)\s*$/, "");
+      flush(); if (mark) out.push({ text: "(*)" });
+      const body = splitKorean(s.slice(i + 1, j - 1)); if (!body) return null;
+      const m = s.slice(j).match(/^\s*(?:[을를]\s*)?(?:×\s*(\d+)|(\d+)\s*(?:회|번)(?:\s*반복)?)/);
+      out.push({ body, times: m ? Number(m[1] ?? m[2]) : 1 }); i = j + (m ? m[0].length : 0); continue;
+    }
+    cur += ch; i++;
+  }
+  flush(); return out;
+}
+
+export interface KoreanRow {
+  /** "3단" when the row says which it is */
+  label: string | null;
+  /** the count the row closes with: "(36코)" a count, "(아치 12개)" arches, "(짧은뜨기 9코 · 사슬 3코)" the two apart */
+  total: { kind: "count" | "arch" | "split"; n: number; ch?: number } | null;
+  /** what the row adds up to: stitches made (a chain marked (*) standing as one), chains inside the row,
+   *  chain arches (사슬 4 or more one arch, 사슬 2 half of one), the base chain, the (*) marks */
+  stitches: number; chains: number; arches: number; base: number; marks: number;
+  /** the written count is what the row adds up to (true when it closes with none) */
+  ok: boolean;
+}
+/** One row in the Korean notation, counted. Null when it is not written that way or a group is left open. */
+export function readKorean(line: string): KoreanRow | null {
+  if (!isKorean(line) && !/\s-\s/.test(line)) return null;
+  let s = line.trim(), label: string | null = null, total: KoreanRow["total"] = null;
+  const lm = s.match(/^(\d+)\s*단\s*:?\s*/); if (lm) { label = `${lm[1]}단`; s = s.slice(lm[0].length); }
+  const tm = s.match(/\(\s*(?:총\s*)?(\d+)\s*코\s*\)\s*$/), am = s.match(/\(\s*아치\s*(\d+)\s*개\s*\)\s*$/), sm = s.match(/\(\s*\S+\s*(\d+)\s*코\s*·\s*사슬\s*(\d+)\s*코\s*\)\s*$/);
+  if (sm) { total = { kind: "split", n: Number(sm[1]), ch: Number(sm[2]) }; s = s.slice(0, sm.index); }
+  else if (am) { total = { kind: "arch", n: Number(am[1]) }; s = s.slice(0, am.index); }
+  else if (tm) { total = { kind: "count", n: Number(tm[1]) }; s = s.slice(0, tm.index); }
+  const nodes = splitKorean(s); if (!nodes) return null;
+  const c = { stitches: 0, chains: 0, arches: 0, base: 0, marks: 0 }; let begun = false;
+  const walk = (ns: KNode[], k: number) => {
+    for (const nd of ns) {
+      if ("body" in nd) { walk(nd.body, k * nd.times); continue; }
+      let t = nd.text;
+      const stand = /^사슬\s*\d+\s*(?:코)?\s*\(\*\)/.test(t);                 // "사슬 3(*)": the chain stands as a stitch
+      const marks = t.match(/\(\*\)/g)?.length ?? 0; c.marks += marks * k; t = t.replace(/\(\*\)/g, "").trim();
+      if (!t) continue;
+      const base = t.match(/^기초\s*사슬\s*(\d+)/); if (base) { c.base += Number(base[1]) * k; continue; }
+      const ch = t.match(/^사슬\s*(\d+)\s*(?:코)?$/);
+      if (ch) {
+        const n = Number(ch[1]);
+        if (stand) c.stitches += k;
+        else if (!begun) { /* the 기둥사슬: no stitch */ }
+        else { c.chains += n * k; c.arches += (n >= 4 ? 1 : n === 2 ? .5 : 0) * k; }
+        begun = true; continue;
+      }
+      t = t.replace(/(\d+)\s*코\s*건너\s*(뛰고|뛰기|뛰어)?/g, " ").trim(); if (!t) continue;       // skipped stitches make none
+      if (/\d+\s*코\s*모아/.test(t)) { c.stitches += k; begun = true; continue; }               // several into one
+      let last: RegExpExecArray | null = null, m: RegExpExecArray | null; K_STITCH.lastIndex = 0;
+      while ((m = K_STITCH.exec(t))) if (m[2] !== undefined || !last || last[2] === undefined) last = m;
+      if (!last) continue;                                                                    // words only (뒤집어서 ...)
+      // a named stitch with its number makes that many; 빼뜨기 alone closes the round; another alone is one
+      const sl = /빼뜨기/.test(last[1]), made = last[2] !== undefined ? Number(last[2]) : sl ? 0 : 1;
+      c.stitches += made * k; if (made) begun = true;
+    }
+  };
+  walk(nodes, 1);
+  const ok = !total ? true : total.kind === "count" ? (c.base && !c.stitches ? c.base : c.stitches + c.chains) === total.n
+    : total.kind === "arch" ? c.arches === total.n : c.stitches === total.n && c.chains === total.ch;
+  return { label, total, ...c, ok };
+}
+
+/** a row in the Korean notation as the rows above are written ("(…) × n", commas), for chartFromSteps: groups
+ *  inside a group written out, the marks, the base chain, the closing slip stitch and the count left off */
+export function koreanToSteps(line: string): string {
+  let s = line.trim(), label = "";
+  const lm = s.match(/^(\d+)\s*단(부터)?\s*:?\s*/); if (lm) { label = `${lm[1]}단${lm[2] ?? ""}: `; s = s.slice(lm[0].length); }
+  s = s.replace(/\(\s*[^()]*\d+\s*(?:코|개)\s*\)\s*$/, "");
+  const nodes = splitKorean(s); if (!nodes) return line;
+  let first = true;
+  const one = (t0: string): string | null => {
+    const stand = /^사슬\s*\d+\s*(?:코)?\s*\(\*\)/.test(t0), t = t0.replace(/\(\*\)/g, "").trim(), was = first; if (t) first = false;
+    if (!t || /^기초\s*사슬/.test(t) || /^빼뜨기$/.test(t) || /^(뒤집어서|매직링)$/.test(t)) return null;
+    const ch = t.match(/^사슬\s*(\d+)\s*(?:코)?$/);
+    if (ch) return was && !stand && Number(ch[1]) === 1 ? null : `사슬 ${ch[1]}`;
+    return t.replace(/^다음 코에/, "한 코에").replace(/(\d+)\s*코(?!\s*(건너|모아))/g, "$1");
+  };
+  const flat = (ns: KNode[]): string[] => ns.flatMap(nd => "body" in nd ? Array.from({ length: nd.times }, () => flat(nd.body)).flat() : [one(nd.text)].filter((x): x is string => !!x));
+  const parts = nodes.flatMap(nd => "body" in nd ? [`(${flat(nd.body).join(", ")}) × ${nd.times}`] : [one(nd.text)].filter((x): x is string => !!x));
+  return label + parts.join(", ");
+}
+
 /** a pattern's written rows -> a chart `rows` rows high on a foundation chain `cols` long; null when nothing reads */
 export function chartFromSteps(lines: string[], cols: number, rows: number): Chart | null {
   // the rows as written: "N단:" one row, "N단부터:" from there on, a line with 반복 repeats the rows so far
   const defs: { text: string; from: boolean }[] = []; let cycle = false;
-  for (const l of lines) {
+  for (const l0 of lines) {
+    const l = isKorean(l0) ? koreanToSteps(l0) : l0; // 한국식 표기 is read as the rows above are
     if (/반복/.test(l) && !/[,(]/.test(l)) { cycle = true; continue; }
     const m = l.match(/^\s*(\d+)\s*단(부터)?\s*:?\s*(.*)$/);
     if (m) defs.push({ text: m[3], from: !!m[2] }); else if (l.trim()) defs.push({ text: l.trim(), from: false });

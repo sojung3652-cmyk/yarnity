@@ -2,7 +2,8 @@
 // (lib/stitchSymbols.ts): a magic ring or a chain base at the centre, single crochet (+) and increases (V)
 // around it, each turned to grow outward; rows and tubes as rows of + with their chains / slip stitches.
 // Browser-only: reads CSS colour tokens from :root.
-import { dots, outline, type Plan, type Shape } from "./pattern";
+import { CHART_MULT } from "./crochetChart";
+import { dots, outline, type Plan, type Row, type Shape } from "./pattern";
 import { drawSym, type StitchSym } from "./stitchSymbols";
 import type { Project } from "./types";
 
@@ -64,6 +65,31 @@ export function drawMap(cv: HTMLCanvasElement, pp: Plan, shape: Shape, upto: num
   }
 }
 
+/** One round of a bag's stitch pattern in the side view (Kim: 반 무늬로 시작하는 단을 기호도안에도): the pattern's
+ *  own symbols, a repeat at a time. A round that sits half a repeat over begins with half a pattern at the
+ *  round's start (the left edge) and ends with the other half - the start itself never moves sideways.
+ *  `n` stitches are shown across `bw`. False: a pattern drawn as plain stitches still (구멍뜨기, V 스티치). */
+function drawWall(ctx: CanvasRenderingContext2D, w: NonNullable<Row["wall"]>, n: number, x0: number, bw: number, y: number, size: number, color: string, weight: number): boolean {
+  const m = CHART_MULT[w.k][0], gap = bw / n, reps = Math.max(1, Math.floor(n / m)), half = w.i % 2 === 1, at = (s: number) => x0 + (s + .5) * gap;
+  const sym = (s: "sc" | "ch" | "dc", x: number, yy = y, ang = 0, k = 1) => drawSym(ctx, s, x, yy, size * k, ang, color, weight);
+  // a fan: `count` 한길긴뜨기 from one stitch, leaning from `from` to `to` (radians), their feet together
+  const fan = (x: number, count: number, from: number, to: number) => { for (let q = 0; q < count; q++) { const a = count === 1 ? 0 : from + (to - from) * q / (count - 1), r = size * .46; sym("dc", x + Math.sin(a) * r, y + size * .46 - Math.cos(a) * r, a); } };
+  // an arch of chains from x1 to x2, rising in the middle
+  const arch = (x1: number, x2: number, count: number, rise: number) => { for (let q = 1; q <= count; q++) { const f = q / (count + 1); sym("ch", x1 + (x2 - x1) * f, y - Math.sin(Math.PI * f) * rise * size, 0, .5); } };
+  if (w.k === "shell") {
+    if (!half) for (let q = 0; q < reps; q++) { sym("sc", at(q * m)); fan(at(q * m + 3), 5, -.7, .7); }
+    else { fan(at(0), 3, 0, .7); for (let q = 0; q < reps; q++) { sym("sc", at(q * m + 3)); if (q < reps - 1) fan(at(q * m + 6), 5, -.7, .7); } fan(at(reps * m - 1) + gap * .5, 2, -.7, -.35); }
+    return true;
+  }
+  if (w.k === "moss") { for (let s = 0; s < reps * m; s++) sym(s % 2 === (half ? 1 : 0) ? "sc" : "ch", at(s), y, 0, s % 2 === (half ? 1 : 0) ? 1 : .7); return true; }
+  if (w.k === "net") {
+    if (!half) for (let q = 0; q < reps; q++) { sym("sc", at(q * m)); arch(at(q * m), at(q * m + m), 5, .5); }
+    else { arch(at(0) - gap * .5, at(2), 2, .25); for (let q = 0; q < reps; q++) { sym("sc", at(q * m + 2)); if (q < reps - 1) arch(at(q * m + 2), at(q * m + 6), 5, .5); } arch(at(reps * m - 2), at(reps * m - 1) + gap * .5, 2, .25); }
+    return true;
+  }
+  return false;
+}
+
 export function drawTrack(cv: HTMLCanvasElement, p: Project, pp: Plan) {
   if (p.object === "rows" || p.object === "tube") return drawGrid(cv, p, pp);
   const R = pp.bottomRounds;
@@ -81,6 +107,7 @@ export function drawTrack(cv: HTMLCanvasElement, p: Project, pp: Plan) {
     const st: St = r.idx < p.current ? "done" : r.idx === p.current ? "now" : "future";
     const y = y1 - (i + 0.5) * rowH, n = Math.min(36, r.n), gap = bw / n, size = Math.max(5, Math.min(rowH * 0.9, gap * 1.3));
     const slip = r.part === "rim" && r.how.startsWith("빼뜨기"), incs = Math.min(n, Math.round((r.inc || 0) * n / r.n));
+    if (r.wall && drawWall(ctx, r.wall, n, x0, bw, y, size, col[st], size < 8 ? 1 : 1.2)) return;
     for (let k = 0; k < n; k++) {
       const isInc = incs > 0 && Math.floor((k + 1) * incs / n) !== Math.floor(k * incs / n);
       drawSym(ctx, slip ? "sl" : isInc ? "inc" : "sc", x0 + (k + 0.5) * gap, y, slip ? size * 0.8 : size, 0, col[st], size < 8 ? 1 : 1.2);

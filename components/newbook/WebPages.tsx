@@ -12,8 +12,8 @@ import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "r
 import type { Draft, YarnColor } from "@/lib/types";
 import { SmoothRange } from "./SmoothRange";
 import { ColorStudio } from "./ColorStudio";
-import { CROCHET, YARN_KO, type CrochetStitch, type Weight } from "@/lib/pattern";
-import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
+import { CROCHET, fmt, isMetalYarn, pliedMm, YARN_KO, type CrochetStitch, type Weight } from "@/lib/pattern";
+import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, METAL_TIP, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
 import { familiesOf, PATTERN_BY_ID, STITCH_PATTERNS, type StitchPattern } from "@/lib/stitchPatterns";
 import { CHART_MULT, CHART_ROWS, type Chart, type ChartKey } from "@/lib/crochetChart";
@@ -103,10 +103,26 @@ export function WebItems({ value, onPick, tried, hint, extra }: { value: ItemId 
 }
 
 // the materials shown at once (the rest under 더 보기); the 3D draws each of them its own way
-const WEB_MATERIALS = ["코튼", "울", "알파카", "모헤어", "앙고라", "수면사", "벨벳(셔닐)", "부클레", "페이크퍼", "수세미실", "리넨", "실크", "라피아", "패브릭얀", "코드사", "메탈릭"];
+const WEB_MATERIALS = ["코튼", "울", "알파카", "모헤어", "앙고라", "수면사", "벨벳(셔닐)", "부클레", "페이크퍼", "수세미실", "리넨", "실크", "라피아", "패브릭얀", "코드사", "메탈사"];
+
+/** 메탈사 (Kim): a thin yarn, held two or three strands together as a rule - how many, and what to mind with it.
+ *  Only while 메탈사 is among the materials. The strands thicken the gauge (lib/pattern PLY_K) and the 3D's yarn. */
+function MetalPlies({ draft, patch }: { draft: Draft; patch: Patch }) {
+  if (!isMetalYarn(draft.materials)) return null;
+  const mm = draft.yarnMode !== "level" && draft.yarnMm ? draft.yarnMm : null, n = draft.plies ?? 1;
+  return (
+    <div className="nb-plies">
+      <p className="nb-wsubhead">몇 줄 합사</p>
+      <Tiles label="몇 줄 합사" value={String(n)} cols={3} onPick={v => patch({ plies: Number(v) as 1 | 2 | 3 })}
+        options={([1, 2, 3] as const).map(k => [String(k), `${k}줄`, mm ? (k === 1 ? `${mm}mm 그대로` : `약 ${pliedMm(mm, k)}mm`) : k === 1 ? "그대로" : `약 ${fmt(Math.sqrt(k))}배 굵기`])} />
+      {/* a tip Kim asked for by name - not one of the explaining paragraphs the work screen leaves out (.nb-help) */}
+      <p className="nb-tip">{METAL_TIP}</p>
+    </div>
+  );
+}
 
 /** One slider with its name and value (털 양, 털 길이, 굵기): the 3D follows while it is dragged. */
-export function Slide({ label, min, max, step, value, onChange, text }: { label: string; min: number; max: number; step: number; value: number; onChange: (v: number) => void; text: string }) {
+export function Slide({ label, min, max, step, value, onChange, text, nudge }: { label: string; min: number; max: number; step: number; value: number; onChange: (v: number) => void; text: string; /** an arrow key's own step (SmoothRange) */ nudge?: (dir: 1 | -1) => number | null }) {
   // 직접 입력 (Kim): the value beside the slider is pressed and typed; Enter or leaving it sets it (kept within the
   // slider's range, on its steps); Esc leaves it as it was
   const [ed, setEd] = useState<string | null>(null);
@@ -119,7 +135,7 @@ export function Slide({ label, min, max, step, value, onChange, text }: { label:
   return (
     <div className="nb-slide">
       <span>{label}</span>
-      <SmoothRange aria-label={label} min={min} max={max} step={step} value={value} onValue={n => onChange(n)} />
+      <SmoothRange aria-label={label} min={min} max={max} step={step} value={value} onValue={n => onChange(n)} nudge={nudge} />
       <output>{ed != null
         ? <input className="nb-slide-v" autoFocus inputMode="decimal" aria-label={`${label} 직접 입력`} value={ed} onChange={e => setEd(e.target.value)} onBlur={commit}
             onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); commit(); } if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setEd(null); } }} />
@@ -147,7 +163,7 @@ export function PanelYarn({ draft, patch }: { draft: Draft; patch: Patch }) {
   const mm = parseNum(mmRaw);
   const setMm = (raw: string) => { setMmRaw(raw); const v = parseNum(raw); if (good(v)) { const r = Math.round(v * 10) / 10; patch({ yarnMm: r, weight: weightFromMm(r), yarnMode: "mm" }); } };
   const mats = draft.materials ?? [];
-  const toggleMat = (m: string) => patch({ materials: mats.includes(m) ? mats.filter(x => x !== m) : [...mats, m] });
+  const toggleMat = (m: string) => patch({ materials: mats.includes(m) ? mats.filter(x => x !== m) : [...mats, m], ...(mats.includes(m) && isMetalYarn([m]) ? { plies: undefined } : {}) });
   const preset = draft.color ? COLORS.find(([n, hex]) => hex === draft.color && n === draft.colorName) : undefined;
   return (
     <div className="nb-web">
@@ -178,6 +194,7 @@ export function PanelYarn({ draft, patch }: { draft: Draft; patch: Patch }) {
         <div className="nb-tiles nb-tiles-3" role="group" aria-label="재질 (여러 개)">
           {WEB_MATERIALS.map(m => <button key={m} type="button" className="nb-tile" aria-pressed={mats.includes(m)} onClick={() => toggleMat(m)}>{m === "벨벳(셔닐)" ? "셔닐" : m}</button>)}
         </div>
+        <MetalPlies draft={draft} patch={patch} />
         <HairSliders draft={draft} patch={patch} />
       </div>
     </div>
@@ -205,7 +222,7 @@ export function WebYarn({ draft, patch, tried, noColor, sub, soft }: { draft: Dr
   const toggleMat = (m: string) => {
     const on = !mats.includes(m);
     if (m === "수세미실" && on) { setMmRaw("1"); patch({ materials: [...mats, m], yarnMm: 1, weight: weightFromMm(1), yarnMode: "mm" }); return; }
-    patch({ materials: on ? [...mats, m] : mats.filter(x => x !== m), ...(m === "혼방" && !on ? { blend: "" } : {}) });
+    patch({ materials: on ? [...mats, m] : mats.filter(x => x !== m), ...(m === "혼방" && !on ? { blend: "" } : {}), ...(isMetalYarn([m]) && !on ? { plies: undefined } : {}) });
   };
   const listed = more ? MATERIALS_WEB : WEB_MATERIALS, customMats = mats.filter(m => !MATERIALS_WEB.includes(m));
   const addOwn = () => { const c = clean(own); if (c && !mats.includes(c)) patch({ materials: [...mats, c] }); setOwn(""); setAdding(false); };
@@ -261,7 +278,7 @@ export function WebYarn({ draft, patch, tried, noColor, sub, soft }: { draft: Dr
       </div>}
 
       <div className="nb-wg">
-        <Head note={<><button type="button" className="nb-link" disabled={!mats.length} onClick={() => patch({ materials: [], blend: "" })}>초기화</button><button type="button" className="nb-link" onClick={() => setMore(m => !m)}>{more ? "접기" : "더 보기"}</button>{!adding && <button type="button" className="nb-link" onClick={() => setAdding(true)}>직접 입력</button>}</>}>재질 <em className="nb-wsoft">여러 개 고를 수 있습니다</em></Head>
+        <Head note={<><button type="button" className="nb-link" disabled={!mats.length} onClick={() => patch({ materials: [], blend: "", plies: undefined })}>초기화</button><button type="button" className="nb-link" onClick={() => setMore(m => !m)}>{more ? "접기" : "더 보기"}</button>{!adding && <button type="button" className="nb-link" onClick={() => setAdding(true)}>직접 입력</button>}</>}>재질 <em className="nb-wsoft">여러 개 고를 수 있습니다</em></Head>
         <div className={"nb-matbox" + (more ? "" : " is-short")}>
           <div className="nb-tiles nb-tiles-4" role="group" aria-label="재질 (여러 개)">
             {listed.map(m => <button key={m} type="button" className="nb-tile" aria-pressed={mats.includes(m)} onClick={() => toggleMat(m)}>{m}</button>)}
@@ -269,6 +286,7 @@ export function WebYarn({ draft, patch, tried, noColor, sub, soft }: { draft: Dr
           </div>
           {!more && <button type="button" className="nb-matmore" aria-label="재질 더 보기" onClick={() => setMore(true)} />}
         </div>
+        {!sub && <MetalPlies draft={draft} patch={patch} />}
         {/* 기타 조절 (Kim): 탄성 체크 first, then the hairs */}
         <p className="nb-wsubhead nb-etc">기타 조절</p>
         {soft}
@@ -511,7 +529,7 @@ function KnitChartPicture({ c }: { c: Chart }) {
  *  choice, the needle's families as tabs, every named pattern of the family as a tile - a picture where the 3D
  *  draws it, its name alone where it does not yet - and under them how the picked one is worked. Picking one
  *  sets what the 3D and the pattern use (Draft.stitch for knitting, crochetStitch / crochetChart for crochet). */
-export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly }: { draft: Draft; patch: Patch; n: number; craft: "crochet" | "knit"; flatOnly?: boolean }) {
+export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly, fit }: { draft: Draft; patch: Patch; n: number; craft: "crochet" | "knit"; flatOnly?: boolean; /** the note when the count was fitted to the pattern (lib/pattern fitNote) */ fit?: string | null }) {
   const fams = familiesOf(craft);
   const cur = (draft.pattern && PATTERN_BY_ID[draft.pattern]?.needle === craft ? PATTERN_BY_ID[draft.pattern] : null)
     ?? STITCH_PATTERNS.find(p => p.needle === craft && p.draw === (craft === "knit" ? "kn:" + (draft.stitch ?? "stock") : draft.crochetChart ? "ch:" + draft.crochetChart : "st:" + (draft.crochetStitch ?? "sc")))!;
@@ -557,9 +575,10 @@ export function WebStitchByNeedle({ draft, patch, n, craft, flatOnly }: { draft:
           {cur.mult !== "—" && <p className="nb-patm">{cur.mult}</p>}
           {ck === "ch" && <ol>{CHART_ROWS[cv as ChartKey].map((r, i) => <li key={i}>{r}</li>)}</ol>}
           {knitNow && knitNow.mult > 1 && <p className="nb-patfit">{left ? `${knitNow.mult}코 단위 무늬인데 지금 폭은 ${n}코라서 가장자리에서 ${left}코 남습니다.` : `${knitNow.mult}코 단위 무늬이고, 지금 폭 ${n}코에 딱 맞습니다.`}</p>}
-          {ck === "ch" && (() => { const [m, a] = CHART_MULT[cv as ChartKey], r = (n - a) % m; return <p className="nb-patfit">{r ? `${m}코 + ${a} 단위 무늬라서, 지금 폭 ${n}코에서는 ${n - r}코나 ${n - r + m}코가 딱 맞습니다.` : `지금 폭 ${n}코에 딱 맞습니다.`}</p>; })()}
+          {ck === "ch" && (() => { const [m, a] = CHART_MULT[cv as ChartKey], r = n % m === 0 ? 0 : (n - a) % m; return <p className="nb-patfit">{r ? `${m}코 + ${a} 단위 무늬라서, 지금 폭 ${n}코에서는 ${n - r}코나 ${n - r + m}코가 딱 맞습니다.` : `지금 폭 ${n}코에 딱 맞습니다.`}</p>; })()}
           {ck === "cc" && <p className="nb-patfit">3D는 만드는 방법대로 그린 모습이라 실제와 조금 다를 수 있습니다. 도안의 단별 글은 아직 기본 코로 적힙니다.</p>}
           {!cur.draw && <p className="nb-patfit">이 무늬는 도안에 이름으로 적어 둡니다. 3D와 단별 글은 아직 기본 코로 보여 드립니다.</p>}
+          {fit && <p className="nb-patfit" role="status">{fit}</p>}
         </div>
       )}
       {craft === "crochet" && <OwnSteps draft={draft} patch={patch} />}
@@ -589,7 +608,7 @@ function OwnSteps({ draft, patch }: { draft: Draft; patch: Patch }) {
 
 /** The web's 무늬 spread: the knit-and-purl patterns as chart tiles; the 3D on the left knits the picked one.
  *  `n`: the stitches of a row (the plan's), to say whether the pattern's multiple fits the width. */
-export function WebStitch({ draft, patch, n }: { draft: Draft; patch: Patch; n: number }) {
+export function WebStitch({ draft, patch, n, fit }: { draft: Draft; patch: Patch; n: number; fit?: string | null }) {
   const cur = stitchOf(draft.stitch), refs = useRef<(HTMLButtonElement | null)[]>([]);
   const idx = Math.max(0, KNIT_STITCHES.findIndex(s => s.key === cur.key));
   const key = (e: KeyboardEvent, i: number) => {
@@ -611,6 +630,7 @@ export function WebStitch({ draft, patch, n }: { draft: Draft; patch: Patch; n: 
         <p className="nb-wnote" aria-live="polite">{cur.note}{cur.mult > 1 && (left
           ? ` ${cur.mult}코 단위 무늬인데 지금 폭은 ${n}코라서, 가장자리에서 무늬가 ${left}코 남습니다. 그대로 떠도 되고, 폭을 조금 바꾸면 딱 맞습니다.`
           : ` ${cur.mult}코 단위 무늬이고, 지금 폭 ${n}코에 딱 맞습니다.`)}</p>
+        {fit && <p className="nb-fit" role="status">{fit}</p>}
       </div>
     </div>
   );

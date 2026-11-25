@@ -6,7 +6,8 @@
 // prototype): withKnit() rewrites only the text of a knitted item's rows, as withChains() does for crochet.
 // Not here yet: a knitting gauge of its own. The counts are the engine's (a knitted row is lower than a
 // crocheted one), so a knitted piece relies on the measuring step after the first rows.
-import { PART_KO, plan, withChains, type Part, type Plan, type PlanInput, type Row } from "./pattern";
+import { withKorean } from "./koreanNotation";
+import { PART_KO, isKnit, plan, withChains, type Part, type Plan, type PlanInput, type Row } from "./pattern";
 
 export interface KnitStitch {
   key: string; ko: string; en: string;
@@ -51,11 +52,8 @@ export const KNIT_STITCHES: KnitStitch[] = [
 export const KNIT_STITCH: Record<string, KnitStitch> = Object.fromEntries(KNIT_STITCHES.map(s => [s.key, s]));
 export const stitchOf = (key?: string | null): KnitStitch => KNIT_STITCH[key ?? ""] ?? KNIT_STITCHES[0];
 
-/** items that are knitted with needles (the rest is crochet) */
-const KNIT_ITEMS = new Set(["scarf"]);
-/** knitted: the needle picked (Draft.craft; knitting is worked out for flat pieces in rows), else the item's own */
-export const isKnit = (p: { item?: string; craft?: string | null; object?: string }) =>
-  p.craft === "knit" ? (p.object == null || p.object === "rows") : p.craft === "crochet" ? false : KNIT_ITEMS.has(p.item ?? "");
+// knitted or not: the engine has to know it too (a pattern's repeat is its needle's), so it lives in lib/pattern
+export { isKnit };
 
 /** One row of the chart as it is worked back and forth on `n` stitches: "겉 2, 안 2를 끝까지 반복".
  *  Stitch 0 is the chart's right-hand column, as charts are numbered: a right-side row (row 0, 2, ...) is
@@ -87,9 +85,11 @@ export function withKnit(pp: Plan, p: { stitch?: string | null; a?: number }): P
   return { ...pp, rows };
 }
 
-/** The plan as the pattern and 따라 뜨기 show it: knitting rows for a knitted item, else crochet with its 기둥사슬. */
-export function shownPlan(p: PlanInput & { item?: string; stitch?: string | null }): Plan {
-  return isKnit(p) ? withKnit(plan(p), p) : withChains(plan(p));
+/** The plan as the pattern and 따라 뜨기 show it: knitting rows for a knitted item, else crochet with its 기둥사슬.
+ *  `style` "korean" (Kim: 한국식 표기로도 보기): the crochet rows in the Korean notation (lib/koreanNotation) - the
+ *  same counts, written another way; a knitted piece reads the same either way. */
+export function shownPlan(p: PlanInput & { item?: string; stitch?: string | null }, style: "plain" | "korean" = "plain"): Plan {
+  return isKnit(p) ? withKnit(plan(p), p) : style === "korean" ? withKorean(plan(p), p) : withChains(plan(p));
 }
 /** A part's heading: a knitted piece starts with 코잡기, not a chain. */
 export const partName = (part: Part, p: { item?: string }) => (part === "start" && isKnit(p) ? "코잡기" : PART_KO[part]);
