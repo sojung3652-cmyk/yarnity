@@ -183,6 +183,7 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   const yarnSet = () => window.dispatchEvent(new Event("yw:yarnset"));
   // a section brought into view inside the right column only (scrollIntoView moved the page under this screen too)
   const toSec = (sel: string) => {
+    setSecOn(sel.replace("#yw-", "")); // phones show one section at a time: that one
     const col = root.current?.querySelector<HTMLElement>(".yw-mkbody"), el = root.current?.querySelector<HTMLElement>(sel); if (!col || !el) return;
     col.scrollTo({ top: col.scrollTop + el.getBoundingClientRect().top - col.getBoundingClientRect().top, behavior: "smooth" });
   };
@@ -267,6 +268,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
   // a short notice (Kim: 덜 선택된 경우 알림, 곧바로 사라지게) and the phones' folded panel (Kim: 전체적으로 닫아둘 수 있게)
   const [note, setNote] = useState(""), noteT = useRef(0), [folded, setFolded] = useState(false);
   const grabY = useRef<number | null>(null);
+  // phones (Kim: 바인더 안에 바인더 - 실, 바늘, 무늬 테스트 / 모양, 다른 실로 보기): the sheet's sections as a second row of
+  // index tabs, one section shown at a time; the first of the part's sections when the part changes
+  const secIds = mk ? mk.sections.map(x => x.id).join("|") : "";
+  const [secOn, setSecOn] = useState<string | null>(null);
+  const curSec = mk && mk.sections.some(x => x.id === secOn) ? secOn : mk?.sections[0]?.id ?? null;
+  useEffect(() => { setSecOn(null); }, [secIds]);
   const say = (t: string) => { setNote(t); clearTimeout(noteT.current); noteT.current = window.setTimeout(() => setNote(""), 1800); };
   // the index shows which section is being read (the column scrolls; the index stays)
   const body = useRef<HTMLDivElement>(null), [cur, setCur] = useState(0), [more, setMore] = useState(false);
@@ -419,9 +426,12 @@ export default function YarnWorkspace({ pattern, onClose, extra }: { pattern: Ya
               onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setFolded(v => !v); } }}><i aria-hidden="true" /></button>
             {mk.tabs ? mk.tabs.map((t, i) => <a key={t.label} href="#" className="yw-tab" aria-current={t.on ? "step" : undefined} onClick={e => { e.preventDefault(); setFolded(false); t.onClick(); }}><b>{i + 1}</b>{t.label}</a>) : mk.sections.map((x, i) => <a key={x.id} href={"#yw-" + x.id} aria-current={i === cur ? "location" : undefined} onClick={e => { e.preventDefault(); toSec("#yw-" + x.id); }}><b>{i + 1}</b>{x.title}</a>)}
           </nav>
+          {mk.sections.length > 1 && <nav className="yw-subtabs" aria-label="소제목">
+            {mk.sections.map(x => <button key={x.id} type="button" className="yw-subtab" aria-current={x.id === curSec ? "true" : undefined} onClick={() => { setSecOn(x.id); body.current?.scrollTo({ top: 0 }); }}>{x.title}</button>)}
+          </nav>}
           <div className="yw-mkbody" ref={body}>
             {mk.sections.map((x, i) => (
-              <section key={x.id} id={"yw-" + x.id} className="yw-sec" aria-labelledby={"yw-h-" + x.id}>
+              <section key={x.id} id={"yw-" + x.id} className={"yw-sec" + (x.id === curSec ? " is-cur" : "")} aria-labelledby={"yw-h-" + x.id}>
                 <h2 id={"yw-h-" + x.id}><b aria-hidden="true">{i + 1}</b>{x.title}{x.note && <small>{x.note}</small>}</h2>
                 {x.body}
               </section>

@@ -113,7 +113,7 @@
   html body .yw-mkfoot{justify-content:flex-end}
   html body .yw:has(.yw-mkr.is-folded){grid-template:"top" 48px "stage" minmax(0,1fr) "right" auto / minmax(0,1fr)}
   html body .yw-mkr.is-folded .yw-mkbody,html body .yw-mkr.is-folded .yw-mkfoot{display:none}
-  html body .yw-index{display:flex;align-items:flex-end;gap:4px;margin:0;padding:8px 10px 0;border-bottom:2px solid #C99BA0;background:none}
+  html body .yw-index{flex:none;display:flex;align-items:flex-end;gap:4px;margin:0;padding:8px 10px 0;border-bottom:2px solid #C99BA0;background:none}
   html body .yw-index a.yw-tab{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 16px;border:0;border-radius:9px 9px 0 0;
     font:500 13px "Noto Serif KR",serif;color:#5E554E;text-decoration:none;transform:none;
     background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(150,120,90,.045) 0 1px,transparent 1px 3px),#F6EFE2;
@@ -135,3 +135,17 @@
 .yw-toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:200;transform:translateX(-50%);max-width:calc(100% - 40px);margin:0;padding:9px 16px;border-radius:8px;
   background:rgba(58,50,45,.92);color:#FBF6EE;font:500 13px "Noto Serif KR",serif;text-align:center;box-shadow:0 6px 18px -8px rgba(40,30,25,.5);animation:yw-toast .18s ease-out}
 @keyframes yw-toast{from{opacity:0;transform:translate(-50%,6px)}}
+
+/* phones (Kim: 바인더 안에 바인더): inside 실 설정 / 모양, their sections (실 · 바늘 · 무늬 테스트 / 모양 · 다른 실로 보기)
+   as a second, smaller row of index tabs; only the picked section is shown */
+@media (max-width:767.98px){
+  html body .yw-subtabs{flex:none;display:flex;align-items:flex-end;gap:3px;overflow-x:auto;scrollbar-width:none;margin:0;padding:8px 10px 0;border-bottom:1.5px solid #D9BFC2}
+  html body .yw-subtabs::-webkit-scrollbar{display:none}
+  html body .yw-subtab{flex:none;min-height:30px;padding:0 12px;border:0;border-radius:7px 7px 0 0;font:500 12.5px "Noto Serif KR",serif;color:#6A605A;cursor:pointer;
+    background:repeating-linear-gradient(0deg,rgba(150,120,90,.05) 0 1px,transparent 1px 3px),#FBF6EC;box-shadow:inset 0 0 0 1px rgba(170,150,130,.3)}
+  html body .yw-subtab[aria-current="true"]{min-height:34px;color:#4A2F33;font-weight:600;background:repeating-linear-gradient(0deg,rgba(108,62,71,.06) 0 1px,transparent 1px 3px),#EBCFD1;box-shadow:inset 0 0 0 1px rgba(150,100,105,.4)}
+  html body .yw-mkr .yw-sec:not(.is-cur){display:none}
+  html body .yw-mkr:has(.yw-subtabs) .yw-sec>h2{display:none} /* the tab says it already */
+  html body .yw-mkr.is-folded .yw-subtabs{display:none}
+}
+@media (min-width:768px){.yw-subtabs{display:none}}
