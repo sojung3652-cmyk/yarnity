@@ -366,3 +366,7 @@ button.glf-icon:hover{background:rgba(110,83,80,.08);color:var(--ink)}
 .gl-wiki-h-text{margin:0;font-size:13px;line-height:1.7;color:var(--ink)}
 .gl-wiki-hist li>button{margin-left:-12px}
 .gl-sym-letter.is-abbr{letter-spacing:-.02em;white-space:nowrap}
+
+/* phones (Kim: 클릭한 위치에서 토글처럼): the list is part of the page, not a short box of its own, so a term opened
+   under its row has room and the page scrolls as one */
+@media (max-width:767.98px){html body .gl-wide .gl-list-scroll{max-height:none;height:auto;overflow:visible}html body .gl-inline{margin:6px 0 14px}html body .dict-inline{margin:8px 0 16px}}

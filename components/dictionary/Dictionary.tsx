@@ -21,6 +21,7 @@ import "@/components/my/myPage.css";
 import "@/components/glossary/glossary.css";
 import "./dictionary.css";
 import { GoldX } from "@/components/GoldX";
+import { usePhone } from "@/components/mobile/useMobile";
 
 export const DICT_MENU = [
   { href: "/glossary", label: "뜨개 상식", n: KNOWHOW.length },
@@ -105,7 +106,6 @@ function useAskYarni() {
 // ---------------------------------------------------------------- 1) 뜨개 상식
 
 /** phones (the web laid out narrow): the article comes under the list, so a pressed title scrolls to it */
-const toArticle = () => requestAnimationFrame(() => { if (matchMedia("(max-width: 767.98px)").matches) document.querySelector(".dict-article")?.scrollIntoView({ behavior: "smooth", block: "start" }); });
 
 export function KnowhowScreen() {
   // 전체 first (Kim: with only the five topics it looked like five articles), each chip with its count
@@ -113,7 +113,9 @@ export function KnowhowScreen() {
   const list = useMemo(() => (topic === "all" ? KNOWHOW_TOPICS.flatMap(t => knowhowOf(t.id)) : knowhowOf(topic)), [topic]);
   const chips = useMemo(() => [{ id: "all" as const, label: "전체", n: KNOWHOW.length }, ...KNOWHOW_TOPICS.map(t => ({ ...t, n: knowhowOf(t.id).length }))], []);
   const [sel, setSel] = useState<string | null>(null);
-  const cur = list.find(k => k.id === sel) ?? list[0] ?? null;
+  // phones (Kim: 클릭한 위치에서 토글처럼): nothing open until a title is tapped; it opens under that title, a tap again closes it
+  const phone = !!usePhone();
+  const cur = list.find(k => k.id === sel) ?? (phone ? null : list[0] ?? null);
   const ask = useAskYarni();
   const next = cur ? (cur.next ? KNOWHOW.find(k => k.id === cur.next) : list[list.indexOf(cur) + 1]) ?? null : null;
   return (
@@ -123,12 +125,21 @@ export function KnowhowScreen() {
       <div className="dict-know">
         <ol className="dict-toc">
           {list.map((k, i) => (
-            <li key={k.id}><button type="button" className={k.id === cur?.id ? "is-on" : ""} aria-current={k.id === cur?.id ? "true" : undefined} onClick={() => { setSel(k.id); toArticle(); }}>
-              <i>{i + 1}</i><span>{k.title}</span></button></li>
+            <li key={k.id}><button type="button" className={k.id === cur?.id ? "is-on" : ""} aria-current={k.id === cur?.id ? "true" : undefined} aria-expanded={phone ? k.id === cur?.id : undefined}
+              onClick={e => {
+                if (!phone) { setSel(k.id); return; }
+                const row = e.currentTarget.closest("li"), y = row?.getBoundingClientRect().top ?? 0;
+                setSel(k.id === sel ? null : k.id);
+                // the tapped title stays where it was (an article open above it closes and would pull it up)
+                if (row) requestAnimationFrame(() => window.scrollBy(0, row.getBoundingClientRect().top - y));
+              }}>
+              <i>{i + 1}</i><span>{k.title}</span></button>
+              {phone && cur?.id === k.id && <div className="dict-inline"><KnowhowArticle k={cur} n={i + 1} next={next} onNext={() => next && setSel(next.id)} onAsk={() => ask(`'${cur.title}'에 대해 더 알려 주십시오.`)} /></div>}
+            </li>
           ))}
           {!list.length && <li className="dict-soon">준비 중</li>}
         </ol>
-        {cur ? <KnowhowArticle key={cur.id} k={cur} n={list.indexOf(cur) + 1} next={next} onNext={() => next && setSel(next.id)} onAsk={() => ask(`'${cur.title}'에 대해 더 알려 주십시오.`)} /> : <div />}
+        {phone ? null : cur ? <KnowhowArticle key={cur.id} k={cur} n={list.indexOf(cur) + 1} next={next} onNext={() => next && setSel(next.id)} onAsk={() => ask(`'${cur.title}'에 대해 더 알려 주십시오.`)} /> : <div />}
       </div>
     </>
   );

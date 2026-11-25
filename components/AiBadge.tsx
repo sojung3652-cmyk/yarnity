@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/AppProvider";
 import { useBook } from "@/components/Book/BookProvider";
-import { useMobile } from "@/components/mobile/useMobile";
+import { useMobile, usePhone } from "@/components/mobile/useMobile";
 import { useHomeState } from "@/lib/homeState";
 import "./AiBadge.css";
 
@@ -18,10 +18,11 @@ const FEET = ".ms-foot, .m-nav, .mfw-foot, .mst-foot";
 export function AiBadge() {
   const { chat, setChat } = useApp(), b = useBook(), m = useMobile(), path = usePathname(), hs = useHomeState();
   const ref = useRef<HTMLButtonElement>(null), [lift, setLift] = useState<number | null>(null);
-  const phone = !!m;
-  const hidden = m === null || !!chat.open || path === "/new" || path === "/ai" || path.startsWith("/ai/")
+  const phone = !!m, ph = !!usePhone();
+    // phones (Kim, 11/25: AI 책갈피 대신 이 배지를): the round badge shows on the phone's book (/new) too
+  const hidden = m === null || !!chat.open || (path === "/new" && !ph) || path === "/ai" || path.startsWith("/ai/")
     // web: on / only once the opening has become the home (Kim: the badge shows at home too); not in the book
-    || (!phone && ((path === "/" && !hs.home) || b.floating || b.view === "wizard"))
+    || (!phone && ((path === "/" && !hs.home) || b.floating || (b.view === "wizard" && !(ph && path === "/new"))))
     // the phone home keeps its own AI와 상의 tile (Kim): no badge there
     || (phone && path === "/")
     // 도안 보기 and 따라 뜨기 have Yarni beside their main button (Kim): no second one floating above

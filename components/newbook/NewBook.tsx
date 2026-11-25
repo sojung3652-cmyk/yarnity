@@ -49,7 +49,6 @@ import { canTurn, snapshot, startTurn, type Snapshot, type Turn } from "./pageTu
 import { useMobile, usePhone } from "@/components/mobile/useMobile";
 import { useBook, type WizStep } from "@/components/Book/BookProvider";
 import { AskAiLine } from "@/components/AskAiLine";
-import { AiTab } from "@/components/AiTab";
 import { partsOf, useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import { YarnPagePreview } from "@/src/features/yarn3d/YarnPagePreview";
 import { bookPause } from "@/src/features/yarn3d/pause";
@@ -1255,8 +1254,6 @@ export function NewBook() {
         <span className="nb-marker" aria-hidden="true" />
         {v.left}
         {v.right}
-        {/* phones: the AI tab on the page's edge (the sheet itself is on the book's stage, AiHost) */}
-        <AiTab variant="phone" />
       </form>
     </main>
   );

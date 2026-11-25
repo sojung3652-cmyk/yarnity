@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { MobileTopBar } from "@/components/mobile/MobileTopBar";
-import { useMobile } from "@/components/mobile/useMobile";
+import { useMobile, usePhone } from "@/components/mobile/useMobile";
 import { CATEGORIES, DIFFICULTY, TERMS, categoryOf, colorOf, searchTerms, shortLine, termById, type GlossColor, type GlossTerm } from "@/lib/glossary";
 import { GlossSymbol } from "./GlossSymbol";
 import { WikiSummary } from "./WikiSummary";
@@ -58,7 +58,8 @@ function Search({ s }: { s: ListState }) {
   );
 }
 
-function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null; onPick: (t: GlossTerm) => void }) {
+/** `inline` (phones, Kim: 클릭한 위치에서 토글처럼): the picked term opens right under its own row */
+function Rows({ s, selected, onPick, inline }: { s: ListState; selected?: string | null; onPick: (t: GlossTerm, e?: { target: EventTarget | null }) => void; inline?: (t: GlossTerm) => ReactNode }) {
   const line = useTermLine();
   if (!s.sections.length) return <p className="gl-none">{s.q ? "찾는 용어가 없습니다" : "이 칸에는 아직 용어가 없습니다"}</p>;
   return (
@@ -69,11 +70,12 @@ function Rows({ s, selected, onPick }: { s: ListState; selected?: string | null;
           <ul className="gl-rows">
             {terms.map(t => (
               <li key={t.id}>
-                <button type="button" className={"gl-row" + (selected === t.id ? " is-on" : "")} aria-current={selected === t.id ? "true" : undefined} onClick={() => onPick(t)}>
+                <button type="button" className={"gl-row" + (selected === t.id ? " is-on" : "")} aria-current={selected === t.id ? "true" : undefined} aria-expanded={inline ? selected === t.id : undefined} onClick={e => onPick(t, e)}>
                   <SymPatch term={t} size={44} />
                   <span className="gl-row-text"><b>{t.name}</b><span>{line(t)}</span></span>
                   <Chev />
                 </button>
+                {inline && selected === t.id && <div className="gl-inline">{inline(t)}</div>}
               </li>
             ))}
           </ul>
@@ -170,7 +172,7 @@ export function TermDetail({ term, onGo }: { term: GlossTerm; onGo: (t: GlossTer
 /** /glossary and /glossary/[id]. `id`: the term shown (a term's page on phones; the panel on wide screens).
  *  `inDict` (wide screens): the 용어집 menu of the 뜨개 사전 (components/dictionary) - /glossary/terms[/id], inside its frame */
 export function GlossaryScreen({ id, inDict = false }: { id?: string; inDict?: boolean }) {
-  const m = useMobile(), router = useRouter(), s = useList();
+  const m = useMobile(), phone = !!usePhone(), router = useRouter(), s = useList();
   const [sel, setSel] = useState<string | null>(id ?? null);
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => { setSel(id ?? null); }, [id]);
@@ -202,14 +204,25 @@ export function GlossaryScreen({ id, inDict = false }: { id?: string; inDict?: b
   // wide screens: tabs | list | the term. Nothing chosen yet (/glossary): the list's first term comes up on its
   // memo slip by itself, so the page never opens empty (Kim); the address stays /glossary until one is picked
   const first = s.sections[0]?.terms[0] ?? null;
-  const term = sel ? termById(sel) : first;
-  const pick = (t: GlossTerm) => {
+  // phones: nothing open until a row is tapped, and it opens under that row (a tap again closes it)
+  const term = sel ? termById(sel) : phone ? null : first;
+  const pick = (t: GlossTerm, e?: { target: EventTarget | null }) => {
+    if (phone) {
+      const row = (e?.target as HTMLElement | null)?.closest?.("li") ?? null;
+      const was = sel === t.id; setSel(was ? null : t.id);
+      history.replaceState(null, "", was ? (inDict ? "/glossary/terms" : "/glossary") : inDict ? `/glossary/terms/${t.id}` : `/glossary/${t.id}`);
+      // the tapped row stays where it was on the screen (a term open above it closes and would pull it up)
+      if (row) {
+        const y = row.getBoundingClientRect().top, box = row.closest(".gl-list-scroll") as HTMLElement | null;
+        const own = !!box && box.scrollHeight > box.clientHeight + 1; // the list's own scroll box, when it has one
+        requestAnimationFrame(() => { const d = row.getBoundingClientRect().top - y; if (own) box!.scrollTop += d; else window.scrollBy(0, d); });
+      }
+      return;
+    }
     setSel(t.id);
     // the address follows the panel without leaving the page
     history.replaceState(null, "", inDict ? `/glossary/terms/${t.id}` : `/glossary/${t.id}`);
     panel.current?.scrollTo({ top: 0 });
-    // phones (the web laid out narrow): the term comes under the list, so the page goes to it
-    if (matchMedia("(max-width: 767.98px)").matches) requestAnimationFrame(() => panel.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
   const Wrap = inDict ? "div" : "main";
   return (
@@ -222,14 +235,14 @@ export function GlossaryScreen({ id, inDict = false }: { id?: string; inDict?: b
         {!inDict && <aside className="gl-col-tabs"><Tabs s={s} column /></aside>}
         <div className="gl-col-list">
           <Search s={s} />
-          <div className="gl-list-scroll"><Rows s={s} selected={term?.id ?? null} onPick={pick} /></div>
+          <div className="gl-list-scroll"><Rows s={s} selected={term?.id ?? null} onPick={pick} inline={phone ? t => <TermDetail term={t} onGo={x => pick(x)} /> : undefined} /></div>
         </div>
         {/* wide screens (Kim): the term comes up from below like a memo slip; nothing chosen, no panel at all */}
-        <div key={term ? term.id : "none"} className={"gl-col-panel" + (term ? " is-memo" : " is-empty")} ref={panel}>
+        {!phone && <div key={term ? term.id : "none"} className={"gl-col-panel" + (term ? " is-memo" : " is-empty")} ref={panel}>
           {term ? <TermDetail term={term} onGo={pick} /> : (
             <div className="gl-panel-empty"><p>왼쪽 목록에서 용어를 고르면<br />여기에 뜨는 방법이 나옵니다.</p></div>
           )}
-        </div>
+        </div>}
       </div>
     </Wrap>
   );
