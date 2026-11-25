@@ -44,7 +44,9 @@ describe("identical to the prototype engine", () => {
     }
 
   it(`plan() deep-equals the original for ${cases.length} inputs`, () => {
-    for (const c of cases) expect(plan(c), JSON.stringify(c)).toEqual(legacy.plan({ ...c }));
+    // the app speaks in 합니다체 (Kim); the prototype's one 해요체 line is read as the app's - the numbers are what is compared
+    const tone = (pp: { rows: { why?: string }[] }) => ({ ...pp, rows: pp.rows.map(r => r.why === "여기서부터 위로 올라가요" ? { ...r, why: "여기서부터 위로 올라갑니다" } : r) });
+    for (const c of cases) expect(plan(c), JSON.stringify(c)).toEqual(tone(legacy.plan({ ...c })));
   }, 30_000); // large sweep: allow for a busy machine
 
   it("dots() (stitch map + increase marks) deep-equals the original", () => {
@@ -79,7 +81,7 @@ describe("bag options (widening body, flap, handle length)", () => {
   it("a flap is worked back and forth over half the opening", () => {
     const pp = plan({ ...base, flapCm: 9 }), flap = pp.rows.filter(r => r.part === "flap");
     expect(flap.length).toBe(15);
-    expect(flap[0].n).toBe(Math.round(pp.last / 2) - 2);
+    expect(flap[0].n).toBe(Math.round(pp.last / 2)); // the whole back half of the rim (it was two stitches short of it before 006f61c)
     expect(flap[0].label).toBe("덮개 1");
   });
   it("handleCm sets the handle chain", () => {
