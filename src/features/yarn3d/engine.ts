@@ -101,6 +101,10 @@ export interface YarnPattern {
    *  to its width, then row by row to its end), or a tube worked round; `strapWcm` its width or thickness */
   strapStyle?: "flat-chain" | "flat-rows" | "tube";
   strapWcm?: number;
+  /** a handle grown out of the opening (Kim: 몸통에서 이어 뜨는 손잡이; lib/pattern grownHandle): `foot` each
+   *  foot's share of the opening's round (0-.5), `dec` the share of each half that narrows, `hf` its stitch's
+   *  height against 짧은뜨기 */
+  strapGrown?: { foot: number; dec: number; hf: number };
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼), with where and how big (Kim): `buttonAt` /
    *  `labelAt` = [across the front -1..1, up 0..1, size in cm]; `zipOpen` 0 closed .. 1 open; the button's colour */
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean; buttonPic?: string; labelPic?: string;
@@ -919,6 +923,41 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const H = Math.max(rr * .5, Math.sqrt(Math.max(0, (len / 2) ** 2 - (A.distanceTo(B) / 2) ** 2)) * .92); strapH = Math.max(strapH, H);
         if (nrm.x * (mid.x - cx) + nrm.z * (mid.z - cz) > 0) nrm.negate();
         const sw = Math.max(1, Math.min(5, Math.round(pat.strapW ?? 3)));
+        if (pat.strapGrown) {
+          // 몸통에서 이어 뜨는 손잡이 (Kim): no band set on the rim - the opening's own stitches go on up. At each
+          // end of the bag a foot as wide as its share of the round, worked back and forth, narrowing row by row
+          // to the strap's width, the two halves meeting over the middle. A row at the foot lies along the rim's
+          // own curve; as the piece narrows it straightens into the strap. One yarn, row after row.
+          const G = pat.strapGrown, Wd = Math.max(.8, pat.strapWcm ?? 2.5) * 10 / MM, up = new THREE.Vector3(0, 1, 0), half = A.distanceTo(B) / 2, N = 64;
+          const cl = Array.from({ length: N + 1 }, (_, i) => { const th = Math.PI * i / N; return mid.clone().addScaledVector(w, -half * Math.cos(th)).addScaledVector(up, H * Math.sin(th)); });
+          const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + cl[i].distanceTo(cl[i - 1]));
+          const Lc = cum[N], ctr = (s: number) => { let i = 1; while (i < N && cum[i] < s) i++; return cl[i - 1].clone().lerp(cl[i], Math.max(0, Math.min(1, (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1])))); };
+          const rim = (x: number) => { const f = Math.floor(x), q = D.P[L[((f % c) + c) % c]].clone().lerp(D.P[L[(((f + 1) % c) + c) % c]], x - f); q.y = ry; return q; };
+          let per = 0; for (let i = 0; i < c; i++) per += rim(i).distanceTo(rim(i + 1));
+          const iA = 0, iB = Math.round(.5 * c - .5), span = G.foot * c, Wf = Math.max(Wd, span * per / c);
+          const sg = (i0: number) => (rim(i0 + 1).sub(rim(i0)).dot(nrm) >= 0 ? 1 : -1), sA = sg(iA), sB = sg(iB);
+          const n = Math.max(6, Math.round(Lc / (D.rh * G.hf)));
+          const wide = (j: number) => { const t = j / n, k0 = G.dec > 0 ? Math.min(1, Math.min(t, 1 - t) * 2 / G.dec) : 1; return { k0, Wj: Wf + (Wd - Wf) * k0 }; };
+          const spot = (j: number, u: number) => {
+            const t = j / n, { k0, Wj } = wide(j), i0 = t < .5 ? iA : iB, dR = rim(i0 + (t < .5 ? sA : sB) * u * span * Wj / Wf).sub(rim(i0));
+            return ctr(t * Lc).add(dR.multiplyScalar(1 - k0)).addScaledVector(nrm, u * Wj * k0);
+          };
+          // (as a flat handle's rows: a stitch's zigzag the row's height, the yarn passing front and back of the
+          // fabric's middle stitch by stitch - out from the bag at the foot, up at the top)
+          const th = R * 1.1, pts: THREE.Vector3[] = [], out = new THREE.Vector3();
+          for (let j = 0; j <= n; j++) {
+            const Wj = wide(j).Wj, m = Math.max(8, Math.ceil(Wj / (R * .36))), s = Math.sin(Math.PI * j / n);
+            for (let i = 0; i <= m; i++) {
+              const u = (j % 2 ? m - i : i) / m - .5, x = u * span * Wj / Wf + j * .5; // in stitches: a row sits on the row under it
+              const q = spot(Math.max(0, Math.min(n, j + (1 - 4 * Math.abs(x - Math.round(x))) * .42)), u);
+              out.set(q.x - cx, 0, q.z - cz); if (out.lengthSq() > 1e-9) out.normalize(); out.multiplyScalar(1 - s * s).addScaledVector(up, s * s);
+              pts.push(q.addScaledVector(out, th * Math.cos(Math.PI * u * span * Wj / Wf)));
+            }
+            if (over()) yield;
+          }
+          const gg = yield* buildYarnG(pts, R, { M, color }), mm = new THREE.Mesh(gg, mat); mm.castShadow = true; group.add(mm); meshes.push(mm); geos.push(gg);
+          strapEnds.push(A.clone(), B.clone()); strapH = Math.max(strapH, H + R); continue;
+        }
         if (pat.strapStyle) {
           // its centre line: one hand handle rises from the sides, a little out first, then in (as above); two,
           // or a shoulder strap, arch over from end to end. Its ends go into the rim.

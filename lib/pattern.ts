@@ -49,8 +49,12 @@ export interface PlanInput {
   flapOver?: "top" | "fold" | null;
   /** "flat": no bottom width - round 1 round the foundation chain is the bottom, front and back joined (Draft.gusset) */
   gusset?: "flat" | "box" | null;
-  /** "wrist": one loop at a corner (Draft.handleKind) */
-  handleKind?: "wrist" | null;
+  /** "wrist": one loop at a corner; "grown": worked up out of the opening itself (Draft.handleKind, grownHandle) */
+  handleKind?: "wrist" | "grown" | null;
+  /** a grown handle: its strap's width, the width it takes of the opening at its foot (cm), the stitch it is in */
+  handleWcm?: number | null;
+  handleBaseCm?: number | null;
+  handleStitch?: CrochetStitch | null;
   /** how the top is closed (Draft.closure): a drawstring adds an eyelet round under the rim */
   closure?: string | null;
   /** a shape the reader drew (web: 직접 그리기); when set, the rounds follow it (planFree) */
@@ -190,6 +194,30 @@ export interface Row {
   /** a stitch pattern's round: which pattern, which of its rounds (0 the first), how many repeats - the symbol
    *  chart and the Korean notation write it from these, not from the words */
   wall?: { k: ChartKey; i: number; reps: number };
+  /** a row of a handle grown out of the opening (grownHandle): picked up, narrowing, straight, or the edging
+   *  round an opening is finished with; which of the two feet; its stitch */
+  grown?: { k: "pick" | "dec" | "even" | "edge"; side: 0 | 1; st: CrochetStitch };
+}
+
+/** A handle grown out of the body (Kim: 몸통에서 이어 뜨는 손잡이 - the way a hobo bag is made, nothing sewn on).
+ *  The opening's round is shared out: a foot at each end of the bag, a gap between them at the front and at the
+ *  back. Each foot is worked back and forth, one stitch less at each edge every row until it is the strap's
+ *  width, then straight up; the two ends meet over the middle and are sewn. Each opening left (a gap and the
+ *  edges of the two halves) is then worked round in 짧은뜨기 so the edge does not stretch.
+ *  Every number is the gauge's: foot = its width / a stitch's width, strap = its width / a stitch's width, rows
+ *  = half the handle's length / the row height of the stitch picked, edging = the edge's length / a stitch's
+ *  width. `rimN`: the opening's stitches. */
+export function grownHandle(p: Pick<PlanInput, "handleStitch" | "handleWcm" | "handleBaseCm" | "handleCm">, g: { w: number; h: number }, rimN: number) {
+  const st: CrochetStitch = p.handleStitch && CROCHET[p.handleStitch] ? p.handleStitch : "sc", rh = g.h * CROCHET[st].h;
+  const most = Math.max(2, Math.floor(rimN / 2) - 1); // a stitch at least is left between the two feet
+  let strap = Math.min(Math.max(2, rnd((p.handleWcm ?? 2.5) / g.w)), most);
+  let base = clamp(p.handleBaseCm && p.handleBaseCm > 0 ? rnd(p.handleBaseCm / g.w) : Math.round(rimN * .4), strap, most);
+  // one stitch off each edge a row: the foot and the strap are both even or both odd
+  if ((base - strap) % 2) { if (base < most) base++; else if (base > strap) base--; else strap--; }
+  const dec = (base - strap) / 2, len = p.handleCm && p.handleCm > 0 ? p.handleCm : 40;
+  const rows = Math.max(dec + 2, rnd(len / 2 / rh)), gapA = Math.floor((rimN - 2 * base) / 2), gapB = rimN - 2 * base - gapA;
+  const ends = Math.max(2, rnd(2 * rows * rh / g.w)); // the row ends along one opening, as 짧은뜨기
+  return { st, rh, strap, base, dec, rows, even: rows - 1 - dec, gapA, gapB, ends, lenCm: Math.round(2 * rows * rh * 10) / 10, baseCm: Math.round(base * g.w * 10) / 10, maxBaseCm: Math.floor(most * g.w * 2) / 2 };
 }
 
 export interface Plan {
@@ -444,7 +472,10 @@ function planSc(p: PlanInput): Plan {
       rows.push({ part: "rim", n: rimN, how: `끈 구멍 단: (사슬 1, 1코 건너뛰고 짧은뜨기 1) × ${holes}${rimN % 2 ? ", 짧은뜨기 1" : ""}`,
         why: `구멍 ${holes}개 · 사슬 끈 약 ${cord}cm를 꿰어 조입니다`, inc: 0 } as Row);
     }
-    for (let i = 0; i < 2; i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${CHART_MULT[wk!][0]}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
+    // (a handle grown out of the opening is picked up from the rim's round of 짧은뜨기; its own edging round
+    // finishes the opening, so the slip stitch round is left out)
+    const grown = p.handle !== "none" && !!p.handle && p.handleKind === "grown";
+    for (let i = 0; i < (grown ? 1 : 2); i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${CHART_MULT[wk!][0]}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
     if (p.flapCm && p.flapCm > 0) {
       // over the top (Kim): it crosses the top's width first (as wide as the bottom is, b), then falls - more rows
       const over = p.flapOver === "top" && p.shape !== "circle" && p.gusset !== "flat" ? Math.max(0, (p.b as number) || 0) : 0;
@@ -459,7 +490,29 @@ function planSc(p: PlanInput): Plan {
     }
     if (p.handle !== "none") {
       const len = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25, ch = rnd(len / (g.w * 0.85));
-      if (p.handleKind === "wrist") rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 두 끝을 입구 한쪽 모서리에 함께 연결`, why: `손목 고리 ${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
+      if (grown) {
+        const G = grownHandle(p, g, rimN), K = CROCHET[G.st].ko, tc = CROCHET[G.st].turn, tog = `${K} 2코 모아뜨기`;
+        for (const side of [0, 1] as const) {
+          const name = side ? "반대쪽" : "한쪽";
+          for (let i = 0; i < G.rows; i++) {
+            const n = i <= G.dec ? G.base - 2 * i : G.strap, k = i === 0 ? "pick" as const : i <= G.dec ? "dec" as const : "even" as const, last = i === G.rows - 1;
+            const how = k === "pick" ? `${side ? `사이 ${G.gapA}코를 두고 반대쪽 옆선을 가운데로` : "입구 한쪽 옆선을 가운데로"} ${G.base}코에 새 실을 걸어 사슬 ${tc}, ${K} ${G.base}코`
+              : k === "dec" ? `사슬 ${tc}, 뒤집어서 ${n > 2 ? `${tog}, ${K} ${n - 2}코, ${tog}` : `${tog} 2번`}`
+              : `사슬 ${tc}, 뒤집어서 ${K} ${n}코${last ? side ? " · 실을 길게 남기고 잘라 한쪽 끝과 맞대고 감침질로 잇습니다" : " · 실을 자르고 반대쪽을 뜹니다" : ""}`;
+            const why = k === "pick" ? (side ? `한쪽과 같은 ${G.base}코 · 남는 ${G.gapB}코가 반대편 사이 자리입니다`
+                : `입구 ${rimN}코 = 손잡이 ${G.base}코 + 사이 ${G.gapA}코 + 손잡이 ${G.base}코 + 사이 ${G.gapB}코 · 밑너비 ${fmt(G.baseCm)}cm ÷ 코 너비 ${fmt(g.w * 10)}mm · 이음선이 기울어지므로 가방을 펴 놓고 단수링으로 자리를 먼저 표시합니다`)
+              : k === "dec" ? `${n + 2} - 줄임 2 = ${n} · 양 끝에서 한 코씩`
+              : i === G.dec + 1 ? `끈 너비 ${fmt(G.strap * g.w)}cm = ${G.strap}코 · 길이 ${fmt(G.lenCm)}cm의 절반 ÷ 단 높이 ${fmt(G.rh * 10)}mm = ${G.rows}단` : `${n}코 그대로`;
+            rows.push({ part: "handle", n, how, why, inc: k === "dec" ? -2 : 0, own: true, grown: { k, side, st: G.st }, label: `손잡이 ${name} ${i + 1}단` } as Row);
+          }
+        }
+        for (const side of [0, 1] as const) {
+          const gap = side ? G.gapB : G.gapA, n = gap + G.ends;
+          rows.push({ part: "handle", n, how: `${side ? "반대편" : "한편"} 가장자리를 따라 사슬 1, 짧은뜨기 ${n}코 (사이 ${gap}코에 1코씩, 손잡이 옆면 ${2 * G.rows}단에 ${G.ends}코를 고르게), 첫 코에 빼뜨기`,
+            why: `옆면 ${2 * G.rows}단 × 단 높이 ${fmt(G.rh * 10)}mm ÷ 코 너비 ${fmt(g.w * 10)}mm = ${G.ends}코 · 가장자리가 늘어지지 않게 잡아 줍니다`, inc: 0, own: true, grown: { k: "edge", side, st: "sc" }, label: `가장자리 ${side + 1}` } as Row);
+        }
+      }
+      else if (p.handleKind === "wrist") rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 두 끝을 입구 한쪽 모서리에 함께 연결`, why: `손목 고리 ${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
       else for (let i = 0; i < 2; i++) rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 양쪽에 연결`, why: `${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
     }
   }
@@ -470,7 +523,7 @@ function planSc(p: PlanInput): Plan {
     else if (r.part === "body") r.label = `${bottom.length + (++bo)}단`;
     else if (r.part === "rim") r.label = `테두리 ${++ri}`;
     else if (r.part === "flap") r.label = `덮개 ${++fl}`;
-    else r.label = `손잡이 ${++ha}`;
+    else if (!r.grown) r.label = `손잡이 ${++ha}`;
   });
   // what the pattern did to the size: the round's stitches over the width of the piece laid flat (a round bottom:
   // its diameter; an oval or a square one: its length, the round shared by its two long sides)

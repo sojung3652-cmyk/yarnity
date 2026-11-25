@@ -97,7 +97,7 @@ export function MobilePatternScreen() {
             return (
               <div key={k} className="msp-part">
                 <h2><span className="msp-no">{String(k + 1).padStart(2, "0")}</span><b>{partName(s.part, p)}</b>
-                  <small>{s.part === "start" ? `${last.n}코` : s.part === "handle" ? `${rows.length}개` : `${rows.length}단 · 마지막 ${last.n}코`}</small></h2>
+                  <small>{s.part === "start" ? `${last.n}코` : s.part === "handle" && !rows.some(r => r.grown) ? `${rows.length}개` : `${rows.length}단 · 마지막 ${last.n}코`}</small></h2>
                 <ol>
                   {s.rows.map(({ label, r }) => (
                     <li key={r.idx}>

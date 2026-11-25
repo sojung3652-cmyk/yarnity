@@ -146,7 +146,7 @@ export function PatternScreen() {
           {sections.map((s, k) => (
             <div key={k} className="ps-part">
               <h2 className="ps-part-title"><span className="ps-part-no">{String(k + 1).padStart(2, "0")}</span>{partName(s.part, p)}
-                <span className="ps-part-cnt">{s.part === "handle" ? count(s.part) + "개" : s.part === "start" ? "" : count(s.part) + "단"}</span></h2>
+                <span className="ps-part-cnt">{s.part === "handle" && !s.rows.some(x => x.r.grown) ? count(s.part) + "개" : s.part === "start" ? "" : count(s.part) + "단"}</span></h2>
               <table className="ps-table">
                 <tbody>
                   {s.rows.map(({ label, r }) => (

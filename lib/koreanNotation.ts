@@ -172,6 +172,14 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
     if (r.how.startsWith("뒤판 마지막 단에 이어서")) return ok([note("뒤판에 이어서"), ...st(r.n, name)]);
     return ok([turnT, note("뒤집어서"), ...st(r.n, name), ...(r.how.includes("단추 구멍") ? [note("가운데에 단추 고리")] : [])]);
   }
+  // a handle grown out of the opening: picked up, narrowed at both edges, straight; the edging round
+  if (r.grown) {
+    const G = r.grown, K = CROCHET[G.st].ko, turn: Tok = { t: "ch", n: CROCHET[G.st].turn, kind: "turn" }, tog: Tok = { t: "tog", n: 2, name: K };
+    if (G.k === "edge") return ok(round(st(r.n, SC), 1, [note(`${G.side ? "반대편" : "한편"} 가장자리를 따라`)]));
+    if (G.k === "pick") return ok([note(`${G.side ? "반대쪽" : "한쪽"} 옆선을 가운데로 새 실을 걸어`), turn, ...st(r.n, K)]);
+    if (G.k === "dec") return ok([turn, note("뒤집어서"), tog, ...st(r.n - 2, K), tog]);
+    return ok([turn, note("뒤집어서"), ...st(r.n, K), ...(/감침질/.test(r.how) ? [note("한쪽 끝과 맞대고 감침질")] : [])]);
+  }
   // handle: a chain, and back along it
   return ok([{ t: "ch", n: r.n, kind: "base" }, turnT, ...st(r.n, name, "되돌아")]);
 }

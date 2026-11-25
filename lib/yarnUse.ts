@@ -22,7 +22,7 @@
 //   3) else from the level (thin 300m, medium 200m, thick 120m)
 //   cotton and linen are heavier than wool / acrylic of the same thickness: 0.75x the length per 100g
 //   (worsted cotton ~150-170m/100g vs acrylic ~200m) when not from the label
-import type { Plan, Weight } from "./pattern";
+import { CROCHET, type Plan, type Weight } from "./pattern";
 
 export const M_PER_100G: Record<Weight, number> = { thin: 300, medium: 200, thick: 120 };
 const BY_MM: [number, number][] = [[1, 800], [2, 400], [3, 210], [4, 150], [6, 100], [10, 45]];
@@ -51,6 +51,7 @@ export function yarnUse(pp: Plan, d: { weight: Weight | string; yarnMm?: number 
   let cm = 0;
   for (const r of pp.rows) {
     if (r.part === "start") cm += r.n * CH * w;
+    else if (r.part === "handle" && r.grown) cm += r.n * SC * CROCHET[r.grown.st].h * w; // a handle grown out of the opening: rows of its stitch, a taller stitch more yarn
     else if (r.part === "handle") cm += r.n * (CH + BACK) * w; // a chain, then single crochet back along it
     else cm += r.n * SC * w;
   }
