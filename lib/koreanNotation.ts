@@ -174,8 +174,11 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
   }
   // a handle grown out of the opening: picked up, narrowed at both edges, straight; the edging round
   if (r.grown) {
-    const G = r.grown, K = CROCHET[G.st].ko, turn: Tok = { t: "ch", n: CROCHET[G.st].turn, kind: "turn" }, tog: Tok = { t: "tog", n: 2, name: K };
+    const G = r.grown, K = G.st === "blo" ? "이랑 짧은뜨기" : CROCHET[G.st].ko, turn: Tok = { t: "ch", n: CROCHET[G.st].turn, kind: "turn" }, tog: Tok = { t: "tog", n: 2, name: K };
     if (G.k === "edge") return ok(round(st(r.n, SC), 1, [note(`${G.side ? "반대편" : "한편"} 가장자리를 따라`)]));
+    // in the body's stitch pattern: its repeats, the row's stitches all of them (a repeat off each edge is slip
+    // stitches over the first and the last left unworked - the pattern's own stitches are the body's rounds')
+    if (G.unit) return ok([note(G.k === "pick" ? `${G.side ? "반대쪽" : "한쪽"} 옆선을 가운데로 새 실을 걸어` : G.k === "dec" ? "뒤집어서 양 끝에서 무늬 하나씩 줄이고" : "뒤집어서"), ...st(r.n, "무늬대로"), ...(/감침질/.test(r.how) ? [note("한쪽 끝과 맞대고 감침질")] : [])]);
     if (G.k === "pick") return ok([note(`${G.side ? "반대쪽" : "한쪽"} 옆선을 가운데로 새 실을 걸어`), turn, ...st(r.n, K)]);
     if (G.k === "dec") return ok([turn, note("뒤집어서"), tog, ...st(r.n - 2, K), tog]);
     return ok([turn, note("뒤집어서"), ...st(r.n, K), ...(/감침질/.test(r.how) ? [note("한쪽 끝과 맞대고 감침질")] : [])]);

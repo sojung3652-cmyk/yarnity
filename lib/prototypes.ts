@@ -33,7 +33,7 @@ export function protoDraft(d: Draft, p: Proto): Draft {
   const it = ITEM[p.item], dv = it.defaults;
   return {
     ...d, item: p.item, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0,
-    handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, handleBaseCm: undefined, handleStitch: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
+    handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, handleBaseCm: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
     closure: "open", gusset: undefined, asm: undefined, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, extras: {},
     circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined, paint: undefined,
     ...p.over,

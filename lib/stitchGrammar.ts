@@ -205,6 +205,7 @@ export function readKorean(line: string): KoreanRow | null {
       }
       t = t.replace(/(\d+)\s*코\s*건너\s*(뛰고|뛰기|뛰어)?/g, " ").trim(); if (!t) continue;       // skipped stitches make none
       if (/\d+\s*코\s*모아/.test(t)) { c.stitches += k; begun = true; continue; }               // several into one
+      const run = t.match(/^무늬대로\s*(\d+)\s*코$/); if (run) { c.stitches += Number(run[1]) * k; begun = true; continue; } // a run in the piece's stitch pattern, counted whole
       let last: RegExpExecArray | null = null, m: RegExpExecArray | null; K_STITCH.lastIndex = 0;
       while ((m = K_STITCH.exec(t))) if (m[2] !== undefined || !last || last[2] === undefined) last = m;
       if (!last) continue;                                                                    // words only (뒤집어서 ...)

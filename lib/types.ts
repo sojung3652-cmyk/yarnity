@@ -72,9 +72,8 @@ export interface Draft {
   gusset?: "flat" | "box";
   /** 손목 고리 (Kim: a wristlet): the handle is one loop at the top's corner to slip the hand through */
   handleKind?: "wrist" | "grown";
-  /** a handle grown out of the opening (lib/pattern grownHandle): the width of its foot (cm), its stitch */
+  /** a handle grown out of the opening (lib/pattern grownHandle): the width of its foot (cm). Its stitch is the body's. */
   handleBaseCm?: number;
-  handleStitch?: import("./pattern").CrochetStitch;
   /** 직접 적기 (Kim): a crochet pattern written in the reader's own words, row by row - the 3D works it out
    *  stitch by stitch (lib/stitchGrammar); `ownOn` shows it instead of the picked pattern */
   ownSteps?: string;

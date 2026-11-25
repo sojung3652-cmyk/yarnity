@@ -6,7 +6,7 @@
 //   back and forth            n stitches x the "rows" rows         -> "rows" (목도리: knitted, Kim)
 //   tube                      n stitches x the "rounds" rounds     -> "tube"
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
-import { CROCHET, grownHandle, paintMask, paintSize, pliedMm, pliesOf, type CrochetStitch, type Plan, type PlanInput } from "@/lib/pattern";
+import { CROCHET, grownHandle, openingN, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
 import { compileChart, type Chart, type ChartKey } from "@/lib/crochetChart";
@@ -27,7 +27,6 @@ export interface YarnSource extends PlanInput {
   /** wrist: one loop to slip the hand through (손목 고리) */
   handleKind?: "wrist" | "grown" | null;
   handleBaseCm?: number | null;
-  handleStitch?: CrochetStitch | null;
   /** 직접 적기: the reader's own crochet steps, shown when `ownOn` */
   ownSteps?: string | null;
   ownOn?: boolean | null;
@@ -133,7 +132,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   // one handle across the top (Kim's sketch), or two; older works: a long one is a shoulder strap
   // a handle grown out of the opening (lib/pattern grownHandle): one over the top, its foot's share of the round
   // and how much of each half narrows from the plan's own counts
-  const rimN = pp.rows.filter(r => r.part === "rim").pop()?.n ?? 0;
+  const rimN = openingN(pp);
   const GH = p.object === "bag" && p.handle && p.handle !== "none" && p.handleKind === "grown" && rimN ? grownHandle(p, pp.g, rimN) : null;
   const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : p.handleKind === "wrist" ? "wrist" as const : GH || p.handleCount === 1 ? "long" : p.handleCount === 2 ? "two" : handleCm >= 60 ? "long" : "two";
   // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
@@ -165,7 +164,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
     ...(p.drape ? { gravity: true } : {}),
     ...(p.handleW && p.handleW !== 3 ? { strapW: p.handleW } : {}), ...(p.handleStyle ? { strapStyle: p.handleStyle, strapWcm: p.handleWcm ?? 2.5 } : {}), ...(p.extras && (p.extras.button || p.extras.label || p.extras.zipper || p.extras.tab || p.extras.items?.length) ? { extras: p.extras } : {}),
-    ...(GH ? { strapStyle: "flat-rows" as const, strapWcm: GH.strap * pp.g.w, strapGrown: { foot: GH.base / rimN, dec: GH.dec / GH.rows, hf: CROCHET[GH.st].h } } : {}),
+    ...(GH ? { strapStyle: "flat-rows" as const, strapWcm: GH.strap * pp.g.w, strapGrown: { foot: GH.base / rimN, dec: GH.dec / GH.rows } } : {}),
     // a drawn silhouette: pressed to its depth, its opening edged
     ...(p.object === "bag" && p.profile && p.profile.length >= 2 && !p.free ? { depth: p.depthProfile ?? DEPTH_DEFAULT, rim: true,
       ...(p.profile[0] > 0 && p.h ? { outline: { prof: p.profile, a: p.a, h: p.h, depth: p.depthProfile ?? DEPTH_DEFAULT, bottom: pp.bottomRounds, rounds: pp.bottomRounds + pp.bodyRows } } : {}) } : {}) };

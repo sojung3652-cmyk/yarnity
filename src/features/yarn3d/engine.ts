@@ -102,9 +102,9 @@ export interface YarnPattern {
   strapStyle?: "flat-chain" | "flat-rows" | "tube";
   strapWcm?: number;
   /** a handle grown out of the opening (Kim: 몸통에서 이어 뜨는 손잡이; lib/pattern grownHandle): `foot` each
-   *  foot's share of the opening's round (0-.5), `dec` the share of each half that narrows, `hf` its stitch's
-   *  height against 짧은뜨기 */
-  strapGrown?: { foot: number; dec: number; hf: number };
+   *  foot's share of the opening's round (0-.5), `dec` the share of each half that narrows. It is drawn as the
+   *  body's own rounds going on up - the same stitches, the same stitch pattern */
+  strapGrown?: { foot: number; dec: number };
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼), with where and how big (Kim): `buttonAt` /
    *  `labelAt` = [across the front -1..1, up 0..1, size in cm]; `zipOpen` 0 closed .. 1 open; the button's colour */
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean; buttonPic?: string; labelPic?: string;
@@ -350,6 +350,28 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const shiny = st.preset === "silk" || st.preset === "nylon" || st.preset === "scrub" || st.metal > .5;
     const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: shiny ? st.rough : Math.max(.94, st.rough), specularIntensity: shiny ? 1 : .25, metalness: st.metal, envMap: st.metal || st.preset === "silk" ? env() : null, envMapIntensity: st.metal ? 1.25 : .35,
       bumpMap: FTEX, bumpScale: R * (st.preset === "raffia" ? .14 : .05), sheen: st.sheen, sheenRoughness: st.preset === "silk" ? .28 : .6, sheenColor: new THREE.Color(.34, .33, .32) });
+    // the inside of a piece with walls is in its own shade (Kim: 위가 막혀 보인다 - the inner wall seen through the
+    // opening was as bright as the outside and read as a lid): the yarn's faces that look in towards the piece's
+    // middle, below its rim, are drawn darker (a wall is "looked at from inside" when the camera is on its inner side - not by the yarn's
+    // own normals: where a round joins the strands lean, and a patch of the outside went dark). `uIn` = the middle (x, z), the rim's and the
+    // bottom's height; `uInR` = the opening's half sizes; `uInK` = how dark at the rim, how much more at the bottom
+    // (0, 0: nothing - every other piece), and the height the shade stops at (the rim; a handle grown out of the
+    // opening is the wall going on, so its feet's inner faces are in the shade too). No light, no shadow map: it costs nothing to draw.
+    const inU = { uIn: { value: new THREE.Vector4(0, 0, 0, 0) }, uInR: { value: new THREE.Vector2(1, 1) }, uInK: { value: new THREE.Vector3(0, 0, 0) } };
+    m.userData.inU = inU;
+    m.onBeforeCompile = sh => {
+      Object.assign(sh.uniforms, inU);
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vInP;\nvarying vec3 vInN;\nvarying vec3 vInW;\nvarying vec3 vInO;\nuniform vec4 uIn;\nuniform vec2 uInR;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvInP = transformed;\nvInN = objectNormal;\nvInW = (modelMatrix * vec4(transformed, 1.)).xyz;\nvec2 inG0 = (transformed.xz - uIn.xy) / (uInR * uInR);\nvInO = mat3(modelMatrix) * vec3(inG0.x, 0., inG0.y);");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vInP;\nvarying vec3 vInN;\nvarying vec3 vInW;\nvarying vec3 vInO;\nuniform vec4 uIn;\nuniform vec2 uInR;\nuniform vec3 uInK;")
+        .replace("#include <color_fragment>", `#include <color_fragment>
+        if (uInK.x + uInK.y > 0.) {
+          vec2 inD = vInP.xz - uIn.xy; vec2 inG = normalize(inD / (uInR * uInR) + 1e-6); vec3 inN = normalize(vInN);
+          float inDeep = clamp((uIn.z - vInP.y) / max(1e-3, uIn.z - uIn.w), 0., 1.);
+          float inWall = smoothstep(.05, -.2, dot(normalize(vInO + 1e-6), normalize(cameraPosition - vInW)));
+          float inFloor = smoothstep(.2, .7, inN.y) * smoothstep(.8, .95, inDeep) * smoothstep(1., .7, dot(inD / uInR, inD / uInR));
+          diffuseColor.rgb *= 1. - max(inWall * step(vInP.y, uInK.z), inFloor * step(vInP.y, uIn.z)) * (uInK.x + uInK.y * inDeep);
+        }`);
+    };
     return m;
   }
 
@@ -815,6 +837,25 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // the fewest points along a strand: 10 at full detail; a big piece's thinned strands go down to 6 round a head
     // and 4 along a leg (the floor of 10 held every stitch at 231 vertices however far the detail was turned down)
     function loPts(closed: boolean) { return step <= 1 ? 10 : Math.max(closed ? 6 : 4, Math.round(10 / step)); }
+    // one crochet stitch, drawn where `P` puts it (along its row in stitch widths, up in its height, out of the
+    // fabric in yarn radii, from its head) - the rounds below and a handle grown out of them draw the same stitch
+    const drawSt = (ty: WallStitch, col: string, P: (u: number, v: number, w: number) => THREE.Vector3) => {
+          if (ty === "ch") { const cr: THREE.Vector3[] = []; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; cr.push(P(Math.cos(a) * .55, Math.sin(a) * .16 - .04, Math.sin(a) * .5 + .3)); } strand(cr, R * .82, col, true); return; }
+          const ring: THREE.Vector3[] = []; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; ring.push(P(Math.cos(a) * .62, Math.sin(a) * .07 - .02, Math.sin(a) * 1.05 + .25)); }
+          strand(ring, R * .92, col, true);
+          if (ty === "sc") { // 짧은뜨기: a V from the head's ends to one point below
+            for (const k of [-1, 1]) strand([P(k * .36, -.08, .9), P(k * .2, -.5, .75), P(0, -.98, .35)], R * .88, col);
+          } else if (ty === "pop") { // 구슬뜨기 / 팝콘: posts bulging out of the fabric, gathered at the head
+            for (const k of [-1, 0, 1]) strand([P(k * .3, -.08, .9), P(k * .55, -.5, 2.3), P(k * .2, -.97, .45)], R * .9, col);
+          } else { // the post: two strands down side by side
+            for (const k of [-1, 1]) strand([P(k * .3, -.08, .85), P(k * .2, -.5, .8), P(k * .16, -.97, .4)], R * .86, col);
+            if (ty === "hdc") strand([P(-.38, -.24, 1.25), P(0, -.27, 1.55), P(.38, -.24, 1.25)], R * .84, col); // 긴뜨기: the yarn-over, a bar under the head
+            else { // 한길긴뜨기 wound across the middle once; 두길긴뜨기 twice
+              strand([P(-.34, -.62, 1.1), P(0, -.5, 1.55), P(.34, -.36, 1.1)], R * .84, col);
+              if (ty === "tr") strand([P(-.34, -.86, 1.05), P(0, -.76, 1.5), P(.34, -.62, 1.05)], R * .84, col);
+            }
+          }
+    };
     // the body's rounds counted from the bottom's edge, for a stitch pattern laid on them (pat.wall)
     let bodyN = 0;
     const wl = pat.wall && pat.wall.W > 0 && pat.wall.H > 0 ? pat.wall : null;
@@ -845,21 +886,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           const P = (u: number, v: number, w: number) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, w * R);
           // the head: front half up over the fabric, back half under, wider than the stitch so the next one's hooks into it
           // 사슬 over a gap (mesh, net, moss): a chain lying along the row at the head's height, nothing below - a hole
-          if (ty === "ch") { const cr: THREE.Vector3[] = []; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; cr.push(P(Math.cos(a) * .55, Math.sin(a) * .16 - .04, Math.sin(a) * .5 + .3)); } strand(cr, R * .82, col, true); continue; }
-          const ring: THREE.Vector3[] = []; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; ring.push(P(Math.cos(a) * .62, Math.sin(a) * .07 - .02, Math.sin(a) * 1.05 + .25)); }
-          strand(ring, R * .92, col, true);
-          if (ty === "sc") { // 짧은뜨기: a V from the head's ends to one point below
-            for (const k of [-1, 1]) strand([P(k * .36, -.08, .9), P(k * .2, -.5, .75), P(0, -.98, .35)], R * .88, col);
-          } else if (ty === "pop") { // 구슬뜨기 / 팝콘: posts bulging out of the fabric, gathered at the head
-            for (const k of [-1, 0, 1]) strand([P(k * .3, -.08, .9), P(k * .55, -.5, 2.3), P(k * .2, -.97, .45)], R * .9, col);
-          } else { // the post: two strands down side by side
-            for (const k of [-1, 1]) strand([P(k * .3, -.08, .85), P(k * .2, -.5, .8), P(k * .16, -.97, .4)], R * .86, col);
-            if (ty === "hdc") strand([P(-.38, -.24, 1.25), P(0, -.27, 1.55), P(.38, -.24, 1.25)], R * .84, col); // 긴뜨기: the yarn-over, a bar under the head
-            else { // 한길긴뜨기 wound across the middle once; 두길긴뜨기 twice
-              strand([P(-.34, -.62, 1.1), P(0, -.5, 1.55), P(.34, -.36, 1.1)], R * .84, col);
-              if (ty === "tr") strand([P(-.34, -.86, 1.05), P(0, -.76, 1.5), P(.34, -.62, 1.05)], R * .84, col);
-            }
-          }
+          drawSt(ty, col, P);
         }
       } else if (c.bot) c.idx.forEach((n, i) => saw.push(D.P[n].clone(), lp(c.bot![i])));
       // drawn as loops: no long tube along the row's top (the heads are its top)
@@ -888,6 +915,19 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     }
     if (over()) yield;
     strapH = 0; strapEnds = [];
+    { // the inside's shade (yarnMat): where the piece's middle, rim and bottom are
+      const U = (mat.userData.inU ?? null) as { uIn: { value: THREE.Vector4 }; uInR: { value: THREE.Vector2 }; uInK: { value: THREE.Vector3 } } | null, top = D.C[D.C.length - 1];
+      if (U) {
+        U.uInK.value.set(0, 0, 0);
+        if (top && top.closed && top.idx.length >= 6 && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
+          let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, ry = 0, y0 = 1e9;
+          for (const n of top.idx) { const q = D.P[n]; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); ry += q.y / top.idx.length; }
+          for (const q of D.P) y0 = Math.min(y0, q.y);
+          const K = [.4, 0]; // Kim: A, 한 톤 어둡게 (not deeper with depth, not strong: 진하게 하지 마)
+          if (ry - y0 > D.rh * 3) { U.uIn.value.set((x0 + x1) / 2, (z0 + z1) / 2, ry + D.rh * .5, y0); U.uInR.value.set(Math.max(1e-3, (x1 - x0) / 2), Math.max(1e-3, (z1 - z0) / 2)); U.uInK.value.set(K[0], K[1], ry + D.rh * .5 + (pat.strapGrown ? pat.strapCm * 10 / MM : 0)); }
+        }
+      }
+    }
     const strapFrom = meshes.length; // the handle's meshes, tagged below for 제작 시뮬레이션's order
     if (pat.strap !== "none" && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
       const L = D.C[D.C.length - 1].idx, c = L.length, color = pat.strapColor ?? colorOf(D.C[D.C.length - 1].ci); let ry = 0, cx = 0, cz = 0, rr = 0;
@@ -923,39 +963,42 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const H = Math.max(rr * .5, Math.sqrt(Math.max(0, (len / 2) ** 2 - (A.distanceTo(B) / 2) ** 2)) * .92); strapH = Math.max(strapH, H);
         if (nrm.x * (mid.x - cx) + nrm.z * (mid.z - cz) > 0) nrm.negate();
         const sw = Math.max(1, Math.min(5, Math.round(pat.strapW ?? 3)));
-        if (pat.strapGrown) {
-          // 몸통에서 이어 뜨는 손잡이 (Kim): no band set on the rim - the opening's own stitches go on up. At each
-          // end of the bag a foot as wide as its share of the round, worked back and forth, narrowing row by row
-          // to the strap's width, the two halves meeting over the middle. A row at the foot lies along the rim's
-          // own curve; as the piece narrows it straightens into the strap. One yarn, row after row.
-          const G = pat.strapGrown, Wd = Math.max(.8, pat.strapWcm ?? 2.5) * 10 / MM, up = new THREE.Vector3(0, 1, 0), half = A.distanceTo(B) / 2, N = 64;
-          const cl = Array.from({ length: N + 1 }, (_, i) => { const th = Math.PI * i / N; return mid.clone().addScaledVector(w, -half * Math.cos(th)).addScaledVector(up, H * Math.sin(th)); });
+        if (pat.strapGrown && loops) {
+          // 몸통에서 이어 뜨는 손잡이 (Kim): no band set on the rim - the body's own rounds go on up (Kim: 손잡이는
+          // 몸통과 같은 무늬, 무슨 무늬든). At each end of the bag a foot as wide as its share of the round, worked
+          // on in rows of the body's height, a stitch fewer at each edge row by row to the strap's width, the two
+          // halves meeting over the middle. Every stitch stands on the one under it (its column is its place on
+          // the rim), drawn by the body's own stitch (drawSt) and taking the body's stitch pattern where it left
+          // off. A row at the foot lies along the rim's curve; as the piece narrows it straightens into the strap.
+          const G = pat.strapGrown, Wd = Math.max(.8, pat.strapWcm ?? 2.5) * 10 / MM, up0 = new THREE.Vector3(0, 1, 0), half = A.distanceTo(B) / 2, N = 64;
+          const cl = Array.from({ length: N + 1 }, (_, i) => { const th = Math.PI * i / N; return mid.clone().addScaledVector(w, -half * Math.cos(th)).addScaledVector(up0, H * Math.sin(th)); });
           const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + cl[i].distanceTo(cl[i - 1]));
           const Lc = cum[N], ctr = (s: number) => { let i = 1; while (i < N && cum[i] < s) i++; return cl[i - 1].clone().lerp(cl[i], Math.max(0, Math.min(1, (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1])))); };
           const rim = (x: number) => { const f = Math.floor(x), q = D.P[L[((f % c) + c) % c]].clone().lerp(D.P[L[(((f + 1) % c) + c) % c]], x - f); q.y = ry; return q; };
           let per = 0; for (let i = 0; i < c; i++) per += rim(i).distanceTo(rim(i + 1));
-          const iA = 0, iB = Math.round(.5 * c - .5), span = G.foot * c, Wf = Math.max(Wd, span * per / c);
+          const sp = per / c, iA = 0, iB = Math.round(.5 * c - .5), F = Math.max(3, G.foot * c), S = Math.min(F, Math.max(2, Wd / sp));
           const sg = (i0: number) => (rim(i0 + 1).sub(rim(i0)).dot(nrm) >= 0 ? 1 : -1), sA = sg(iA), sB = sg(iB);
-          const n = Math.max(6, Math.round(Lc / (D.rh * G.hf)));
-          const wide = (j: number) => { const t = j / n, k0 = G.dec > 0 ? Math.min(1, Math.min(t, 1 - t) * 2 / G.dec) : 1; return { k0, Wj: Wf + (Wd - Wf) * k0 }; };
-          const spot = (j: number, u: number) => {
-            const t = j / n, { k0, Wj } = wide(j), i0 = t < .5 ? iA : iB, dR = rim(i0 + (t < .5 ? sA : sB) * u * span * Wj / Wf).sub(rim(i0));
-            return ctr(t * Lc).add(dR.multiplyScalar(1 - k0)).addScaledVector(nrm, u * Wj * k0);
-          };
-          // (as a flat handle's rows: a stitch's zigzag the row's height, the yarn passing front and back of the
-          // fabric's middle stitch by stitch - out from the bag at the foot, up at the top)
-          const th = R * 1.1, pts: THREE.Vector3[] = [], out = new THREE.Vector3();
-          for (let j = 0; j <= n; j++) {
-            const Wj = wide(j).Wj, m = Math.max(8, Math.ceil(Wj / (R * .36))), s = Math.sin(Math.PI * j / n);
-            for (let i = 0; i <= m; i++) {
-              const u = (j % 2 ? m - i : i) / m - .5, x = u * span * Wj / Wf + j * .5; // in stitches: a row sits on the row under it
-              const q = spot(Math.max(0, Math.min(n, j + (1 - 4 * Math.abs(x - Math.round(x))) * .42)), u);
-              out.set(q.x - cx, 0, q.z - cz); if (out.lengthSq() > 1e-9) out.normalize(); out.multiplyScalar(1 - s * s).addScaledVector(up, s * s);
-              pts.push(q.addScaledVector(out, th * Math.cos(Math.PI * u * span * Wj / Wf)));
+          const prevC = D.C[D.C.length - 2]; let yPrev = ry - D.rh; if (prevC && prevC.idx.length) { yPrev = 0; prevC.idx.forEach(q => { yPrev += D.P[q].y / prevC.idx.length; }); }
+          let n = Math.max(6, Math.round(Lc / Math.max(D.rh * .5, ry - yPrev))); if (n % 2) n++;
+          const k0At = (j: number) => { const t = j / n; return G.dec > 0 ? Math.min(1, Math.min(t, 1 - t) * 2 / G.dec) : 1; };
+          const pos = (j: number, i0: number, s0: number, du: number) => { const q0 = k0At(j), k0 = q0 * q0 * (3 - 2 * q0); return ctr(j / n * Lc).add(rim(i0 + du).sub(rim(i0)).multiplyScalar(1 - k0)).addScaledVector(nrm, s0 * du * sp * k0); };
+          const C0 = new THREE.Vector3(cx, ry - rr * .5, cz), wr0 = bodyN, skR = D.skip?.row ?? 1, skS = D.skip?.stitch ?? 1;
+          // (the two halves meet at the middle row: the far half's last row stands on it too - the seam)
+          for (let q = 1; q <= n; q++) {
+            const a = q <= n / 2, j = a ? q : q - 1, i0 = a ? iA : iB, s0 = a ? sA : sB, jb = a ? j - 1 : j + 1, k0 = k0At(j), hw = Math.floor((F + (S - F) * k0) / 2);
+            const wr = wl ? ((wr0 + (a ? j - 1 : n - j - 1)) * skR) % wl.H : -1;
+            for (let du = -hw; du <= hw; du++) {
+              const t = pos(j, i0, s0, du), b = pos(jb, i0, s0, du), al = pos(j, i0, s0, du + 1).sub(t), sw = Math.max(D.sw * .6, al.length());
+              if (al.lengthSq() < 1e-12) al.set(1, 0, 0); al.normalize();
+              const upV = t.clone().sub(b), h = upV.length() || D.rh, up = upV.divideScalar(h), out = new THREE.Vector3().crossVectors(al, up);
+              if (out.lengthSq() < 1e-12) out.set(0, 1, 0); out.normalize(); if (out.dot(t.clone().sub(C0)) < 0) out.negate();
+              const col = (((i0 + du) % c) + c) % c, wi = (col * skS) % (wl ? wl.W : 1);
+              const ty: WallStitch = wr >= 0 ? (wl!.t[wr]?.[wi] ?? "sc") : sH < 1.4 ? "sc" : sH < 2 ? "hdc" : "dc";
+              drawSt(ty, wr >= 0 && wl!.c && wl!.colors ? (wl!.colors[wl!.c[wr]?.[wi] ?? 0] ?? color) : color, (u, v, x) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, x * R));
             }
-            if (over()) yield;
+            if (postV > 30_000) flushPosts(); if (over()) yield;
           }
-          const gg = yield* buildYarnG(pts, R, { M, color }), mm = new THREE.Mesh(gg, mat); mm.castShadow = true; group.add(mm); meshes.push(mm); geos.push(gg);
+          flushPosts();
           strapEnds.push(A.clone(), B.clone()); strapH = Math.max(strapH, H + R); continue;
         }
         if (pat.strapStyle) {

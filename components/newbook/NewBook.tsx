@@ -15,7 +15,7 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type Keyb
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
 import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, LEN_RANGE, type FieldKey, type Item, type ItemId } from "@/lib/items";
-import { fitNote, gauge, grownHandle, plan, SHAPE_KO, snapSize, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
+import { fitNote, gauge, grownHandle, openingN, plan, SHAPE_KO, snapSize, type Handle, type PlanInput, type Shape } from "@/lib/pattern";
 import { store } from "@/lib/store";
 import { binder, hasContent } from "@/lib/binder";
 import { BUTTONS, LABEL_GROUPS, extraPic } from "@/lib/extras";
@@ -367,15 +367,15 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the handle's length and how many strands wide it is, dragged (the typed box beside it starts again: hRev)
   const hasHandle = (!!item.handles || item.kind === "base-body") && draft.handle !== "none";
   // a handle grown out of the opening (Kim: 몸통에서 이어 뜨는 손잡이): its counts as the plan has them
-  const rimRow = pp.rows.filter(r => r.part === "rim").pop();
-  const GH = hasHandle && draft.handleKind === "grown" && rimRow ? grownHandle(input, pp.g, rimRow.n) : null;
+  const openN = openingN(pp);
+  const GH = hasHandle && draft.handleKind === "grown" && openN ? grownHandle(input, pp.g, openN) : null;
   const handleSliders = GH ? (<>
     <div className="nb-sliders nb-sliders-1">
       <Slide label="길이" min={15} max={Math.max(150, handleCmOf(draft))} step={1} value={handleCmOf(draft)} onChange={v => { setHRev(k => k + 1); patch({ handle: "short", handleCm: v }); }} text={`${handleCmOf(draft)}cm`} />
       <Slide label="끈 너비" min={1} max={6} step={.5} value={draft.handleWcm ?? 2.5} onChange={v => patch({ handleWcm: v })} text={`${draft.handleWcm ?? 2.5}cm`} />
       <Slide label="밑너비" min={1} max={Math.max(1.5, GH.maxBaseCm)} step={.5} value={Math.min(Math.max(1.5, GH.maxBaseCm), draft.handleBaseCm ?? Math.round(GH.baseCm * 2) / 2)} onChange={v => patch({ handleBaseCm: v })} text={`${GH.baseCm}cm`} />
     </div>
-    <p className="nb-fit" role="status">{`입구 ${rimRow!.n}코 가운데 한쪽 ${GH.base}코에서 시작해 ${GH.strap}코까지 줄이고, 한쪽에 ${GH.rows}단을 뜹니다. 다 뜬 길이는 약 ${GH.lenCm}cm입니다.`}</p>
+    <p className="nb-fit" role="status">{`입구 ${openN}코 가운데 한쪽 ${GH.base}코${GH.wk ? `(무늬 ${GH.base / GH.u}개)` : ""}에서 시작해 ${GH.strap}코${GH.wk ? `(무늬 ${GH.strap / GH.u}개)` : ""}까지 줄이고, 한쪽에 ${GH.rows}단을 뜹니다. 다 뜬 길이는 약 ${GH.lenCm}cm입니다.`}</p>
   </>) : hasHandle ? (
     <div className="nb-sliders nb-sliders-1">
       <Slide label="길이" min={15} max={Math.max(150, handleCmOf(draft))} step={1} value={handleCmOf(draft)} onChange={v => { setHRev(n => n + 1); patch({ handle: "short", handleCm: v }); }} text={`${handleCmOf(draft)}cm`} />
@@ -385,12 +385,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // how the handle is made (Kim): strands side by side, flat, or a tube; a flat one from a chain joining its two
   // ends then widened, or worked to its width then row by row to its other end
   const hs = draft.handleStyle;
-  const handleMake = GH ? (
-    <div className="nb-wsub">
-      <Tiles label="손잡이 코" value={GH.st} cols={3} onPick={v => patch({ handleStitch: v as CrochetStitch })}
-        options={[["sc", "짧은뜨기", "촘촘하고 단단하게"], ["hdc", "긴뜨기", "조금 빨리"], ["dc", "한길긴뜨기", "성글고 빨리"]]} />
-    </div>
-  ) : hasHandle ? (
+  const handleMake = GH ? null : hasHandle ? (
     <div className="nb-wsub">
       <Tiles label="손잡이 모양" value={hs === "tube" ? "tube" : "flat"} cols={2}
         onPick={v => patch({ handleStyle: v === "tube" ? "tube" : hs && hs !== "tube" ? hs : "flat-rows" })}
@@ -1051,7 +1046,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
               options={[["1", "1개", "위로 가로질러"], ["2", "2개", "앞뒤로"], ["wrist", "손목 고리", "모서리에 하나"], ["grown", "이어 뜨기", "몸통에서 올려 뜨기"]]} />
             {handleMake}
             {handleSliders}
-            <p className="nb-help">{draft.handleKind === "grown" ? "입구의 양쪽 옆선에서 코를 주워 양 끝을 줄이며 올려 뜨고, 꼭대기에서 두 끝을 잇습니다. 따로 달지 않습니다." : draft.handleKind === "wrist" ? "손목에 끼는 고리는 약 20~30cm입니다." : "손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다."}</p>
+            <p className="nb-help">{draft.handleKind === "grown" ? "입구의 양쪽 옆선에서 몸통과 같은 무늬로 양 끝을 줄이며 올려 뜨고, 꼭대기에서 두 끝을 잇습니다. 따로 달지 않습니다." : draft.handleKind === "wrist" ? "손목에 끼는 고리는 약 20~30cm입니다." : "손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다."}</p>
           </>)}
           {partNow === "top" && <>
             <h3>입구<small>한 번 더 누르면 뺍니다</small></h3>
