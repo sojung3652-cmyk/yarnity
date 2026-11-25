@@ -165,3 +165,13 @@
   html body .yw-mkfoot{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;height:auto;padding:0;border:0;background:none!important;box-shadow:none!important}
   html body .yw-mkbody{padding-bottom:72px}
 }
+
+/* phones (Kim, 11/25: 3D 화면 닫기가 없어): the closing X stays at the top bar's right end, over the tabs as they
+   scroll - it was pushed off the screen by the tabs */
+@media (max-width:767.98px){
+  html body .yw-top{position:relative}
+  html body .yw-x{position:sticky;right:0;z-index:5;margin-left:auto;padding-left:8px;align-self:stretch;
+    background:linear-gradient(90deg,rgba(246,239,227,0),#F4ECDF 10px)}
+  html body .yw-x button{width:42px;height:42px}
+  html body .yw-x button svg,html body .yw-x button .gold-x{width:20px;height:20px}
+}
