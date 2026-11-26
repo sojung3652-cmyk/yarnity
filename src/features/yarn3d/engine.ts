@@ -45,12 +45,14 @@ export interface FormCourse { p: number[]; closed?: boolean; on: number; ghost?:
 /** what a piece is shown on (Kim: 모자·후드는 머리 모양 받침 위에, 보틀백은 병 모양 받침 위에 - 아주 연한 색): a lathe's
  *  outline, [radius, height] in cm from the table up. `fitTo`: the piece's own width (cm) the outline was drawn
  *  for - a piece the engine settles itself (a bottle's bag) is measured, and the stand made to that measure. */
-export interface YarnStand { kind: "head" | "bottle" | "torso"; prof: [number, number][]; fitTo?: number }
+export interface YarnStand { kind: "head" | "bottle" | "torso"; prof: [number, number][]; fitTo?: number;
+  /** (a torso, Kim: 인체에 맞추어) wider than deep: the lathe scaled across (x) and front to back (z) */ sx?: number; sz?: number;
+  /** round parts on it - a bust, the shoulders: [x, y, z, rx, ry, rz] in cm, each drawn as an ellipsoid */ bumps?: [number, number, number, number, number, number][] }
 /** what is drawn, in the pattern's own counts (stitches per course, bottom first) */
 export type YarnShape =
   | { kind: "round"; counts: number[]; flat: number }                       // magic ring; `flat` = rounds that lie flat (the bottom)
   | { kind: "oval"; chain: number; bottom: number[]; body: number[] }        // around a base chain, then a body (wall)
-  | { kind: "rect"; chain: number; bottom: number[]; body: number[] }
+  | { kind: "rect"; chain: number; bottom: number[]; body: number[]; /** 매직링 네모 바닥: no base chain - the long sides grow round by round from the ring to `chain` stitches */ fromRing?: boolean }
   | { kind: "rows"; W: number; H: number; wCm: number; hCm: number; knit: boolean; stitch?: string } // back and forth (knit: its stitch pattern, lib/knit.ts)
   | { kind: "tube"; W: number; H: number; circCm: number; hCm: number }    // in the round, no bottom
   // a painted picture (직접 그리기 · 자유롭게): W x H stitches, row-major from the bottom, -1 = a hole, else the
@@ -630,12 +632,14 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       return pts;
     };
     // around a chain of n: the chain, then each round on the outline (counts from the pattern)
-    const aroundChain = (n: number, counts: number[], outline: typeof stad) => {
-      const sp: number[] = []; for (let i = 0; i < n; i++) sp.push(V((i - (n - 1) / 2) * sw, 0, 0));
+    const aroundChain = (n: number, counts: number[], outline: typeof stad, fromRing = false) => {
+      // (from a ring: the straight sides start at nothing and reach their length at the last round - the rounds
+      // are as long as their stitches, so none is stretched or bunched)
+      const m = fromRing ? 2 : n, sp: number[] = []; for (let i = 0; i < m; i++) sp.push(V((i - (m - 1) / 2) * sw * (fromRing ? .3 : 1), 0, 0));
       flat.push(...sp); ring(sp, false, 2 * sw); C.push({ idx: sp, closed: false, bot: null, ci: 0 });
       let prev = sp, pcl = false;
       counts.forEach((c, r) => {
-        const idx = outline((n - 1) * sw, (r + 1) * rh, c).map(([x, z]) => V(x, 0, z)); flat.push(...idx);
+        const idx = outline((n - 1) * sw * (fromRing ? (r + 1) / counts.length : 1), (r + 1) * rh, c).map(([x, z]) => V(x, 0, z)); flat.push(...idx);
         ring(idx, true); C.push({ idx, closed: true, bot: linkNear(idx, prev, pcl), ci: nextCi() }); prev = idx; pcl = true;
       });
       return prev;
@@ -722,7 +726,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     let knit: Knit | null = null, fixed = false, form = false, skip: ItemData["skip"] = null, rhOut = rh, swOut = sw;
     if (kk > 1) skip = { stitch: kk, row: kk };
     if (s.kind === "round") round(s.counts, s.flat);
-    else if (s.kind === "oval" || s.kind === "rect") { const b = aroundChain(s.chain, s.bottom, s.kind === "oval" ? stad : rectPath); if (s.body.length) wall(b, s.body, s.kind === "rect"); }
+    else if (s.kind === "oval" || s.kind === "rect") { const b = aroundChain(s.chain, s.bottom, s.kind === "oval" ? stad : rectPath, s.kind === "rect" && !!s.fromRing); if (s.body.length) wall(b, s.body, s.kind === "rect" && !s.fromRing); } // (a square bottom from a ring: square walls too - Kim)
     else if (s.kind === "rows") {
       const k = skipOf(s.W, s.H), W = Math.max(2, Math.round(s.W / k)), H = Math.max(2, Math.round(s.H / k));
       const ex = s.wCm * 10 / MM / W, ey = s.hCm * 10 / MM / H, swap = s.hCm > s.wCm;
@@ -1183,8 +1187,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       k = rr / (widest * U); y0 = R * 1.6;
     }
     const pts = sd.prof.map(([x, y]) => new THREE.Vector2(Math.max(0, x) * U * k, y * U * k));
-    const m = new THREE.Mesh(new THREE.LatheGeometry(pts, 56), new THREE.MeshStandardMaterial({ color: lin(0xE6DFD4), roughness: .97, metalness: 0 }));
-    m.position.y = y0; m.castShadow = true; m.receiveShadow = false; m.userData.stand = true; group.add(m);
+    const mat = new THREE.MeshStandardMaterial({ color: lin(0xE6DFD4), roughness: .97, metalness: 0 });
+    const m = new THREE.Mesh(new THREE.LatheGeometry(pts, 56), mat);
+    m.position.y = y0; m.scale.set(sd.sx ?? 1, 1, sd.sz ?? 1); m.castShadow = true; m.receiveShadow = false; m.userData.stand = true; group.add(m);
+    for (const [bx, by, bz, rx, ry, rz] of sd.bumps ?? []) {
+      const b = new THREE.Mesh(new THREE.SphereGeometry(U * k, 32, 20), mat);
+      b.position.set(bx * U * k, by * U * k + y0, bz * U * k); b.scale.set(rx, ry, rz); b.castShadow = true; b.userData.stand = true; group.add(b);
+    }
   }
   // ---------- a handle as it is made (Kim). Along its centre line `cl`, its flat face towards `nrm`:
   //   tube        rounds round it, one after another (a crocheted tube), as thick as strapWcm

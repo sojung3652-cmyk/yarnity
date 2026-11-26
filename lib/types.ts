@@ -179,6 +179,7 @@ export interface Draft {
   phoneW?: number;
   phoneH?: number;
   rimChart?: import("./crochetChart").ChartKey;
+  topLine?: "heart" | "straight";
   flapStepRows?: number;
   flapStepSt?: number;
   /** 10종 더 (lib/pattern PlanInput): a balaclava's neck and face opening and ears, a boot's foot / ankle / cuff, a

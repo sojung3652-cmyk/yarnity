@@ -179,6 +179,8 @@ export interface PlanInput {
   phoneW?: number | null;
   phoneH?: number | null;
   rimChart?: ChartKey | null;
+  /** 뷔스티에의 윗선 (Kim: 둘 다): two cups over the band (heart, the default) or the band alone, its top straight */
+  topLine?: "heart" | "straight" | null;
   flapStepRows?: number | null;
   flapStepSt?: number | null;
   /** 10종 더 (lib/wear): a neck's round, a face opening's width and height, ears sewn on (바라클라바); a foot's

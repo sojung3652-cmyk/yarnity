@@ -312,13 +312,15 @@ export function planBustier(p: PlanInput, g: Gauge): Plan {
   rows.push({ part: "join", n: 0, inc: 0, own: true, label: "띠 잇기 준비", how: `모티프 ${n}장을 한 줄로 늘어놓고, 맞닿는 변끼리 마커링으로 모서리를 맞춥니다`, why: "잇는 순서: 띠 → 컵 → 어깨끈" } as Row);
   rows.push({ part: "join", n: ring, inc: 0, own: true, label: "띠 잇기", how: `이웃한 두 모티프의 변을 겉이 밖으로 오게 맞대고 두 겹을 함께 떠서 ${SC} ${E}코로 잇습니다. ${n}군데를 이어 고리로 만듭니다 (모두 ${ring}코)`,
     why: `한 변 ${E}코 × ${n}군데 = ${ring}코 · 띠 둘레 ${fmt(B.roundCm)}cm (가슴둘레 ${B.bust}cm, 늘어나는 만큼 작게)` } as Row);
-  for (const q of [1, 2]) for (let i = 0; i < CR; i++) {
+  // (일자 윗선: no cups - the band's top is the edge, the straps go on from it)
+  if (p.topLine !== "straight") for (const q of [1, 2]) for (let i = 0; i < CR; i++) {
     const m = Cb - 2 * i;
     rows.push({ part: "flap", n: m, inc: i ? -2 : 0, own: true, label: `컵${q} ${i + 1}단`, edge: i ? [-1, -1] : [0, 0], ...(i ? { work: [1, 1] } : {}),
       how: i === 0 ? `띠 윗변 앞쪽 ${q === 1 ? "왼편" : "오른편"} ${Cb}코에 새 실을 걸어 기둥사슬 1, ${SC} ${Cb}코` : `기둥사슬 1, 뒤집어서 ${SC} 2코 모아뜨기, ${SC} ${m - 2}코, ${SC} 2코 모아뜨기`,
       why: i === 0 ? (q === 1 ? `컵 밑변 = 가슴둘레 ${B.bust}cm × 0.2 ÷ 코 너비 ${mm(g.w)}mm = ${Cb}코 (홀수) · 단마다 양 끝에서 1코씩 줄여 3코까지 ${CR}단` : `컵 1과 같은 ${Cb}코 · 앞 가운데를 사이에 두고 마주 봅니다`) : `${m + 2} - 줄임 2 = ${m} · 양 끝에서 한 코씩` } as Row);
   }
-  rows.push(cord("어깨끈 1", B.C, B.strap, "컵 1의 꼭대기 3코에서 이어", g), cord("어깨끈 2", B.C, B.strap, "컵 2의 꼭대기 3코에서 이어", g));
+  if (p.topLine === "straight") rows.push(cord("어깨끈 1", B.C, B.strap, "띠 윗변 앞 왼편에서 이어", g), cord("어깨끈 2", B.C, B.strap, "띠 윗변 앞 오른편에서 이어", g));
+  else rows.push(cord("어깨끈 1", B.C, B.strap, "컵 1의 꼭대기 3코에서 이어", g), cord("어깨끈 2", B.C, B.strap, "컵 2의 꼭대기 3코에서 이어", g));
   return { g, c: 1, rows: number(rows), bottomRounds: 0, bodyRows: E, last: ring };
 }
 
@@ -504,7 +506,7 @@ export function wearNote(p: PlanInput, g: Gauge, g0: Gauge = g): string {
     case "trapbag": { const B = trapBag(p, g); return `사슬 ${B.n0}코에서 시작해 ${B.R}단 동안 양 끝을 고르게 늘려 ${B.W}코가 됩니다. 같은 판 2장을 바닥 ${B.n0}코, 옆선 ${B.sideJ}코씩 잇습니다. 손잡이는 ${B.T}코로 ${B.HR}단입니다.`; }
     case "moonbag": { const M = moonBag(p, g); return `원 하나는 ${M.R}단, 마지막 단 ${M.N}코입니다.` + (M.hs ? ` ${M.rh}단에서 사슬 ${M.hs}코로 손잡이 구멍을 냅니다.` : " 손잡이 구멍은 없습니다.") + ` 아래 반원 ${M.J}코를 잇습니다.`; }
     case "bonnet": { const B = bonnet(p, g); return `정수리를 ${B.R}단 동안 늘려 ${B.N}코, 그 가운데 ${B.W}코로 ${B.H}단을 왕복해 내려 뜹니다. 턱끈은 사슬 ${B.C}코씩입니다.`; }
-    case "bustier": { const B = bustier(p, g); return `모티프 하나는 ${B.R}단, 한 변 ${B.E}코입니다. ${B.n}장을 이은 띠의 둘레는 ${fmt(B.roundCm)}cm(가슴둘레 ${B.bust}cm)입니다. 컵은 ${B.Cb}코에서 3코까지 ${B.CR}단입니다.`; }
+    case "bustier": { const B = bustier(p, g); return `모티프 하나는 ${B.R}단, 한 변 ${B.E}코입니다. ${B.n}장을 이은 띠의 둘레는 ${fmt(B.roundCm)}cm(가슴둘레 ${B.bust}cm)입니다. ${p.topLine === "straight" ? "윗선은 띠의 윗변 그대로 일자입니다." : `컵은 ${B.Cb}코에서 3코까지 ${B.CR}단입니다.`}`; }
     case "halter": { const H = halter(p, g); return `사슬 ${H.N}코(아치 ${H.A}개, 둘레 ${fmt(H.roundCm)}cm)로 시작해 그물을 ${fmt(H.tubeCm)}cm 떠 올립니다. 앞쪽 아치 ${H.F}개를 단마다 하나씩 줄여 ${H.V}단의 V로 모읍니다.`; }
     case "knotbag": { const K = knotBag(p, g); return `사슬 ${K.W}코로 ${2 * K.R}단을 떠서 반 접습니다. 옆선은 ${K.sideJ}코씩 잇습니다. 짧은 고리는 ${K.T}코로 ${K.PS}단, 긴 끈은 ${K.PL}단입니다.`; }
     case "twoway": { const T = twoWay(p, g); return `판 하나는 ${T.W}코 × ${T.R}단, ${T.eye}단째가 끈 구멍 단(구멍 ${T.holes}개)입니다. 두 판을 ${T.J}코로 잇고, 조임끈은 약 ${T.cordCm}cm입니다.`; }
@@ -635,7 +637,8 @@ export const KITS: Record<string, KitPart[]> = {
   ],
   bustier: [
     { key: "bust", title: "몸", sub: "입는 사람의 치수입니다", fields: [F("bust", "가슴둘레", 60, 120, 84, 1), F("h", "띠 높이", 8, 24, 14)],
-      help: `띠 높이가 모티프 한 변입니다. 띠의 둘레는 가슴둘레의 ${BUST_EASE * 100}%에 가장 가깝게 모티프 장 수를 정합니다.`, sum: d => `가슴둘레 ${d.bust ?? 84}cm · 띠 높이 ${d.h}cm` },
+      picks: [{ label: "윗선", value: d => d.topLine ?? "heart", options: [["heart", "하트 윗선", "띠 위에 컵 두 개"], ["straight", "일자 윗선", "띠만, 가슴을 덮게"]], set: v => ({ topLine: v === "straight" ? "straight" : undefined }) }],
+      help: `띠 높이가 모티프 한 변입니다. 띠의 둘레는 가슴둘레의 ${BUST_EASE * 100}%에 가장 가깝게 모티프 장 수를 정합니다.`, sum: d => `가슴둘레 ${d.bust ?? 84}cm · 띠 높이 ${d.h}cm · ${d.topLine === "straight" ? "일자" : "하트"} 윗선` },
     ties("어깨끈", "컵 꼭대기에서 이어 뜹니다", F("tieCm", "끈 길이", 20, 70, 40, 1), null, "잇는 순서는 모티프 띠 → 컵 두 개 → 어깨끈입니다. 끈은 목 뒤나 등에서 묶습니다."),
   ],
   halter: [

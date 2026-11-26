@@ -156,7 +156,11 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     const bottom = counts("bottom"), body = p.object === "bag" ? drawnRounds(pp.rows.filter(r => r.part === "body" || r.part === "rim")).map(x => (p.handleKind === "rim" && bodyTop ? Math.min(x.n, bodyTop) : x.n)) : [];
     if (!bottom.length) return null;
     shape = p.shape === "circle" ? { kind: "round", counts: [...bottom, ...body], flat: bottom.length }
-      : { kind: p.shape === "oval" ? "oval" as const : "rect" as const, chain: Math.max(2, pp.c), bottom, body };
+      : p.shape !== "oval" && p.bottomStart === "ring" && p.b && p.a > p.b
+        // 매직링 네모 바닥: drawn as a box bottom whose long sides grow from the ring (Kim: 트레이) - its chain is
+        // the straight part the last round reaches
+        ? { kind: "rect" as const, chain: Math.max(2, Math.round((p.a - p.b) / pp.g.w) + 1), bottom, body, fromRing: true }
+        : { kind: p.shape === "oval" ? "oval" as const : "rect" as const, chain: Math.max(2, pp.c), bottom, body };
   }
   // one colour per course: the pattern has one yarn colour (its extra colours are not placed on rows)
   const color = /^#[0-9a-f]{6}$/i.test(p.color ?? "") ? p.color! : DEFAULT_COLOR;
@@ -196,8 +200,8 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     // 브러싱 (Kim): the finished piece brushed - more hair and longer by how hard it is brushed, on top of the
     // reader's own 털 양 / 털 길이 (a smooth yarn gets fuzz too: above 1 the 3D adds it)
     ...(br > 0 || (p.fuzzK != null && p.fuzzK !== 1) ? { fuzzK: (p.fuzzK ?? 1) + br * 3 } : {}), ...(br > 0 || (p.hairK != null && p.hairK !== 1) ? { hairK: (p.hairK ?? 1) * (1 + br * 1.5) } : {}),
-    // (a bottle's bag is held in shape by its bottle)
-    ...((p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10) || (stand?.kind === "bottle") ? { firm: true } : {}),
+    // (a bottle's bag is held in shape by its bottle; a tray stands as it is shaped - Kim: 트레이는 탄성 안 줘도 됨)
+    ...((p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10) || (stand?.kind === "bottle") || (p.item === "tray" && !p.free) ? { firm: true } : {}),
     ...(p.free ? {} : p.item === "pouch" && p.gusset !== "box" && p.flapOver !== "top" ? { top: "pinch" as const } : p.item === "bucket" || pack ? { top: "cinch" as const } : {}),
     // with a flap the top closes to the gap asked (2cm when not said)
     ...(p.softK && p.softK !== 1 ? { softK: p.softK } : {}),
