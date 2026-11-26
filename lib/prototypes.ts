@@ -65,7 +65,7 @@ const KINDS: Proto[] = [
   { id: "knitfold", group: "가방", name: "접어 만드는 대바늘 가방", note: "긴 직사각형 · 접어 옆선 · 남긴 코로 끈", item: "knitfold", over: { a: 30, h: 26, handleWcm: 4, strapCm: 60, craft: "knit" } },
   { id: "netduo", group: "가방", name: "두 색 손잡이 그물 가방", note: "네모 바닥 · 그물 몸통 · 먼저 뜨는 손잡이", item: "minibag", over: { shape: "rect", gusset: "box", a: 24, b: 8, h: 22, crochetChart: "net", handle: "short", handleCount: 2, handleCm: 45, handleFirst: true, handleColor: "#9C7A62" } },
   { id: "tray", group: "소품", name: "트레이", note: "매직링 네모 바닥 · 꺾임선 · 볼록 테두리", item: "tray", over: { shape: "rect", a: 24, b: 16, h: 4, bottomStart: "ring", crease: "back", bulge: .4, extras: { items: [{ pic: "f-daisy", at: [0, .55, 3] }] } } },
-  { id: "knittop", group: "옷", name: "위에서부터 뜨는 니트 탑", note: "뒤판 어깨부터 · 앞판 어깨 줍기 · 원통 몸통", item: "knittop", over: { bust: 92, h: 52, sleeveCm: 40, craft: "knit" } },
+  { id: "knittop", group: "옷", name: "위에서부터 뜨는 니트 탑", note: "뒤판 어깨부터 · 앞판 어깨 줍기 · 원통 몸통", item: "knittop", over: { bust: 92, h: 52, sleeveCm: 40, craft: "knit", yarnMode: "mm", yarnMm: 2, weight: "thin", hook: "4호", hookMm: 2.5 } }, // (Kim: 기본 실을 얇게 - 2mm, 대바늘 2.5mm; 실 화면에서 바꿀 수 있음)
 ];
 const BAGS = new Set<ItemId>(["minibag", "bucket", "pouch"]);
 /** 기본형 정리 (Kim: 이름만 다르고 크기만 다른 것은 하나로 - 크기는 슬라이더로): the pieces made the same way as

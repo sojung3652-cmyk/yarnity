@@ -80,3 +80,18 @@ describe("몸에 입힌 니트 (Kim: 실제 니트처럼, 시안 A · 둥근 목
     for (const c of f.courses) for (let i = 0; i < c.p.length; i += 3) { expect(Number.isFinite(c.p[i] + c.p[i + 1] + c.p[i + 2])).toBe(true); if (!c.ghost) expect(c.p[i + 1]).toBeGreaterThan(0); }
   });
 });
+
+describe("편물은 이어져 있다 (Kim: 모든 편물은 이어져 있어야)", () => {
+  it("each sleeve's first round lies on the armhole's edge - next to the panels' end stitches", () => {
+    const p = starter("knittop"), pp = plan(p), f = wornForm(p, pp)!, real = f.courses.filter(c => !c.ghost);
+    const panelEnds: number[][] = [];
+    for (const c of real.filter(c => !c.closed)) { const m = c.p.length; panelEnds.push(c.p.slice(0, 3), c.p.slice(m - 3)); }
+    const sleeveFirst = f.courses.filter((c, i) => c.closed && c.kn && f.courses[i - 1]?.ghost && Math.abs(c.cen[0]) > 5);
+    expect(sleeveFirst.length).toBe(2);
+    for (const c of sleeveFirst) {
+      let far = 0;
+      for (let k = 0; k < c.p.length; k += 3) far = Math.max(far, Math.min(...panelEnds.map(e => Math.hypot(e[0] - c.p[k], e[1] - c.p[k + 1], e[2] - c.p[k + 2]))));
+      expect(far).toBeLessThan(2.5);
+    }
+  });
+});

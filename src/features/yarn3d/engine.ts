@@ -939,8 +939,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           if (ridgeRow) t.addScaledVector(out, ridgeIn ? -R * 1.1 : R * 1.1);
           const P = (u: number, v: number, w: number) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, w * R);
           if (knitSt) {
-            // (knitted fabric is closed: its yarn spreads and fluffs to fill the stitch - two legs about a stitch wide)
-            const Rk = Math.max(R, .2 * sw), wF = Rk / R * .9;
+            // (the yarn as thick as it is - Kim: 실을 아주 얇게)
+            const Rk = R, wF = .9;
             if (c.kn === "rib" && i % 2 === 1) for (const v of [-.2, -.65]) strand([P(-.55, v - .2, -wF * .3), P(0, v, wF * .1), P(.55, v - .2, -wF * .3)], Rk, col);
             else for (const k of [-1, 1]) strand([P(k * .45, .25, wF * .6), P(k * .24, -.4, wF * (c.kn === "rib" ? 1.3 : 1)), P(k * .04, -1, wF * .5)], Rk, col);
             continue;
