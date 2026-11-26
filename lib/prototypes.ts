@@ -9,11 +9,14 @@ export type Proto = { id: string; group: string; name: string; note: string; ite
 const KINDS: Proto[] = [
   { id: "tote", group: "가방", name: "토트백", note: "네모 · 손잡이 2개", item: "minibag", over: { shape: "rect", a: 26, b: 9, h: 22, handle: "short", handleCm: 50, handleCount: 2, gusset: "box" } },
   { id: "shoulder", group: "가방", name: "숄더백", note: "타원 · 어깨끈", item: "minibag", over: { shape: "oval", a: 24, b: 8, h: 18, handle: "long", handleCm: 100, handleCount: 1 } },
-  // (Kim: 호보백 - its handle is the body itself going on up, lib/pattern grownHandle)
-  { id: "hobo", group: "가방", name: "호보백", note: "타원 · 이어 뜨는 손잡이", item: "minibag", over: { shape: "oval", a: 28, b: 10, h: 18, handle: "short", handleKind: "grown", handleCount: 1, handleCm: 56, handleWcm: 3 } },
-  // (Kim: 구조 원리 - lib/structure) two panels with a strip that is the sides, the bottom and the handle; a panel whose ends go on up as the strap
-  { id: "panelbag", group: "가방", name: "판 + 띠 가방", note: "판 2장 · 띠가 옆과 바닥", item: "minibag", over: { shape: "rect", build: "panels", a: 24, h: 20, corner: .35, stripCm: 6, stripHandle: true, handle: "short", handleCm: 50 } },
-  { id: "hobo1", group: "가방", name: "판 하나 호보백", note: "양 끝 기둥이 끈", item: "minibag", over: { shape: "rect", build: "hobo1", a: 28, h: 18, corner: .6, postSt: 5, strapCm: 60, handle: "short" } },
+  // 가방 5종 (Kim: 실제 작품들에서 본 구조 원리 - lib/structure, lib/pattern): only how each is put together; every count is the gauge's
+  { id: "slouch", group: "가방", name: "슬라우치 토트", note: "납작 통 · 옆에서 이어지는 끈", item: "minibag", over: { shape: "rect", gusset: "flat", a: 30, b: 2, h: 26, handle: "short", handleKind: "grown", handleFar: true, handleCount: 1, handleCm: 60, handleWcm: 4, handleBaseCm: 4, drape: true } },
+  { id: "hobo1", group: "가방", name: "호보백", note: "판 하나 · 둥근 모서리 · 끈 기둥", item: "minibag", over: { shape: "rect", build: "hobo1", hoboFold: true, a: 28, h: 18, corner: .6, postSt: 5, strapCm: 60, handle: "short" } },
+  { id: "panelbag", group: "가방", name: "판 + 띠 숄더백", note: "판 두 장 · 옆판 겸 끈", item: "minibag", over: { shape: "rect", build: "panels", a: 24, h: 20, corner: .35, stripCm: 6, stripHandle: true, handle: "short", handleCm: 70 } },
+  { id: "netbag", group: "가방", name: "네트백", note: "그물 몸통 · 짧은뜨기 테두리", item: "minibag", over: { shape: "rect", gusset: "box", a: 24, b: 8, h: 26, crochetChart: "net", handle: "short", handleKind: "rim", handleCount: 2, handleCm: 40, drape: true } },
+  { id: "ribtote", group: "가방", name: "골지 토트", note: "옆으로 떠서 세로 골", item: "minibag", over: { shape: "rect", build: "ribbed", a: 28, h: 26, holeW: 10, holeH: 3, handle: "none" } },
+  // (the handle is the body itself going on up - lib/pattern grownHandle; it was "호보백" before the one above took the name)
+  { id: "hobo", group: "가방", name: "이어 뜨는 호보백", note: "타원 · 이어 뜨는 손잡이", item: "minibag", over: { shape: "oval", a: 28, b: 10, h: 18, handle: "short", handleKind: "grown", handleCount: 1, handleCm: 56, handleWcm: 3 } },
   { id: "round", group: "가방", name: "둥근 손가방", note: "원 · 손잡이 1개", item: "minibag", over: { shape: "circle", a: 15, h: 15, handle: "short", handleCm: 50, handleCount: 1 } },
   { id: "flapbag", group: "가방", name: "덮개 크로스백", note: "네모 · 덮개 · 긴 끈", item: "minibag", over: { shape: "rect", a: 20, b: 6, h: 15, gusset: "box", closure: "flap", flapCm: 9, flapShape: "half", flapOver: "top", handle: "long", handleCm: 120, handleCount: 1 } },
   { id: "bucket", group: "가방", name: "버킷백", note: "원 · 끈 조이기", item: "bucket", over: { closure: "drawstring" } },
@@ -36,7 +39,7 @@ export function protoDraft(d: Draft, p: Proto): Draft {
   const it = ITEM[p.item], dv = it.defaults;
   return {
     ...d, item: p.item, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0,
-    handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, handleBaseCm: undefined, build: undefined, taper: undefined, taperCord: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
+    handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, handleBaseCm: undefined, handleFar: undefined, build: undefined, taper: undefined, taperCord: undefined, crochetChart: undefined, drape: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
     closure: "open", gusset: undefined, asm: undefined, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, extras: {},
     circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined, paint: undefined,
     ...p.over,

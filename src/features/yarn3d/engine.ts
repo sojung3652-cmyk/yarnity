@@ -44,7 +44,8 @@ export type YarnShape =
   | { kind: "tube"; W: number; H: number; circCm: number; hCm: number }    // in the round, no bottom
   // a painted picture (직접 그리기 · 자유롭게): W x H stitches, row-major from the bottom, -1 = a hole, else the
   // colour's index in `colors`; it stands up facing you (two of it, front and back, for pieces 2)
-  | { kind: "grid"; W: number; H: number; wCm: number; hCm: number; cells: number[]; pieces?: 1 | 2 }
+  /** (`turn`: worked sideways - the rows stand upright in the piece, a row's stitches running up it; W, wCm are a row's, H, hCm the rows') */
+  | { kind: "grid"; W: number; H: number; wCm: number; hCm: number; cells: number[]; pieces?: 1 | 2; turn?: boolean }
   // a crochet stitch pattern (lib/crochetChart: shells, mesh...), lying flat: every stitch from its base to its top
   | { kind: "chart"; chart: Chart; wCm: number; hCm: number };
 export interface YarnPattern {
@@ -680,7 +681,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
             const c = at(i, j);
             if (c < 0) { flush(); runC = -2; continue; }
             if (c !== runC) { flush(); runC = c; }
-            const n = V((i - (W - 1) / 2) * ex, j * ey + ey / 2, z0); id[j * W + i] = n; run.push(n);
+            const n = g.turn ? V((j - (H - 1) / 2) * ey, i * ex + ex / 2, z0) : V((i - (W - 1) / 2) * ex, j * ey + ey / 2, z0); id[j * W + i] = n; run.push(n);
             if (run.length > 1) E.push([run[run.length - 2], n, ex, 1]);
             const b = j > 0 ? id[(j - 1) * W + i] : -1; if (b >= 0) { E.push([n, b, ey, 1]); below.set(n, b); }
           }
@@ -831,6 +832,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     //          한길긴뜨기 two strands down side by side, the yarn-over wound across the middle
     // every piece, however big (Kim: 느려지면 생성 중을 띄우고 그냥 만들어) - the screen says 생성 중 while it is made
     const sH = pat.stitchH ?? 1, loops = !D.knit, postParts: THREE.BufferGeometry[] = [];
+    // a piece worked sideways (a ribbed panel): its rows stand upright, its fabric faces the front
+    const turned = pat.shape.kind === "grid" && !!pat.shape.turn, flatY = (v: THREE.Vector3) => (turned ? v : v.setY(0));
     const strand = (pts: THREE.Vector3[], rad: number, color: string, closed = false) => { const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5); cv.arcLengthDivisions = shortDiv(pts.length); const g = buildYarn(cv.getSpacedPoints(Math.max(loPts(closed), Math.ceil(cv.getLength() / (rad * .75 * step)))), rad, { M, closed, color }); postV += g.getAttribute("position").count; postParts.push(g); };
     // the stitches' strands are joined into meshes of ~30,000 vertices as they are made (in the order made), not
     // all at the end in one: joining a whole bag at once was a pause of its own
@@ -878,12 +881,12 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           const ty: WallStitch = wr >= 0 ? (wl!.t[wr]?.[(i * (D.skip?.stitch ?? 1)) % wl!.W] ?? "sc") : sH < 1.4 ? "sc" : sH < 2 ? "hdc" : "dc";
           const col = wr >= 0 && wl!.c && wl!.colors ? (wl!.colors[wl!.c[wr]?.[(i * (D.skip?.stitch ?? 1)) % wl!.W] ?? 0] ?? color) : color;
           const t = D.P[n].clone(), b0 = lp(c.bot![i]), nx = D.P[c.idx[(i + 1) % c.idx.length]], pv = D.P[c.idx[(i - 1 + c.idx.length) % c.idx.length]];
-          const alongV = (c.closed || i < c.idx.length - 1 ? nx.clone().sub(t) : t.clone().sub(pv)).setY(0), sw = Math.max(D.sw * .6, alongV.length());
+          const alongV = flatY(c.closed || i < c.idx.length - 1 ? nx.clone().sub(t) : t.clone().sub(pv)), sw = Math.max(D.sw * .6, alongV.length());
           const al = alongV.lengthSq() < 1e-12 ? new THREE.Vector3(1, 0, 0) : alongV.normalize();
           // straight under its own head (its base on the row below was half a stitch over)
           const dv = b0.clone().sub(t); dv.addScaledVector(al, -dv.dot(al)); const b = t.clone().add(dv), upV = t.clone().sub(b), h = upV.length() || D.rh, up = upV.clone().divideScalar(h);
           // out of the fabric: up for a flat piece, outward for a wall
-          const out = c.closed ? new THREE.Vector3(t.x - cx0, 0, t.z - cz0) : new THREE.Vector3(0, 1, 0); if (out.lengthSq() < 1e-12) out.set(0, 1, 0); out.normalize();
+          const out = c.closed ? new THREE.Vector3(t.x - cx0, 0, t.z - cz0) : turned ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0); if (out.lengthSq() < 1e-12) out.set(0, 1, 0); out.normalize();
           if (ridgeRow) t.addScaledVector(out, R * 1.1);
           const P = (u: number, v: number, w: number) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, w * R);
           // the head: front half up over the fabric, back half under, wider than the stitch so the next one's hooks into it

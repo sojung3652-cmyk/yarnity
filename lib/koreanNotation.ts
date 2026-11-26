@@ -122,6 +122,8 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
   if (r.part === "panel" || r.part === "strip" || r.part === "strap") {
     if (/시작 사슬$/.test(r.label)) return { toks: [{ t: "ch", n: r.n, kind: "base" }], end: "base" };
     const d = r.edge ? r.edge[0] : 0;
+    // a ribbed panel's hole: the stitches below it and over it apart, then chains across it
+    if (r.gap) return ok(r.gap[2] ? [turnT, note("뒤집어서"), ...st(r.gap[0], name, "아래쪽"), sp(r.gap[1]), ...st(r.n - r.gap[0] - r.gap[1], name, "위쪽")] : [turnT, note("뒤집어서"), ...st(r.gap[0], name, "아래쪽"), ...st(r.n - r.gap[0], name, "위쪽")]);
     if (d > 0) return ok([turnT, note("뒤집어서"), ...st(d + 1, name, "첫 코에"), ...st(prev - 2, name), ...st(d + 1, name, "마지막 코에")]);
     return ok([turnT, ...(/뒤집어서/.test(r.how) ? [note("뒤집어서")] : /새 실을 걸어/.test(r.how) ? [note("새 실을 걸어")] : []), ...st(r.n, name)]);
   }
@@ -176,6 +178,9 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
   }
   if (r.part === "rim") {
     if (r.how.startsWith("빼뜨기")) return ok([{ t: "sl", n: r.n }]);
+    // the round that leaves the handles standing: 짧은뜨기, a chain over skipped stitches, twice
+    const hs = r.how.match(/^\S+(?: \S+)? (\d+)코, 사슬 (\d+)코를 띄우고 (\d+)코 건너뛰기, \S+(?: \S+)? (\d+)코, 사슬 \d+코를 띄우고 \d+코 건너뛰기, \S+(?: \S+)? (\d+)코$/);
+    if (hs) { const [A, C, B, D, E] = hs.slice(1).map(Number); return ok(rd([...st(A, name), sp(C), skip(B), ...st(D, name), sp(C), skip(B), ...st(E, name)])); }
     if (r.how.startsWith("끈 구멍 단")) { const holes = Math.floor(r.n / 2); return ok(rd([...rep([sp(1), skip(1), ...st(1, name)], holes), ...st(r.n % 2, name)])); }
     return ok(rd(st(r.n, name, r.how.startsWith("무늬 위에") ? "무늬 위에" : undefined)));
   }

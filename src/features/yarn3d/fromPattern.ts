@@ -6,7 +6,7 @@
 //   back and forth            n stitches x the "rows" rows         -> "rows" (목도리: knitted, Kim)
 //   tube                      n stitches x the "rounds" rounds     -> "tube"
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
-import { isChainRow, pieceLayout } from "@/lib/structure";
+import { isChainRow, pieceLayout, pieceOf } from "@/lib/structure";
 import { CROCHET, grownHandle, openingN, plan, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
@@ -26,7 +26,7 @@ export interface YarnSource extends PlanInput {
   flapOver?: "top" | "fold" | null;
   gusset?: "flat" | "box" | null;
   /** wrist: one loop to slip the hand through (손목 고리) */
-  handleKind?: "wrist" | "grown" | null;
+  handleKind?: "wrist" | "grown" | "rim" | null;
   handleBaseCm?: number | null;
   /** 직접 적기: the reader's own crochet steps, shown when `ownOn` */
   ownSteps?: string | null;
@@ -114,6 +114,11 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     // a drawn shape: its rounds as they are, each in the colour drawn at its height
     const rr = pp.rows.filter(r => r.part === "bottom" || r.part === "body"); if (!rr.length) return null;
     shape = { kind: "round", counts: rr.map(r => Math.max(1, Math.round(r.n))), flat: pp.bottomRounds }; rowColors = rr.map(r => r.color);
+  } else if (p.object === "bag" && p.build === "ribbed") {
+    // 골지 판 (lib/structure): a panel worked sideways - its rows stand upright in the piece (`turn`), so its ribs
+    // run up it; the hand's hole is the grid's own gap; two panels, front and back
+    const body = pp.rows.filter(r => r.part === "panel" && pieceOf(r) === "앞판" && !isChainRow(r)), lay = pieceLayout(body);
+    shape = { kind: "grid", W: lay.W, H: body.length, wCm: lay.W * pp.g.w, hCm: body.length * pp.g.h, cells: lay.cells, pieces: 2, turn: true };
   } else if (p.object === "rows" && p.taper && !isKnit(p) && pp.rows.some(r => r.edge)) {
     // 사선 / 삼각형 (lib/structure): the piece as its rows lie - the grid the symbol chart draws, stitch for stitch
     const body = pp.rows.filter(r => !isChainRow(r) && r.part !== "finish"), lay = pieceLayout(body);
@@ -141,7 +146,9 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     shape = { kind: "tube", W: rounds[0], H: rounds.length, circCm: p.a, hCm: p.h ?? 1 };
   } else {
     // a stitch pattern's taller rounds (Row.hk ~2 for 한길긴뜨기) drawn as as many rounds, so the body keeps its height
-    const bottom = counts("bottom"), body = p.object === "bag" ? drawnRounds(pp.rows.filter(r => r.part === "body" || r.part === "rim")).map(x => x.n) : [];
+    // (handles left standing in the rim's rounds - a net bag - add their chains to those rounds' counts: the rim is drawn as wide as the body's last round)
+    const bodyTop = pp.rows.filter(r => r.part === "body").pop()?.n ?? 0;
+    const bottom = counts("bottom"), body = p.object === "bag" ? drawnRounds(pp.rows.filter(r => r.part === "body" || r.part === "rim")).map(x => (p.handleKind === "rim" && bodyTop ? Math.min(x.n, bodyTop) : x.n)) : [];
     if (!bottom.length) return null;
     shape = p.shape === "circle" ? { kind: "round", counts: [...bottom, ...body], flat: bottom.length }
       : { kind: p.shape === "oval" ? "oval" as const : "rect" as const, chain: Math.max(2, pp.c), bottom, body };
@@ -184,7 +191,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && !GH ? { flap: { cm: p.flapCm, shape: p.taper === "both" ? "triangle" as const : p.taper === "left" ? "slant-l" as const : p.taper === "right" ? "slant-r" as const : p.flapShape ?? "half", ...(p.taper ? { tip: flapTip } : {}), ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
-    ...(p.crochetStitch === "blo" ? { ridge: true } : {}),
+    ...(p.crochetStitch === "blo" || (p.object === "bag" && p.build === "ribbed") ? { ridge: true } : {}),
     ...(wall ? { wall } : {}),
     ...(p.handleColor && p.handle !== "none" ? { strapColor: p.handleColor } : {}),
     ...(p.drape ? { gravity: true } : {}),

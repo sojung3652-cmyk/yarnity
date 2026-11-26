@@ -132,7 +132,7 @@ export function foldRows<T>(rows: T[], same: (a: T, b: T) => boolean, keep = -1,
   return out;
 }
 /** what makes two rows "the same row": their part, their count, what they gain or lose and where, their pattern round */
-export const rowSig = (r: Row) => [r.part, r.n, r.inc || 0, r.edge ? r.edge.join(",") : "", r.wall ? `${r.wall.k}${r.wall.i ? 1 + (r.wall.i % 2) : 0}` : "", r.post ?? "", r.how.startsWith("빼뜨기") ? "s" : ""].join("|");
+export const rowSig = (r: Row) => [r.part, r.n, r.inc || 0, r.edge ? r.edge.join(",") : "", r.gap ? r.gap.join(",") : "", r.wall ? `${r.wall.k}${r.wall.i ? 1 + (r.wall.i % 2) : 0}` : "", r.post ?? "", r.how.startsWith("빼뜨기") ? "s" : ""].join("|");
 /** a row's own number, as it stands at the chart's side ("12단" -> 12, "앞판 기둥1 7단" -> 7, "테두리 1" -> 1) */
 export const rowNo = (r: Row) => r.label.match(/(\d+)\s*단?$/)?.[1] ?? r.label;
 /** the count changes in this row (the only rows that carry "(총 ○코)") */
@@ -232,7 +232,15 @@ function drawPiece(cv: HTMLCanvasElement, p: Project, pp: Plan) {
   const lay = pieceLayout(body), lines = pieceRows(body), pos = new Map(body.map((r, i) => [r, lay.at[i]] as const)), joining = pp.rows[ci].part === "join";
   drawLines(cv, p, {
     lines, cols: lay.W, chain: chain ? { row: chain, from: lay.at[0][0], n: lay.at[0][1] } : null,
-    cells: r => { const [cx, n] = pos.get(r)!, e = r.edge ?? [0, 0]; return Array.from({ length: n }, (_, c): [number, StitchSym] => [cx + c, (c === 0 && e[0] > 0) || (c === n - 1 && e[1] > 0) ? "inc" : c < -e[0] || c >= n + e[1] ? "dec" : "sc"]); },
+    cells: r => {
+      const [cx, n] = pos.get(r)!, e = r.edge ?? [0, 0], g = r.gap, out: [number, StitchSym][] = [];
+      for (let c = 0; c < n; c++) {
+        // (a ribbed panel's hand hole: nothing there while it is open, chains where the next row crosses it)
+        if (g && c >= g[0] && c < g[0] + g[1]) { if (g[2]) out.push([cx + c, "ch"]); continue; }
+        out.push([cx + c, (c === 0 && e[0] > 0) || (c === n - 1 && e[1] > 0) ? "inc" : c < -e[0] || c >= n + e[1] ? "dec" : "sc"]);
+      }
+      return out;
+    },
     label: `${key ?? "편물"} 코 도안, ${lines.length}단 중 ${Math.min(lines.length, Math.max(0, lines.findIndex(l => l.some(r => r.idx >= p.current))) + 1)}단째${joining ? ", 잇는 자리 표시" : ""}`,
     after: joining ? g => {
       // the joined edge: along the bottom, and up the two sides as far as the panel goes

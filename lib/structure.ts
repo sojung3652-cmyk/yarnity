@@ -196,6 +196,51 @@ export function stripNote(p: PlanInput, g: Gauge): string {
 }
 
 // ---------------------------------------------------------------- a piece's rows on a grid
+// ---------------------------------------------------------------- 골지 판 (옆으로 떠서 세로 골)
+/** A panel worked sideways: its rows run up the panel's height, so a row's stitches are the height and the rows
+ *  are the width - and worked in the back loop only, each row leaves a ridge that stands upright in the piece:
+ *  ribs. a x h = the panel (cm).
+ *    a row's stitches = the height / a stitch's width        rows = the width / a row's height
+ *  The hand's hole (`holeW` wide, `holeH` tall, `m` stitches of the panel left over it): over the rows the hole
+ *  is wide, the stitches below it and the stitches over it are worked apart (the ones over it with yarn of their
+ *  own); the row after crosses the gap with as many chains as the hole is tall. Two panels the same, joined down
+ *  a side, along the bottom and up the other in 되돌아짧은뜨기. */
+export function ribbedPanel(p: Pick<PlanInput, "a" | "h" | "holeW" | "holeH">, g: Gauge) {
+  const h = (p.h as number) || 0, S = Math.max(6, rnd(h / g.w)), R = Math.max(4, rnd(p.a / g.h));
+  const hw = clamp(p.holeW ?? 10, 0, Math.max(0, p.a - 4)), hh = clamp(p.holeH ?? 3, 0, h / 2), on = hw >= 1 && hh >= .5 && S >= 8 && R >= 6;
+  const hr = on ? clamp(rnd(hw / g.h), 2, R - 4) : 0, hs = on ? clamp(rnd(hh / g.w), 2, S - 4) : 0, m = on ? clamp(rnd(2.5 / g.w), 2, S - hs - 2) : 0;
+  return { S, R, hr, hs, m, lower: S - hs - m, r1: on ? Math.floor((R - hr) / 2) : -1, on };
+}
+export function planRibbed(p: PlanInput, g: Gauge): Plan {
+  const P = ribbedPanel(p, g), { S, R, hr, hs, m, lower, r1 } = P, rows: Row[] = [];
+  for (const name of ["앞판", "뒤판"]) {
+    rows.push({ part: "panel", n: S, own: true, inc: 0, label: `${name} 시작 사슬`, how: `사슬 ${S}코`, edge: [0, 0],
+      why: `판 ${p.a} × ${p.h}cm를 옆으로 뜹니다: 높이 ${p.h}cm ÷ 코 너비 ${fmt(g.w * 10)}mm = ${S}코` } as Row);
+    for (let i = 0; i < R; i++) {
+      const hole = P.on && i >= r1 && i < r1 + hr, bridge = P.on && i === r1 + hr, n = hole ? lower + m : S;
+      const how = i === 0 ? `기둥사슬 1, 사슬 ${S}코에 ${SC} ${S}코`
+        : hole ? `기둥사슬 1, 뒤집어서 아래쪽 ${SC} ${lower}코 · 위쪽 ${SC} ${m}코` + (i === r1 ? ` (가운데 ${hs}코는 손잡이 구멍으로 비웁니다. 위쪽 ${m}코는 새 실로 따로 뜹니다)` : "")
+        : bridge ? `기둥사슬 1, 뒤집어서 아래쪽 ${SC} ${lower}코, 사슬 ${hs}코로 구멍 위를 건너, 위쪽 ${SC} ${m}코`
+        : `기둥사슬 1, 뒤집어서 ${SC} ${S}코`;
+      const why = i === 0 ? `가로 ${p.a}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${R}단 · 뒤 고리에만 떠서 세로 골이 생깁니다`
+        : i === r1 ? `구멍 너비 ${fmt(hr * g.h)}cm = ${hr}단 · 구멍 높이 ${fmt(hs * g.w)}cm = ${hs}코 · 그 위로 ${m}코를 남깁니다`
+        : hole ? `${lower} + ${m} = ${n}코` : bridge ? `${lower} + 사슬 ${hs} + ${m} = ${S}코 · 구멍이 닫힙니다` : `${S}코 그대로`;
+      rows.push({ part: "panel", n, own: true, inc: 0, label: `${name} ${i + 1}단`, how, why, edge: [0, 0], ...(hole ? { gap: [lower, hs, 0] } : bridge ? { gap: [lower, hs, 1] } : {}) } as Row);
+    }
+  }
+  const J = Math.max(3, rnd((2 * ((p.h as number) || 0) + p.a) / g.w));
+  rows.push({ part: "join", n: 0, own: true, inc: 0, label: "잇기 준비", how: "잇기 전에 마커링으로 두 판의 옆면·바닥 위치를 먼저 맞춥니다. 두 판의 골이 서로 마주 보게 겹치고 네 모서리를 마커링으로 맞물립니다",
+    why: "손잡이 구멍이 있는 쪽이 위입니다. 위는 잇지 않습니다" } as Row);
+  rows.push({ part: "join", n: J, own: true, inc: 0, label: "판 잇기", how: `두 판을 겉이 밖으로 오게 맞대고 옆 · 바닥 · 옆을 따라 ${CRAB} ${J}코로 잇습니다 (왼쪽에서 오른쪽으로 되돌아가며)`,
+    why: `옆 ${p.h} + 바닥 ${p.a} + 옆 ${p.h} = ${fmt(2 * ((p.h as number) || 0) + p.a)}cm ÷ 코 너비 ${fmt(g.w * 10)}mm = ${J}코` } as Row);
+  return { g, c: S, rows: number(rows), bottomRounds: 0, bodyRows: R, last: S };
+}
+/** the numbers the screen shows for a ribbed panel */
+export function ribbedNote(p: PlanInput, g: Gauge): string {
+  const P = ribbedPanel(p, g);
+  return `사슬 ${P.S}코로 시작해 ${P.R}단을 옆으로 뜹니다.` + (P.on ? ` ${P.r1 + 1}단부터 ${P.hr}단 동안 가운데 ${P.hs}코를 비워 손잡이 구멍을 만듭니다.` : " 손잡이 구멍은 없습니다.");
+}
+
 /** which flat piece a row belongs to (null: not a row of one - joining, the last step, a bag's rounds) */
 export const pieceOf = (r: Row): string | null =>
   r.part === "panel" || (r.part === "strap" && r.post != null) ? r.label.slice(0, 2)
@@ -213,10 +258,12 @@ export function pieceLayout(rows: Row[]): { W: number; at: [number, number][]; c
   rows.forEach((r, i) => {
     if (r.post != null) { at.push([r.post === 0 ? body[0] + body[1] - r.n : body[0], r.n]); return; }
     if (i) x -= r.edge?.[0] ?? 0;
-    at.push([x, r.n]); body = [x, r.n];
+    // (a row with a hole in it - a ribbed panel's hand hole - is as long as its stitches and the gap together)
+    const span = r.gap && !r.gap[2] ? r.n + r.gap[1] : r.n;
+    at.push([x, span]); body = [x, span];
   });
   const min = Math.min(0, ...at.map(a => a[0])), W = Math.max(1, ...at.map(a => a[0] + a[1])) - min, cells = new Array<number>(W * rows.length).fill(-1);
-  at.forEach((a, i) => { a[0] -= min; for (let k = 0; k < a[1]; k++) cells[i * W + a[0] + k] = 0; });
+  at.forEach((a, i) => { a[0] -= min; const gap = rows[i].gap; for (let k = 0; k < a[1]; k++) if (!(gap && !gap[2] && k >= gap[0] && k < gap[0] + gap[1])) cells[i * W + a[0] + k] = 0; });
   return { W, at, cells };
 }
 /** a hobo's two posts are worked one after the other but stand side by side: their rows share the grid's rows */

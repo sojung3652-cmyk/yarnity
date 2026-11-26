@@ -71,13 +71,18 @@ export interface Draft {
    *  flat pouch); "box" a bottom and sides with width (세로), changeable later; unset as before */
   gusset?: "flat" | "box";
   /** 손목 고리 (Kim: a wristlet): the handle is one loop at the top's corner to slip the hand through */
-  handleKind?: "wrist" | "grown";
+  handleKind?: "wrist" | "grown" | "rim";
   /** a handle grown out of the opening (lib/pattern grownHandle): the width of its foot (cm). Its stitch is the body's. */
   handleBaseCm?: number;
   /** 만드는 방법 (lib/structure, Kim: 구조 원리로 조립하기 부품): two panels and a strip, or a panel whose ends go
    *  on up as the strap; none = a bottom worked round. Their sizes: a x h the panel, `corner` its lower corners
    *  (0-1), `stripCm` / `stripHandle` the strip, `postSt` / `strapCm` / `hoboFold` the hobo's posts */
-  build?: "panels" | "hobo1";
+  build?: "panels" | "hobo1" | "ribbed";
+  /** ribbed (a panel worked sideways in ribs): its hand hole's width and height, cm */
+  holeW?: number;
+  holeH?: number;
+  /** a grown handle worked whole from one side and joined at the other (lib/pattern handleFar) */
+  handleFar?: boolean;
   corner?: number;
   stripCm?: number;
   stripHandle?: boolean;
@@ -123,7 +128,7 @@ export interface Draft {
   handleColor?: string;
   /** how the top is closed (Kim): open, a flap (flapCm), a drawstring through an eyelet round, a zipper,
    *  or a button (the whole piece is drawn in 그려서 만들기, not its opening alone - Kim) */
-  closure?: "open" | "flap" | "drawstring" | "zipper" | "button";
+  closure?: "open" | "flap" | "drawstring" | "zipper" | "button" | "magnet";
   yarnMode?: "mm" | "level";
   skeinG?: number | null;
   skeinM?: number | null;

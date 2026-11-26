@@ -55,7 +55,7 @@ import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import { PATTERN_BY_ID, chartNameOf } from "@/lib/stitchPatterns";
 import { autoName, bodyOf, bodyPatch, bodyWidth, partLines, scaleDraft } from "@/lib/assemble";
-import { hoboNote, stripNote, taper, taperNote } from "@/lib/structure";
+import { hoboNote, ribbedNote, stripNote, taper, taperNote } from "@/lib/structure";
 import { AskInline, NameStart } from "./AskStart";
 import "./newbook.css";
 
@@ -982,6 +982,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const built = base ? draft.build : undefined;
     const pickBuild = (v: string) => v === "panels" ? apply({ build: "panels", shape: "rect", corner: draft.corner ?? .35, stripCm: draft.stripCm ?? 6, stripHandle: draft.stripHandle ?? true, handle: draft.handle === "none" ? "short" : draft.handle, handleKind: undefined, handleCm: draft.handleCm ?? 50, flapCm: null, closure: "open", profile: undefined, asm: undefined, topA: null })
       : v === "hobo1" ? apply({ build: "hobo1", shape: "rect", corner: draft.corner ?? .6, postSt: draft.postSt ?? 5, strapCm: draft.strapCm ?? 60, handle: "short", handleKind: undefined, flapCm: null, closure: "open", profile: undefined, asm: undefined, topA: null })
+      : v === "ribbed" ? apply({ build: "ribbed", shape: "rect", holeW: draft.holeW ?? 10, holeH: draft.holeH ?? 3, handle: "none", handleKind: undefined, flapCm: null, closure: "open", profile: undefined, asm: undefined, topA: null })
       : apply({ build: undefined });
     // 사선 / 삼각형: a flap (a bag) or the piece itself (a flat piece) narrowing at an edge, or both
     const taperRows = pp.rows.filter(r => r.part === (base ? "flap" : "rows")), tipNow = taperRows.length ? taperRows[taperRows.length - 1].n : draft.taperTip ?? 1;
@@ -997,7 +998,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       </>}
     </>);
     const railParts: [string, string, boolean][] = built
-      ? [["shape", "판", true], built === "panels" ? ["strip", "띠", true] : ["strap", "끈", true], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]]
+      ? [["shape", "판", true], built === "panels" ? ["strip", "띠", true] : built === "ribbed" ? ["hole", "손잡이 구멍", (draft.holeW ?? 10) >= 1] : ["strap", "끈", true], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]]
       : base
       // every part for every piece with walls (Kim: 뭘 뜰지에 따라 소환하지 말고, 전체적으로 다) - a pouch can have a
       // wrist loop, a basket a flap
@@ -1019,8 +1020,8 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     ) : (
       <div className="nb-web asm">
         {base && <div className="asm-build">
-          <Tiles label="만드는 방법" value={built ?? "round"} cols={3} onPick={pickBuild}
-            options={[["round", "바닥부터 둘레로", "바닥 위에 몸통"], ["panels", "판 2장 + 띠", "옆·바닥을 띠 하나로"], ["hobo1", "판 하나 호보", "양 끝 기둥이 끈"]]} />
+          <Tiles label="만드는 방법" value={built ?? "round"} cols={2} onPick={pickBuild}
+            options={[["round", "바닥부터 둘레로", "바닥 위에 몸통"], ["panels", "판 2장 + 띠", "옆·바닥을 띠 하나로"], ["hobo1", "판 하나 호보", "양 끝 기둥이 끈"], ["ribbed", "옆으로 뜬 골지 판", "세로 골 · 손잡이 구멍"]]} />
         </div>}
         {draft.a > 0 && <div className="asm-all">
           <Slide label="전체 크기" min={ra[0]} max={ra[1]} step={.5} value={Math.min(ra[1], Math.max(ra[0], draft.a))} onChange={v => apply(snapAll(scaleDraft(draft, v / draft.a)))} text={`폭 ${draft.a}cm`} nudge={d => nextStop("a", d)} />
@@ -1031,18 +1032,28 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         </div>
         <div className="asm-card" role="tabpanel">
           {partNow === "shape" && <>
-            <h3>판<small>{built === "hobo1" ? "사슬에서 시작해 왕복으로 뜹니다" : "같은 판을 2장 뜹니다"}</small></h3>
+            <h3>판<small>{built === "hobo1" ? "사슬에서 시작해 왕복으로 뜹니다" : built === "ribbed" ? "옆으로 떠서 세로 골을 냅니다" : "같은 판을 2장 뜹니다"}</small></h3>
             <div className="nb-sliders nb-sliders-1">
               <Slide label="판 가로" min={ra[0]} max={ra[1]} step={.5} value={Math.min(ra[1], Math.max(ra[0], draft.a))} onChange={v => apply({ a: v })} text={`${draft.a}cm`} />
               <Slide label="판 세로" min={rh[0]} max={rh[1]} step={.5} value={Math.min(rh[1], Math.max(rh[0], draft.h))} onChange={v => apply({ h: v })} text={`${draft.h}cm`} />
-              <Slide label={built === "hobo1" ? "둥근 정도" : "모서리"} min={0} max={1} step={.05} value={draft.corner ?? 0} onChange={v => patch({ corner: Math.round(v * 100) / 100 })} text={(draft.corner ?? 0) < .03 ? "네모" : `${Math.round((draft.corner ?? 0) * 100)}%`} />
+              {built !== "ribbed" && <Slide label={built === "hobo1" ? "둥근 정도" : "모서리"} min={0} max={1} step={.05} value={draft.corner ?? 0} onChange={v => patch({ corner: Math.round(v * 100) / 100 })} text={(draft.corner ?? 0) < .03 ? "네모" : `${Math.round((draft.corner ?? 0) * 100)}%`} />}
             </div>
             {built === "hobo1" && <>
               <p className="nb-wsubhead">판 만들기</p>
               <Tiles label="판 만들기" value={draft.hoboFold ? "fold" : "two"} cols={2} onPick={v => patch({ hoboFold: v === "fold" })} options={[["two", "같은 판 2장", "옆과 바닥을 잇기"], ["fold", "한 장으로 이어서", "시작 사슬 양쪽으로 · 옆만 잇기"]]} />
               <p className="nb-fit" role="status">{hoboNote(input, pp.g)}</p>
             </>}
-            <p className="nb-help">{built === "hobo1" ? "처음 몇 단은 양쪽 아래 모서리에서만 늘려 모서리를 둥글립니다. 그 뒤로는 곧게 올라갑니다." : "두 판의 아래 모서리를 같은 만큼 둥글립니다. 띠가 그 둘레를 따라 끼워집니다."}</p>
+            {built === "ribbed" && <p className="nb-fit" role="status">{ribbedNote(input, pp.g)}</p>}
+            <p className="nb-help">{built === "hobo1" ? "처음 몇 단은 양쪽 아래 모서리에서만 늘려 모서리를 둥글립니다. 그 뒤로는 곧게 올라갑니다." : built === "ribbed" ? "판을 옆으로(높이 방향으로) 왕복해 뜹니다. 뒤 고리에만 떠서 세로 골이 생깁니다. 같은 판을 2장 떠서 옆과 바닥을 잇습니다." : "두 판의 아래 모서리를 같은 만큼 둥글립니다. 띠가 그 둘레를 따라 끼워집니다."}</p>
+          </>}
+          {partNow === "hole" && <>
+            <h3>손잡이 구멍<small>판 위쪽 가운데를 비워 둡니다</small></h3>
+            <div className="nb-sliders nb-sliders-1">
+              <Slide label="구멍 너비" min={0} max={Math.max(4, Math.round(draft.a - 6))} step={.5} value={Math.min(Math.max(4, Math.round(draft.a - 6)), draft.holeW ?? 10)} onChange={v => patch({ holeW: v })} text={(draft.holeW ?? 10) < 1 ? "없음" : `${draft.holeW ?? 10}cm`} />
+              <Slide label="구멍 높이" min={1.5} max={6} step={.5} value={draft.holeH ?? 3} onChange={v => patch({ holeH: v })} text={`${draft.holeH ?? 3}cm`} />
+            </div>
+            <p className="nb-fit" role="status">{ribbedNote(input, pp.g)}</p>
+            <p className="nb-help">구멍 자리의 단에서는 아래쪽과 위쪽을 따로 뜨고, 다음 단에서 사슬로 구멍 위를 건너 다시 잇습니다.</p>
           </>}
           {partNow === "strip" && <>
             <h3>띠<small>옆면과 바닥을 한 번에</small></h3>
@@ -1109,11 +1120,12 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           </>)}
           {partNow === "top" && <>
             <h3>입구<small>한 번 더 누르면 뺍니다</small></h3>
-            <Tiles label="입구" value={exNow.zipper ? "zipper" : closureNow === "flap" || closureNow === "drawstring" ? closureNow : "open"} cols={4} onPick={v => {
+            <Tiles label="입구" value={exNow.zipper ? "zipper" : closureNow === "flap" || closureNow === "drawstring" || closureNow === "magnet" ? closureNow : "open"} cols={3} onPick={v => {
               const now = exNow.zipper ? "zipper" : closureNow, c = (v === now ? "open" : v) as "open" | "flap" | "drawstring" | "zipper";
               patch({ closure: c === "zipper" ? "zipper" : c, flapCm: c === "flap" ? (draft.flapCm ?? Math.max(4, Math.round(draft.h * .5))) : null,
                 extras: { ...exNow, zipper: c === "zipper", ...(c === "zipper" ? { zipOpen: exNow.zipOpen ?? 0 } : {}) } });
-            }} options={draft.handleKind === "grown" ? [["open", "열린 채로"], ["drawstring", "끈 조이기"], ["zipper", "지퍼"]] : [["open", "열린 채로"], ["flap", "덮개"], ["drawstring", "끈 조이기"], ["zipper", "지퍼"]]} />
+            }} options={draft.handleKind === "grown" ? [["open", "열린 채로"], ["drawstring", "끈 조이기"], ["zipper", "지퍼"], ["magnet", "자석 단추"]] : [["open", "열린 채로"], ["flap", "덮개"], ["drawstring", "끈 조이기"], ["zipper", "지퍼"], ["magnet", "자석 단추"]]} />
+            {closureNow === "magnet" && <p className="nb-help">다 뜬 뒤 입구 안쪽 가운데에 자석 단추 한 쌍을 답니다. 코 수는 바뀌지 않습니다.</p>}
             {draft.handleKind === "grown" && <p className="nb-help">호보백은 손잡이가 입구에서 그대로 이어지므로 덮개를 달 수 없습니다.</p>}
             {(hasFlap || exNow.zipper) && <>
               <p className="nb-wsubhead">오므리는 방식</p>

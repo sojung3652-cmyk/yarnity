@@ -46,8 +46,9 @@ export function partLines(d: Draft): [string, string][] {
   const it = ITEM[itemIdOf(d)], out: [string, string][] = [];
   if (it.kind === "base-body" && d.build) {
     // 구조 부품 (lib/structure): what the piece is put together from
-    out.push(["판", `${d.a} × ${d.h}cm · ${d.build === "hobo1" && d.hoboFold ? "한 장으로 이어서" : "2장"}${(d.corner ?? 0) > .02 ? " · 둥근 모서리" : ""}`]);
-    if (d.build === "panels") out.push(["띠", `너비 ${d.stripCm ?? 6}cm · 옆과 바닥${d.stripHandle && d.handle !== "none" ? ` · 손잡이 ${d.handleCm ?? 50}cm까지` : ""}`]);
+    out.push(["판", `${d.a} × ${d.h}cm · ${d.build === "hobo1" && d.hoboFold ? "한 장으로 이어서" : "2장"}${d.build === "ribbed" ? " · 옆으로 떠서 세로 골" : (d.corner ?? 0) > .02 ? " · 둥근 모서리" : ""}`]);
+    if (d.build === "ribbed") out.push(["손잡이 구멍", (d.holeW ?? 10) >= 1 ? `너비 ${d.holeW ?? 10}cm · 높이 ${d.holeH ?? 3}cm` : "없음"]);
+    else if (d.build === "panels") out.push(["띠", `너비 ${d.stripCm ?? 6}cm · 옆과 바닥${d.stripHandle && d.handle !== "none" ? ` · 손잡이 ${d.handleCm ?? 50}cm까지` : ""}`]);
     else out.push(["끈", `기둥 ${d.postSt ?? 5}코 · ${d.strapCm ?? 60}cm`]);
     if (d.build === "panels" && !d.stripHandle && d.handle !== "none") out.push(["손잡이", `끈 2개 · ${d.handleCm ?? 45}cm`]);
   } else if (it.kind === "base-body") {
@@ -77,7 +78,7 @@ export function autoName(d: Draft): string {
 }
 
 /** what the reader typed, read without the AI (no key, no network): the item by its words, the usual parts */
-const WORDS: [RegExp, ItemId][] = [[/파우치|필통|동전지갑|지갑/, "pouch"], [/버킷|복조리|복주머니/, "bucket"], [/가방|백|토트|숄더|크로스/, "minibag"], [/바구니|바스켓|수납/, "basket"], [/화분/, "planter"], [/연필|펜꽂이/, "pencil"], [/컵\s*홀더|텀블러/, "cupholder"],
+const WORDS: [RegExp, ItemId][] = [[/슬라우치|호보|그물|네트|마켓백|골지|플리츠/, "minibag"], [/파우치|필통|동전지갑|지갑/, "pouch"], [/버킷|복조리|복주머니/, "bucket"], [/가방|백|토트|숄더|크로스/, "minibag"], [/바구니|바스켓|수납/, "basket"], [/화분/, "planter"], [/연필|펜꽂이/, "pencil"], [/컵\s*홀더|텀블러/, "cupholder"],
   [/수세미/, "scrubber"], [/냄비\s*받침/, "trivet"], [/코스터|컵\s*받침/, "coaster"], [/테이블\s*매트|식탁\s*매트/, "placemat"], [/러그|발매트/, "rug"], [/목도리|머플러|스카프/, "scarf"], [/넥워머/, "neckwarmer"], [/헤어\s*밴드|머리띠/, "headband"],
   [/행주/, "dishcloth"], [/책갈피/, "bookmark"], [/담요|블랭킷/, "blanket"], [/비니|모자/, "beanie"]];
 export function guessItem(text: string): ItemId | null { for (const [re, id] of WORDS) if (re.test(text)) return id; return null; }

@@ -3,7 +3,7 @@
 // tests/pattern.test.ts checks every output against a verbatim copy of the original,
 // so keep the arithmetic (including rnd()'s toFixed(6) rounding) exactly as is.
 
-import { planHobo, planPanels, planTaper, taperFlap, taperNote } from "./structure";
+import { planHobo, planPanels, planRibbed, planTaper, taperFlap, taperNote } from "./structure";
 import { CHART_MULT, type ChartKey } from "./crochetChart";
 import { PATTERN_BY_ID, STITCH_PATTERNS, type Rep } from "./stitchPatterns";
 
@@ -53,7 +53,7 @@ export interface PlanInput {
   /** "flat": no bottom width - round 1 round the foundation chain is the bottom, front and back joined (Draft.gusset) */
   gusset?: "flat" | "box" | null;
   /** "wrist": one loop at a corner; "grown": worked up out of the opening itself (Draft.handleKind, grownHandle) */
-  handleKind?: "wrist" | "grown" | null;
+  handleKind?: "wrist" | "grown" | "rim" | null;
   /** a grown handle: its strap's width, the width it takes of the opening at its foot (cm), the stitch it is in */
   handleWcm?: number | null;
   handleBaseCm?: number | null;
@@ -86,7 +86,12 @@ export interface PlanInput {
   materials?: string[] | null;
   /** 만드는 방법 (lib/structure, Kim: 구조 원리): "panels" two flat panels and a strip between them, "hobo1" a
    *  panel whose two ends go on up as posts that join into a strap. None: a bottom worked round, a wall on it. */
-  build?: "panels" | "hobo1" | null;
+  build?: "panels" | "hobo1" | "ribbed" | null;
+  /** ribbed: the hand's hole, its width and its height (cm; 0 = none) */
+  holeW?: number | null;
+  holeH?: number | null;
+  /** a grown handle worked whole from one side and joined at the other (a slouch tote's strap), not two halves */
+  handleFar?: boolean | null;
   /** a panel's lower corners, 0 square .. 1 as round as they can be */
   corner?: number | null;
   /** panels: the strip's width (cm), and whether it goes on as the handle (handleCm more) */
@@ -224,6 +229,8 @@ export interface Row {
    *  as it is worked (rows turn); `post`: which of a hobo panel's two posts */
   edge?: [number, number];
   work?: [number, number];
+  /** a hole in the row (a ribbed panel's hand hole): from which stitch, how many, and 1 when chains cross it */
+  gap?: [number, number, number];
   post?: 0 | 1;
 }
 
@@ -396,12 +403,20 @@ export function planPaint(p: PlanInput): Plan {
 /** The plan in the picked crochet stitch: worked out in single crochet (taller rows from gauge), then each row
  *  says its own stitch, and its turning chain is the stitch's own (withChains reads Plan.turn). */
 export function plan(p: PlanInput): Plan {
-  const pp = brushed(planSc(p), p), st = p.crochetStitch;
+  // (a ribbed panel is always worked in the back loop: that is what makes its ribs)
+  const pp = brushed(snapped(planSc(p), p), p), st = p.build === "ribbed" && p.object === "bag" ? "blo" : p.crochetStitch;
   if (!st || st === "sc") return pp;
   const c = CROCHET[st], name = st === "blo" ? "짧은뜨기 이랑뜨기(뒷고리)" : c.ko;
   // (되돌아짧은뜨기 - crab stitch, the joining - is its own stitch whatever the piece is worked in)
   const rows = pp.rows.map(r => ({ ...r, how: r.how.replace(/(?<!되돌아)짧은뜨기/g, name) }));
   return { ...pp, rows, turn: c.turn };
+}
+/** 자석 단추 (Kim: 입구 안쪽 자석 단추): sewn on inside the opening after the last stitch - a step, no stitch of its own */
+function snapped(pp: Plan, p: PlanInput): Plan {
+  if (p.closure !== "magnet" || p.object !== "bag") return pp;
+  const row = { part: "finish", n: 0, inc: 0, own: true, idx: pp.rows.length, label: "자석 단추", how: "입구 안쪽 가운데에 자석 단추 한 쌍을 앞뒤로 마주 보게 답니다",
+    why: "입구 마지막 단 바로 아래 안쪽에 같은 실로 꿰매어 답니다. 코 수는 바뀌지 않습니다" } as Row;
+  return { ...pp, rows: [...pp.rows, row] };
 }
 /** 브러싱 (Kim): the finished piece is brushed - one more step after the last stitch, no stitch of its own */
 function brushed(pp: Plan, p: PlanInput): Plan {
@@ -476,6 +491,7 @@ function planSc(p: PlanInput): Plan {
   if (p.object === "tube") return planTube(p);
   if (p.object === "bag" && p.build === "panels") return planPanels(p, gauge(p));
   if (p.object === "bag" && p.build === "hobo1") return planHobo(p, gauge(p));
+  if (p.object === "bag" && p.build === "ribbed") return planRibbed(p, gauge({ ...p, crochetStitch: null }));
   const g = gauge(p);
   // a bag's body in a stitch pattern: the bottom ends on the pattern's multiple, and the body keeps that count
   const rep = p.object === "bag" ? repOf(p) : null, snap = (n: number) => rep ? fitCount(n, rep, false, rep.n) : n;
@@ -526,7 +542,20 @@ function planSc(p: PlanInput): Plan {
     // 이어가는데 경계선이 생기면 안 된다. Its rows are worked straight on from the body's last round, and its own
     // edging rounds finish what is left of the opening.)
     const grown = p.handle !== "none" && !!p.handle && p.handleKind === "grown";
-    for (let i = 0; i < (grown ? 0 : 2); i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${CHART_MULT[wk!][0]}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
+    // 테두리에서 사슬로 띄운 손잡이 (Kim: 네트백): the rim is three rounds of 짧은뜨기 - the second leaves a chain
+    // standing over the front and one over the back (as long as the handle, the stitches under it skipped), the
+    // third works over the chains too. Nothing is sewn on.
+    const slots = p.handle !== "none" && !!p.handle && p.handleKind === "rim";
+    if (slots) {
+      const N = rimN, front = Math.ceil(N / 2), back = N - front, len = p.handleCm && p.handleCm > 0 ? p.handleCm : 40;
+      const B = clamp(rnd(N * .16), 2, Math.max(2, Math.floor(back / 2))), C = Math.max(B + 2, rnd(len / (g.w * 0.85)));
+      const A = Math.floor((front - B) / 2), b2 = Math.floor((back - B) / 2), D = (front - B - A) + b2, E = back - B - b2, n2 = N - 2 * B + 2 * C;
+      rows.push({ part: "rim", n: N, how: wall ? `무늬 위에 짧은뜨기 ${N}코 (${wall.rim})` : `짧은뜨기 ${N}코`, why: "입구를 단단하게 · 다음 단에서 손잡이를 이 테두리에 이어 뜹니다", inc: 0 } as Row);
+      rows.push({ part: "rim", n: n2, how: `짧은뜨기 ${A}코, 사슬 ${C}코를 띄우고 ${B}코 건너뛰기, 짧은뜨기 ${D}코, 사슬 ${C}코를 띄우고 ${B}코 건너뛰기, 짧은뜨기 ${E}코`,
+        why: `손잡이 ${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm = 사슬 ${C}코 · 앞과 뒤에서 ${B}코씩 건너뜁니다 · ${N} - ${2 * B} + ${2 * C} = ${n2}`, inc: n2 - N } as Row);
+      rows.push({ part: "rim", n: n2, how: `짧은뜨기 ${n2}코 (사슬은 감싸며 사슬 수만큼)`, why: "손잡이와 입구를 한 번 더 단단하게", inc: 0 } as Row);
+    }
+    for (let i = 0; i < (grown || slots ? 0 : 2); i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${CHART_MULT[wk!][0]}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
     // (호보백에는 덮개가 없다 - Kim: a handle grown out of the opening leaves no edge for a flap to fall from)
     if (p.flapCm && p.flapCm > 0 && !grown) {
       // over the top (Kim): it crosses the top's width first (as wide as the bottom is, b), then falls - more rows
@@ -551,11 +580,13 @@ function planSc(p: PlanInput): Plan {
       const len = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25, ch = rnd(len / (g.w * 0.85));
       if (grown) {
         const G = grownHandle(p, g, rimN), K = CROCHET[G.st].ko, tc = CROCHET[G.st].turn, tog = `${K} 2코 모아뜨기`, U = G.u, pat = !!G.wk;
-        for (const side of [0, 1] as const) {
-          const name = side ? "반대쪽" : "한쪽", from = side ? `사이 ${G.gapA}코를 두고 반대쪽 옆선을 가운데로` : "입구 한쪽 옆선을 가운데로";
-          for (let i = 0; i < G.rows; i++) {
-            const n = i <= G.dec ? G.base - 2 * U * i : G.strap, k = i === 0 ? "pick" as const : i <= G.dec ? "dec" as const : "even" as const, last = i === G.rows - 1;
-            const tail = last ? side ? " · 실을 길게 남기고 잘라 한쪽 끝과 맞대고 감침질로 잇습니다" : " · 실을 자르고 반대쪽을 뜹니다" : "";
+        // (a strap worked whole from one side and joined at the other - Kim: 슬라우치 토트: as many rows as the two halves together)
+        const far = !!p.handleFar, hRows = far ? 2 * G.rows : G.rows;
+        for (const side of (far ? [0] : [0, 1]) as (0 | 1)[]) {
+          const name = far ? "끈" : side ? "반대쪽" : "한쪽", from = side ? `사이 ${G.gapA}코를 두고 반대쪽 옆선을 가운데로` : "입구 한쪽 옆선을 가운데로";
+          for (let i = 0; i < hRows; i++) {
+            const n = i <= G.dec ? G.base - 2 * U * i : G.strap, k = i === 0 ? "pick" as const : i <= G.dec ? "dec" as const : "even" as const, last = i === hRows - 1;
+            const tail = last ? far ? ` · 실을 길게 남기고 잘라 반대쪽 옆선의 같은 ${G.strap}코에 맞대고 감침질로 잇습니다` : side ? " · 실을 길게 남기고 잘라 한쪽 끝과 맞대고 감침질로 잇습니다" : " · 실을 자르고 반대쪽을 뜹니다" : "";
             const how = pat
               ? (k === "pick" ? `${from} ${G.base}코에 새 실을 걸어 몸통 무늬를 그대로 이어 ${n / U}개`
                 : k === "dec" ? `뒤집어서 첫 무늬는 빼뜨기로 건너가고, 무늬 ${n / U}개를 뜬 뒤 마지막 무늬는 뜨지 않습니다`
@@ -566,7 +597,7 @@ function planSc(p: PlanInput): Plan {
             const why = k === "pick" ? (side ? `한쪽과 같은 ${G.base}코 · 남는 ${G.gapB}코가 반대편 사이 자리입니다`
                 : `입구 ${rimN}코 = 손잡이 ${G.base}코 + 사이 ${G.gapA}코 + 손잡이 ${G.base}코 + 사이 ${G.gapB}코 · 밑너비 ${fmt(G.baseCm)}cm ÷ ${pat ? `무늬 하나 ${fmt(g.w * U * 10)}mm` : `코 너비 ${fmt(g.w * 10)}mm`} · 몸통 마지막 단에서 같은 ${pat ? "무늬" : K}로 바로 이어 뜹니다 · 이음선이 기울어지므로 가방을 펴 놓고 단수링으로 자리를 먼저 표시합니다`)
               : k === "dec" ? (pat ? `무늬 ${n / U + 2} - 2 = ${n / U}개 (${n}코) · 양 끝에서 무늬 하나씩` : `${n + 2} - 줄임 2 = ${n} · 양 끝에서 한 코씩`)
-              : i === G.dec + 1 ? `끈 너비 ${fmt(G.strap * g.w)}cm = ${pat ? `무늬 ${n / U}개 (${n}코)` : `${G.strap}코`} · 길이 ${fmt(G.lenCm)}cm의 절반 ÷ 단 높이 ${fmt(G.rh * 10)}mm = ${G.rows}단` : pat ? `무늬 ${n / U}개 그대로` : `${n}코 그대로`;
+              : i === G.dec + 1 ? `끈 너비 ${fmt(G.strap * g.w)}cm = ${pat ? `무늬 ${n / U}개 (${n}코)` : `${G.strap}코`} · 길이 ${fmt(G.lenCm)}cm의 절반 ÷ 단 높이 ${fmt(G.rh * 10)}mm = ${G.rows}단${far ? ` · 한쪽에서 끝까지 ${hRows}단` : ""}` : pat ? `무늬 ${n / U}개 그대로` : `${n}코 그대로`;
             rows.push({ part: "handle", n, how, why, inc: k === "dec" ? -2 * U : 0, own: true, grown: { k, side, st: G.st, ...(pat ? { unit: U } : {}) }, label: `손잡이 ${name} ${i + 1}단` } as Row);
           }
         }
@@ -576,6 +607,7 @@ function planSc(p: PlanInput): Plan {
             why: `옆면 ${2 * G.rows}단 × 단 높이 ${fmt(G.rh * 10)}mm ÷ 코 너비 ${fmt(g.w * 10)}mm = ${G.ends}코 · 가장자리가 늘어지지 않게 잡아 줍니다`, inc: 0, own: true, grown: { k: "edge", side, st: "sc" }, label: `가장자리 ${side + 1}` } as Row);
         }
       }
+      else if (slots) { /* the handles are in the rim's rounds */ }
       else if (p.handleKind === "wrist") rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 두 끝을 입구 한쪽 모서리에 함께 연결`, why: `손목 고리 ${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
       else for (let i = 0; i < 2; i++) rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 양쪽에 연결`, why: `${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
     }
