@@ -593,7 +593,9 @@ function knitFoldForm(p: PlanInput, pp: Plan): Worn {
 function knitTopForm(p: PlanInput, pp: Plan): Worn {
   // (the body stands high enough for the top's whole length to hang above the table)
   const g = pp.g, K = knitTop(p, g), out: FormCourse[] = [], r = Math.max(6, K.bust / 6.15), below = pp.rows.filter(x => (x.part === "body" || x.part === "rim") && !/^목둘레/.test(x.label)).length;
-  const bust = Math.max(2.3 * r + 1, K.AR * g.h * .95 + below * g.h + 2 - 1.04 * r), body = bodyOf(r, bust), off = .7;
+  // (and the sleeves, hanging down their line from the underarm, above it too)
+  const sleeveDrop = pp.rows.filter(x => x.part === "strap" && x.n > 0).length * g.h * .95 + 4;
+  const bust = Math.max(2.3 * r + 1, K.AR * g.h * .95 + Math.max(below * g.h, sleeveDrop) + 2 - 1.04 * r), body = bodyOf(r, bust), off = .7;
   const panel = pp.rows.filter(x => x.part === "panel" && x.n > 0 && /단$/.test(x.label)), shTop = bust + 1.04 * r, rh = g.h * .95;
   // a panel's row: its middle at the back (a = 0) or the front (a = PI), on the body from side to side; wider than
   // that it lies looser, in soft folds (`gap`: the front's neck, stitches left out at its middle)
