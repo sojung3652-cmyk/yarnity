@@ -330,13 +330,21 @@ function rayT(B: Body, y: number, dx: number, dz: number): number {
   }
   return t;
 }
+// (kept per body: a top's hundred rows below the bust all lie on the bust's section - Kim 렉 확인)
+const secCache = new WeakMap<Body, Map<string, Sec>>();
 function sectionOf(B: Body, y: number, off: number): Sec {
+  let m = secCache.get(B); if (!m) { m = new Map(); secCache.set(B, m); }
+  const key = y.toFixed(3) + "|" + off.toFixed(3), hit = m.get(key); if (hit) return hit;
+  const sec = sectionNew(B, y, off); m.set(key, sec); return sec;
+}
+function sectionNew(B: Body, y: number, off: number): Sec {
   const raw: [number, number][] = [];
   for (let i = 0; i < 120; i++) { const a = i / 120 * TAU, dx = Math.sin(a), dz = -Math.cos(a), t = rayT(B, y, dx, dz); raw.push([dx * (t + off), dz * (t + off)]); }
   const h = hull2(raw).map(q => ({ q, a: (Math.atan2(q[0], -q[1]) + TAU) % TAU })).sort((u, v) => u.a - v.a), n = h.length, cum = [0];
   for (let i = 0; i < n; i++) { const a = h[i].q, b = h[(i + 1) % n].q; cum.push(cum[i] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
   const L = cum[n];
-  const at = (s0: number): [number, number] => { const s = ((s0 % L) + L) % L; let i = 0; while (i < n - 1 && cum[i + 1] <= s) i++; const a = h[i].q, b = h[(i + 1) % n].q, f = (s - cum[i]) / Math.max(1e-9, cum[i + 1] - cum[i]); return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; };
+  // (found by halving: every stitch of a top asks several times)
+  const at = (s0: number): [number, number] => { const s = ((s0 % L) + L) % L; let lo = 0, hi = n - 1; while (lo < hi) { const md = (lo + hi + 1) >> 1; if (cum[md] <= s) lo = md; else hi = md - 1; } const i = lo; const a = h[i].q, b = h[(i + 1) % n].q, f = (s - cum[i]) / Math.max(1e-9, cum[i + 1] - cum[i]); return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; };
   const nrm = (s: number): [number, number] => { const p = at(s + .4), q = at(s - .4), c = at(s); let x = p[1] - q[1], z = -(p[0] - q[0]); const m = Math.hypot(x, z) || 1; x /= m; z /= m; if (x * c[0] + z * c[1] < 0) { x = -x; z = -z; } return [x, z]; };
   const sAt = (a: number) => { const A = ((a % TAU) + TAU) % TAU; let i = 0; while (i < n - 1 && h[i + 1].a <= A) i++; const a0 = h[i].a, a1 = i + 1 < n ? h[i + 1].a : h[0].a + TAU; return cum[i] + (cum[i + 1] - cum[i]) * Math.min(1, Math.max(0, (A - a0) / Math.max(1e-9, a1 - a0))); };
   return { L, at, nrm, sAt };
@@ -689,7 +697,7 @@ function knitTopForm(p: PlanInput, pp: Plan): Worn {
       loop.push(top, ...fe, [(fl[0] + bl[0]) / 2, under - .3, (fl[2] + bl[2]) / 2], ...[...be].reverse());
     }
     const la = [0]; for (let i = 1; i <= loop.length; i++) { const p0 = loop[i - 1], p1 = loop[i % loop.length]; la.push(la[i - 1] + Math.hypot(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])); }
-    const onLoop = (u: number): V3 => { const Lq = la[loop.length], t = (((u % 1) + 1) % 1) * Lq; let i = 1; while (i < loop.length && la[i] < t) i++; const p0 = loop[i - 1], p1 = loop[i % loop.length], f = (t - la[i - 1]) / Math.max(1e-9, la[i] - la[i - 1]); return [p0[0] + (p1[0] - p0[0]) * f, p0[1] + (p1[1] - p0[1]) * f, p0[2] + (p1[2] - p0[2]) * f]; };
+    const onLoop = (u: number): V3 => { const Lq = la[loop.length], t = (((u % 1) + 1) % 1) * Lq; let lo = 1, hi = loop.length; while (lo < hi) { const md = (lo + hi) >> 1; if (la[md] < t) lo = md + 1; else hi = md; } const i = Math.min(lo, loop.length); const p0 = loop[i - 1], p1 = loop[i % loop.length], f = (t - la[i - 1]) / Math.max(1e-9, la[i] - la[i - 1]); return [p0[0] + (p1[0] - p0[0]) * f, p0[1] + (p1[1] - p0[1]) * f, p0[2] + (p1[2] - p0[2]) * f]; };
     const sleeveRing = (n: number, d: number, ph: number): number[] => {
       const q = ringAt(n, d, ph); if (loop.length < 4) return q;
       // (eased over as many rows as the armhole is deep: the sleeve's cap, no row pulled apart from the next)
