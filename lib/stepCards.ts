@@ -28,7 +28,7 @@ function linesOf(part: Part, rows: Row[], next: Part | undefined): [string, stri
     case "handle": return rows.some(r => r.grown) ? [`입구에서 그대로 이어 ${R}단을 뜹니다.`, "두 끝을 맞대고 감침질로 잇습니다."] : [`사슬 ${first.n}코로 ${R}개를 뜹니다.`, "입구 양쪽에 단단히 연결합니다."];
     case "rows": return [`${R}단을 왕복으로 뜹니다.`, shrank ? `${first.n}코에서 ${last.n}코까지 줄입니다.` : `${last.n}코 그대로 뜹니다.`];
     case "rounds": return [`${R}단을 둘레로 뜹니다.`, `${last.n}코 그대로 뜹니다.`];
-    case "panel": { const body = rows.filter(r => !/시작 사슬$/.test(r.label)); return [`${first.n}코에서 시작해 ${last.n}코까지 ${body.length}단을 뜹니다.`, grew ? "양 끝 모서리에서만 늘려 모서리를 둥글립니다." : "늘림 없이 곧게 뜹니다."]; }
+    case "panel": { const body = rows.filter(r => !/시작 사슬$/.test(r.label)), sheets = new Set(body.map(r => r.label.slice(0, 2))).size || 1; return [`${first.n}코에서 시작해 ${last.n}코까지 ${body.length / sheets}단을 뜹니다${sheets > 1 ? `. 같은 판을 ${sheets}장 뜹니다` : ""}.`, grew ? "양 끝 모서리에서만 늘려 모서리를 둥글립니다." : "늘림 없이 곧게 뜹니다."]; }
     case "strip": return [`${last.n}코 너비로 ${rows.filter(r => !/시작 사슬$/.test(r.label)).length}단을 뜹니다.`, "옆과 바닥을 한 번에 맡는 띠입니다."];
     case "strap": return [`${last.n}코만 ${R}단을 뜹니다.`, "끝을 이어 끈으로 씁니다."];
     case "join": { const n = rows.find(r => r.n > 0)?.n; return [n ? `되돌아짧은뜨기 ${n}코로 잇습니다.` : "조각을 맞대어 잇습니다.", "잇기 전에 마커링으로 자리를 먼저 맞춥니다."]; }
