@@ -48,6 +48,13 @@ describe("기본형 목록", () => {
     expect([after.crochetChart, after.handleKind, after.drape, after.build, after.handleFar]).toEqual([undefined, undefined, undefined, undefined, undefined]);
   });
 
+  it("호보백 is one card that opens into its two ways", () => {
+    const fam = PROTOTYPES.filter(p => p.family === "호보백");
+    expect(fam.map(p => p.id)).toEqual(["hobo1", "hobo"]);
+    expect(fam.map(p => p.choice)).toEqual([["판 하나로", "둥근 모서리 판 · 양 끝 기둥이 끈"], ["몸통에서 이어 뜨기", "타원 바닥 · 입구에서 손잡이가 이어짐"]]);
+    expect(PROTOTYPES.filter(p => p.family && p.family !== "호보백")).toEqual([]);
+  });
+
   it("the words a reader types find a bag", () => { for (const w of ["슬라우치 가방", "호보", "그물 가방", "네트백", "마켓백", "골지 토트", "플리츠"]) expect(guessItem(w), w).toBe("minibag"); });
 });
 

@@ -11,16 +11,40 @@ import { PROTO_GROUPS, PROTOS, protoDraft, type Proto } from "@/lib/prototypes";
 import { ClothLabel } from "./ClothLabel";
 import { useApp } from "@/components/AppProvider";
 
-/** 기본형 (Kim): pressed, the piece comes up ready - bags and pouches in a few kinds, the rest as they are */
+/** 기본형 (Kim): pressed, the piece comes up ready - bags and pouches in a few kinds, the rest as they are.
+ *  Each is a card with a picture of its 3D (Kim: 그래픽을 미리보기로 - public/protos/<id>.webp, taken from the 3D
+ *  itself), its name and a line. Starters of one family (호보백) are one card that opens in place into its
+ *  members (Kim: 누르면 둘 중에 선택). */
+const COUNT = ["한", "두", "세", "네"];
 function Protos({ onPick }: { onPick: (p: Proto) => void }) {
+  const [open, setOpen] = useState<string | null>(null);
+  // (a picture that is not there leaves its place empty; the card still works by its name)
+  const pic = (id: string) => <img className="ask-pic" src={`/protos/${id}.webp`} alt="" width={360} height={360} loading="lazy" decoding="async" onError={e => { e.currentTarget.style.visibility = "hidden"; }} />;
+  const card = (p: Proto, name: string, note: string, onClick: () => void, expanded?: boolean) => (
+    <button key={p.id + name} type="button" className="ask-card" aria-expanded={expanded} onClick={onClick}>{pic(p.id)}<em className="ask-card-name">{name}</em>{note && <small>{note}</small>}</button>
+  );
   return (
     <div className="ask-protos">
       <p className="ask-protos-lead">누르면 바로 그 모양이 3D로 나옵니다. 크기와 부품은 모양에서 고쳐 나가면 됩니다.</p>
-      {PROTO_GROUPS.map(g => (
-        <div key={g} className="ask-grp"><b>{g}</b>
-          <span>{PROTOS.filter(p => p.group === g).map(p => <button key={p.id} type="button" title={p.note || undefined} onClick={() => onPick(p)}>{p.name}{p.note && <small>{p.note}</small>}</button>)}</span>
-        </div>
-      ))}
+      {PROTO_GROUPS.map(g => {
+        const list = PROTOS.filter(p => p.group === g), seen = new Set<string>();
+        return (
+          <div key={g} className="ask-grp"><b>{g}</b>
+            <span>{list.map(p => {
+              if (!p.family) return card(p, p.name, p.note, () => onPick(p));
+              if (seen.has(p.family)) return null;
+              seen.add(p.family);
+              const members = list.filter(x => x.family === p.family), on = open === p.family, fam = p.family;
+              return (
+                <div key={fam} className={"ask-fam" + (on ? " is-open" : "")}>
+                  {card(p, fam, on ? "닫기" : `${COUNT[members.length - 1] ?? members.length} 가지 방식`, () => setOpen(on ? null : fam), on)}
+                  {on && members.map(m => card(m, m.choice?.[0] ?? m.name, m.choice?.[1] ?? m.note, () => onPick(m)))}
+                </div>
+              );
+            })}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
