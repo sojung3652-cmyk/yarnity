@@ -161,7 +161,10 @@ describe("기본형 4종", () => {
       expect(back.length).toBe(K.AR); expect(front.length).toBe(K.AR);
       expect(back[back.length - 1].n).toBe(K.Half); expect(front[front.length - 1].n).toBe(K.Half);
       back.forEach((r, i) => { if (i) expect(r.n - back[i - 1].n).toBe(2 * r.edge![0]); });
-      expect(front[0].how).toContain(`어깨 ${K.S}코씩 주워`); expect(front[K.ND].how).toContain(`목 코 ${K.neck}코 만들기`); expect(front[K.ND].n).toBe(back[K.ND].n);
+      expect(front[0].how).toContain(`어깨 ${K.S}코씩 주워`); expect(front[K.ND].how).toContain(`목 코 ${K.c0}코 만들기`); expect(front[K.ND].n).toBe(back[K.ND].n);
+      // 둥근 목선: the neck's stitches = the curve's gains + the middle cast on; each shoulder gains at its neck edge in the last rows
+      expect(2 * K.m + K.c0).toBe(K.neck); expect(front[K.ND - 1].n).toBe(2 * (K.S + K.gained(K.ND) + K.m));
+      const nb = pp.rows.filter(r => /^목둘레/.test(r.label)); expect(nb.length).toBe(K.NBr + 1); expect(K.NB % 2).toBe(0);
       const body = pp.rows.filter(r => r.part === "body"); expect(body[0].n).toBe(K.N); expect(body.length).toBe(K.BR);
       const sl = pp.rows.filter(r => r.part === "strap"); expect(sl[0].n).toBe(K.P); expect(K.P).toBe(K.pick + K.U);
       expect(sl.filter(r => r.inc === -2).length).toBe(K.d); expect(sl[sl.length - 1].n).toBe(K.P - 2 * K.d);

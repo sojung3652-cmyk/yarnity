@@ -215,7 +215,8 @@ function kerchiefForm(p: PlanInput, pp: Plan): Worn {
  *  shoulders, a neck */
 const TORSO: [number, number][] = [[.9, -2.3], [.92, -1.8], [.8, -1.05], [.78, -.8], [.88, -.3], [1, 0], [.97, .3], [.87, .7], [.66, 1.05], [.36, 1.22], [.29, 1.4], [.28, 1.75]];
 export function torsoProfile(r: number, bust: number): [number, number][] {
-  const out: [number, number][] = [[0, Math.max(0, bust + TORSO[0][1] * r)]];
+  // (raised for a long top: a foot and a pole under the hips, as a dress form stands)
+  const yb = Math.max(0, bust + TORSO[0][1] * r), out: [number, number][] = yb > 1.5 ? [[0, 0], [r * .5, 0], [r * .5, .6], [r * .07, 1.2], [r * .07, yb - .2], [0, yb]] : [[0, yb]];
   for (let i = 0; i + 1 < TORSO.length; i++) for (let k = 0; k < 4; k++) { const t = k / 4, a = TORSO[i], b = TORSO[i + 1], s = t * t * (3 - 2 * t); out.push([r * (a[0] + (b[0] - a[0]) * s), Math.max(0, bust + (a[1] + (b[1] - a[1]) * t) * r)]); }
   const last = TORSO[TORSO.length - 1]; out.push([r * last[0], bust + last[1] * r], [0, bust + (last[1] + .04) * r]);
   return out;
@@ -319,17 +320,19 @@ function hull2(pts: [number, number][]): [number, number][] {
 /** the body's section at a height, `off` out from it: walked along from the back (s = 0) towards +x, the front,
  *  -x; a point at `s`, its outward normal, and where an angle (0 the back, as ring() counts) falls */
 interface Sec { L: number; at: (s: number) => [number, number]; nrm: (s: number) => [number, number]; sAt: (a: number) => number }
-function sectionOf(B: Body, y: number, off: number): Sec {
-  const R = torsoR(B.r, B.bust, y), raw: [number, number][] = [];
-  for (let i = 0; i < 120; i++) {
-    const a = i / 120 * TAU, dx = Math.sin(a), dz = -Math.cos(a); let t = R / Math.hypot(dx / TSX, dz / TSZ);
-    for (const [bx, by, bz, rx, ry, rz] of B.bumps) {
-      const f2 = 1 - ((y - by) / ry) ** 2; if (f2 <= 0) continue; const a2 = rx * rx * f2, c2 = rz * rz * f2;
-      const qa = dx * dx / a2 + dz * dz / c2, qb = -2 * (dx * bx / a2 + dz * bz / c2), qc = bx * bx / a2 + bz * bz / c2 - 1, disc = qb * qb - 4 * qa * qc;
-      if (disc > 0) t = Math.max(t, (-qb + Math.sqrt(disc)) / (2 * qa));
-    }
-    raw.push([dx * (t + off), dz * (t + off)]);
+/** how far out from the axis the body's surface is at a height, along a level direction (dx, dz) */
+function rayT(B: Body, y: number, dx: number, dz: number): number {
+  let t = torsoR(B.r, B.bust, y) / Math.hypot(dx / TSX, dz / TSZ);
+  for (const [bx, by, bz, rx, ry, rz] of B.bumps) {
+    const f2 = 1 - ((y - by) / ry) ** 2; if (f2 <= 0) continue; const a2 = rx * rx * f2, c2 = rz * rz * f2;
+    const qa = dx * dx / a2 + dz * dz / c2, qb = -2 * (dx * bx / a2 + dz * bz / c2), qc = bx * bx / a2 + bz * bz / c2 - 1, disc = qb * qb - 4 * qa * qc;
+    if (disc > 0) t = Math.max(t, (-qb + Math.sqrt(disc)) / (2 * qa));
   }
+  return t;
+}
+function sectionOf(B: Body, y: number, off: number): Sec {
+  const raw: [number, number][] = [];
+  for (let i = 0; i < 120; i++) { const a = i / 120 * TAU, dx = Math.sin(a), dz = -Math.cos(a), t = rayT(B, y, dx, dz); raw.push([dx * (t + off), dz * (t + off)]); }
   const h = hull2(raw).map(q => ({ q, a: (Math.atan2(q[0], -q[1]) + TAU) % TAU })).sort((u, v) => u.a - v.a), n = h.length, cum = [0];
   for (let i = 0; i < n; i++) { const a = h[i].q, b = h[(i + 1) % n].q; cum.push(cum[i] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
   const L = cum[n];
@@ -571,13 +574,14 @@ function knitFoldForm(p: PlanInput, pp: Plan): Worn {
   const g = pp.g, B = knitFold(p, g), out: FormCourse[] = [], R = B.L / 2, c = B.W * g.w, y0 = .45, rise = g.h * .98, top = y0 + R * rise;
   const bow = (t: number) => .07 + .36 * Math.sin(Math.PI * Math.min(1, t * .85 + .1));
   const rowAt = (j: number, side: number, n = B.W, from = 0) => { const th = bow((j + .5) / R), rad = c / (2 * th), q: number[] = []; for (let k = from; k < from + n; k++) { const ph = -th + (k + .5) / B.W * 2 * th; q.push(rad * Math.sin(ph), y0 + (j + .5) * rise, side * (rad * (Math.cos(ph) - Math.cos(th)) + .25)); } return q; };
-  out.push({ p: rowAt(0, 1).map((v, i) => (i % 3 === 1 ? y0 : v)), on: -1, ghost: true, cen: [0, top / 2, 0] });
+  // (the panel starts at the front's top - its cast-on row stands on nothing just above it)
+  out.push({ p: rowAt(R - 1, 1).map((v, i) => (i % 3 === 1 ? v + rise : v)), on: -1, ghost: true, cen: [0, top / 2, 0] });
   // the fold is the bottom: the front's rows from it up, then the back's (worked on from the front's last row in the panel; drawn here as they hang)
-  for (let i = 0; i < 2 * R; i++) { const front = i < R, j = front ? R - 1 - i : i - R; out.push({ p: rowAt(j, front ? 1 : -1), on: out.length - 1, cen: [0, y0 + (j + .5) * rise, 0] }); }
+  for (let i = 0; i < 2 * R; i++) { const front = i < R, j = front ? R - 1 - i : i - R; out.push({ p: rowAt(j, front ? 1 : -1), on: out.length - 1, cen: [0, y0 + (j + .5) * rise, 0], kn: "st" }); }
   // the strap: K stitches at the right end, from the front over the side to the back
   const last = out.length - 1, edge = out[last].p, deep = Math.max(.6, Math.abs(edge[Math.floor(B.W / 2) * 3 + 2])), xr = edge[(B.W - 1) * 3], A = archOf(deep + .4, B.SR * g.h);
   let on = last;
-  for (let i = 0; i < B.SR; i++) { const [u, v] = A.at((i + .5) / B.SR * A.len), q: number[] = []; for (let k = 0; k < B.K; k++) q.push(xr - k * g.w, top + v, u); out.push({ p: q, on, cen: [xr - B.K * g.w / 2, top - 3, 0] }); on = out.length - 1; }
+  for (let i = 0; i < B.SR; i++) { const [u, v] = A.at((i + .5) / B.SR * A.len), q: number[] = []; for (let k = 0; k < B.K; k++) q.push(xr - k * g.w, top + v, u); out.push({ kn: "st", p: q, on, cen: [xr - B.K * g.w / 2, top - 3, 0] }); on = out.length - 1; }
   return { courses: out, stand: null, size: [c, 2 * deep, B.h], key: "" };
 }
 /** 위에서부터 뜨는 니트 탑 (Kim: 어깨 경사를 따라, 흐물거리는 편물): on a body, the back's rows down its back from
@@ -586,21 +590,37 @@ function knitFoldForm(p: PlanInput, pp: Plan): Worn {
  *  hem following the body, the ease in soft folds; each sleeve from the shoulder point, down and a little out,
  *  narrowing to its cuff. */
 function knitTopForm(p: PlanInput, pp: Plan): Worn {
-  const g = pp.g, K = knitTop(p, g), out: FormCourse[] = [], r = Math.max(6, K.bust / 6.15), bust = 2.3 * r + 1, body = bodyOf(r, bust), off = .7;
+  // (the body stands high enough for the top's whole length to hang above the table)
+  const g = pp.g, K = knitTop(p, g), out: FormCourse[] = [], r = Math.max(6, K.bust / 6.15), below = pp.rows.filter(x => (x.part === "body" || x.part === "rim") && !/^목둘레/.test(x.label)).length;
+  const bust = Math.max(2.3 * r + 1, K.AR * g.h * .95 + below * g.h + 2 - 1.04 * r), body = bodyOf(r, bust), off = .7;
   const panel = pp.rows.filter(x => x.part === "panel" && x.n > 0 && /단$/.test(x.label)), shTop = bust + 1.04 * r, rh = g.h * .95;
   // a panel's row: its middle at the back (a = 0) or the front (a = PI), on the body from side to side; wider than
   // that it lies looser, in soft folds (`gap`: the front's neck, stitches left out at its middle)
   let reach = 0;
-  const panelRow = (n: number, y: number, a: number, gap = 0): number[] => {
-    const S = sectionOf(body, y, off), s0 = S.sAt(a), dir = a === 0 ? 1 : -1, sR = S.sAt(Math.PI / 2), sL = S.sAt(3 * Math.PI / 2);
-    const lim = Math.min(a === 0 ? sR - s0 : s0 - sR, a === 0 ? s0 + S.L - sL : sL - s0), half = (n + gap) * g.w / 2, c = Math.min(1, lim / half), A = foldDepth(1 / c, 3, 2 * lim, 1.2), q: number[] = [];
+  // (the first rows lie over the top of the shoulders - the shoulder line from the neck out to the shoulder's
+  // tip - and turn down the back or the front row by row, as a yoke sits; the neck is the neck's own width)
+  const neckR = .36 * r + off, TT = Math.max(2, .55 * r / rh);
+  const panelRow = (n: number, y: number, a: number, gap = 0, row = -1): number[] => {
+    const q0 = panelOn(n, y, a, gap), sz = a === 0 ? -1 : 1, t = Math.min(1, Math.max(0, (row + .5) / TT)), sm = t * t * (3 - 2 * t), q: number[] = [];
+    for (let k = 0; k < q0.length; k += 3) {
+      const x = q0[k], ax = Math.abs(x), zt = ax < neckR ? sz * Math.sqrt(neckR * neckR - ax * ax) : sz * .03 * r, yt = bust + 1.1 * r + .4 - Math.max(0, ax - neckR) * .12;
+      // (on the body, never through it: a point the blend put inside the shoulder is pushed out to its surface)
+      const yy = yt + (q0[k + 1] - yt) * sm, zz = zt + (q0[k + 2] - zt) * sm, d = Math.hypot(x, zz) || 1e-6, need = rayT(body, yy, x / d, zz / d) + off * .8, f = d < need ? need / d : 1;
+      q.push(x * f, yy, zz * f);
+    }
+    return q;
+  };
+  const panelOn = (n: number, y: number, a: number, gap = 0): number[] => {
+    const S = sectionOf(body, Math.max(y, bust), off), s0 = S.sAt(a), dir = a === 0 ? 1 : -1, sR = S.sAt(Math.PI / 2), sL = S.sAt(3 * Math.PI / 2);
+    const lim = Math.min(a === 0 ? sR - s0 : s0 - sR, a === 0 ? s0 + S.L - sL : sL - s0), half = (n + gap) * g.w / 2, c = Math.min(1, lim / half), A = 0, q: number[] = [];
     for (let k = 0; k < n; k++) {
       const kk = gap && k >= n / 2 ? k + gap : k, u = (kk - (n + gap - 1) / 2) * g.w * c, [x, z] = S.at(s0 + dir * u), [nx, nz] = S.nrm(s0 + dir * u), d = A * (1 + Math.cos(u / Math.max(1, lim) * 3 * Math.PI)) / 2;
       reach = Math.max(reach, Math.abs(x)); q.push(x + nx * d, y, z + nz * d);
     }
     return q;
   };
-  let under = shTop;
+  let under = shTop, backTop: number[] = [], frontMid: number[] = [];
+  const edgeL: number[][] = [], edgeR: number[][] = [];
   for (const [name, a] of [["뒤판", 0], ["앞판", Math.PI]] as const) {
     const rows = panel.filter(x => x.label.startsWith(name)), front = a !== 0;
     out.push({ p: panelRow(rows[0]?.n ?? K.T, shTop + rh * .5, a), on: -1, ghost: true, cen: [0, shTop, 0] });
@@ -609,22 +629,24 @@ function knitTopForm(p: PlanInput, pp: Plan): Worn {
       const y = shTop - (i + .5) * rh; under = Math.min(under, y - rh * .5);
       // 앞판의 목: the two shoulders worked side by side over the neck's rows - two pieces, nothing across the neck
       if (front && i < K.ND) {
-        const q = panelRow(x.n, y, a, K.neck), h = q.length / 2;
-        out.push({ p: q.slice(0, h), on: L, cen: [0, y, 0] }); L = out.length - 1; out.push({ p: q.slice(h), on: R, cen: [0, y, 0] }); R = out.length - 1;
+        const q = panelRow(x.n, y, a, K.neck, i), h = q.length / 2;
+        out.push({ p: q.slice(0, h), on: L, cen: [0, y, 0], kn: "st" }); L = out.length - 1; out.push({ p: q.slice(h), on: R, cen: [0, y, 0], kn: "st" }); R = out.length - 1;
+        edgeL.push(q.slice(h - 3, h)); edgeR.push(q.slice(h, h + 3));
         if (i === K.ND - 1) { out.push({ p: q, on: -1, ghost: true, cen: [0, y, 0] }); L = R = out.length - 1; }
         return;
       }
-      out.push({ p: panelRow(x.n, y, a), on: L, cen: [0, y, 0] }); L = R = out.length - 1;
+      const q = panelRow(x.n, y, a, 0, i); out.push({ p: q, on: L, cen: [0, y, 0], kn: "st" }); L = R = out.length - 1;
+      if (!front && i === 0) backTop = q; if (front && i === K.ND) frontMid = q;
     });
   }
-  // the body round by round from the underarm down, the hem's rib at its foot: on the body, its ease in folds
-  const rows = pp.rows.filter(x => x.part === "body" || x.part === "rim");
-  out.push({ p: clothRing(body, under + g.h * .5, K.N, g.w, off), on: -1, ghost: true, cen: [0, under, 0] });
-  rows.forEach((x, i) => { const y = under - (i + .5) * g.h; out.push({ p: clothRing(body, y, x.n, g.w, off, i * .04, y, 6), closed: true, on: out.length - 1, cen: [0, y, 0] }); });
+  // the body round by round from the underarm down, the hem's rib at its foot: hanging straight from the bust, its ease in folds
+  const rows = pp.rows.filter(x => (x.part === "body" || x.part === "rim") && !/^목둘레/.test(x.label));
+  out.push({ p: clothRing(body, under + g.h * .5, K.N, g.w, off, 0, Math.max(under, bust), 7, 0), on: -1, ghost: true, cen: [0, under, 0] });
+  rows.forEach((x, i) => { const y = under - (i + .5) * g.h; out.push({ p: clothRing(body, y, x.n, g.w, off, i * .04, Math.max(y, bust), 6, Math.min(1.4, i * .1)), closed: true, on: out.length - 1, cen: [0, y, 0], kn: x.part === "rim" ? "rib" : "st" }); });
   // the sleeves: from the shoulder point, leaving it sideways and turning down and a little out, as an arm hangs
-  const sleeve = pp.rows.filter(x => x.part === "strap" && x.n > 0), Ls = Math.max(4, sleeve.length * g.h);
+  const sleeve = pp.rows.filter(x => x.part === "strap" && x.n > 0), Ls = Math.max(4, sleeve.length * g.h), armH = shTop - under;
   for (const s of [-1, 1]) {
-    const rA = (sleeve[0]?.n ?? K.P) * g.w / TAU, o: V3 = [s * (Math.max(reach, 1.2 * r) + .3), Math.min(shTop - rA * .6, under + rA), 0];
+    const rA = (sleeve[0]?.n ?? K.P) * g.w / TAU, o: V3 = [s * Math.max(reach * .97, 1.12 * r), shTop - armH / 2 - .3, 0];   // (its first round fills the armhole, shoulder to underarm)
     // the line down the sleeve's middle: a curve leaving the armhole sideways, then down and out about 20 degrees
     const P1: V3 = [o[0] + s * rA * .7, o[1] - rA * .2, 0], P2: V3 = [o[0] + s * (rA * .7 + Ls * .34), o[1] - Ls * .94, 0], N = 120, line: V3[] = [], acc = [0];
     for (let i = 0; i <= N; i++) { const t = i / N, u = 1 - t; line.push([u * u * o[0] + 2 * u * t * P1[0] + t * t * P2[0], u * u * o[1] + 2 * u * t * P1[1] + t * t * P2[1], 0]); if (i) acc.push(acc[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1])); }
@@ -632,12 +654,29 @@ function knitTopForm(p: PlanInput, pp: Plan): Worn {
     const ringAt = (n: number, d: number, ph: number): number[] => {
       let i = 1; while (i < N && acc[i] * scale < d) i++; const c = line[i], tx = line[i][0] - line[i - 1][0], ty = line[i][1] - line[i - 1][1], tl = Math.hypot(tx, ty) || 1;
       const ux = -ty / tl * s, uy = tx / tl * s, rad = n * g.w / TAU, q: number[] = [];
-      // (soft: a hanging sleeve settles a little flat front to back, in a few shallow folds)
-      for (let k = 0; k < n; k++) { const a = (k + .5) / n * TAU, R = rad * (1 + .07 * Math.sin(5 * a + d * .25)); q.push(c[0] + ux * Math.cos(a) * R, c[1] + uy * Math.cos(a) * R, Math.sin(a) * R * .9); }
+      // (the armhole is tall and narrow: the first rounds an upright oval as long round as they are, rounding out
+      // down the arm; soft: a hanging sleeve settles a little flat front to back, in a few shallow folds)
+      const e = Math.min(1, d / (8 * g.h)), aH = Math.max(rad, armH / 2), A1 = aH + (rad - aH) * e, B0 = Math.max(.3 * rad, 2 * rad - aH), B1 = B0 + (rad - B0) * e;
+      for (let k = 0; k < n; k++) { const a = (k + .5) / n * TAU, f = 1 + .07 * Math.sin(5 * a + d * .25); q.push(c[0] + ux * Math.cos(a) * A1 * f, c[1] + uy * Math.cos(a) * A1 * f, Math.sin(a) * B1 * f * .9); }
       return q;
     };
     out.push({ p: ringAt(sleeve[0]?.n ?? K.P, 0, 0), on: -1, ghost: true, cen: [o[0], o[1], 0] });
-    sleeve.forEach((x, i) => { const d = (i + .5) * g.h; out.push({ p: ringAt(x.n, d, i), closed: true, on: out.length - 1, cen: [o[0] + s * 3, o[1] - d, 0] }); });
+    sleeve.forEach((x, i) => { const d = (i + .5) * g.h; out.push({ p: ringAt(x.n, d, i), closed: true, on: out.length - 1, cen: [o[0] + s * 3, o[1] - d, 0], kn: /^소맷부리/.test(x.label) ? "rib" : "st" }); });
+  }
+  // 목둘레 (Kim: 둥근 목선): picked up round the neck's edge - the back's middle, down the front's left side, across
+  // its middle, up the right - and its rib rounds standing up from it, drawing in towards the neck
+  const band = pp.rows.filter(x => /^목둘레/.test(x.label) && x.n > 0), pt = (q: number[], k: number): V3 => [q[3 * k], q[3 * k + 1], q[3 * k + 2]];
+  if (band.length && backTop.length && frontMid.length && edgeL.length) {
+    const nb = backTop.length / 3, nf = frontMid.length / 3, path: V3[] = [];
+    for (let k = Math.floor((nb + K.neck) / 2) - 1; k >= Math.floor((nb - K.neck) / 2); k--) path.push(pt(backTop, k));
+    edgeL.forEach(q => path.push(pt(q, 0)));
+    for (let k = Math.floor((nf - K.c0) / 2); k < Math.floor((nf + K.c0) / 2); k++) path.push(pt(frontMid, k));
+    for (let i = edgeR.length - 1; i >= 0; i--) path.push(pt(edgeR[i], 0));
+    const acc = [0]; for (let i = 1; i <= path.length; i++) { const a = path[i - 1], b = path[i % path.length]; acc.push(acc[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2])); }
+    const Lb = acc[path.length], at = (s: number): V3 => { let i = 1; while (i < path.length && acc[i] < s) i++; const a = path[i - 1], b = path[i % path.length], f = (s - acc[i - 1]) / Math.max(1e-9, acc[i] - acc[i - 1]); return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]; };
+    const neckR = .3 * r + 1, ring2 = (n: number, j: number): number[] => { const q: number[] = []; for (let k = 0; k < n; k++) { const [x, y, z] = at((k + .5) / n * Lb), hr = Math.hypot(x, z) || 1, f = Math.min(.8, j / (band.length + 1.5)), nr = hr + (Math.min(hr, Math.max(neckR, hr * .8)) - hr) * f * 2; q.push(x / hr * nr, y + j * g.h * .85, z / hr * nr); } return q; };
+    out.push({ p: ring2(band[0].n, -1), on: -1, ghost: true, cen: [0, shTop, 0] });
+    band.forEach((x, j) => out.push({ p: ring2(x.n, j), closed: true, on: out.length - 1, cen: [0, shTop, 0], kn: j ? "rib" : "st" }));
   }
   return { courses: out, stand: torsoStand(body), size: [2 * Math.max(reach, 1.2 * r) + K.sleeveCm * .7, 2 * r, K.len], key: "" };
 }

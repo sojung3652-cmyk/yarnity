@@ -66,3 +66,17 @@ describe("바라클라바: 머리를 따라 흐물거리게", () => {
     }
   });
 });
+
+describe("몸에 입힌 니트 (Kim: 실제 니트처럼, 시안 A · 둥근 목선)", () => {
+  it("every course of the knit top and the folded knit bag is knitted - rib at the hem, the cuffs and the neckband", () => {
+    for (const id of ["knittop", "knitfold"]) {
+      const p = starter(id), f = wornForm(p, plan(p))!, real = f.courses.filter(c => !c.ghost && c.p.length >= 6 && c.on >= 0);
+      expect(real.every(c => c.kn === "st" || c.kn === "rib")).toBe(true);
+      if (id === "knittop") expect(real.filter(c => c.kn === "rib").length).toBeGreaterThan(6);
+    }
+  });
+  it("the knit top's hem hangs above the table and every point is a number", () => {
+    const p = starter("knittop"), f = wornForm(p, plan(p))!;
+    for (const c of f.courses) for (let i = 0; i < c.p.length; i += 3) { expect(Number.isFinite(c.p[i] + c.p[i + 1] + c.p[i + 2])).toBe(true); if (!c.ghost) expect(c.p[i + 1]).toBeGreaterThan(0); }
+  });
+});

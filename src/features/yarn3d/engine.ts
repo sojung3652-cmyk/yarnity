@@ -41,7 +41,8 @@ export type YarnStrap = "none" | "two" | "long" | "wrist" | "pack";
  *  drawn as a strand), the point the fabric faces away from, and - when they are not the piece's own - the
  *  stitches drawn (one for the course or one a stitch) and their colours' indexes. `ghost`: not drawn, only
  *  stood on. */
-export interface FormCourse { p: number[]; closed?: boolean; on: number; ghost?: boolean; cen: [number, number, number]; ci?: number; cols?: number[]; ty?: WallStitch | WallStitch[] }
+export interface FormCourse { p: number[]; closed?: boolean; on: number; ghost?: boolean; cen: [number, number, number]; ci?: number; cols?: number[]; ty?: WallStitch | WallStitch[];
+  /** knitted (Kim: 실제 니트처럼): its stitches drawn as knit loops, one strand along the row - "st" 메리야스, "rib" 겉 1 안 1 */ kn?: "st" | "rib" }
 /** what a piece is shown on (Kim: 모자·후드는 머리 모양 받침 위에, 보틀백은 병 모양 받침 위에 - 아주 연한 색): a lathe's
  *  outline, [radius, height] in cm from the table up. `fitTo`: the piece's own width (cm) the outline was drawn
  *  for - a piece the engine settles itself (a bottle's bag) is measured, and the stand made to that measure. */
@@ -263,7 +264,7 @@ export function stitchCount(s: YarnShape): number {
 
 type Edge = [number, number, number, number];
 type Bot = [number, number, number];
-interface Course { idx: number[]; closed: boolean; bot: Bot[] | null; ci: number; /** a round of the body (the wall), not the bottom */ body?: boolean;
+interface Course { idx: number[]; closed: boolean; bot: Bot[] | null; ci: number; kn?: "st" | "rib"; /** a round of the body (the wall), not the bottom */ body?: boolean;
   /** a form's course (FormCourse): the point its fabric faces away from, its stitches and their colours when they are its own */
   cen?: THREE.Vector3; cols?: number[]; ty?: WallStitch | WallStitch[] }
 interface Knit { type: "flat" | "tube"; W: number; H: number; swap: boolean; wk: number; rk: number; rho: number; R: number }
@@ -750,7 +751,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         const idx = at[k], below = c.on >= 0 ? at[c.on] : null; let bot: Bot[] | null = null;
         if (below && below.length) bot = idx.map(n => { let b = below[0], bd = 1e9; for (const m of below) { const d = P[n].distanceToSquared(P[m]); if (d < bd) { bd = d; b = m; } } E.push([n, b, Math.sqrt(bd), 1]); return [b, b, 0] as Bot; });
         for (let i = 0; i + (c.closed ? 0 : 1) < idx.length; i++) E.push([idx[i], idx[(i + 1) % idx.length], sw, 1]);
-        C.push({ idx, closed: !!c.closed, bot, ci: c.ci ?? 0, cen: new THREE.Vector3(c.cen[0] * U, c.cen[1] * U, c.cen[2] * U), ...(c.cols ? { cols: c.cols } : {}), ...(c.ty ? { ty: c.ty } : {}) });
+        C.push({ idx, closed: !!c.closed, bot, ci: c.ci ?? 0, cen: new THREE.Vector3(c.cen[0] * U, c.cen[1] * U, c.cen[2] * U), ...(c.cols ? { cols: c.cols } : {}), ...(c.ty ? { ty: c.ty } : {}), ...(c.kn ? { kn: c.kn } : {}) });
       });
       fixed = true; form = true;
     } else {
@@ -914,6 +915,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const tops = c.idx.map(n => D.P[n].clone()), saw: THREE.Vector3[] = [];
       let cx0 = 0, cz0 = 0; tops.forEach(q => { cx0 += q.x; cz0 += q.z; }); cx0 /= tops.length || 1; cz0 /= tops.length || 1;
       const ridgeRow = (!!pat.ridge && (c.closed || ci % 2 === 0)) || (!!pat.crease && ci === firstBody), ridgeIn = !pat.ridge && pat.crease === "front";
+      // a knitted row (a form's, Kim: 실제 니트처럼 - 메리야스, 시안 A): each stitch its V - two legs from the row's
+      // head down to the middle of the stitch below, the next row's legs starting where these end, so the V's stack
+      // in columns as stockinette does; in rib (겉 1 안 1) the purl stitches are a bump across, set back
+      const knitSt = !!(c.kn && c.bot && loops);
       if (c.bot && loops) {
         const color = colorOf(c.ci), wr = wl && c.body ? (bodyN++ * (D.skip?.row ?? 1)) % wl.H : -1;
         for (let i = 0; i < c.idx.length; i++) {
@@ -933,6 +938,13 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           if (c.cen && out.dot(t.clone().sub(c.cen)) < 0) out.negate(); // a form's fabric faces away from its own middle
           if (ridgeRow) t.addScaledVector(out, ridgeIn ? -R * 1.1 : R * 1.1);
           const P = (u: number, v: number, w: number) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, w * R);
+          if (knitSt) {
+            // (knitted fabric is closed: its yarn spreads and fluffs to fill the stitch - two legs about a stitch wide)
+            const Rk = Math.max(R, .2 * sw), wF = Rk / R * .9;
+            if (c.kn === "rib" && i % 2 === 1) for (const v of [-.2, -.65]) strand([P(-.55, v - .2, -wF * .3), P(0, v, wF * .1), P(.55, v - .2, -wF * .3)], Rk, col);
+            else for (const k of [-1, 1]) strand([P(k * .45, .25, wF * .6), P(k * .24, -.4, wF * (c.kn === "rib" ? 1.3 : 1)), P(k * .04, -1, wF * .5)], Rk, col);
+            continue;
+          }
           // the head: front half up over the fabric, back half under, wider than the stitch so the next one's hooks into it
           // 사슬 over a gap (mesh, net, moss): a chain lying along the row at the head's height, nothing below - a hole
           drawSt(ty, col, P);
