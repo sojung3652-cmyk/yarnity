@@ -1006,9 +1006,11 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const kitPart = kit?.find(p => p.key === asmPart) ?? kit?.[0];
     const kitLine = !kit ? "" : isWear(item.id) ? wearNote(input, pp.g)
       : item.id === "bottlebag" ? `병 지름 ${draft.bottleD ?? 7}cm에 여유를 더한 바닥 지름 ${draft.a}cm, 한 바퀴 ${pp.last}코입니다. 몸통은 ${draft.h}cm, 그물 ${pp.rows.filter(r => r.wall).length}단입니다.`
+      : item.id === "stepbag" ? (() => { const fl = pp.rows.filter(r => r.part === "flap"); return `시작 사슬 ${pp.c - 1}코, 한 바퀴 ${pp.last}코로 ${pp.bodyRows}단을 올립니다.` + (fl.length ? ` 덮개는 ${fl[0].n}코에서 ${fl[fl.length - 1].n}코까지 ${fl.length}단, 계단은 ${fl.filter(r => r.step).length}번입니다.` : ""); })()
+      : item.id === "phonebag" ? (() => { const edge = pp.rows.find(r => r.part === "rim" && r.wall); return `휴대폰 ${draft.phoneW ?? 7.5} × ${draft.phoneH ?? 16}cm에 여유를 더해 시작 사슬 ${pp.c - 1}코, 한 바퀴 ${pp.last}코로 ${pp.bodyRows}단을 올립니다.` + (edge ? ` 테두리 무늬는 ${edge.wall!.reps}번 들어갑니다.` : ""); })()
       : (() => { const N = openingN(pp), P = packCord(input, pp.g, N); return `입구 한 바퀴 ${N}코에 끈 구멍 ${Math.floor(N / 2)}개, 조임끈은 약 ${P.cm}cm(사슬 ${P.cord}코)입니다.`; })();
     const railParts: [string, string, boolean][] = kit
-      ? [...kit.map((p): [string, string, boolean] => [p.key, p.title, true]), ...(isWear(item.id) ? [] : [["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)] as [string, string, boolean]])]
+      ? [...kit.map((p): [string, string, boolean] => [p.key, p.title, true]), ...(isWear(item.id) && item.id !== "bonnet" ? [] : [["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)] as [string, string, boolean]])]
       : built
       ? [["shape", "판", true], built === "panels" ? ["strip", "띠", true] : built === "ribbed" ? ["hole", "손잡이 구멍", (draft.holeW ?? 10) >= 1] : ["strap", "끈", true], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]]
       : base

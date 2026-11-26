@@ -11,6 +11,7 @@ const PASTEL: Record<ItemId, string> = {
   dishcloth: "#CFE2F0", bookmark: "#F5E3A6", blanket: "#F9D8DF", beanie: "#F4CFD3",
   // 모자·소품 기본형 (their cards carry a photo of the 3D, not this drawing)
   buckethat: "#F4CFD3", motifhat: "#F5E3A6", hoodscarf: "#CBD8BF", earflap: "#CFE2F0", kerchief: "#F9D8DF", bottlebag: "#CFE2F0", backpack: "#EBD7B8",
+  trapbag: "#F7CDB0", moonbag: "#F9D8DF", stepbag: "#CBD8BF", phonebag: "#CFE2F0", bonnet: "#F5E3A6", bustier: "#F4CFD3", halter: "#EBD7B8",
 };
 const LEAF = "#B5C9A4";
 

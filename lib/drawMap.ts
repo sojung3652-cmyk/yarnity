@@ -291,10 +291,12 @@ function drawPaint(cv: HTMLCanvasElement, p: Project, pp: Plan) {
 /** A square motif (lib/wear 모티프 버킷햇): its rounds from the ring out, the corners' increases as V. While the
  *  motifs are being joined, the motif made last, whole. */
 function drawMotif(cv: HTMLCanvasElement, p: Project, pp: Plan, at: number) {
-  let k = at; while (k > 0 && !pp.rows[k].motif) k--;
-  const name = pp.rows[k].motif?.name, rows = pp.rows.filter(r => r.motif?.name === name);
+  // (a circle worked as a piece of its own - 반달 미니백 - is drawn the same way, as a round chart)
+  const of = (r: Row) => r.motif?.name ?? r.disc?.name;
+  let k = at; while (k > 0 && !of(pp.rows[k])) k--;
+  const name = of(pp.rows[k]), rows = pp.rows.filter(r => of(r) === name);
   if (!rows.length) return drawGrid(cv, p, pp);
-  drawMap(cv, { ...pp, c: 1, rows }, "rect", rows.length, r => { const i = rows[r - 1].idx; return i < p.current ? "done" : i === p.current ? "now" : "future"; }, p.color);
+  drawMap(cv, { ...pp, c: 1, rows }, rows[0].disc ? "circle" : "rect", rows.length, r => { const i = rows[r - 1].idx; return i < p.current ? "done" : i === p.current ? "now" : "future"; }, p.color);
   cv.setAttribute("aria-label", `${name} 코 도안, ${rows.length}단 중 ${Math.min(rows.length, Math.max(1, rows.filter(r => r.idx <= p.current).length))}단째`);
 }
 
@@ -302,8 +304,10 @@ export function drawTrack(cv: HTMLCanvasElement, p: Project, pp: Plan) {
   delete cv.dataset.folds; delete cv.dataset.lines; delete cv.dataset.colors;
   if (p.paint) return drawPaint(cv, p, pp);
   const cur = pp.rows[Math.max(0, Math.min(p.current, pp.rows.length - 1))];
-  if (cur && pp.rows.some(r => r.motif)) return drawMotif(cv, p, pp, cur.idx);
-  if (cur && (cur.part === "panel" || cur.part === "strip" || cur.part === "strap" || cur.part === "join" || (cur.part === "flap" && pp.rows.some(r => r.part === "flap" && r.edge)) || (p.object === "rows" && pp.rows.some(r => r.edge)) || (cur.part === "finish" && pp.rows.some(r => r.part === "panel" || r.edge)))) return drawPiece(cv, p, pp);
+  // a motif's or a circle's round - and, while they are being joined, the one made last (a top's cups after its
+  // motifs are flat pieces of their own: drawn as rows)
+  if (cur && (cur.motif || cur.disc || ((cur.part === "join" || cur.part === "finish") && (() => { let k = cur.idx; while (k > 0 && pp.rows[k].part === "join") k--; return !!(pp.rows[k].motif || pp.rows[k].disc); })()))) return drawMotif(cv, p, pp, cur.idx);
+  if (cur && (cur.part === "panel" || cur.part === "strip" || cur.part === "strap" || cur.part === "join" || (cur.part === "handle" && pp.rows.some(r => r.part === "panel" && !r.motif && !r.disc)) || (cur.part === "flap" && pp.rows.some(r => r.part === "flap" && r.edge)) || (p.object === "rows" && pp.rows.some(r => r.edge)) || (cur.part === "finish" && pp.rows.some(r => r.part === "panel" || r.edge)))) return drawPiece(cv, p, pp);
   if (p.object === "rows" || p.object === "tube") return drawGrid(cv, p, pp);
   const R = pp.bottomRounds;
   if (p.current < R || p.object !== "bag") {

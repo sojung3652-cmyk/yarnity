@@ -244,6 +244,8 @@ export function ribbedNote(p: PlanInput, g: Gauge): string {
 /** which flat piece a row belongs to (null: not a row of one - joining, the last step, a bag's rounds) */
 export const pieceOf = (r: Row): string | null =>
   r.part === "panel" || (r.part === "strap" && r.post != null) ? r.label.slice(0, 2)
+  // (a top's two cups - lib/wear 뷔스티에 - are a piece each)
+  : r.part === "flap" && /^컵\d/.test(r.label) ? r.label.slice(0, 2)
   : r.part === "strip" ? "띠" : r.part === "flap" || (r.part === "strap" && r.label.startsWith("덮개")) ? "덮개"
   : r.part === "rows" || r.part === "start" || r.part === "strap" ? "편물" : null;
 /** a piece's base chain (drawn under its first row, never a row of the grid) */

@@ -141,6 +141,22 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
   if (p.item === "kerchief" && r.part === "rows") return ok(r.no === 1 ? [turnT, ...st(3, name, "시작 사슬에")] : [turnT, note("뒤집어서"), ...st(2, name, "첫 코에"), ...st(prev - 2, name), ...st(2, name, "마지막 코에")]);
   // a cord: a chain, and back along it in slip stitches (a head scarf's ties, a backpack's cord)
   if (r.part === "handle" && /빼뜨기로 되돌아/.test(r.how)) return ok([{ t: "ch", n: r.n, kind: "base" }, note("되돌아"), { t: "sl", n: r.n }]);
+  // ---- 작은 가방 · 옷 기본형 (lib/wear): a circle worked as a piece (its slot for the hand), a net that comes to a point,
+  // a ring of chains a top begins with
+  if (r.disc) {
+    const no = r.disc.r, two = st(2, name, "다음 코에");
+    if (no === 1) return ok(rd(st(6, name), [note("매직링")]));
+    if (r.disc.hole) return ok(rd([...st(2, name), sp(r.disc.hole), skip(r.disc.hole), ...evenToks(6 * (no - 1) - r.disc.hole - 2, r.n - r.disc.hole - 2, name)]));
+    if (no === 2) return ok(rd(rep(two, 6)));
+    if (no % 2 === 0 || no < 4) return ok(rd(rep([...st(no - 2, name), ...two], 6)));
+    const k = Math.floor((no - 2) / 2);
+    return ok(rd([...st(k, name), ...rep([...two, ...st(no - 2, name)], 5), ...two, ...st(no - 2 - k, name)]));
+  }
+  if (r.vnet) return { toks: [note("뒤집어서 첫 아치 가운데까지 빼뜨기로 건너가"), turnT, ...st(1, SC, "아치 가운데에"), ...rep([sp(5), ...st(1, SC, "다음 아치 가운데에")], r.vnet)], end: "arch" };
+  if (r.part === "start" && /고리 연결$/.test(r.how)) return { toks: [{ t: "ch", n: r.n, kind: "base" }, note("첫 사슬에 빼뜨기로 고리")], end: "base" };
+  if (r.part === "flap" && r.step) return ok([turnT, note(`뒤집어서 첫 ${r.step}코는 빼뜨기로 건너가고`), ...st(r.n, name), note(`마지막 ${r.step}코는 남기고`)]);
+  if (r.part === "flap" && /새 실을 걸어/.test(r.how)) return ok([note("새 실을 걸어"), turnT, ...st(r.n, name)]);
+  if (r.part === "flap" && r.work && (r.work[0] || r.work[1]) && r.own) { const tog: Tok = { t: "tog", n: 2, name }; return ok([turnT, note("뒤집어서"), ...rep([tog], r.work[0]), ...st(r.n - r.work[0] - r.work[1], name), ...rep([tog], r.work[1])]); }
   if (r.part === "panel" || r.part === "strip" || r.part === "strap") {
     if (/시작 사슬$/.test(r.label)) return { toks: [{ t: "ch", n: r.n, kind: "base" }], end: "base" };
     const d = r.edge ? r.edge[0] : 0;
@@ -199,6 +215,8 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
     return ok(rd(evenToks(prev, r.n, name)));
   }
   if (r.part === "rim") {
+    // an edging round in a stitch pattern (폰 크로스백): the pattern's own round
+    if (r.wall) return { toks: wallToks(r.wall.k, r.wall.i, r.wall.reps, r.wall.ch), end: r.wall.k === "net" ? "arch" : "count" };
     if (r.how.startsWith("빼뜨기")) return ok([{ t: "sl", n: r.n }]);
     // the round that leaves the handles standing: 짧은뜨기, a chain over skipped stitches, twice
     const hs = r.how.match(/^\S+(?: \S+)? (\d+)코, 사슬 (\d+)코를 띄우고 (\d+)코 건너뛰기, \S+(?: \S+)? (\d+)코, 사슬 \d+코를 띄우고 \d+코 건너뛰기, \S+(?: \S+)? (\d+)코$/);

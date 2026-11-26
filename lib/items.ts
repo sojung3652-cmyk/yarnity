@@ -16,7 +16,9 @@ export type ItemId =
   | "scarf" | "neckwarmer" | "headband"
   | "dishcloth" | "bookmark" | "blanket" | "beanie"
   // 모자·소품 기본형 (Kim; lib/wear): shown among the 기본형 only (their groups are not in GROUPS)
-  | "buckethat" | "motifhat" | "hoodscarf" | "earflap" | "kerchief" | "bottlebag" | "backpack";
+  | "buckethat" | "motifhat" | "hoodscarf" | "earflap" | "kerchief" | "bottlebag" | "backpack"
+  // 작은 가방 · 보닛 · 옷 기본형 (Kim; lib/wear, lib/pattern)
+  | "trapbag" | "moonbag" | "stepbag" | "phonebag" | "bonnet" | "bustier" | "halter";
 export type FieldKey = "a" | "b" | "h" | "circ" | "depth";
 export interface Field { key: FieldKey; label: string; min: number; max: number }
 /** Any length may be typed (Kim: no limits on sizes): from 1cm, and up to 30m only so that a slip of the
@@ -37,7 +39,7 @@ export interface Item {
 
 export const GROUPS = ["납작한 것", "담는 것", "가방", "두르는 것", "그 밖에"] as const;
 /** the groups that are 기본형 only (Kim: 모자·소품 기본형): not in the lists of things to pick, nor told to Yarni */
-export const STARTER_GROUPS = ["모자", "소품"] as const;
+export const STARTER_GROUPS = ["모자", "소품", "작은 가방", "옷"] as const;
 export const isStarterOnly = (it: { group: string }) => (STARTER_GROUPS as readonly string[]).includes(it.group);
 
 export const ITEMS: Item[] = [
@@ -100,6 +102,22 @@ export const ITEMS: Item[] = [
     desc: "병을 넣어 메는 그물 가방", level: "쉬움", time: "하루", method: "원형 바닥 → 그물 몸통 → 끈" },
   { id: "backpack", name: "드로스트링 백팩", group: "소품", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 22, h: 30, handle: "none" }, range: { a: [14, 32], h: [18, 45] },
     desc: "끈 하나로 조이고 메는 원통 배낭", level: "보통", time: "주말 이틀", method: "원형 바닥 → 몸통 → 끈 구멍 단 → 끈" },
+  // ---- 작은 가방 (the 기본형 list shows them among 가방) ----
+  { id: "trapbag", name: "사다리꼴 주머니백", group: "작은 가방", kind: "base-body", shapes: ["rect"], defaults: { shape: "rect", a: 12, b: 2, h: 20, handle: "short", handleCm: 40 }, range: { a: [6, 24], h: [10, 36] },
+    desc: "사다리꼴 판 두 장을 이은 주머니 가방", level: "쉬움", time: "주말 하루", method: "판 2장 → 잇기 → 손잡이" },
+  { id: "moonbag", name: "반달 미니백", group: "작은 가방", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 20, h: 2, handle: "none" }, range: { a: [12, 32] },
+    desc: "원 두 장의 아래 반원만 이은 가방", level: "쉬움", time: "주말 하루", method: "원 2장 → 아래 반원 잇기" },
+  { id: "stepbag", name: "계단 덮개 미니백", group: "작은 가방", kind: "base-body", shapes: ["rect"], handles: true, defaults: { shape: "rect", a: 18, b: 1.5, h: 12, handle: "short", handleCm: 50 }, range: { a: [10, 30], h: [8, 24] },
+    desc: "납작한 통에 계단 모양 덮개를 단 가방", level: "보통", time: "주말 하루", method: "납작 통 → 덮개 → 끈" },
+  { id: "phonebag", name: "폰 크로스백", group: "작은 가방", kind: "base-body", shapes: ["rect"], handles: true, defaults: { shape: "rect", a: 8.5, b: 1.5, h: 17, handle: "long", handleCm: 120 }, range: { a: [6, 12], h: [11, 21] },
+    desc: "휴대폰이 들어가는 납작한 크로스백", level: "쉬움", time: "하루", method: "납작 통 → 테두리 → 끈" },
+  { id: "bonnet", name: "보닛", group: "모자", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 18, h: 10, handle: "none", circ: 56 }, range: { circ: [44, 64] },
+    desc: "뒤통수를 감싸고 턱끈으로 묶는 모자", level: "보통", time: "주말 하루", method: "정수리(원형) → 왕복뜨기 → 턱끈" },
+  // ---- 옷 ----
+  { id: "bustier", name: "모티프 뷔스티에", group: "옷", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 27, h: 14, handle: "none" }, range: { h: [8, 24] },
+    desc: "모티프 띠에 삼각 컵을 올린 상의", level: "보통", time: "일주일", method: "모티프 띠 → 컵 → 어깨끈" },
+  { id: "halter", name: "그물 홀터 탑", group: "옷", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 27, h: 30, handle: "none" }, range: { h: [18, 50] },
+    desc: "그물을 둘레로 떠서 앞을 V로 모은 상의", level: "보통", time: "일주일", method: "그물 둘레 → 앞 V → 목끈" },
 ];
 
 /** Handle lengths offered for bags (cm): carried in the hand, on the shoulder, across the body. */

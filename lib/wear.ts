@@ -21,8 +21,9 @@ const SC = "짧은뜨기", DC = "한길긴뜨기";
 const mm = (v: number) => fmt(v * 10);
 const pos = (v: number | null | undefined, d: number) => (v != null && v > 0 ? v : d);
 
-export type WearId = "buckethat" | "motifhat" | "hoodscarf" | "earflap" | "kerchief";
-export const WEAR_IDS: WearId[] = ["buckethat", "motifhat", "hoodscarf", "earflap", "kerchief"];
+export type WearId = "buckethat" | "motifhat" | "hoodscarf" | "earflap" | "kerchief" | "trapbag" | "moonbag" | "bonnet" | "bustier" | "halter";
+/** the pieces counted here: each is put together its own way, and drawn in the 3D as it is worn or carried */
+export const WEAR_IDS: WearId[] = ["buckethat", "motifhat", "hoodscarf", "earflap", "kerchief", "trapbag", "moonbag", "bonnet", "bustier", "halter"];
 export const isWear = (item?: string | null): item is WearId => !!item && (WEAR_IDS as string[]).includes(item);
 /** the sizes each starts from (cm): the head's round, its height, a brim, a cord or a flap */
 export const WEAR_DEFAULT = { circ: 56, side: 8, brim: 6, headH: 24, hoodH: 28, tie: { hoodscarf: 60, earflap: 30, kerchief: 25 } as Record<string, number>, tieW: 8, motifN: 8, brimMore: 1, rib: 3 };
@@ -191,6 +192,160 @@ export function planKerchief(p: PlanInput, g: Gauge, g0: Gauge): Plan {
   return { g, c: 2, rows: number(rows), bottomRounds: 0, bodyRows: R, last: K.W };
 }
 
+// ================================================================ 작은 가방 · 보닛 · 옷 (Kim: 실제 작품들에서 본 구조 원리)
+//   사다리꼴 주머니백   two panels that widen evenly at both ends from the narrow edge; the narrow edges joined
+//                      (the bottom gathers), the sides joined, a band grown from one side of the opening to the other
+//   반달 미니백         two circles; only their lower halves joined; a slot left in a round of each for the hand
+//   보닛               a crown's round, rows back and forth on three quarters of it down the back of the head,
+//                      a cord at each lower end
+//   모티프 뷔스티에     square motifs sized by the gauge in a band round the chest, a triangle cup on it for each
+//                      side, a cord from each cup's tip
+//   그물 홀터 탑        a net worked round the chest and up, then the front alone back and forth, an arch fewer a
+//                      row, to a point; a cord each side from the point
+// (계단 덮개 미니백 and 폰 크로스백 are the bag engine's own - lib/pattern: a flap that steps in, an edging round.)
+
+/** the chest's round a fitted top is made to (the fabric gives: a little under the chest's own) */
+export const BUST_EASE = .92;
+/** a phone's bag from the phone's own sizes: 1cm of ease each way. These are the bag's a and h. */
+export const PHONE_EASE = 1;
+export const phoneDims = (w: number, h: number): { a: number; h: number } => ({ a: Math.round((w + PHONE_EASE) * 2) / 2, h: Math.round((h + PHONE_EASE) * 2) / 2 });
+
+const panelRow = (name: string, i: number, n: number, prev: number, why: string): Row => {
+  const d = i ? (n - prev) / 2 : 0;
+  return { part: "panel", n, inc: 2 * d, own: true, edge: [d, d], label: `${name} ${i + 1}단`,
+    how: i === 0 ? `기둥사슬 1, 사슬 ${n}코에 ${SC} ${n}코` : d > 0 ? `기둥사슬 1, 뒤집어서 첫 코에 ${SC} ${d + 1}코, ${SC} ${prev - 2}코, 마지막 코에 ${SC} ${d + 1}코` : `기둥사슬 1, 뒤집어서 ${SC} ${n}코`,
+    why: why || (d > 0 ? `${prev} + 늘림 ${2 * d} = ${n} · 양 끝에서 ${d}코씩` : `${n}코 그대로`) } as Row;
+};
+/** a cord: a chain, and back along it in slip stitches */
+const cord = (label: string, C: number, cm: number, from: string, g: Gauge): Row => ({ part: "handle", n: C, inc: 0, own: true, label,
+  how: `${from} 사슬 ${C}코 (약 ${fmt(cm)}cm), 빼뜨기로 되돌아옵니다`, why: `끈 ${fmt(cm)}cm ÷ 사슬 한 코 ${mm(g.w * .85)}mm = ${C}코` } as Row);
+
+// ---------------------------------------------------------------- 사다리꼴 주머니백
+/** a = the narrow edge, topA = the wide one, h = the height (cm). Rows = h / a row's height; what each end gains
+ *  in all, (wide - narrow) / 2 stitches, is spread evenly over the rows. A side seam is the slant's length / a
+ *  stitch's width. The band: its width / a stitch's width, its length / a row's height. */
+export function trapBag(p: PlanInput, g: Gauge) {
+  const a = pos(p.a, 12), top = Math.max(a, pos(p.topA, 26)), h = pos(p.h, 20), hw = pos(p.handleWcm, 4), hl = pos(p.handleCm, 40);
+  const n0 = Math.max(4, rnd(a / g.w)); let W = Math.max(n0, rnd(top / g.w)); if ((W - n0) % 2) W++;
+  const R = Math.max(3, rnd(h / g.h)), e = (W - n0) / 2, counts = Array.from({ length: R }, (_, i) => n0 + 2 * Math.round(e * i / (R - 1)));
+  const slant = Math.hypot(h, (top - a) / 2), sideJ = Math.max(2, rnd(slant / g.w)), T = clamp(rnd(hw / g.w), 2, Math.max(2, Math.floor(W / 2))), HR = Math.max(2, rnd(hl / g.h));
+  return { a, top, h, hw, hl, n0, W, R, e, counts, slant, sideJ, T, HR };
+}
+export function planTrapBag(p: PlanInput, g: Gauge): Plan {
+  const B = trapBag(p, g), { n0, W, R, counts, sideJ, T, HR } = B, rows: Row[] = [];
+  for (const name of ["앞판", "뒤판"]) {
+    rows.push({ part: "panel", n: n0, inc: 0, own: true, edge: [0, 0], label: `${name} 시작 사슬`, how: `사슬 ${n0}코`, why: `좁은 쪽 ${fmt(B.a)}cm ÷ 코 너비 ${mm(g.w)}mm = ${n0}코 · 여기가 바닥 쪽입니다` } as Row);
+    counts.forEach((n, i) => rows.push(panelRow(name, i, n, i ? counts[i - 1] : n, i === 0 ? `높이 ${fmt(B.h)}cm ÷ 코 높이 ${mm(g.h)}mm = ${R}단 · 넓은 쪽 ${fmt(B.top)}cm = ${W}코까지 양 끝에서 ${B.e}코씩, ${R - 1}단에 고르게 늘립니다` : "")));
+  }
+  rows.push({ part: "join", n: 0, inc: 0, own: true, label: "잇기 준비", how: "잇기 전에 마커링으로 두 판의 좁은 쪽(바닥)과 양 옆선 위치를 먼저 맞춥니다", why: "좁은 쪽끼리 이으면 바닥이 모이고, 넓은 쪽이 입구가 됩니다" } as Row);
+  rows.push({ part: "join", n: n0, inc: 0, own: true, label: "바닥 잇기", how: `두 판의 시작 사슬(좁은 쪽)끼리 겉이 밖으로 오게 맞대고 되돌아짧은뜨기 ${n0}코로 잇습니다`, why: `시작 사슬 ${n0}코` } as Row);
+  rows.push({ part: "join", n: 2 * sideJ, inc: 0, own: true, label: "옆선 잇기", how: `양 옆선을 각각 되돌아짧은뜨기 ${sideJ}코씩 잇습니다 (모두 ${2 * sideJ}코)`, why: `옆선(사선) ${fmt(B.slant)}cm ÷ 코 너비 ${mm(g.w)}mm = ${sideJ}코, 양쪽` } as Row);
+  for (let i = 0; i < HR; i++) rows.push({ part: "handle", n: T, inc: 0, own: true, grown: { k: i === 0 ? "pick" : "even", side: 0, st: "sc" }, label: `손잡이 끈 ${i + 1}단`,
+    how: i === 0 ? `입구 한쪽 옆선을 가운데로 ${T}코에 새 실을 걸어 사슬 1, ${SC} ${T}코` : `사슬 1, 뒤집어서 ${SC} ${T}코` + (i === HR - 1 ? ` · 실을 길게 남기고 잘라 반대쪽 옆선의 같은 ${T}코에 맞대고 감침질로 잇습니다` : ""),
+    why: i === 0 ? `띠 너비 ${fmt(B.hw)}cm ÷ 코 너비 ${mm(g.w)}mm = ${T}코 · 길이 ${fmt(B.hl)}cm ÷ 코 높이 ${mm(g.h)}mm = ${HR}단 · 입구에서 그대로 이어 뜹니다` : `${T}코 그대로` } as Row);
+  return { g, c: n0, rows: number(rows), bottomRounds: 0, bodyRows: R, last: W };
+}
+
+// ---------------------------------------------------------------- 반달 미니백
+/** a = the circles' diameter: rounds R = a / 2 / a row's height, six stitches more a round. The hand's slot is in
+ *  round `rh` (about two thirds out): `hs` stitches of the round below are skipped under as many chains
+ *  (its width / a stitch's width). The lower halves are joined: half the last round's stitches. */
+export function moonBag(p: PlanInput, g: Gauge) {
+  const a = pos(p.a, 20), hw = p.holeW != null && p.holeW >= 0 ? p.holeW : 8;
+  const R = Math.max(5, rnd(a / 2 / g.h)), rh = clamp(Math.round(R * .65), 4, R - 1), hs = hw >= 1 ? clamp(rnd(hw / g.w), 3, 6 * (rh - 1) - 8) : 0, N = 6 * R;
+  return { a, hw, R, rh, hs, N, J: N / 2 };
+}
+export function planMoonBag(p: PlanInput, g: Gauge): Plan {
+  const M = moonBag(p, g), { R, rh, hs, N } = M, rows: Row[] = [];
+  for (const name of ["앞판", "뒤판"]) for (let r = 1; r <= R; r++) {
+    const n = 6 * r, prev = n - 6, hole = r === rh && hs > 0, k = Math.floor((r - 2) / 2);
+    const how = r === 1 ? `매직링에 기둥사슬 1, ${SC} 6코, 첫 코에 빼뜨기`
+      : hole ? `기둥사슬 1, ${SC} 2코, 사슬 ${hs}코를 띄우고 ${hs}코 건너뛰기, 남은 ${prev - hs - 2}코에 ${SC} ${n - hs - 2}코 (늘림 6코를 고르게 나눠서), 첫 코에 빼뜨기`
+      : r === 2 ? "기둥사슬 1, 모든 코에 늘림, 첫 코에 빼뜨기"
+      : r % 2 === 0 || r < 4 ? `기둥사슬 1, (${SC} ${r - 2}, 늘림 1) × 6, 첫 코에 빼뜨기`
+      : `기둥사슬 1, ${SC} ${k}, (늘림 1, ${SC} ${r - 2}) × 5, 늘림 1, ${SC} ${r - 2 - k}, 첫 코에 빼뜨기`;
+    rows.push({ part: "panel", n, inc: r === 1 ? 0 : 6, own: true, label: `${name} ${r}단`, disc: { name, r, ...(hole ? { hole: hs } : {}) }, how,
+      why: r === 1 ? `지름 ${fmt(M.a)}cm의 반 ÷ 코 높이 ${mm(g.h)}mm = ${R}단 · 같은 원을 2장 뜹니다` : hole ? `${prev} + 늘림 6 = ${n} · 손잡이 구멍 ${fmt(M.hw)}cm ÷ 코 너비 ${mm(g.w)}mm = 사슬 ${hs}코 · 단의 시작이 원의 위쪽입니다` : r === rh + 1 && hs > 0 ? `${prev} + 늘림 6 = ${n} · 사슬 ${hs}코에는 코마다 ${SC} 1코씩 뜹니다` : `${prev} + 늘림 6 = ${n}` } as Row);
+  }
+  rows.push({ part: "join", n: 0, inc: 0, own: true, label: "잇기 준비", how: "두 원의 손잡이 구멍을 위로 맞추고, 원의 좌우 한가운데에 마커링을 하나씩 걸어 아래 반원의 양 끝을 표시합니다", why: "위 반원은 잇지 않고 입구로 둡니다" } as Row);
+  rows.push({ part: "join", n: M.J, inc: 0, own: true, label: "아래 반원 잇기", how: `두 원을 겉이 밖으로 오게 맞대고 아래 반원만 되돌아짧은뜨기 ${M.J}코로 잇습니다`, why: `마지막 단 ${N}코의 절반 = ${M.J}코` } as Row);
+  return { g, c: 0, rows: number(rows), bottomRounds: 0, bodyRows: R, last: N };
+}
+
+// ---------------------------------------------------------------- 보닛
+/** a hood's rows stand on this share of a bonnet's crown (a quarter is left open for the face) */
+export const BONNET_SHARE = .75;
+/** The crown's round as a hat's; rows back and forth on three quarters of it for the depth of the back of the
+ *  head: rows = (depth - the crown's radius) / a row's height. A cord at each lower end. */
+export function bonnet(p: PlanInput, g: Gauge) {
+  const circ = pos(p.circ, WEAR_DEFAULT.circ), depth = pos(p.headH, 20), tie = pos(p.tieCm, 30);
+  const R = Math.max(3, rnd(circ / (6 * g.w))), N = 6 * R, W = Math.max(6, rnd(N * BONNET_SHARE)), H = Math.max(2, rnd((depth - R * g.h) / g.h)), C = Math.max(4, rnd(tie / (g.w * .85)));
+  return { circ, depth, tie, R, N, W, open: N - W, H, C };
+}
+export function planBonnet(p: PlanInput, g: Gauge, bottom: Bottom): Plan {
+  const B = bonnet(p, g), { R, N, W } = B, rows: Row[] = [];
+  bottom({ ...p, shape: "circle", a: 2 * R * g.h, gusset: null }, g).rows.forEach((r, i) => rows.push({ ...r, no: i + 1, label: `${i + 1}단`,
+    why: i === 0 ? `시작 · 머리둘레 ${B.circ}cm ÷ (코 너비 ${mm(g.w)}mm × 6코) = ${R}단 동안 원형으로 늘립니다` : i === R - 1 ? `${r.why} · 원형은 여기까지입니다` : r.why } as Row));
+  for (let i = 0; i < B.H; i++) rows.push({ part: "panel", n: W, inc: 0, own: true, edge: [0, 0], label: `보닛 ${i + 1}단`,
+    how: i === 0 ? `기둥사슬 1, ${SC} ${W}코 (남은 ${B.open}코는 얼굴 자리로 비워 둡니다)` : `기둥사슬 1, 뒤집어서 ${SC} ${W}코`,
+    why: i === 0 ? `여기서부터 왕복으로 뜹니다 · 정수리 ${N}코의 3/4 = ${W}코 · (뒤통수 깊이 ${fmt(B.depth)}cm − 정수리 반지름 ${fmt(R * g.h)}cm) ÷ 코 높이 ${mm(g.h)}mm = ${B.H}단` : `${W}코 그대로` } as Row);
+  rows.push(cord("턱끈 1", B.C, B.tie, "마지막 단 끝에서 이어", g), cord("턱끈 2", B.C, B.tie, "마지막 단의 반대쪽 끝에 새 실을 걸어", g));
+  return { g, c: 0, rows: number(rows), bottomRounds: R, bodyRows: B.H, last: W };
+}
+
+// ---------------------------------------------------------------- 모티프 뷔스티에
+/** h = the band's height = a motif's size: its rounds R = h / (2 x a stitch's width); the motifs round the chest
+ *  n = the chest's round x 0.92 / a motif's side. A cup: a fifth of the chest wide at its foot (an odd count),
+ *  a stitch fewer at each end every row down to 3. A cord from each cup's tip. */
+export function bustier(p: PlanInput, g: Gauge) {
+  const bust = pos(p.bust, 84), len = pos(p.h, 14), strap = pos(p.tieCm, 40);
+  const R = Math.max(2, rnd(len / (2 * g.w))), E = 2 * R, n = Math.max(4, Math.round(bust * BUST_EASE / (E * g.w))), ring = n * E;
+  let Cb = Math.max(7, rnd(bust * .2 / g.w)); if (Cb % 2 === 0) Cb++;
+  const CR = (Cb - 3) / 2 + 1, C = Math.max(4, rnd(strap / (g.w * .85)));
+  return { bust, len, strap, R, E, n, ring, roundCm: ring * g.w, Cb, CR, C };
+}
+export function planBustier(p: PlanInput, g: Gauge): Plan {
+  const B = bustier(p, g), { R, E, n, ring, Cb, CR } = B, rows: Row[] = [];
+  for (let k = 1; k <= n; k++) motifRounds(`띠 모티프 ${k}`, R, k === 1 ? `띠 높이 ${fmt(B.len)}cm ÷ (코 너비 ${mm(g.w)}mm × 2) = ${R}단 · 한 변 ${E}코 = ${fmt(E * g.w)}cm · 가슴둘레 ${B.bust}cm × ${BUST_EASE} ÷ 한 변 = ${n}장` : `띠 모티프 1과 같습니다 (${k}/${n}장)`, rows);
+  rows.push({ part: "join", n: 0, inc: 0, own: true, label: "띠 잇기 준비", how: `모티프 ${n}장을 한 줄로 늘어놓고, 맞닿는 변끼리 마커링으로 모서리를 맞춥니다`, why: "잇는 순서: 띠 → 컵 → 어깨끈" } as Row);
+  rows.push({ part: "join", n: ring, inc: 0, own: true, label: "띠 잇기", how: `이웃한 두 모티프의 변을 겉이 밖으로 오게 맞대고 두 겹을 함께 떠서 ${SC} ${E}코로 잇습니다. ${n}군데를 이어 고리로 만듭니다 (모두 ${ring}코)`,
+    why: `한 변 ${E}코 × ${n}군데 = ${ring}코 · 띠 둘레 ${fmt(B.roundCm)}cm (가슴둘레 ${B.bust}cm, 늘어나는 만큼 작게)` } as Row);
+  for (const q of [1, 2]) for (let i = 0; i < CR; i++) {
+    const m = Cb - 2 * i;
+    rows.push({ part: "flap", n: m, inc: i ? -2 : 0, own: true, label: `컵${q} ${i + 1}단`, edge: i ? [-1, -1] : [0, 0], ...(i ? { work: [1, 1] } : {}),
+      how: i === 0 ? `띠 윗변 앞쪽 ${q === 1 ? "왼편" : "오른편"} ${Cb}코에 새 실을 걸어 기둥사슬 1, ${SC} ${Cb}코` : `기둥사슬 1, 뒤집어서 ${SC} 2코 모아뜨기, ${SC} ${m - 2}코, ${SC} 2코 모아뜨기`,
+      why: i === 0 ? (q === 1 ? `컵 밑변 = 가슴둘레 ${B.bust}cm × 0.2 ÷ 코 너비 ${mm(g.w)}mm = ${Cb}코 (홀수) · 단마다 양 끝에서 1코씩 줄여 3코까지 ${CR}단` : `컵 1과 같은 ${Cb}코 · 앞 가운데를 사이에 두고 마주 봅니다`) : `${m + 2} - 줄임 2 = ${m} · 양 끝에서 한 코씩` } as Row);
+  }
+  rows.push(cord("어깨끈 1", B.C, B.strap, "컵 1의 꼭대기 3코에서 이어", g), cord("어깨끈 2", B.C, B.strap, "컵 2의 꼭대기 3코에서 이어", g));
+  return { g, c: 1, rows: number(rows), bottomRounds: 0, bodyRows: E, last: ring };
+}
+
+// ---------------------------------------------------------------- 그물 홀터 탑
+/** The chest's round x 0.92 in arches (4 stitches each, an even number of them); net rounds up for the length
+ *  left under the V; then the front half alone, back and forth, an arch fewer a row down to one: the V.
+ *  A cord each side from its point. */
+export function halter(p: PlanInput, g: Gauge) {
+  const bust = pos(p.bust, 84), len = pos(p.h, 30), strap = pos(p.tieCm, 45);
+  let A = Math.max(8, Math.round(bust * BUST_EASE / (4 * g.w))); if (A % 2) A++;
+  const N = 4 * A, F = A / 2, V = F - 1, vCm = V * 1.45 * g.h, C = Math.max(4, rnd(strap / (g.w * .85)));
+  return { bust, len, strap, A, N, F, V, vCm, tubeCm: Math.max(2 * g.h, len - vCm), C, roundCm: N * g.w };
+}
+type Wall = (k: "net", last: number, hCm: number, g: Gauge) => { rows: Omit<Row, "idx" | "label">[] };
+export function planHalter(p: PlanInput, g: Gauge, wall: Wall): Plan {
+  const H = halter(p, g), { N, F, V } = H, rows: Row[] = [];
+  rows.push({ part: "start", n: N, inc: 0, label: "시작 사슬", how: `사슬 ${N}코, 꼬이지 않게 빼뜨기로 고리 연결`, why: `가슴둘레 ${H.bust}cm × ${BUST_EASE} ÷ 아치 하나 ${mm(4 * g.w)}mm = 아치 ${H.A}개(짝수) = ${N}코 · 둘레 ${fmt(H.roundCm)}cm` } as Row);
+  const body = wall("net", N, H.tubeCm, g).rows;
+  body.forEach((r, i) => rows.push({ ...r, label: `${i + 1}단`, why: i === 0 ? `길이 ${fmt(H.len)}cm 가운데 V ${fmt(H.vCm)}cm를 뺀 ${fmt(H.tubeCm)}cm를 둘레로 뜹니다 · 한 바퀴 ${N}코 = 아치 ${H.A}개` : r.why } as Row));
+  for (let i = 1; i <= V; i++) {
+    const k = F - i;
+    rows.push({ part: "flap", n: 4 * k, inc: -4, own: true, hk: 1.45, vnet: k, label: `앞 V ${i}단`,
+      how: `뒤집어서 첫 아치 가운데까지 빼뜨기로 건너가 기둥사슬 1, 아치 가운데에 ${SC} 1, (사슬 5, 다음 아치 가운데에 ${SC} 1) × ${k}` + (i === 1 ? ` (앞쪽 아치 ${F}개에만 뜹니다)` : ""),
+      why: i === 1 ? `한 바퀴 아치 ${H.A}개의 앞쪽 절반 ${F}개 · 단마다 아치 하나씩 줄여 1개까지 ${V}단 = ${fmt(H.vCm)}cm` : `아치 ${k + 1} - 1 = ${k}개` } as Row);
+  }
+  rows.push(cord("목끈 1", H.C, H.strap, "V 꼭대기 아치의 한쪽에서 이어", g), cord("목끈 2", H.C, H.strap, "V 꼭대기 아치의 반대쪽에 새 실을 걸어", g));
+  return { g, c: N, rows: number(rows), bottomRounds: 0, bodyRows: body.length, last: N };
+}
+
 /** the line the screen shows under a wear piece's sizes */
 export function wearNote(p: PlanInput, g: Gauge, g0: Gauge = g): string {
   switch (p.item) {
@@ -198,6 +353,11 @@ export function wearNote(p: PlanInput, g: Gauge, g0: Gauge = g): string {
     case "motifhat": { const M = motifHat(p, g); return `모티프 하나는 ${M.R}단, 한 변 ${M.E}코(${fmt(M.sizeCm)}cm)입니다. 옆 ${M.n}장의 둘레는 ${fmt(M.roundCm)}cm(머리둘레 ${M.circ}cm), 정수리는 ${M.Rc}단, 챙은 ${M.Rb}단짜리 ${M.n}장입니다.`; }
     case "hoodscarf": { const H = hoodScarf(p, g); return `정수리를 ${H.R}단 동안 늘려 ${H.N}코, 그 가운데 ${H.W}코로 ${H.H}단을 왕복해 내려 뜹니다. 양 끝 ${H.T}코씩 ${H.PR}단이 스카프 끈입니다.`; }
     case "earflap": { const H = earflap(p, g); return `사슬 ${H.W}코로 시작해 ${H.R}단을 내려 뜨고, 양 끝 ${H.T}코씩 ${H.PR}단이 귀덮개입니다. 반 접어 위 ${H.J}코를 잇습니다.`; }
+    case "trapbag": { const B = trapBag(p, g); return `사슬 ${B.n0}코에서 시작해 ${B.R}단 동안 양 끝을 고르게 늘려 ${B.W}코가 됩니다. 같은 판 2장을 바닥 ${B.n0}코, 옆선 ${B.sideJ}코씩 잇습니다. 손잡이는 ${B.T}코로 ${B.HR}단입니다.`; }
+    case "moonbag": { const M = moonBag(p, g); return `원 하나는 ${M.R}단, 마지막 단 ${M.N}코입니다.` + (M.hs ? ` ${M.rh}단에서 사슬 ${M.hs}코로 손잡이 구멍을 냅니다.` : " 손잡이 구멍은 없습니다.") + ` 아래 반원 ${M.J}코를 잇습니다.`; }
+    case "bonnet": { const B = bonnet(p, g); return `정수리를 ${B.R}단 동안 늘려 ${B.N}코, 그 가운데 ${B.W}코로 ${B.H}단을 왕복해 내려 뜹니다. 턱끈은 사슬 ${B.C}코씩입니다.`; }
+    case "bustier": { const B = bustier(p, g); return `모티프 하나는 ${B.R}단, 한 변 ${B.E}코입니다. ${B.n}장을 이은 띠의 둘레는 ${fmt(B.roundCm)}cm(가슴둘레 ${B.bust}cm)입니다. 컵은 ${B.Cb}코에서 3코까지 ${B.CR}단입니다.`; }
+    case "halter": { const H = halter(p, g); return `사슬 ${H.N}코(아치 ${H.A}개, 둘레 ${fmt(H.roundCm)}cm)로 시작해 그물을 ${fmt(H.tubeCm)}cm 떠 올립니다. 앞쪽 아치 ${H.F}개를 단마다 하나씩 줄여 ${H.V}단의 V로 모읍니다.`; }
     case "kerchief": { const K = kerchief(p, g0, g); return K.kind === "sc" ? `3코에서 시작해 단마다 양 끝에서 1코씩 늘려 ${K.R}단, 긴 변 ${K.W}코(${fmt(K.W * g0.w)}cm)입니다. 높이는 약 ${fmt(K.heightCm)}cm입니다.` : `${K.kind === "net" ? "아치" : "V"} 하나에서 시작해 단마다 하나씩 늘려 ${K.R}단, 긴 변은 ${K.kind === "net" ? "아치" : "V"} ${K.R}개(${fmt(K.W * g0.w)}cm)입니다. 높이는 약 ${fmt(K.heightCm)}cm입니다.`; }
   }
   return "";
@@ -231,7 +391,8 @@ const ties = (title: string, sub: string, len: KitField, wid: KitField | null, h
 export function kitSize(d: { item?: string; free?: unknown; paint?: unknown }): string | null {
   const k = !d.free && !d.paint && d.item ? KITS[d.item] : undefined; if (!k) return null;
   const dd = d as Draft;
-  return d.item === "backpack" ? `바닥 지름 ${dd.a}cm · 높이 ${dd.h}cm` : d.item === "bottlebag" ? `병 ${k[0].sum(dd)}` : `머리${k[0].sum(dd)}`;
+  const lead: Record<string, string> = { bottlebag: "병 ", phonebag: "휴대폰 ", trapbag: "", moonbag: "", stepbag: "", bustier: "", halter: "" };
+  return d.item === "backpack" ? `바닥 지름 ${dd.a}cm · 높이 ${dd.h}cm` : `${lead[d.item!] ?? "머리"}${k[0].sum(dd)}`;
 }
 export const KITS: Record<string, KitPart[]> = {
   buckethat: [
@@ -272,6 +433,46 @@ export const KITS: Record<string, KitPart[]> = {
     { key: "net", title: "그물", sub: "몸통의 구멍 크기", fields: [], picks: [{ label: "구멍 크기", value: d => String(d.netCh ?? 5), options: [["3", "작게", "사슬 3코 아치"], ["5", "보통", "사슬 5코 아치"], ["7", "크게", "사슬 7코 아치"]], set: v => ({ netCh: Number(v) as 3 | 5 | 7, crochetChart: "net" }) }],
       help: "아치가 클수록 한 바퀴의 아치 수와 몸통 단 수가 줄어듭니다. 입구는 짧은뜨기로 정리합니다.", sum: d => `사슬 ${d.netCh ?? 5}코 아치` },
     { key: "tie", title: "끈", sub: "어깨에 메는 긴 끈", fields: [{ ...F("handleCm", "끈 길이", 40, 150, 110, 1), set: (_d, v) => ({ handle: "long", handleCm: v, handleCount: 1 }) }], help: "사슬을 뜨고 짧은뜨기로 되돌아와 입구 양쪽에 연결합니다. 크로스로 메려면 약 110~120cm입니다.", sum: d => `크로스 ${d.handleCm ?? 110}cm` },
+  ],
+  trapbag: [
+    { key: "trap", title: "판", sub: "같은 사다리꼴을 2장 뜹니다", fields: [F("a", "좁은 쪽 너비", 6, 24, 12), F("topA", "넓은 쪽 너비", 12, 44, 26), F("h", "높이", 10, 36, 20)],
+      help: "좁은 쪽에서 시작해 양 끝을 고르게 늘립니다. 좁은 쪽끼리 잇고 옆선을 이으면 바닥이 모이고 몸통이 둥글게 부풉니다.", sum: d => `좁은 쪽 ${d.a}cm · 넓은 쪽 ${d.topA ?? 26}cm · 높이 ${d.h}cm` },
+    { key: "tie", title: "손잡이", sub: "입구에서 이어 뜨는 띠", fields: [{ ...F("handleCm", "길이", 20, 80, 40, 1), set: (_d, v) => ({ handle: "short", handleCm: v }) }, F("handleWcm", "너비", 2, 8, 4)],
+      help: "입구 한쪽 옆선에서 띠를 이어 떠서 반대쪽 옆선에 잇습니다.", sum: d => `띠 ${d.handleCm ?? 40}cm · 너비 ${d.handleWcm ?? 4}cm` },
+  ],
+  moonbag: [
+    { key: "disc", title: "원", sub: "같은 원을 2장 뜹니다", fields: [F("a", "지름", 12, 32, 20)], help: "두 원의 아래 반원만 이어 주머니로 만듭니다. 위 반원이 입구입니다.", sum: d => `지름 ${d.a}cm · 2장` },
+    { key: "slot", title: "손잡이 구멍", sub: "위 반원 안쪽에 냅니다", fields: [F("holeW", "구멍 너비", 0, 14, 8)], help: "한 단에서 사슬로 띄워 구멍을 내고, 다음 단은 그 사슬에 뜹니다. 0이면 구멍을 내지 않습니다.", sum: d => ((d.holeW ?? 8) < 1 ? "없음" : `너비 ${d.holeW ?? 8}cm`) },
+  ],
+  stepbag: [
+    { key: "tube", title: "몸통", sub: "사슬 양쪽을 둘러 뜬 납작한 통", fields: [F("a", "가로", 10, 30, 18), F("h", "세로", 8, 24, 12)], help: "시작 사슬 양쪽을 한 바퀴 떠서 바닥 너비 없이 곧게 올라갑니다.", sum: d => `${d.a} × ${d.h}cm` },
+    { key: "stair", title: "계단 덮개", sub: "뒤판 위에서 이어 뜹니다", fields: [{ ...F("flapCm", "덮개 길이", 4, 16, 8), set: (_d, v) => ({ flapCm: v, closure: "flap" }) }, F("flapStepRows", "몇 단마다", 1, 6, 2, 1, "단"), F("flapStepSt", "몇 코씩", 1, 5, 2, 1, "코")],
+      help: "정한 단 수마다 양 끝을 정한 코 수만큼 줄여 계단 모양을 만듭니다. 첫 코들은 빼뜨기로 건너가고 마지막 코들은 남깁니다.", sum: d => `길이 ${d.flapCm ?? 8}cm · ${d.flapStepRows ?? 2}단마다 ${d.flapStepSt ?? 2}코씩` },
+    { key: "tie", title: "어깨끈", sub: "짧게 메는 끈", fields: [{ ...F("handleCm", "끈 길이", 30, 90, 50, 1), set: (_d, v) => ({ handle: "short", handleCm: v, handleCount: 1 }) }], help: "사슬을 뜨고 짧은뜨기로 되돌아와 입구 양쪽에 연결합니다.", sum: d => `${d.handleCm ?? 50}cm` },
+  ],
+  phonebag: [
+    { key: "phone", title: "휴대폰", sub: "넣을 휴대폰의 크기입니다", fields: [
+        { ...F("phoneW", "휴대폰 가로", 5, 11, 7.5), set: (d, v) => ({ phoneW: v, ...phoneDims(v, d.phoneH ?? 16) }) },
+        { ...F("phoneH", "휴대폰 세로", 10, 20, 16), set: (d, v) => ({ phoneH: v, ...phoneDims(d.phoneW ?? 7.5, v) }) }],
+      help: `가로와 세로에 여유 ${PHONE_EASE}cm씩을 더해 납작한 통으로 뜹니다.`, sum: d => `${d.phoneW ?? 7.5} × ${d.phoneH ?? 16}cm` },
+    { key: "edge", title: "테두리", sub: "입구의 장식 단", fields: [], picks: [{ label: "테두리 무늬", value: d => d.rimChart ?? "none", options: [["none", "없음", "짧은뜨기로 마무리"], ["shell", "부채", "한길긴뜨기 5코"], ["net", "아치", "사슬 5코"], ["moss", "모스", "사슬 1코씩"]],
+        set: v => ({ rimChart: v === "none" ? undefined : (v as "shell" | "net" | "moss") }) }],
+      help: "입구 한 바퀴를 무늬의 코 단위에 맞춘 뒤, 짧은뜨기 한 단 위에 무늬 한 단을 뜹니다.", sum: d => ({ shell: "부채 무늬", net: "아치 무늬", moss: "모스 무늬" } as Record<string, string>)[d.rimChart ?? ""] ?? "없음" },
+    { key: "tie", title: "끈", sub: "몸에 가로질러 메는 긴 끈", fields: [{ ...F("handleCm", "끈 길이", 80, 150, 120, 1), set: (_d, v) => ({ handle: "long", handleCm: v, handleCount: 1 }) }], help: "사슬을 뜨고 짧은뜨기로 되돌아와 입구 양쪽에 연결합니다.", sum: d => `크로스 ${d.handleCm ?? 120}cm` },
+  ],
+  bonnet: [
+    { ...head(F("headH", "뒤통수 깊이", 14, 30, 20)), sub: "정수리에서 뒤통수 아래까지", help: "정수리를 원형으로 뜬 뒤, 그 둘레의 3/4으로 왕복해 뒤통수를 감쌉니다. 남긴 1/4이 얼굴 자리입니다." },
+    ties("턱끈", "아래 양 끝에 하나씩", F("tieCm", "끈 길이", 15, 50, 30, 1), null, "사슬을 뜨고 빼뜨기로 되돌아와 끈을 만듭니다. 옆 장식(꽃 모티프)은 다 뜬 뒤 꿰매어 답니다."),
+  ],
+  bustier: [
+    { key: "bust", title: "몸", sub: "입는 사람의 치수입니다", fields: [F("bust", "가슴둘레", 60, 120, 84, 1), F("h", "띠 높이", 8, 24, 14)],
+      help: `띠 높이가 모티프 한 변입니다. 띠의 둘레는 가슴둘레의 ${BUST_EASE * 100}%에 가장 가깝게 모티프 장 수를 정합니다.`, sum: d => `가슴둘레 ${d.bust ?? 84}cm · 띠 높이 ${d.h}cm` },
+    ties("어깨끈", "컵 꼭대기에서 이어 뜹니다", F("tieCm", "끈 길이", 20, 70, 40, 1), null, "잇는 순서는 모티프 띠 → 컵 두 개 → 어깨끈입니다. 끈은 목 뒤나 등에서 묶습니다."),
+  ],
+  halter: [
+    { key: "bust", title: "몸", sub: "입는 사람의 치수입니다", fields: [F("bust", "가슴둘레", 60, 120, 84, 1), F("h", "길이", 18, 50, 30)],
+      help: "그물을 둘레로 떠 올라가다, 앞쪽 절반만 왕복하며 단마다 아치 하나씩 줄여 V로 모읍니다.", sum: d => `가슴둘레 ${d.bust ?? 84}cm · 길이 ${d.h}cm` },
+    ties("목끈", "V 꼭대기에서 이어 뜹니다", F("tieCm", "끈 길이", 20, 70, 45, 1), null, "사슬을 뜨고 빼뜨기로 되돌아와 끈을 만듭니다. 목 뒤에서 묶습니다."),
   ],
   backpack: [
     { key: "base", title: "바닥", sub: "여기서부터 뜹니다", fields: [F("a", "바닥 지름", 14, 32, 22)], help: "원형 바닥에서 곧게 올라가는 원통입니다.", sum: d => `원 지름 ${d.a}cm` },

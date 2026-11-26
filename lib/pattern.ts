@@ -4,7 +4,7 @@
 // so keep the arithmetic (including rnd()'s toFixed(6) rounding) exactly as is.
 
 import { planHobo, planPanels, planRibbed, planTaper, taperFlap, taperNote } from "./structure";
-import { planBucketHat, planEarflap, planHoodScarf, planKerchief, planMotifHat } from "./wear";
+import { planBonnet, planBucketHat, planBustier, planEarflap, planHalter, planHoodScarf, planKerchief, planMotifHat, planMoonBag, planTrapBag } from "./wear";
 import { CHART_MULT, type ChartKey } from "./crochetChart";
 import { PATTERN_BY_ID, STITCH_PATTERNS, type Rep } from "./stitchPatterns";
 
@@ -36,6 +36,13 @@ export const WEAR_PARTS: Record<string, Partial<Record<Part, string>>> = {
   kerchief: { rows: "삼각형", handle: "묶는 끈" },
   bottlebag: { handle: "끈" },
   backpack: { handle: "고리와 끈" },
+  trapbag: { handle: "손잡이" },
+  moonbag: { panel: "원" },
+  stepbag: { flap: "계단 덮개", handle: "어깨끈" },
+  phonebag: { handle: "끈" },
+  bonnet: { bottom: "정수리", panel: "뒤통수", handle: "턱끈" },
+  bustier: { panel: "모티프", join: "띠 잇기", flap: "컵", handle: "어깨끈" },
+  halter: { body: "그물 몸통", flap: "앞 V", handle: "목끈" },
 };
 /** a part's name for a piece (its own where it has one) */
 export const partKo = (part: Part, item?: string | null): string => (item && WEAR_PARTS[item]?.[part]) || PART_KO[part];
@@ -140,6 +147,15 @@ export interface PlanInput {
   /** 보틀백: the bottle's own diameter and height (cm) - a and h are made from them (lib/wear bottleDims) */
   bottleD?: number | null;
   bottleH?: number | null;
+  /** 작은 가방 · 옷 기본형 (Kim): the chest's round (cm); a phone's own width and height (a and h are made from them,
+   *  lib/wear phoneDims); a stitch pattern worked as one edging round at a bag's opening; a flap that steps in -
+   *  every `flapStepRows` rows, `flapStepSt` stitches at each end */
+  bust?: number | null;
+  phoneW?: number | null;
+  phoneH?: number | null;
+  rimChart?: ChartKey | null;
+  flapStepRows?: number | null;
+  flapStepSt?: number | null;
 }
 
 /** items that are knitted with needles (the rest is crochet) */
@@ -259,6 +275,12 @@ export interface Row {
   rib?: "base" | "fb" | "bf";
   /** a head scarf's row in 그물 or 레이스: the pattern, the row (0 the first), its arches or V's */
   lace?: { k: "net" | "vst"; i: number; reps: number };
+  /** a round of a circle worked as a piece of its own (반달 미니백): whose, which round, and the stitches a slot is left over */
+  disc?: { name: string; r: number; hole?: number };
+  /** a flap's row that steps in: the stitches left at each end (the first slipped over, the last left unworked) */
+  step?: number;
+  /** a row of a net that comes to a point (홀터 탑): its arches */
+  vnet?: number;
   /** a row of a handle grown out of the opening (grownHandle): picked up, narrowing, straight, or the edging
    *  round an opening is finished with; which of the two feet; its stitch */
   grown?: { k: "pick" | "dec" | "even" | "edge"; side: 0 | 1; st: CrochetStitch; /** worked in the body's stitch pattern: a repeat's stitches */ unit?: number };
@@ -535,6 +557,11 @@ function planSc(p: PlanInput): Plan {
   if (p.item === "motifhat") return planMotifHat(p, gauge(p));
   if (p.item === "hoodscarf") return planHoodScarf(p, gauge(p), planBottom);
   if (p.item === "earflap") return planEarflap(p, gauge(p));
+  if (p.item === "trapbag") return planTrapBag(p, gauge(p));
+  if (p.item === "moonbag") return planMoonBag(p, gauge(p));
+  if (p.item === "bonnet") return planBonnet(p, gauge(p), planBottom);
+  if (p.item === "bustier") return planBustier(p, gauge(p));
+  if (p.item === "halter") return planHalter(p, gauge(p), bodyPattern);
   if (p.item === "kerchief") { const g0 = gauge({ ...p, measuredH: null }); return planKerchief(p, p.measuredH ? { ...gauge(p), w: p.measuredW || g0.w } : g0, g0); }
   if (p.object === "rows" && p.taper) { const g0 = gauge({ ...p, measuredH: null }); return planTaper(p, p.measuredH ? { ...gauge(p), w: p.measuredW || g0.w } : g0, g0); }
   if (p.object === "rows") return planRows(p);
@@ -544,7 +571,8 @@ function planSc(p: PlanInput): Plan {
   if (p.object === "bag" && p.build === "ribbed") return planRibbed(p, gauge({ ...p, crochetStitch: null }));
   const g = gauge(p);
   // a bag's body in a stitch pattern: the bottom ends on the pattern's multiple, and the body keeps that count
-  const rep = p.object === "bag" ? repOf(p) : null, snap = (n: number) => rep ? fitCount(n, rep, false, rep.n) : n;
+  // (an edging round in a stitch pattern - 폰 크로스백 - needs the opening's round to be its multiple too)
+  const rep = p.object === "bag" ? repOf(p) ?? (p.rimChart ? { n: CHART_MULT[p.rimChart][0], plus: CHART_MULT[p.rimChart][1], rows: 1 } : null) : null, snap = (n: number) => rep ? fitCount(n, rep, false, rep.n) : n;
   const { rows: bottom, c, from } = planBottom(p, g, rep);
   // 보틀백 (lib/wear bottleDims): where the bag's sizes come from
   if (p.item === "bottlebag" && p.bottleD && p.bottleH && bottom[0]) bottom[0].why += ` · 병 지름 ${fmt(p.bottleD)}cm + 여유 ${p.a - p.bottleD > 0 ? fmt(p.a - p.bottleD) : 0}cm = 바닥 지름 ${fmt(p.a)}cm · 몸통은 병 높이 ${fmt(p.bottleH)}cm의 어깨까지 ${fmt((p.h as number) || 0)}cm`;
@@ -608,7 +636,13 @@ function planSc(p: PlanInput): Plan {
         why: `손잡이 ${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm = 사슬 ${C}코 · 앞과 뒤에서 ${B}코씩 건너뜁니다 · ${N} - ${2 * B} + ${2 * C} = ${n2}`, inc: n2 - N } as Row);
       rows.push({ part: "rim", n: n2, how: `짧은뜨기 ${n2}코 (사슬은 감싸며 사슬 수만큼)`, why: "손잡이와 입구를 한 번 더 단단하게", inc: 0 } as Row);
     }
-    for (let i = 0; i < (grown || slots ? 0 : 2); i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${wall.m}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
+    // 입구 테두리 무늬 (Kim: 폰 크로스백 - 지금 무늬 엔진에서): a round of 짧은뜨기, then the pattern's own first round as the edge
+    const edging = !grown && !slots && !wall && p.rimChart ? bodyPattern(p.rimChart, rimN, 0, g) : null;
+    if (edging) {
+      rows.push({ part: "rim", n: rimN, how: `짧은뜨기 ${rimN}코`, why: `입구를 단단하게 · 한 바퀴 ${rimN}코 = 무늬 ${edging.m}코 × ${edging.reps}회`, inc: 0 } as Row);
+      rows.push({ ...edging.rows[1], part: "rim", why: `테두리 무늬 한 단 · ${edging.rows[1].why}` } as Row);
+    }
+    for (let i = 0; i < (grown || slots || edging ? 0 : 2); i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${wall.m}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
     // (호보백에는 덮개가 없다 - Kim: a handle grown out of the opening leaves no edge for a flap to fall from)
     if (p.flapCm && p.flapCm > 0 && !grown) {
       // over the top (Kim): it crosses the top's width first (as wide as the bottom is, b), then falls - more rows
@@ -621,11 +655,22 @@ function planSc(p: PlanInput): Plan {
       const from = thick ? `뒤판 윗변 ${fn}코 (옆면 두 변과 앞판은 빼고)` : `입구 둘레의 절반, 뒤판 ${fn}코`;
       // 사선 / 삼각형 (lib/structure): the flap loses stitches at an edge, or at both, down to its tip
       const tf = p.taper ? taperFlap(fn, fr, p.taper, p.taperTip, p.taperCord ? { cm: p.taperCordCm && p.taperCordCm > 0 ? p.taperCordCm : 20, g } : null) : null;
+      // 계단 덮개 (Kim: 몇 단마다 양 끝을 몇 코씩 줄이는 계단): every `sr` rows the row begins `ss` stitches in (slipped
+      // over) and stops `ss` short - a step at each end; never down to under two stitches
+      const sr = !tf && p.flapStepRows && p.flapStepSt ? clamp(Math.round(p.flapStepRows), 1, 12) : 0, ss = sr ? clamp(Math.round(p.flapStepSt as number), 1, 12) : 0, stair: number[] = [];
+      if (sr) { let cur = fn; for (let i = 0; i < fr; i++) { if (i && i % sr === 0 && cur - 2 * ss >= 2) cur -= 2 * ss; stair.push(cur); } }
       for (let i = 0; i < fr; i++) {
+        if (sr && i) {
+          const n = stair[i], down = n < stair[i - 1], last = i === fr - 1 ? " · 가운데에 사슬 고리(단추 구멍)" : "";
+          rows.push({ part: "flap", n, inc: down ? -2 * ss : 0, edge: down ? [-ss, -ss] : [0, 0], ...(down ? { step: ss } : {}),
+            how: down ? `사슬 1, 뒤집어서 첫 ${ss}코는 빼뜨기로 건너가고 짧은뜨기 ${n}코, 마지막 ${ss}코는 남깁니다${last}` : `사슬 1, 뒤집어서 짧은뜨기 ${n}코${last}`,
+            why: down ? `${stair[i - 1]} - ${2 * ss} = ${n} · ${sr}단마다 양 끝에서 ${ss}코씩 계단처럼 줄입니다` : `${n}코 그대로` } as Row);
+          continue;
+        }
         const n = tf ? tf.t.counts[i] : fn, end = i === fr - 1 && !(tf && tf.cord.length) ? " · 가운데에 사슬 고리(단추 구멍)" : fo && i === fo ? " · 여기서부터 앞으로 꺾여 내려옵니다" : "";
         rows.push({ part: "flap", n, how: i === 0 ? `뒤판 마지막 단에 이어서 ${from}에 짧은뜨기 ${fn}코` : tf ? tf.how(i) + end : `사슬 1, 뒤집어서 짧은뜨기 ${fn}코${end}`,
           why: i === 0 ? `${thick ? `윗면 ${p.a} × ${bw}cm 중 뒤쪽 가로 한 변` : `입구 ${rimN}코의 절반`} = ${fn}코 · ${over ? `윗면 ${over}cm + ` : ""}덮개 ${p.flapCm}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${fr}단${tf ? ` · ${taperNote(fn, tf.t, p.taper!)}` : ""}` : tf ? tf.why(i) : `${fn}코 그대로`,
-          inc: tf ? n - tf.t.counts[Math.max(0, i - 1)] : 0, ...(tf ? { edge: tf.edge(i), work: tf.work(i) } : {}) } as Row);
+          inc: tf ? n - tf.t.counts[Math.max(0, i - 1)] : 0, ...(tf ? { edge: tf.edge(i), work: tf.work(i) } : sr ? { edge: [0, 0] as [number, number] } : {}) } as Row);
       }
       if (tf) rows.push(...tf.cord);
     }

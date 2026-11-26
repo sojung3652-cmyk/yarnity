@@ -24,7 +24,11 @@ function wearLines(item: string, part: Part, rows: Row[]): [string, string] | nu
     const names = new Set(rows.map(r => r.motif!.name)), rounds = Math.max(...rows.map(r => r.motif!.r));
     return [names.size > 1 ? `${rounds}단짜리 사각 모티프를 ${names.size}장 뜹니다.` : `사각 모티프 1장을 ${rounds}단까지 뜹니다.`, `마지막 단은 한 변 ${2 * rounds}코, 한 바퀴 ${8 * rounds}코입니다.`];
   }
-  if (part === "join" && (item === "motifhat" || item === "earflap")) { const n = rows.filter(r => r.n > 0).map(r => r.n); return [n.length ? `두 겹을 함께 떠서 짧은뜨기 ${n.join("코, ")}코로 잇습니다.` : "조각을 맞대어 잇습니다.", item === "earflap" ? "접힌 선이 뒤통수 가운데로 갑니다." : "겉이 밖으로 오게 맞대어, 이은 선이 겉에서 보입니다."]; }
+  if (rows.some(r => r.disc)) {
+    const sheets = new Set(rows.map(r => r.disc!.name)).size, rounds = Math.max(...rows.map(r => r.disc!.r)), hole = rows.find(r => r.disc!.hole);
+    return [`${rounds}단짜리 원을 ${sheets}장 뜹니다. 마지막 단은 ${6 * rounds}코입니다.`, hole ? `${hole.disc!.r}단에서 사슬 ${hole.disc!.hole}코로 손잡이 구멍을 냅니다.` : "단마다 6코씩 늘립니다."];
+  }
+  if (part === "join" && (item === "motifhat" || item === "earflap" || item === "bustier")) { const n = rows.filter(r => r.n > 0).map(r => r.n); return [n.length ? `두 겹을 함께 떠서 짧은뜨기 ${n.join("코, ")}코로 잇습니다.` : "조각을 맞대어 잇습니다.", item === "earflap" ? "접힌 선이 뒤통수 가운데로 갑니다." : "겉이 밖으로 오게 맞대어, 이은 선이 겉에서 보입니다."]; }
   switch (item + ":" + part) {
     case "buckethat:bottom": case "hoodscarf:bottom": return [`${R}단 동안 늘려 한 바퀴가 ${last.n}코가 됩니다.`, "이 둘레가 머리둘레입니다. 단마다 첫 코에 단수링을 겁니다."];
     case "buckethat:body": return [`늘림 없이 ${R}단을 내려 뜹니다.`, `한 바퀴는 ${last.n}코입니다.`];
@@ -38,6 +42,16 @@ function wearLines(item: string, part: Part, rows: Row[]): [string, string] | nu
     case "kerchief:rows": return [`${R}단을 왕복으로 뜹니다.`, `${first.n}코에서 ${last.n}코까지 단마다 늘립니다.`];
     case "kerchief:handle": return [`사슬 ${last.n}코로 묶는 끈을 ${R}개 뜹니다.`, "긴 변의 양 끝에 하나씩 답니다."];
     case "backpack:handle": return [`아래 고리 ${R - 1}개와 조임끈을 뜹니다.`, "끈은 입구를 한 바퀴 지나 양쪽 아래 고리에 묶습니다."];
+    case "trapbag:panel": { const body = rows.filter(r => !/시작 사슬$/.test(r.label)); return [`${first.n}코에서 ${top}코까지 ${body.length / 2}단을 뜹니다. 같은 판을 2장 뜹니다.`, "양 끝에서 고르게 늘려 사다리꼴을 만듭니다."]; }
+    case "trapbag:handle": return [`입구에서 이어 ${last.n}코로 ${R}단을 뜹니다.`, "끝을 반대쪽 옆선에 맞대고 감침질로 잇습니다."];
+    case "bonnet:bottom": return [`${R}단 동안 늘려 한 바퀴가 ${last.n}코가 됩니다.`, "이 둘레가 머리둘레입니다. 단마다 첫 코에 단수링을 겁니다."];
+    case "bonnet:panel": return [`${last.n}코로 ${R}단을 왕복해 내려 뜹니다.`, "뜨지 않고 남긴 코가 얼굴 자리입니다."];
+    case "bonnet:handle": return [`사슬 ${last.n}코로 턱끈을 ${R}개 뜹니다.`, "아래 양 끝에 하나씩 답니다."];
+    case "bustier:flap": return [`${first.n}코에서 ${last.n}코까지 줄여 컵을 ${rows.filter(r => r.n === first.n).length}개 뜹니다.`, "단마다 양 끝에서 한 코씩 줄입니다."];
+    case "bustier:handle": return [`사슬 ${last.n}코로 어깨끈을 ${R}개 뜹니다.`, "컵 꼭대기에서 이어 뜹니다."];
+    case "halter:flap": return [`앞쪽만 ${R}단을 왕복해 뜹니다.`, "단마다 아치 하나씩 줄여 V로 모읍니다."];
+    case "halter:handle": return [`사슬 ${last.n}코로 목끈을 ${R}개 뜹니다.`, "V 꼭대기 양쪽에 하나씩 답니다."];
+    case "stepbag:flap": return [`뒤판에서 이어 ${R}단을 뜹니다.`, `${first.n}코에서 ${last.n}코까지 계단처럼 줄입니다.`];
   }
   return null;
 }

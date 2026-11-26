@@ -2,7 +2,7 @@
 // writing it in words and drawing it: a ready piece comes up at once, every part then changed in 모양. Bags and
 // pouches come in a few kinds; every other piece starts from its own defaults.
 import { ENGINE, ITEM, ITEMS, isStarterOnly, type ItemId } from "./items";
-import { bottleDims } from "./wear";
+import { bottleDims, phoneDims } from "./wear";
 import type { Draft } from "./types";
 
 /** `family`: starters shown as ONE card that opens into its members (Kim: 호보백을 누르면 둘 중에 선택) - `choice`
@@ -36,6 +36,16 @@ const KINDS: Proto[] = [
   { id: "kerchief", group: "모자", name: "삼각 헤드스카프", note: "한 꼭짓점에서 늘리는 삼각형 · 묶는 끈", item: "kerchief", over: { circ: 56, tieCm: 25 } },
   { id: "bottlebag", group: "소품", name: "보틀백", note: "원형 바닥 · 그물 몸통 · 크로스 끈", item: "bottlebag", over: { bottleD: 7, bottleH: 22, ...bottleDims(7, 22), crochetChart: "net", netCh: 5, handle: "long", handleCm: 110, handleCount: 1 } },
   { id: "backpack", group: "소품", name: "드로스트링 백팩", note: "원통 · 조이는 끈이 어깨끈", item: "backpack", over: { a: 22, h: 30, closure: "drawstring", handle: "none", tieCm: 70 } },
+  // 작은 가방 4종 · 보닛 · 옷 2종 (Kim: 실제 작품들에서 본 구조 원리): 옷 is one card that opens into its two ways
+  { id: "trapbag", group: "가방", name: "사다리꼴 주머니백", note: "바닥 없는 사다리꼴 두 장 · 띠 손잡이", item: "trapbag", over: { a: 12, topA: 26, h: 20, handle: "short", handleCm: 40, handleWcm: 4 } },
+  { id: "moonbag", group: "가방", name: "반달 미니백", note: "원 두 장 · 아래 반원만 잇기", item: "moonbag", over: { a: 20, holeW: 8, handle: "none" } },
+  { id: "stepbag", group: "가방", name: "계단 덮개 미니백", note: "직사각형 통 · 계단식 덮개 · 짧은 어깨끈", item: "stepbag", over: { shape: "rect", gusset: "flat", a: 18, b: 1.5, h: 12, closure: "flap", flapCm: 8, flapShape: "square", flapStepRows: 2, flapStepSt: 2, handle: "short", handleCm: 50, handleCount: 1 } },
+  { id: "phonebag", group: "가방", name: "폰 크로스백", note: "휴대폰 크기 · 장식 테두리 · 긴 끈", item: "phonebag", over: { shape: "rect", gusset: "flat", phoneW: 7.5, phoneH: 16, ...phoneDims(7.5, 16), b: 1.5, rimChart: "shell", handle: "long", handleCm: 120, handleCount: 1 } },
+  { id: "bonnet", group: "모자", name: "보닛", note: "원형 정수리 · 뒤통수 감싸기 · 턱끈", item: "bonnet", over: { circ: 56, headH: 20, tieCm: 30,
+    // 옆 장식 (Kim: 지금 장식 붙이기 - 꽃 모티프): a flower at one side, moved or taken off in 장식
+    extras: { items: [{ pic: "b-pearl-blossom", at: [.95, .8, 3] }] } } },
+  { id: "bustier", group: "옷", name: "모티프 뷔스티에", note: "모티프 띠 · 삼각 컵 · 어깨끈", family: "뷔스티에 · 홀터 탑", choice: ["모티프 뷔스티에", "모티프 띠 · 삼각 컵 · 어깨끈"], item: "bustier", over: { bust: 84, h: 14, tieCm: 40 } },
+  { id: "halter", group: "옷", name: "그물 홀터 탑", note: "그물 몸통 · V로 모으는 앞 · 목끈", family: "뷔스티에 · 홀터 탑", choice: ["그물 홀터 탑", "그물 몸통 · V로 모으는 앞 · 목끈"], item: "halter", over: { bust: 84, h: 30, tieCm: 45 } },
 ];
 const BAGS = new Set<ItemId>(["minibag", "bucket", "pouch"]);
 
@@ -55,6 +65,7 @@ export function protoDraft(d: Draft, p: Proto): Draft {
     closure: "open", gusset: undefined, asm: undefined, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, extras: {},
     circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined, paint: undefined,
     headH: undefined, brimCm: undefined, brimFold: undefined, motifN: undefined, brimMore: undefined, tieCm: undefined, tieWcm: undefined, ribRows: undefined, netCh: undefined, bottleD: undefined, bottleH: undefined, pattern: undefined, crochetStitch: undefined,
+    bust: undefined, phoneW: undefined, phoneH: undefined, rimChart: undefined, flapStepRows: undefined, flapStepSt: undefined, holeW: undefined, holeH: undefined, handleWcm: undefined,
     ...p.over,
   };
 }

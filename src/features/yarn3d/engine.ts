@@ -131,7 +131,8 @@ export interface YarnPattern {
   /** over: it covers the open top flat, front to back, and turns down at the front edge (Kim) */
   /** (`slant-l` / `slant-r`: its left or its right edge comes in row by row - lib/structure taper; `tip`: how wide
    *  a slant or a triangle still is at its end, against its width at the top) */
-  flap?: { cm: number; shape: "half" | "square" | "triangle" | "slant-l" | "slant-r"; color?: string; over?: boolean; tip?: number };
+  /** (`steps`: a square flap that comes in at both ends in that many steps down to `tip` of its width - 계단 덮개) */
+  flap?: { cm: number; shape: "half" | "square" | "triangle" | "slant-l" | "slant-r"; color?: string; over?: boolean; tip?: number; steps?: number };
   /** the crochet stitch's height against single crochet (긴뜨기 ~1.6, 한길긴뜨기 ~2.2) */
   stitchH?: number;
   /** 이랑뜨기 (back loop only): the front loop left unworked stands up as a ridge along each row */
@@ -1250,7 +1251,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     // the row's two ends from the middle (a slant keeps one edge and brings the other in; a triangle with a tip
     // left stops narrowing at the tip's width)
     const tipK = Math.max(.04, Math.min(1, f.tip ?? .06));
-    const ext = (u: number): [number, number] => f.shape === "slant-l" ? [-hw + 2 * hw * (1 - tipK) * u, hw] : f.shape === "slant-r" ? [-hw, hw - 2 * hw * (1 - tipK) * u]
+    const stairW = (u: number) => hw * (1 - (1 - tipK) * Math.min(f.steps!, Math.floor(Math.max(0, u) * (f.steps! + 1))) / f.steps!);
+    const ext = (u: number): [number, number] => f.steps ? [-stairW(u), stairW(u)] : f.shape === "slant-l" ? [-hw + 2 * hw * (1 - tipK) * u, hw] : f.shape === "slant-r" ? [-hw, hw - 2 * hw * (1 - tipK) * u]
       : f.shape === "triangle" && f.tip != null ? [-hw * (1 - (1 - tipK) * u), hw * (1 - (1 - tipK) * u)] : [-half(u), half(u)];
     // its face down the front, where it truly is: inside the picked outline (반달 / 네모 / 세모), out from the wall
     // there (Kim: 덮개에 장식을 붙이면 덮개 위에)

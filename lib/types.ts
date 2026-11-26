@@ -160,6 +160,14 @@ export interface Draft {
   netCh?: 3 | 5 | 7;
   bottleD?: number;
   bottleH?: number;
+  /** 작은 가방 · 옷 기본형 (lib/pattern PlanInput): the chest's round, a phone's own sizes, an edging round's pattern
+   *  at a bag's opening, a flap's steps */
+  bust?: number;
+  phoneW?: number;
+  phoneH?: number;
+  rimChart?: import("./crochetChart").ChartKey;
+  flapStepRows?: number;
+  flapStepSt?: number;
 }
 
 export interface YarnColor { hex?: string; name?: string; no?: string; lot?: string;

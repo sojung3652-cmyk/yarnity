@@ -75,7 +75,8 @@ export function partLines(d: Draft): [string, string][] {
 export function autoName(d: Draft): string {
   const it = ITEM[itemIdOf(d)], bits: string[] = [];
   if (d.colorName) bits.push(d.colorName);
-  if (it.kind === "base-body") { if (d.profile) bits.push("둥근"); else if (d.flapCm) bits.push("덮개"); else if (d.closure === "drawstring") bits.push("복주머니"); }
+  // (a starter of its own - lib/wear KITS - is named by what it is: 계단 덮개 미니백 needs no 덮개 before it)
+  if (it.kind === "base-body" && !KITS[it.id]) { if (d.profile) bits.push("둥근"); else if (d.flapCm) bits.push("덮개"); else if (d.closure === "drawstring") bits.push("복주머니"); }
   if (d.free || d.paint) return [...bits.slice(0, 1), "직접 그린 작품"].join(" ");
   return [...bits, it.name].join(" ");
 }
@@ -83,6 +84,7 @@ export function autoName(d: Draft): string {
 /** what the reader typed, read without the AI (no key, no network): the item by its words, the usual parts */
 const WORDS: [RegExp, ItemId][] = [
   // 모자·소품 기본형 (Kim): before the bags' words - 텀블러백 is a bottle's bag, 백팩 no handbag, 후드 스카프 no 목도리
+  [/복주머니형|사다리꼴/, "trapbag"], [/반달|덤플링/, "moonbag"], [/보닛/, "bonnet"], [/홀터/, "halter"], [/뷔스티에|탑/, "bustier"], [/휴대폰|폰/, "phonebag"],
   [/버킷\s*햇|벙거지/, "buckethat"], [/이어\s*플랩|귀달이/, "earflap"], [/헤드\s*스카프|두건|반다나/, "kerchief"], [/후드/, "hoodscarf"], [/보틀|물병|텀블러\s*백/, "bottlebag"], [/백팩|배낭/, "backpack"],
   [/슬라우치|호보|그물|네트|마켓백|골지|플리츠/, "minibag"], [/파우치|필통|동전지갑|지갑/, "pouch"], [/버킷|복조리|복주머니/, "bucket"], [/가방|백|토트|숄더|크로스/, "minibag"], [/바구니|바스켓|수납/, "basket"], [/화분/, "planter"], [/연필|펜꽂이/, "pencil"], [/컵\s*홀더|텀블러/, "cupholder"],
   [/수세미/, "scrubber"], [/냄비\s*받침/, "trivet"], [/코스터|컵\s*받침/, "coaster"], [/테이블\s*매트|식탁\s*매트/, "placemat"], [/러그|발매트/, "rug"], [/목도리|머플러|스카프/, "scarf"], [/넥워머/, "neckwarmer"], [/헤어\s*밴드|머리띠/, "headband"],

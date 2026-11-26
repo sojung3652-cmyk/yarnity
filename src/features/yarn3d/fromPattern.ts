@@ -177,13 +177,16 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   if (p.item === "bottlebag" && p.object === "bag" && !p.free) { const d = p.bottleD && p.bottleD > 0 ? p.bottleD : Math.max(2, p.a - 1), h = p.bottleH && p.bottleH > 0 ? p.bottleH : (p.h ?? 16) / .75; stand = { kind: "bottle", prof: bottleProfile(d / 2, h), fitTo: d }; }
   const pack = p.item === "backpack" && p.object === "bag" && !p.free;
   // the stitch pattern picked, on a bag's body (the bottom stays plain, as it is worked)
-  const wc = p.object === "bag" && !p.free && !isKnit(p) && !worn ? (p.crochetChart ? wallOfRounds(p.crochetChart, pp, netArch(p))
+  // (an edging round in a stitch pattern - 폰 크로스백: that round alone in its own stitches)
+  const wc = p.object === "bag" && !p.free && !isKnit(p) && !worn ? (p.crochetChart ? wallOfRounds(p.crochetChart, pp, netArch(p)) : p.rimChart && pp.rows.some(r => r.part === "rim" && r.wall) ? wallOfRounds(p.rimChart, pp)
     : p.chartName && chartFor(p.chartName) ? wallOfChart(chartFor(p.chartName)!) : null) : null;
   const wall = wc ? { ...wc, colors: [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] } : null;
   // 메탈사 held two or three strands together (Kim): the yarn drawn as thick as the strands make it
   const br = Math.max(0, Math.min(1, p.brush ?? 0));
   // 사선 / 삼각형 덮개 (lib/structure): how wide it still is at its end, from the pattern's own rows
   const flapRows = pp.rows.filter(r => r.part === "flap"), flapTip = flapRows.length ? flapRows[flapRows.length - 1].n / Math.max(1, flapRows[0].n) : 1;
+  // 계단 덮개 (lib/pattern): how many times it steps in
+  const stairs = flapRows.filter(r => r.step).length;
   const mm0 = p.yarnMm || LEVEL_MM[p.weight] || 3, yarnMm = pliesOf(p) > 1 ? pliedMm(mm0, pliesOf(p)) : mm0;
   return { shape, colors, yarnMm, hookMm: hookMmOf(p), strap, strapCm: pack ? (p.tieCm && p.tieCm > 0 ? p.tieCm : PACK_STRAP) : GH ? GH.lenCm : handleCm, material,
     ...(stand ? { stand } : {}),
@@ -200,7 +203,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && !GH && p.flapOver !== "top" ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
     // a handle is flat or a tube (Kim: no strands): flat when not said
     ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle && !pack ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),
-    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && !GH ? { flap: { cm: p.flapCm, shape: p.taper === "both" ? "triangle" as const : p.taper === "left" ? "slant-l" as const : p.taper === "right" ? "slant-r" as const : p.flapShape ?? "half", ...(p.taper ? { tip: flapTip } : {}), ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
+    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && !GH ? { flap: { cm: p.flapCm, shape: p.taper === "both" ? "triangle" as const : p.taper === "left" ? "slant-l" as const : p.taper === "right" ? "slant-r" as const : p.flapShape ?? "half", ...(p.taper ? { tip: flapTip } : {}), ...(stairs ? { shape: "square" as const, tip: flapTip, steps: stairs } : {}), ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.crochetStitch === "blo" || (p.object === "bag" && p.build === "ribbed") ? { ridge: true } : {}),
     ...(wall ? { wall } : {}),

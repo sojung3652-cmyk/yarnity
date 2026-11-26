@@ -52,7 +52,8 @@ describe("기본형 목록", () => {
     const fam = PROTOTYPES.filter(p => p.family === "호보백");
     expect(fam.map(p => p.id)).toEqual(["hobo1", "hobo"]);
     expect(fam.map(p => p.choice)).toEqual([["판 하나로", "둥근 모서리 판 · 양 끝 기둥이 끈"], ["몸통에서 이어 뜨기", "타원 바닥 · 입구에서 손잡이가 이어짐"]]);
-    expect(PROTOTYPES.filter(p => p.family && p.family !== "호보백")).toEqual([]);
+    // (the only other card that opens: 옷 - tests/small-starters)
+    expect([...new Set(PROTOTYPES.filter(p => p.family).map(p => p.family))]).toEqual(["호보백", "뷔스티에 · 홀터 탑"]);
   });
 
   it("the words a reader types find a bag", () => { for (const w of ["슬라우치 가방", "호보", "그물 가방", "네트백", "마켓백", "골지 토트", "플리츠"]) expect(guessItem(w), w).toBe("minibag"); });
