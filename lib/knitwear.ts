@@ -82,9 +82,12 @@ export function knitTop(p: Pick<PlanInput, "bust" | "h" | "sleeveCm">, g: Gauge)
   const gained = (r: number) => Math.round(e * r / AR);
   // 둥근 목선 (Kim): the front neck's last `m` rows each gain a stitch at both neck edges, then `c0` are cast on in the
   // middle - steep near the shoulder, flat at the bottom; the neckband picked up all round it in 1 x 1 rib
-  let m = clamp(rnd(neck * .3), 1, Math.max(1, ND - 1)), c0 = neck - 2 * m; if (c0 < 2) { m = Math.max(0, Math.floor((neck - 2) / 2)); c0 = neck - 2 * m; }
+  let m = Math.max(1, rnd(neck * .32)), c0 = neck - 2 * m; if (c0 < 2) { m = Math.max(0, Math.floor((neck - 2) / 2)); c0 = neck - 2 * m; }
+  // 라운드넥 (Kim): the neck edge's gain by row r follows a quarter circle - steep at the shoulder, nothing gained
+  // the first rows, more and more towards the bottom, flat where the middle is cast on
+  const curve = (r: number) => (r <= 0 ? 0 : r >= ND ? m : Math.round(m * (1 - Math.sqrt(1 - (r / ND) ** 2))));
   const side = along(ND, g) + m, NB = 2 * Math.round((neck + c0 + 2 * side) / 2), NBr = Math.max(3, rnd(2.5 / g.h));
-  return { bust, C, len, sleeveCm, T, neck, S, Half, AR, ND, e, U, N, BR, rib, pick, P, cuff, SRs, d, every, gained, m, c0, side, NB, NBr };
+  return { bust, C, len, sleeveCm, T, neck, S, Half, AR, ND, e, U, N, BR, rib, pick, P, cuff, SRs, d, every, gained, m, c0, side, NB, NBr, curve };
 }
 export function planKnitTop(p: PlanInput, g: Gauge): Plan {
   const K = knitTop(p, g), { T, neck, S, AR, ND, U, N, BR, rib, P, d, every, SRs, gained } = K, rows: Row[] = [];
@@ -100,17 +103,17 @@ export function planKnitTop(p: PlanInput, g: Gauge): Plan {
   }
   rows.push({ part: "panel", n: 0, inc: 0, own: true, label: "뒤판 쉬어 두기", how: `실을 자르고 ${K.Half}코는 쉼코로 둡니다`, why: "몸통에서 앞판과 함께 다시 뜹니다" } as Row);
   // 앞판: the shoulders picked up from the back's cast-on edge, the neck cast on between them
-  const { m, c0 } = K, curve = (r: number) => Math.max(0, r - (ND - m));   // the neck edge's gain by row r
+  const { m, c0, curve } = K;   // the neck edge's gain by row r (a quarter circle)
   for (let r = 1; r <= AR; r++) {
-    const dd = gained(r) - gained(r - 1), nk = r <= ND && curve(r) > curve(r - 1) ? 1 : 0, sh = S + gained(r) + curve(Math.min(r, ND)), n = r <= ND ? 2 * sh : T + 2 * gained(r);
+    const dd = gained(r) - gained(r - 1), nk = r <= ND ? curve(r) - curve(r - 1) : 0, sh = S + gained(r) + curve(Math.min(r, ND)), n = r <= ND ? 2 * sh : T + 2 * gained(r);
     const face = `${r % 2 ? "겉면: 겉뜨기" : "안면: 안뜨기"}로`;
     const how = r === 1 ? `뒤판 코잡기 가장자리의 양 끝에서 어깨 ${S}코씩 주워 두 어깨를 함께 뜹니다 (가운데 ${neck}코는 목 자리로 비웁니다)`
       : r === ND + 1 ? `왼쪽 어깨 ${sh - dd}코, 목 코 ${c0}코 만들기, 오른쪽 어깨 ${sh - dd}코를 이어 한 판으로 뜨며 양 끝에서 ${dd}코씩 늘리기 (${n}코)`
-      : nk ? `${face} 뜨며 두 어깨의 목 쪽 가장자리에서 1코씩${dd ? `, 바깥 끝에서 ${dd}코씩` : ""} 늘리기 (어깨마다 ${sh}코)`
+      : nk ? `${face} 뜨며 두 어깨의 목 쪽 가장자리에서 ${nk}코씩${nk > 1 ? "(감아코)" : ""}${dd ? `, 바깥 끝에서 ${dd}코씩` : ""} 늘리기 (어깨마다 ${sh}코)`
       : dd ? `${face} 뜨며 양 끝에서 ${dd}코씩 늘리기 (${n}코)` : flatRow(r - 1, n);
     const why = r === 1 ? `어깨 = (${T} - 목 ${neck}) ÷ 2 = ${S}코 · 목 너비 ${fmt(K.C)}cm × ${TOP.neck} ÷ 코 너비 · 목 깊이 ${ND}단(${fmt(K.C)}cm × ${TOP.neckDrop})`
-      : r === ND - m + 1 && nk ? `둥근 목선 · 마지막 ${m}단 동안 목 쪽에서 1코씩, 목 ${neck}코 중 ${2 * m}코를 늘려서 채웁니다`
-      : r === ND + 1 ? `어깨 둘 + 목 가운데 ${c0}코 = ${n}코 · (목 ${neck} = 늘림 ${2 * m} + 가운데 ${c0}) · 여기서부터 앞판이 한 판입니다` : nk ? `목 쪽 늘림 2${dd ? ` · 바깥 늘림 ${2 * dd}` : ""}` : dd ? `양 끝 늘림 ${2 * dd}` : `${n}코 그대로`;
+      : r <= ND && nk && curve(r - 1) === 0 ? `라운드넥 · 목 쪽 가장자리의 늘림이 원을 따라 아래로 갈수록 많아집니다 (모두 ${m}코씩, 목 ${neck}코 중 ${2 * m}코)`
+      : r === ND + 1 ? `어깨 둘 + 목 가운데 ${c0}코 = ${n}코 · (목 ${neck} = 늘림 ${2 * m} + 가운데 ${c0}) · 여기서부터 앞판이 한 판입니다` : nk ? `목 쪽 늘림 ${2 * nk}${dd ? ` · 바깥 늘림 ${2 * dd}` : ""}` : dd ? `양 끝 늘림 ${2 * dd}` : `${n}코 그대로`;
     rows.push({ part: "panel", n, inc: r === ND + 1 ? c0 + 2 * dd : 2 * dd + 2 * nk, own: true, edge: [dd, dd], label: `앞판 ${r}단`, how, why } as Row);
   }
   // 몸통: front and back joined under the arms, worked round
