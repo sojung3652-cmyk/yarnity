@@ -4,6 +4,7 @@
 import { ITEM, itemIdOf, type ItemId } from "./items";
 import type { Draft } from "./types";
 import type { ShapeSpec } from "./sketchShape";
+import { KITS } from "./wear";
 
 /** the body between the bottom and the opening: the opening's width (cm), how far its sides swell (0 straight
  *  .. 1 a round belly) and how round that swelling is (0 a soft point .. 1 full, like a ball) */
@@ -43,8 +44,10 @@ export function scaleDraft(d: Draft, k: number): Partial<Draft> {
 const SHAPE_KO = { circle: "원", oval: "타원", rect: "네모" } as const;
 /** the parts a draft is made of, in the order they are worked: [part, what it is] */
 export function partLines(d: Draft): [string, string][] {
-  const it = ITEM[itemIdOf(d)], out: [string, string][] = [];
-  if (it.kind === "base-body" && d.build) {
+  const it = ITEM[itemIdOf(d)], out: [string, string][] = [], kit = !d.free && !d.paint ? KITS[it.id] : undefined;
+  // 모자·소품 기본형 (lib/wear KITS): their own parts
+  if (kit) kit.forEach(p => out.push([p.title, p.sum(d)]));
+  else if (it.kind === "base-body" && d.build) {
     // 구조 부품 (lib/structure): what the piece is put together from
     out.push(["판", `${d.a} × ${d.h}cm · ${d.build === "hobo1" && d.hoboFold ? "한 장으로 이어서" : "2장"}${d.build === "ribbed" ? " · 옆으로 떠서 세로 골" : (d.corner ?? 0) > .02 ? " · 둥근 모서리" : ""}`]);
     if (d.build === "ribbed") out.push(["손잡이 구멍", (d.holeW ?? 10) >= 1 ? `너비 ${d.holeW ?? 10}cm · 높이 ${d.holeH ?? 3}cm` : "없음"]);

@@ -42,7 +42,7 @@ const BAGS = new Set<ItemId>(["minibag", "bucket", "pouch"]);
 /** every 기본형, grouped as shown: the bag and pouch kinds, then every other piece once */
 export const PROTOS: Proto[] = [
   ...KINDS,
-  ...ITEMS.filter(i => !BAGS.has(i.id) && !isStarterOnly(i)).map(i => ({ id: i.id, group: i.group, name: i.name, note: "", item: i.id })),
+  ...ITEMS.filter(i => !BAGS.has(i.id) && !isStarterOnly(i)).map(i => ({ id: i.id, group: i.id === "beanie" ? "모자" : i.group, name: i.name, note: "", item: i.id })),
 ];
 export const PROTO_GROUPS = [...new Set(PROTOS.map(p => p.group))];
 

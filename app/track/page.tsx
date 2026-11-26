@@ -222,7 +222,9 @@ export function TrackScreen() {
   // the symbols this work's chart uses, in the order of a symbol table
   // (구조 부품: a panel's corners gain at its edges, a slant or a triangle loses there, joining is 되돌아짧은뜨기)
   const built = pp.rows.some(x => x.part === "panel" || x.part === "join");
-  const syms: StitchSym[] = built ? ["ch", "sc", ...(pp.rows.some(x => x.edge && x.edge[0] > 0) ? ["inc" as const] : []), ...(pp.rows.some(x => x.part === "join" && x.n) ? ["crab" as const] : [])]
+  // (모자 기본형: a square motif is a ring, 짧은뜨기 and its corners' increases; a crown under a hood's rows brings its ring and increases; only a bag's edges are joined in 되돌아짧은뜨기)
+  const syms: StitchSym[] = pp.rows.some(x => x.motif) ? ["ring", "sc", "inc"]
+    : built ? [...(pp.bottomRounds ? ["ring" as const] : []), "ch", "sc", ...(pp.bottomRounds || pp.rows.some(x => x.edge && x.edge[0] > 0) ? ["inc" as const] : []), ...(pp.rows.some(x => x.rib) ? ["dc" as const] : []), ...(pp.rows.some(x => x.part === "join" && x.n && x.how.includes("되돌아짧은뜨기")) ? ["crab" as const] : [])]
     : flat
     ? ["ch", "sc", ...(pp.rows.some(x => x.edge && (x.edge[0] < 0 || x.edge[1] < 0)) ? ["dec" as const] : [])]
     // (a stitch pattern's rounds are drawn in their own symbols: 한길긴뜨기 for a shell's fans, chains for 모스 and 그물)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guessItem, guessSpec } from "@/lib/assemble";
+import { guessItem, guessSpec, partLines } from "@/lib/assemble";
 import { ENGINE, GROUPS, ITEM, ITEMS } from "@/lib/items";
 import { countToks, rowToks, withKorean } from "@/lib/koreanNotation";
 import { gauge, NET, openingN, packCord, partKo, plan, withChains, type PlanInput } from "@/lib/pattern";
@@ -9,7 +9,7 @@ import { readKorean } from "@/lib/stitchGrammar";
 import { isChainRow, pieceLayout, pieceOf } from "@/lib/structure";
 import { stepCards } from "@/lib/stepCards";
 import { DEFAULT_DRAFT, type Draft } from "@/lib/types";
-import { BRIM_RATE, bottleDims, bucketHat, earflap, hoodScarf, kerchief, motifHat, wearNote } from "@/lib/wear";
+import { BRIM_RATE, bottleDims, bucketHat, earflap, hoodScarf, kerchief, KITS, kitValue, motifHat, wearNote } from "@/lib/wear";
 import { toYarnPattern } from "@/src/features/yarn3d/fromPattern";
 import type { FormCourse } from "@/src/features/yarn3d/engine";
 
@@ -44,7 +44,9 @@ describe("기본형 목록: 모자 · 소품", () => {
     expect(list).toEqual([
       ["모자", "버킷햇", "정수리 원형 · 곧은 옆 · 늘리는 챙"], ["모자", "모티프 버킷햇", "사각 모티프 이어 붙이기"], ["모자", "후드 스카프", "원형에서 시작하는 후드 · 긴 끈"],
       ["모자", "이어플랩 후드", "판을 접은 후드 · 긴 귀덮개"], ["모자", "삼각 헤드스카프", "한 꼭짓점에서 늘리는 삼각형 · 묶는 끈"],
-      ["소품", "보틀백", "원형 바닥 · 그물 몸통 · 크로스 끈"], ["소품", "드로스트링 백팩", "원통 · 조이는 끈이 어깨끈"]]);
+      ["소품", "보틀백", "원형 바닥 · 그물 몸통 · 크로스 끈"], ["소품", "드로스트링 백팩", "원통 · 조이는 끈이 어깨끈"],
+      ["모자", "비니", ""]]);                                                // 목록 B (Kim): 비니도 모자 그룹으로 - in this list only
+    expect(ITEM.beanie.group).toBe("그 밖에");
     expect(new Set(PROTOS.map(p => p.id)).size).toBe(PROTOS.length);
     // they are starters only: not in the lists of things to pick (their groups are no item group)
     for (const id of IDS) expect((GROUPS as readonly string[]).includes(ITEM[id as keyof typeof ITEM].group), id).toBe(false);
@@ -304,6 +306,30 @@ describe("드로스트링 백팩", () => {
   it("the 3D: gathered at the top, the cord drawn as the straps", () => {
     const yp = toYarnPattern(p as never, pp)!;
     expect([yp.strap, yp.top, yp.strapCm]).toEqual(["pack", "cinch", 70]);
+  });
+});
+
+describe("조립하기의 부품 (입력 A: 슬라이더 한 줄)", () => {
+  it("each starter has its own parts; a slider starts inside its range, on the starter's own size", () => {
+    expect(Object.keys(KITS).sort()).toEqual([...IDS].sort());
+    for (const id of IDS) {
+      const d = protoDraft({ ...DEFAULT_DRAFT, ...yarn }, PROTOS.find(p => p.id === id)!);
+      expect(new Set(KITS[id].map(p => p.key)).size, id).toBe(KITS[id].length);
+      for (const part of KITS[id]) {
+        expect(part.sum(d), id + part.key).toBeTruthy();
+        for (const f of part.fields) { const v = kitValue(d, f); expect(v >= f.min && v <= f.max, `${id} ${f.label}`).toBe(true); expect(v, `${id} ${f.label}`).toBe(typeof d[f.key] === "number" ? d[f.key] : f.def); }
+        for (const k of part.picks ?? []) expect(k.options.map(o => o[0]), id + k.label).toContain(k.value(d));
+      }
+      expect(partLines(d).map(l => l[0]), id).toEqual(KITS[id].map(p => p.title));
+    }
+  });
+  it("a bottle's width and height move the bag's bottom and body; a choice sets its own field", () => {
+    const d = protoDraft({ ...DEFAULT_DRAFT, ...yarn }, PROTOS.find(p => p.id === "bottlebag")!), [dia, hgt] = KITS.bottlebag[0].fields;
+    expect(dia.set!(d, 9)).toEqual({ bottleD: 9, a: 10, h: 16.5 }); expect(hgt.set!(d, 30)).toEqual({ bottleH: 30, a: 8, h: 22.5 });
+    expect(KITS.bottlebag[1].picks![0].set("7")).toEqual({ netCh: 7, crochetChart: "net" });
+    expect(KITS.buckethat[1].picks![0].set("2")).toEqual({ brimFold: true });
+    expect(KITS.kerchief[1].picks![0].set("net").crochetChart).toBe("net"); expect(KITS.kerchief[1].picks![0].set("sc").crochetChart).toBeUndefined();
+    expect(KITS.earflap[2].picks![0].set("off")).toEqual({ ribRows: 0 });
   });
 });
 

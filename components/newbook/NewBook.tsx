@@ -11,7 +11,7 @@
 // knitting progress restarts if the pattern changed - the old row position would no longer match).
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useApp } from "@/components/AppProvider";
 import { drawing } from "@/lib/drawing";
 import { engineDims, ENGINE, fieldsFor, freshDraft, GROUPS, HANDLE_PRESETS, ITEM, ITEMS, itemIdOf, LEN_RANGE, type FieldKey, type Item, type ItemId } from "@/lib/items";
@@ -56,6 +56,8 @@ import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore"
 import { PATTERN_BY_ID, chartNameOf } from "@/lib/stitchPatterns";
 import { autoName, bodyOf, bodyPatch, bodyWidth, partLines, scaleDraft } from "@/lib/assemble";
 import { hoboNote, ribbedNote, stripNote, taper, taperNote } from "@/lib/structure";
+import { isWear, KITS, kitSize, kitValue, motifHat, wearNote } from "@/lib/wear";
+import { packCord } from "@/lib/pattern";
 import { AskInline, NameStart } from "./AskStart";
 import "./newbook.css";
 
@@ -335,7 +337,9 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
   // the left page's one line under the 3D (web): the size the pattern is made for
   const freeW = draft.free ? Math.round(Math.max(...draft.free.pts.map(q => q[0])) * 2 * draft.free.hCm * 10) / 10 : 0;
   const itemLabel = draft.free || draft.paint ? "직접 그린 모양" : item.name;
-  const sizeCaption = draft.paint ? `${draft.paint.wCm} × ${draft.paint.hCm}cm${draft.paint.pieces === 2 ? " · 2장" : ""}` : draft.free ? `높이 ${draft.free.hCm}cm · 가장 넓은 곳 ${freeW}cm` : (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
+  // 모자·소품 기본형 (lib/wear KITS): their own parts in 조립하기, their own sizes under the 3D
+  const kit = !draft.free && !draft.paint ? KITS[item.id] : undefined;
+  const sizeCaption = kit ? kit[0].sum(draft) : draft.paint ? `${draft.paint.wCm} × ${draft.paint.hCm}cm${draft.paint.pieces === 2 ? " · 2장" : ""}` : draft.free ? `높이 ${draft.free.hCm}cm · 가장 넓은 곳 ${freeW}cm` : (input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm · 높이 ${input.h}cm`
     : (input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`) + (input.object === "bag" && input.h ? ` · 높이 ${input.h}cm` : ""))
     + (item.handles && draft.handle !== "none" && handleCmOf(draft) ? ` · 손잡이 ${handleCmOf(draft)}cm` : "");
   // 작업 화면으로 크게 on the left page (web): the 3D work screen, its panels change this draft (the yarn, the
@@ -787,7 +791,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // ④ the check before the pattern: the supplies with the yarn amount, now that the size is known
     //    (page 7), and the preview (page 8)
     const shapes = item.shapes ?? [];
-    const sizeText = input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm` : input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`;
+    const sizeText = kit ? kitSize(draft)! : input.object === "rows" ? `${input.a} × ${input.b}cm` : input.object === "tube" ? `둘레 ${input.a}cm` : input.shape === "circle" ? `지름 ${input.a}cm` : `${input.a} × ${input.b}cm`;
     const handlePick = draft.handle === "none" ? "none" : ownHandle || draft.handleCm === 0 || !HANDLE_PRESETS.some(([, v]) => v === handleCmOf(draft)) ? "own" : String(handleCmOf(draft));
     const handleRow = pp.rows.find(r => r.part === "handle"), flapRows = pp.rows.filter(r => r.part === "flap").length, start = pp.rows.find(r => r.part === "start");
     const sizePage = (
@@ -844,10 +848,11 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         <div className="drawing nb-drawing" dangerouslySetInnerHTML={{ __html: drawing(input, pp, draft.color, draft.moreColors?.map(c => c.hex)) }} />
         <p className="nb-counts" aria-live="polite">
           <span>{`${item.name} · ${sizeText}`}</span>
-          {input.object === "rows" && start && <b>{`시작 사슬 ${start.n}코 · 한 단 ${pp.last}코 · ${pp.bodyRows}단`}</b>}
-          {input.object === "tube" && start && <b>{`시작 사슬 ${start.n}코 (고리) · ${pp.bodyRows}단`}</b>}
-          {(input.object === "coaster" || input.object === "bag") && <b>{`바닥 ${pp.bottomRounds}단 · 마지막 단 ${pp.last}코`}</b>}
-          {input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (flapRows ? ` · 덮개 ${flapRows}단` : "") + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
+          {kit && <b>{[...new Map(partsOf(pp, undefined, item.id)).entries()].map(([a, b]) => `${a} ${b}`).join(" · ")}</b>}
+          {!kit && input.object === "rows" && start && <b>{`시작 사슬 ${start.n}코 · 한 단 ${pp.last}코 · ${pp.bodyRows}단`}</b>}
+          {!kit && input.object === "tube" && start && <b>{`시작 사슬 ${start.n}코 (고리) · ${pp.bodyRows}단`}</b>}
+          {!kit && (input.object === "coaster" || input.object === "bag") && <b>{`바닥 ${pp.bottomRounds}단 · 마지막 단 ${pp.last}코`}</b>}
+          {!kit && input.object === "bag" && <b>{`몸통 ${pp.bodyRows}단` + (flapRows ? ` · 덮개 ${flapRows}단` : "") + (handleRow ? ` · 손잡이 사슬 ${handleRow.n}코` : "")}</b>}
         </p>
         <p className="nb-help">{input.object === "rows" || input.object === "tube"
           ? "코 수는 공식으로 계산합니다. 5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 내 손에 맞게 고쳐 드립니다."
@@ -975,7 +980,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     oneShape = bagNow ? webBag : <div className="nb-web">{extrasGroup}</div>;
     // 조립하기 (Kim: 조립식으로, 슬라이더로 자유롭게): the parts in one row, the picked part's sliders under it.
     // Everything lands in the draft's own sizes, so the counts and the 3D follow at once.
-    const base = item.kind === "base-body" && item.id !== "beanie" && !draft.free && !draft.paint, form = bodyOf(draft);
+    const base = item.kind === "base-body" && item.id !== "beanie" && !kit && !draft.free && !draft.paint, form = bodyOf(draft);
     const rng = (k: "a" | "b" | "h", d: [number, number]) => item.range[k] ?? d;
     const hasFlap = !!draft.flapCm, flapNow = draft.flapCm ?? 0;
     // 만드는 방법 (Kim: 구조 원리, lib/structure): a bottom worked round, two panels and a strip, or a hobo panel
@@ -997,7 +1002,14 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         {taperRows.length > 1 && <p className="nb-fit" role="status">{taperNote(taperRows[0].n, taper(taperRows[0].n, taperRows.length, draft.taper, draft.taperTip ?? 1), draft.taper)}</p>}
       </>}
     </>);
-    const railParts: [string, string, boolean][] = built
+    // (a piece set on a head is drawn as it is worn: 단추·라벨 are tried on pieces that stand by themselves)
+    const kitPart = kit?.find(p => p.key === asmPart) ?? kit?.[0];
+    const kitLine = !kit ? "" : isWear(item.id) ? wearNote(input, pp.g)
+      : item.id === "bottlebag" ? `병 지름 ${draft.bottleD ?? 7}cm에 여유를 더한 바닥 지름 ${draft.a}cm, 한 바퀴 ${pp.last}코입니다. 몸통은 ${draft.h}cm, 그물 ${pp.rows.filter(r => r.wall).length}단입니다.`
+      : (() => { const N = openingN(pp), P = packCord(input, pp.g, N); return `입구 한 바퀴 ${N}코에 끈 구멍 ${Math.floor(N / 2)}개, 조임끈은 약 ${P.cm}cm(사슬 ${P.cord}코)입니다.`; })();
+    const railParts: [string, string, boolean][] = kit
+      ? [...kit.map((p): [string, string, boolean] => [p.key, p.title, true]), ...(isWear(item.id) ? [] : [["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)] as [string, string, boolean]])]
+      : built
       ? [["shape", "판", true], built === "panels" ? ["strip", "띠", true] : built === "ribbed" ? ["hole", "손잡이 구멍", (draft.holeW ?? 10) >= 1] : ["strap", "끈", true], ["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)]]
       : base
       // every part for every piece with walls (Kim: 뭘 뜰지에 따라 소환하지 말고, 전체적으로 다) - a pouch can have a
@@ -1023,7 +1035,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           <Tiles label="만드는 방법" value={built ?? "round"} cols={2} onPick={pickBuild}
             options={[["round", "바닥부터 둘레로", "바닥 위에 몸통"], ["panels", "판 2장 + 띠", "옆·바닥을 띠 하나로"], ["hobo1", "판 하나 호보", "양 끝 기둥이 끈"], ["ribbed", "옆으로 뜬 골지 판", "세로 골 · 손잡이 구멍"]]} />
         </div>}
-        {draft.a > 0 && <div className="asm-all">
+        {draft.a > 0 && !kit && <div className="asm-all">
           <Slide label="전체 크기" min={ra[0]} max={ra[1]} step={.5} value={Math.min(ra[1], Math.max(ra[0], draft.a))} onChange={v => apply(snapAll(scaleDraft(draft, v / draft.a)))} text={`폭 ${draft.a}cm`} nudge={d => nextStop("a", d)} />
           <p className="nb-help">전체를 같은 비율로 키우거나 줄입니다. 화면 위 "크기 틀"(Ctrl+T)로 3D에서 바로 끌어도 됩니다.</p>
         </div>}
@@ -1031,6 +1043,18 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           {railParts.map(([k, t, on]) => <button key={k} type="button" role="tab" aria-selected={partNow === k} className={on ? "" : "is-off"} onClick={() => setAsmPart(k)}>{t}</button>)}
         </div>
         <div className="asm-card" role="tabpanel">
+          {kit && kitPart && partNow !== "extra" && <>
+            <h3>{kitPart.title}<small>{kitPart.sub}</small></h3>
+            {kitPart.fields.length > 0 && <div className="nb-sliders nb-sliders-1">
+              {kitPart.fields.map(f => { const v = kitValue(draft, f); return <Slide key={f.key} label={f.label} min={f.min} max={f.max} step={f.step} value={v} onChange={x => apply(f.set ? f.set(draft, x) : { [f.key]: x })} text={`${v}${f.unit}`} />; })}
+            </div>}
+            {kitPart.picks?.map(k => <Fragment key={k.label}>
+              {kitPart.fields.length > 0 && <p className="nb-wsubhead">{k.label}</p>}
+              <Tiles label={k.label} value={k.value(draft)} cols={k.options.length === 3 ? 3 : 2} onPick={v => apply(k.set(v))} options={k.options} />
+            </Fragment>)}
+            <p className="nb-fit" role="status">{kitLine}</p>
+            <p className="nb-help">{kitPart.help}</p>
+          </>}
           {partNow === "shape" && <>
             <h3>판<small>{built === "hobo1" ? "사슬에서 시작해 왕복으로 뜹니다" : built === "ribbed" ? "옆으로 떠서 세로 골을 냅니다" : "같은 판을 2장 뜹니다"}</small></h3>
             <div className="nb-sliders nb-sliders-1">
@@ -1187,17 +1211,21 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const checkRows = [
       { k: "실", v: <>{ucolors[0]?.hex && <i className="nb-swatch" style={{ background: ucolors[0].hex }} />}{yarnBits || "고르지 않음"}</>, fix: () => fixAt(0) },
       { k: "바늘", v: Number.isFinite(hookMm) ? hookLabel(hookMm) : "고르지 않음", fix: () => fixAt(1) },
-      { k: "크기", v: draft.free || draft.paint ? sizeCaption : sizeText.replace("cm", "cm") + (input.object === "bag" && draft.h ? ` · 높이 ${draft.h}cm` : ""), fix: () => fixAt(1) },
+      { k: "크기", v: draft.free || draft.paint ? sizeCaption : kit ? sizeText : sizeText.replace("cm", "cm") + (input.object === "bag" && draft.h ? ` · 높이 ${draft.h}cm` : ""), fix: () => fixAt(1) },
       // the named pattern picked (lib/stitchPatterns), else a knitted piece's stitch
       ...(draft.pattern && PATTERN_BY_ID[draft.pattern] ? [{ k: "무늬", v: `${PATTERN_BY_ID[draft.pattern].ko} (${PATTERN_BY_ID[draft.pattern].needle === "knit" ? "대바늘" : "코바늘"})`, fix: () => fixAt(2) }]
         : isKnit({ item: item.id }) ? [{ k: "무늬", v: stitchOf(draft.stitch).ko, fix: () => fixAt(2) }] : []),
       ...(isBag(item) ? [{ k: "모양", v: [draft.topA ? `위로 넓어지는 (입구 ${draft.topA}cm)` : "일자형", closureText, item.handles ? `손잡이 ${handleText(draft)}` : ""].filter(Boolean).join(" · "), fix: () => fixAt(2) }] : []),
     ];
     const facts: [string, string][] = [["한 코", `약 ${Math.round(g.h * 10)}mm`]];
-    if (input.object === "rows" && start) facts.push(["시작 사슬", `${start.n}코`], ["단 수", `${pp.bodyRows}단`]);
-    if (input.object === "tube" && start) facts.push(["시작 사슬", `${start.n}코`], ["단 수", `${pp.bodyRows}단`]);
-    if (input.object === "coaster" || input.object === "bag") facts.push(["바닥", `${pp.bottomRounds}단 · ${pp.last}코`]);
-    if (input.object === "bag") facts.push(["몸통", `${pp.bodyRows}단` + (handleRow ? ` · 손잡이 ${handleRow.n}코` : "")]);
+    // (모자·소품 기본형: its own parts - 정수리, 옆, 챙 ... - with their rows and stitches)
+    // (a part made more than once - a motif hat's motifs and seams - is said once: its facts are a list of names)
+    if (kit && item.id === "motifhat") { const M = motifHat(input, pp.g); facts.push(["모티프", `${M.R}단 · 한 변 ${M.E}코`], ["장 수", `옆 ${M.n} · 챙 ${M.n} · 정수리 1`], ["잇기", `짧은뜨기 ${M.ring}코`]); }
+    else if (kit) { const seen = new Set<string>(); for (const f of partsOf(pp, undefined, item.id)) if (!seen.has(f[0])) { seen.add(f[0]); facts.push(f); } }
+    else if (input.object === "rows" && start) facts.push(["시작 사슬", `${start.n}코`], ["단 수", `${pp.bodyRows}단`]);
+    if (!kit && input.object === "tube" && start) facts.push(["시작 사슬", `${start.n}코`], ["단 수", `${pp.bodyRows}단`]);
+    if (!kit && (input.object === "coaster" || input.object === "bag")) facts.push(["바닥", `${pp.bottomRounds}단 · ${pp.last}코`]);
+    if (!kit && input.object === "bag") facts.push(["몸통", `${pp.bodyRows}단` + (handleRow ? ` · 손잡이 ${handleRow.n}코` : "")]);
     const basis = use.basis === "label" ? "실 라벨" : use.basis === "mm" ? `실 굵기 ${draft.yarnMm}mm` : "실 굵기";
     const skeinText = draft.skeinG && draft.skeinM ? `한 타래 ${draft.skeinG}g · ${draft.skeinM}m 기준` : draft.skeinG ? `한 타래 ${draft.skeinG}g 기준` : draft.skeinM ? `한 타래 ${draft.skeinM}m 기준` : "";
     rightWeb = step === 3
@@ -1205,7 +1233,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       // the cover first (Kim: picked before the pattern is made; none = a random one), then the check
       : <><CoverChoice draft={draft} patch={patch} /><WebCheck draft={draft} itemName={itemLabel} rows={checkRows} facts={facts} onName={v => patch({ name: v })}
           use={{ g: use.g, m: use.m, skeins: use.skeins ?? null, short: !!use.short, labelOdd: !!use.labelOdd, perColor: !!use.perColor, colors: ucolors.length, per100: use.per100, basis, skeinText }}
-          measureNote={input.object === "rows" || input.object === "tube" ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} /></>;
+          measureNote={input.object === "rows" || input.object === "tube" || (kit && pp.bottomRounds < 4) ? "5단을 뜬 뒤 폭과 높이를 재서 정확하게 맞춥니다." : "3단을 뜬 뒤 지름을 재서 정확하게 맞춥니다."} /></>;
   }
 
   const phoneNext: Record<Step, string> = { 1: "다음 · 품목 ↑", 2: "다음 · 실과 바늘 ↑", 3: "다음 · 준비물 확인 ↑", 4: "완성 · 최종 도안 보기" };
@@ -1272,7 +1300,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // the first window asks only the name (Kim: 처음에는 이름만, 나머지는 제작에서) - the yarn next; what to make is
     // said in 모양 (words, drawing, or a 기본형 there)
     ask: big3d.open && !picked && !named && !editId ? <NameStart name={draft.name} onName={v => patch({ name: v })} onNext={() => { setNamed(true); setAsked(true); setShapeMode("asm"); }} /> : undefined,
-    onResize: picked && !draft.free && !draft.paint ? (fx, fy) => {
+    onResize: picked && !draft.free && !draft.paint && !kit ? (fx, fy) => {
       if (fx !== 1 && fx === fy) { apply(snapAll(scaleDraft(draft, fx))); return; }
       const lim = (k: "a" | "b" | "h", v: number) => { const r = item.range[k]; const x = Math.round(v * 2) / 2; return r ? Math.min(r[1], Math.max(r[0], x)) : x; };
       const up: "h" | "b" = input.object === "bag" || input.object === "tube" ? "h" : "b", p: Partial<Draft> = {};
@@ -1282,7 +1310,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     } : undefined,
     // the first thing on the stage (Kim): the yarn as it will look, before any shape
     intro: <YarnCheck source={swatchSrc} plan={swatchPlan} big />, startShape: yarnSet,
-    dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
+    dims: kit ? undefined : input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
     parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined, item.id), onClosed: () => setRev(r => r + 1),
     // 단추 / 라벨 dragged on the 3D (Kim): kept where they were let go, their size as it was
     onExtraMove: exMove, extraTools: { name: exName, size: exSize, remove: exRemove, replace: exReplace, isButton: exIsBtn, current: exPicOf },

@@ -118,6 +118,7 @@ export const itemIdOf = (p: { item?: string; object: ObjectKind }): ItemId =>
 /** The input fields of an item for a bottom shape, with their labels and ranges. */
 export function fieldsFor(item: Item, shape: Shape): Field[] {
   const f = (key: FieldKey, label: string): Field => ({ key, label, min: LEN_RANGE[0], max: LEN_RANGE[1] });
+  if (item.id === "kerchief") return [f("circ", "머리 둘레 (cm)")];
   switch (item.kind) {
     case "flat-rows": return [f("a", "폭 (cm)"), f("b", "길이 (cm)")];
     case "tube": return [f("a", "둘레 (cm)"), f("h", item.id === "headband" ? "폭 (cm)" : "높이 (cm)")];
@@ -127,6 +128,8 @@ export function fieldsFor(item: Item, shape: Shape): Field[] {
       return [f("a", "가로 (cm)"), f("b", "세로 (cm)")];
     case "base-body":
       if (item.id === "beanie") return [f("circ", "머리 둘레 (cm)"), f("depth", "깊이 (cm)")];
+      // 모자 기본형 (lib/wear): counted from the head's round
+      if (item.group === "모자") return [f("circ", "머리 둘레 (cm)"), ...(item.id === "buckethat" ? [f("h", "옆 높이 (cm)")] : [])];
       return [...(shape === "circle" ? [f("a", "바닥 지름 (cm)")] : [f("a", "바닥 가로 (cm)"), f("b", "바닥 세로 (cm)")]), f("h", "높이 (cm)")];
   }
 }

@@ -12,6 +12,7 @@
 // the sizes typed: a round or a width over a stitch's width, a height or a length over a row's height. The 3D
 // (src/features/yarn3d/worn), the words and the symbol chart all read these rows.
 import type { Gauge, Plan, PlanInput, Row } from "./pattern";
+import type { Draft } from "./types";
 
 const rnd = (x: number) => Math.round(+x.toFixed(6));
 const fmt = (n: number, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toString();
@@ -194,7 +195,7 @@ export function planKerchief(p: PlanInput, g: Gauge, g0: Gauge): Plan {
 export function wearNote(p: PlanInput, g: Gauge, g0: Gauge = g): string {
   switch (p.item) {
     case "buckethat": { const H = bucketHat(p, g); return `정수리를 ${H.R}단 동안 늘려 한 바퀴 ${H.N}코(${fmt(H.N * g.w)}cm)가 되면, 늘림 없이 ${H.S}단을 내려 뜹니다.` + (H.B ? ` 챙은 ${H.B}단, 마지막 단 ${H.counts[H.B - 1]}코입니다.` : ""); }
-    case "motifhat": { const M = motifHat(p, g); return `모티프 하나는 ${M.R}단, 한 변 ${M.E}코(${fmt(M.sizeCm)}cm)입니다. 옆 ${M.n}장의 둘레는 ${fmt(M.roundCm)}cm, 정수리는 ${M.Rc}단, 챙은 ${M.Rb}단짜리 ${M.n}장입니다.`; }
+    case "motifhat": { const M = motifHat(p, g); return `모티프 하나는 ${M.R}단, 한 변 ${M.E}코(${fmt(M.sizeCm)}cm)입니다. 옆 ${M.n}장의 둘레는 ${fmt(M.roundCm)}cm(머리둘레 ${M.circ}cm), 정수리는 ${M.Rc}단, 챙은 ${M.Rb}단짜리 ${M.n}장입니다.`; }
     case "hoodscarf": { const H = hoodScarf(p, g); return `정수리를 ${H.R}단 동안 늘려 ${H.N}코, 그 가운데 ${H.W}코로 ${H.H}단을 왕복해 내려 뜹니다. 양 끝 ${H.T}코씩 ${H.PR}단이 스카프 끈입니다.`; }
     case "earflap": { const H = earflap(p, g); return `사슬 ${H.W}코로 시작해 ${H.R}단을 내려 뜨고, 양 끝 ${H.T}코씩 ${H.PR}단이 귀덮개입니다. 반 접어 위 ${H.J}코를 잇습니다.`; }
     case "kerchief": { const K = kerchief(p, g0, g); return K.kind === "sc" ? `3코에서 시작해 단마다 양 끝에서 1코씩 늘려 ${K.R}단, 긴 변 ${K.W}코(${fmt(K.W * g0.w)}cm)입니다. 높이는 약 ${fmt(K.heightCm)}cm입니다.` : `${K.kind === "net" ? "아치" : "V"} 하나에서 시작해 단마다 하나씩 늘려 ${K.R}단, 긴 변은 ${K.kind === "net" ? "아치" : "V"} ${K.R}개(${fmt(K.W * g0.w)}cm)입니다. 높이는 약 ${fmt(K.heightCm)}cm입니다.`; }
@@ -209,3 +210,72 @@ export const BOTTLE_EASE = 1, BOTTLE_SHARE = .75;
 export function bottleDims(d: number, h: number): { a: number; h: number } {
   return { a: Math.round((d + BOTTLE_EASE) * 2) / 2, h: Math.round(h * BOTTLE_SHARE * 2) / 2 };
 }
+
+// ---------------------------------------------------------------- 조립하기의 부품 (Kim: 시안 "입력 A" - 다른 부품처럼 슬라이더 한 줄)
+/** A slider of a starter's own part: the draft's field it moves, its range, the size it starts from, its unit.
+ *  `set`: what else moves with it (a bottle's width moves the bag's bottom). */
+export interface KitField { key: keyof Draft; label: string; min: number; max: number; step: number; def: number; unit: string; set?: (d: Draft, v: number) => Partial<Draft> }
+/** a choice among a few (tiles): what is picked now, the choices [value, name, a line], what picking one sets */
+export interface KitPick { label: string; value: (d: Draft) => string; options: [string, string, string?][]; set: (v: string) => Partial<Draft> }
+/** a part of a starter as 조립하기 shows it: its tab, its heading, its sliders and choices, a line of help, and
+ *  how "지금 조립된 것" says it */
+export interface KitPart { key: string; title: string; sub: string; fields: KitField[]; picks?: KitPick[]; help: string; sum: (d: Draft) => string }
+const F = (key: keyof Draft, label: string, min: number, max: number, def: number, step = .5, unit = "cm"): KitField => ({ key, label, min, max, step, def, unit });
+const val = (d: Draft, f: KitField) => { const v = d[f.key]; return typeof v === "number" && Number.isFinite(v) ? v : f.def; };
+/** a field's value now (the size it starts from while none is set), inside its range */
+export const kitValue = (d: Draft, f: KitField) => clamp(val(d, f), f.min, f.max);
+const head = (hh?: KitField): KitPart => ({ key: "head", title: "머리", sub: "쓰는 사람의 치수입니다", fields: [F("circ", "머리둘레", 44, 64, WEAR_DEFAULT.circ), ...(hh ? [hh] : [])], help: "",
+  sum: d => `둘레 ${val(d, F("circ", "", 0, 0, WEAR_DEFAULT.circ))}cm` + (hh ? ` · ${hh.label} ${val(d, hh)}cm` : "") });
+const ties = (title: string, sub: string, len: KitField, wid: KitField | null, help: string): KitPart => ({ key: "tie", title, sub, fields: wid ? [len, wid] : [len], help, sum: d => `길이 ${val(d, len)}cm` + (wid ? ` · 너비 ${val(d, wid)}cm` : "") });
+/** a starter's size as a line (확인, 도안 보기): the head's round, a bottle's sizes - not a bottom's diameter. Null: not one of these. */
+export function kitSize(d: { item?: string; free?: unknown; paint?: unknown }): string | null {
+  const k = !d.free && !d.paint && d.item ? KITS[d.item] : undefined; if (!k) return null;
+  const dd = d as Draft;
+  return d.item === "backpack" ? `바닥 지름 ${dd.a}cm · 높이 ${dd.h}cm` : d.item === "bottlebag" ? `병 ${k[0].sum(dd)}` : `머리${k[0].sum(dd)}`;
+}
+export const KITS: Record<string, KitPart[]> = {
+  buckethat: [
+    { ...head(F("h", "옆 높이", 4, 14, WEAR_DEFAULT.side)), sub: "정수리에서 시작해 내려 뜹니다", help: "머리둘레에 닿을 때까지만 정수리를 늘립니다. 그 뒤로는 코 수 그대로 옆을 뜹니다." },
+    { key: "brim", title: "챙", sub: "단마다 같은 비율로 늘립니다", fields: [F("brimCm", "챙 너비", 0, 12, WEAR_DEFAULT.brim)],
+      picks: [{ label: "챙 겹", value: d => (d.brimFold ? "2" : "1"), options: [["1", "한 겹"], ["2", "두 겹", "두 배로 떠서 안으로 접어 잇기"]], set: v => ({ brimFold: v === "2" }) }],
+      help: `단마다 앞 단 코 수의 ${Math.round(BRIM_RATE * 100)}%씩 늘립니다. 두 겹 챙은 같은 단 수를 되돌아 떠서 안으로 접어 잇습니다.`,
+      sum: d => ((d.brimCm ?? WEAR_DEFAULT.brim) < .3 ? "없음" : `너비 ${d.brimCm ?? WEAR_DEFAULT.brim}cm · ${d.brimFold ? "두 겹" : "한 겹"}`) },
+  ],
+  motifhat: [
+    { ...head(), help: "옆 모티프를 이은 고리의 둘레가 머리둘레에 가장 가깝게 모티프의 단 수를 정합니다." },
+    { key: "motif", title: "모티프", sub: "정수리 1장 · 옆과 챙은 같은 장 수", fields: [F("motifN", "옆 모티프", 4, 12, WEAR_DEFAULT.motifN, 1, "장"), F("brimMore", "챙 모티프 더 뜨기", 0, 4, WEAR_DEFAULT.brimMore, 1, "단")],
+      help: "잇는 순서는 옆 → 정수리 → 챙 → 챙 달기입니다. 챙 모티프를 더 크게 뜰수록 챙이 아래로 벌어집니다.",
+      sum: d => `옆 ${d.motifN ?? WEAR_DEFAULT.motifN}장 · 챙 ${d.motifN ?? WEAR_DEFAULT.motifN}장 (${d.brimMore ?? WEAR_DEFAULT.brimMore}단 더) · 정수리 1장` },
+  ],
+  hoodscarf: [
+    { ...head(F("headH", "머리 높이", 20, 40, WEAR_DEFAULT.hoodH)), sub: "정수리에서 목까지", help: "정수리를 원형으로 뜬 뒤, 그 둘레의 2/3로 왕복해 내려 뜹니다. 남긴 1/3이 얼굴 자리입니다." },
+    ties("스카프 끈", "후드 양 끝에서 이어 뜹니다", F("tieCm", "끈 길이", 20, 120, WEAR_DEFAULT.tie.hoodscarf, 1), F("tieWcm", "끈 너비", 3, 15, WEAR_DEFAULT.tieW), "후드 마지막 단의 양 끝 몇 코만 각각 길게 떠서 스카프 끈으로 씁니다."),
+  ],
+  earflap: [
+    { ...head(F("headH", "머리 높이", 16, 34, WEAR_DEFAULT.headH)), sub: "정수리에서 턱까지", help: "머리둘레의 절반 너비로 판을 떠서 반 접고, 시작 사슬 쪽(위)을 잇습니다." },
+    ties("귀덮개", "판 아래 양 끝에서 이어 뜹니다", F("tieCm", "귀덮개 길이", 10, 60, WEAR_DEFAULT.tie.earflap, 1), F("tieWcm", "귀덮개 너비", 4, 14, WEAR_DEFAULT.tieW), "판 마지막 단의 양 끝 몇 코만 각각 길게 내려 뜹니다."),
+    { key: "rib", title: "앞선", sub: "얼굴선 무늬", fields: [], picks: [{ label: "앞선 무늬", value: d => ((d.ribRows ?? WEAR_DEFAULT.rib) >= 2 ? "on" : "off"), options: [["off", "없음"], ["on", "앞걸어 · 뒤걸어", "얼굴선에 3단"]], set: v => ({ ribRows: v === "on" ? WEAR_DEFAULT.rib : 0 }) }],
+      help: "얼굴선을 따라 한길긴뜨기 1단을 뜬 뒤, 앞걸어뜨기와 뒤걸어뜨기를 번갈아 세로 골을 만듭니다.", sum: d => ((d.ribRows ?? WEAR_DEFAULT.rib) >= 2 ? `앞걸어 · 뒤걸어 ${d.ribRows ?? WEAR_DEFAULT.rib}단` : "없음") },
+  ],
+  kerchief: [
+    { ...head(), sub: `긴 변은 머리둘레의 ${KERCHIEF_SHARE * 100}%입니다`, help: "꼭짓점에서 시작해 단마다 양 끝을 늘립니다. 긴 변에 닿으면 끝납니다." },
+    { key: "lace", title: "무늬", sub: "삼각형을 뜨는 코", fields: [], picks: [{ label: "무늬", value: d => (d.crochetChart === "net" ? "net" : d.crochetChart === "vst" ? "vst" : "sc"), options: [["sc", "짧은뜨기", "촘촘하게"], ["net", "그물", "사슬 5코 아치"], ["vst", "레이스", "V 무늬"]],
+        set: v => ({ crochetChart: v === "sc" ? undefined : (v as "net" | "vst"), pattern: undefined, crochetStitch: undefined }) }],
+      help: "그물은 단마다 아치 하나씩, 레이스는 단마다 V 하나씩 늘어납니다.", sum: d => (d.crochetChart === "net" ? "그물" : d.crochetChart === "vst" ? "레이스" : "짧은뜨기") },
+    ties("묶는 끈", "긴 변의 양 끝에 하나씩", F("tieCm", "끈 길이", 10, 50, WEAR_DEFAULT.tie.kerchief, 1), null, "사슬을 뜨고 빼뜨기로 되돌아와 끈을 만듭니다."),
+  ],
+  bottlebag: [
+    { key: "bottle", title: "병", sub: "담을 병의 크기입니다", fields: [
+        { ...F("bottleD", "병 지름", 4, 13, 7), set: (d, v) => ({ bottleD: v, ...bottleDims(v, d.bottleH ?? 22) }) },
+        { ...F("bottleH", "병 높이", 10, 40, 22), set: (d, v) => ({ bottleH: v, ...bottleDims(d.bottleD ?? 7, v) }) }],
+      help: `바닥은 병 지름에 여유 ${BOTTLE_EASE}cm를 더하고, 몸통은 병 높이의 ${BOTTLE_SHARE * 100}%(어깨)까지 올립니다.`, sum: d => `지름 ${d.bottleD ?? 7}cm · 높이 ${d.bottleH ?? 22}cm` },
+    { key: "net", title: "그물", sub: "몸통의 구멍 크기", fields: [], picks: [{ label: "구멍 크기", value: d => String(d.netCh ?? 5), options: [["3", "작게", "사슬 3코 아치"], ["5", "보통", "사슬 5코 아치"], ["7", "크게", "사슬 7코 아치"]], set: v => ({ netCh: Number(v) as 3 | 5 | 7, crochetChart: "net" }) }],
+      help: "아치가 클수록 한 바퀴의 아치 수와 몸통 단 수가 줄어듭니다. 입구는 짧은뜨기로 정리합니다.", sum: d => `사슬 ${d.netCh ?? 5}코 아치` },
+    { key: "tie", title: "끈", sub: "어깨에 메는 긴 끈", fields: [{ ...F("handleCm", "끈 길이", 40, 150, 110, 1), set: (_d, v) => ({ handle: "long", handleCm: v, handleCount: 1 }) }], help: "사슬을 뜨고 짧은뜨기로 되돌아와 입구 양쪽에 연결합니다. 크로스로 메려면 약 110~120cm입니다.", sum: d => `크로스 ${d.handleCm ?? 110}cm` },
+  ],
+  backpack: [
+    { key: "base", title: "바닥", sub: "여기서부터 뜹니다", fields: [F("a", "바닥 지름", 14, 32, 22)], help: "원형 바닥에서 곧게 올라가는 원통입니다.", sum: d => `원 지름 ${d.a}cm` },
+    { key: "tube", title: "몸통", sub: "입구 아래에 끈 구멍 단이 들어갑니다", fields: [F("h", "높이", 18, 45, 30)], help: "입구 바로 아래 단에 사슬 1코씩 띄워 끈 구멍을 만듭니다.", sum: d => `높이 ${d.h}cm · 끈 구멍 단` },
+    { key: "tie", title: "끈", sub: "끈 하나가 입구를 조이고 어깨끈이 됩니다", fields: [F("tieCm", "어깨끈 길이", 40, 110, 70, 1)], help: "끈을 끈 구멍 단에 한 바퀴 꿰어, 양 끝을 바닥 양옆의 고리에 하나씩 묶습니다.", sum: d => `어깨끈 ${d.tieCm ?? 70}cm × 2 · 아래 고리 2개` },
+  ],
+};

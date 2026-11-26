@@ -976,7 +976,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         // 드로스트링 백팩 (Kim: 끈 하나가 입구를 조이고 어깨끈이 되는 구조): one cord - round the opening through its
         // eyelets, out at the back, and down each side to a small loop at the bottom's edge. Two strands twisted.
         let y0 = 1e9; for (const q of D.P) y0 = Math.min(y0, q.y);
-        let rb = 0, nb = 0; for (const q of D.P) if (q.y < y0 + D.rh * 2.5) { rb = Math.max(rb, Math.hypot(q.x - cx, q.z - cz)); nb++; } if (!nb) rb = rr;
+        // how far out the wall stands at each height: the straps and their loops lie on it, never in it
+        const NB = 20, wallR = new Array<number>(NB + 1).fill(0); for (const q of D.P) { const k = Math.max(0, Math.min(NB, Math.round((q.y - y0) / Math.max(1e-6, ry - y0) * NB))); wallR[k] = Math.max(wallR[k], Math.hypot(q.x - cx, q.z - cz)); }
+        const outAt = (y: number) => { const f = Math.max(0, Math.min(NB, (y - y0) / Math.max(1e-6, ry - y0) * NB)), k = Math.floor(f); return Math.max(wallR[k], wallR[Math.min(NB, k + 1)]) + R * 2.4; };
+        const rb = outAt(y0 + D.rh * 2);
         const yE = ry - D.rh * 1.6, re = rr + R * 1.6, back = new THREE.Vector3(cx, yE, cz + re);
         const ringPts = Array.from({ length: 48 }, (_, i) => { const a = i / 48 * Math.PI * 2; return new THREE.Vector3(cx + Math.sin(a) * re, yE + Math.sin(a * 6) * R * .5, cz - Math.cos(a) * re); });
         const cord = (pts: THREE.Vector3[], closed: boolean) => {
@@ -989,9 +992,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
         cord(ringPts, true);
         for (const sx of [-1, 1]) {
           if (over()) yield;
-          const foot = new THREE.Vector3(cx + sx * (rb + R * 2.2), y0 + D.rh * 1.2, cz + rb * .3), span = back.distanceTo(foot), slack = Math.max(0, len - span);
-          const bow = Math.min(rr * 1.6, Math.sqrt(Math.max(0, (span + slack) ** 2 - span ** 2)) * .32);
-          const pts = Array.from({ length: 25 }, (_, i) => { const t = i / 24, s = Math.sin(Math.PI * t); return back.clone().lerp(foot, t).add(new THREE.Vector3(sx * bow * .45 * s, -bow * .12 * s, bow * s)); });
+          // (the loops sit on the bottom's edge, a little to the front; the straps stand off the bag no further than a shoulder needs)
+          const foot = new THREE.Vector3(cx + sx * rb * .9, y0 + D.rh * 2, cz + rb * .44), span = back.distanceTo(foot), slack = Math.max(0, len - span);
+          const bow = Math.min(rr * .75, Math.sqrt(Math.max(0, (span + slack) ** 2 - span ** 2)) * .32);
+          const pts = Array.from({ length: 25 }, (_, i) => { const t = i / 24, s = Math.sin(Math.PI * t); const q = back.clone().lerp(foot, t).add(new THREE.Vector3(sx * bow * .45 * s, -bow * .12 * s, bow * s)), d = Math.hypot(q.x - cx, q.z - cz), need = outAt(q.y); if (d < need && d > 1e-6) { q.x = cx + (q.x - cx) * need / d; q.z = cz + (q.z - cz) * need / d; } return q; });
           cord(pts, false);
           // the loop the cord's end is tied to
           cord(Array.from({ length: 14 }, (_, i) => { const a = i / 14 * Math.PI * 2; return foot.clone().add(new THREE.Vector3(sx * (Math.cos(a) - 1) * D.rh * .9, Math.sin(a) * D.rh * .9, 0)); }), true);

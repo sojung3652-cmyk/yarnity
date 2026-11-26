@@ -18,6 +18,7 @@ import { GlossText } from "@/components/glossary/GlossText";
 import { drawing } from "@/lib/drawing";
 import { useShot } from "@/lib/useShot";
 import { ITEM, itemIdOf } from "@/lib/items";
+import { kitSize } from "@/lib/wear";
 import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
 import { isKnit, partName, shownPlan } from "@/lib/knit";
 import { StepCards } from "@/components/StepCards";
@@ -82,8 +83,8 @@ export function PatternScreen() {
   }
   const count = (part: Row["part"]) => pp.rows.filter(x => x.part === part).length;
 
-  const size = p.object === "rows" ? `폭 ${p.a} × 길이 ${p.b}cm` : p.object === "tube" ? `둘레 ${p.a} · ${it.id === "headband" ? "폭" : "높이"} ${p.h}cm`
-    : `${SHAPE_KO[p.shape]} ${p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`}${p.object === "bag" ? ` · 높이 ${p.h}cm` : ""}`;
+  const size = kitSize(p) ?? (p.object === "rows" ? `폭 ${p.a} × 길이 ${p.b}cm` : p.object === "tube" ? `둘레 ${p.a} · ${it.id === "headband" ? "폭" : "높이"} ${p.h}cm`
+    : `${SHAPE_KO[p.shape]} ${p.shape === "circle" ? `지름 ${p.a}cm` : `${p.a} × ${p.b}cm`}${p.object === "bag" ? ` · 높이 ${p.h}cm` : ""}`);
   const colors = [{ hex: p.color, name: p.colorName, no: p.colorNo, lot: p.lot }, ...(p.moreColors ?? [])].filter(c => c.hex || c.name);
   const mm = hookMmOf(p);
   const made = new Date(p.created).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
