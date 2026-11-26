@@ -1,7 +1,8 @@
 // 기본형 (Kim: 파우치, 가방, 코스터 같은 걸 누르면 프로토타입을 먼저 주고 사용자가 고쳐 나가기) - an option beside
 // writing it in words and drawing it: a ready piece comes up at once, every part then changed in 모양. Bags and
 // pouches come in a few kinds; every other piece starts from its own defaults.
-import { ENGINE, ITEM, ITEMS, type ItemId } from "./items";
+import { ENGINE, ITEM, ITEMS, isStarterOnly, type ItemId } from "./items";
+import { bottleDims } from "./wear";
 import type { Draft } from "./types";
 
 /** `family`: starters shown as ONE card that opens into its members (Kim: 호보백을 누르면 둘 중에 선택) - `choice`
@@ -26,13 +27,22 @@ const KINDS: Proto[] = [
   { id: "boxpouch", group: "파우치", name: "박스 파우치", note: "너비 · 윗면 덮는 덮개", item: "pouch", over: { shape: "rect", a: 18, b: 8, h: 10, gusset: "box", closure: "flap", flapCm: 7, flapShape: "square", flapOver: "top" } },
   { id: "card", group: "파우치", name: "카드지갑", note: "납작 · 세모 덮개", item: "pouch", over: { shape: "rect", a: 12, b: 4, h: 8, gusset: "flat", closure: "flap", flapCm: 5, flapShape: "triangle", extras: { button: true } } },
   { id: "wristlet", group: "파우치", name: "손목 파우치", note: "손목 고리", item: "pouch", over: { shape: "rect", a: 20, b: 5, h: 13, gusset: "box", handle: "short", handleKind: "wrist", handleCount: 1, handleCm: 25 } },
+  // 모자 5종 · 소품 2종 (Kim: 실제 작품들에서 본 구조 원리 - lib/wear, lib/pattern): only how each is put together;
+  // every count is the gauge's and the head's round (a bottle's width). A starter's id is its item's.
+  { id: "buckethat", group: "모자", name: "버킷햇", note: "정수리 원형 · 곧은 옆 · 늘리는 챙", item: "buckethat", over: { circ: 56, h: 8, brimCm: 6 } },
+  { id: "motifhat", group: "모자", name: "모티프 버킷햇", note: "사각 모티프 이어 붙이기", item: "motifhat", over: { circ: 56, motifN: 8, brimMore: 1 } },
+  { id: "hoodscarf", group: "모자", name: "후드 스카프", note: "원형에서 시작하는 후드 · 긴 끈", item: "hoodscarf", over: { circ: 56, headH: 28, tieCm: 60, tieWcm: 8 } },
+  { id: "earflap", group: "모자", name: "이어플랩 후드", note: "판을 접은 후드 · 긴 귀덮개", item: "earflap", over: { circ: 56, headH: 24, tieCm: 30, tieWcm: 8, ribRows: 3 } },
+  { id: "kerchief", group: "모자", name: "삼각 헤드스카프", note: "한 꼭짓점에서 늘리는 삼각형 · 묶는 끈", item: "kerchief", over: { circ: 56, tieCm: 25 } },
+  { id: "bottlebag", group: "소품", name: "보틀백", note: "원형 바닥 · 그물 몸통 · 크로스 끈", item: "bottlebag", over: { bottleD: 7, bottleH: 22, ...bottleDims(7, 22), crochetChart: "net", netCh: 5, handle: "long", handleCm: 110, handleCount: 1 } },
+  { id: "backpack", group: "소품", name: "드로스트링 백팩", note: "원통 · 조이는 끈이 어깨끈", item: "backpack", over: { a: 22, h: 30, closure: "drawstring", handle: "none", tieCm: 70 } },
 ];
 const BAGS = new Set<ItemId>(["minibag", "bucket", "pouch"]);
 
 /** every 기본형, grouped as shown: the bag and pouch kinds, then every other piece once */
 export const PROTOS: Proto[] = [
   ...KINDS,
-  ...ITEMS.filter(i => !BAGS.has(i.id)).map(i => ({ id: i.id, group: i.group, name: i.name, note: "", item: i.id })),
+  ...ITEMS.filter(i => !BAGS.has(i.id) && !isStarterOnly(i)).map(i => ({ id: i.id, group: i.group, name: i.name, note: "", item: i.id })),
 ];
 export const PROTO_GROUPS = [...new Set(PROTOS.map(p => p.group))];
 
@@ -44,6 +54,7 @@ export function protoDraft(d: Draft, p: Proto): Draft {
     handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, handleBaseCm: undefined, handleFar: undefined, build: undefined, taper: undefined, taperCord: undefined, crochetChart: undefined, drape: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
     closure: "open", gusset: undefined, asm: undefined, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, extras: {},
     circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined, paint: undefined,
+    headH: undefined, brimCm: undefined, brimFold: undefined, motifN: undefined, brimMore: undefined, tieCm: undefined, tieWcm: undefined, ribRows: undefined, netCh: undefined, bottleD: undefined, bottleH: undefined, pattern: undefined, crochetStitch: undefined,
     ...p.over,
   };
 }

@@ -6,7 +6,7 @@
 import type { CSSProperties } from "react";
 import { ItemArt } from "@/components/newbook/ItemArt";
 import { ITEM, itemIdOf } from "@/lib/items";
-import { PART_KO, plan } from "@/lib/pattern";
+import { partKo, plan } from "@/lib/pattern";
 import { STATUS_KO, statusOf } from "@/lib/status";
 import type { Project } from "@/lib/types";
 import { COVER_AR_MAX, coverOf, coverSrc } from "@/lib/covers";
@@ -17,7 +17,7 @@ export function whereOf(p: Project) {
   const pp = plan(p), total = pp.rows.length, cur = Math.min(p.current || 0, total), st = statusOf(p);
   const nx = pp.rows[cur], done = st === "done" || cur >= total;
   const short = done ? `완성 · ${total}단` : cur === 0 ? `${total}단 · 아직 시작 전` : `${cur} / ${total}단 · 다음 ${nx.label}`;
-  const long = done || cur === 0 ? short : `${PART_KO[pp.rows[cur - 1].part]} ${short}`;
+  const long = done || cur === 0 ? short : `${partKo(pp.rows[cur - 1].part, p.item)} ${short}`;
   return { total, cur, pct: total ? cur / total : 0, short, long, next: nx?.label ?? "", started: cur > 0, done };
 }
 /** the cover's tag: 뜨는 중 (started), 시작 전, 중단, 완성 */

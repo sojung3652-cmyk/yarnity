@@ -3,7 +3,7 @@
 // worked (시작 사슬 / 바닥 / 몸통 / 잇기 / 마무리 ...); its two lines are made from that part's own rows, so every
 // number on a card is the plan's. The picture is the step's symbol chart where stitches are counted, the 3D
 // where the shape has to be seen (joining, the finished piece) - at most two 3D pictures, the last two.
-import { PART_KO, type Part, type Plan, type Row } from "./pattern";
+import { partKo, type Part, type Plan, type Row } from "./pattern";
 
 export interface StepCard {
   no: string;
@@ -17,8 +17,34 @@ export interface StepCard {
 
 const CHARTED: Part[] = ["start", "bottom", "body", "rim", "flap", "rows", "rounds", "panel", "strip", "strap"];
 
-function linesOf(part: Part, rows: Row[], next: Part | undefined): [string, string] {
+/** 모자·소품 기본형 (lib/wear): the steps that are not a bag's say what they are themselves */
+function wearLines(item: string, part: Part, rows: Row[]): [string, string] | null {
+  const first = rows[0], last = rows[rows.length - 1], R = rows.length, top = Math.max(...rows.map(r => r.n)), posts = rows.filter(r => r.post === 0).length;
+  if (rows.some(r => r.motif)) {
+    const names = new Set(rows.map(r => r.motif!.name)), rounds = Math.max(...rows.map(r => r.motif!.r));
+    return [names.size > 1 ? `${rounds}단짜리 사각 모티프를 ${names.size}장 뜹니다.` : `사각 모티프 1장을 ${rounds}단까지 뜹니다.`, `마지막 단은 한 변 ${2 * rounds}코, 한 바퀴 ${8 * rounds}코입니다.`];
+  }
+  if (part === "join" && (item === "motifhat" || item === "earflap")) { const n = rows.filter(r => r.n > 0).map(r => r.n); return [n.length ? `두 겹을 함께 떠서 짧은뜨기 ${n.join("코, ")}코로 잇습니다.` : "조각을 맞대어 잇습니다.", item === "earflap" ? "접힌 선이 뒤통수 가운데로 갑니다." : "겉이 밖으로 오게 맞대어, 이은 선이 겉에서 보입니다."]; }
+  switch (item + ":" + part) {
+    case "buckethat:bottom": case "hoodscarf:bottom": return [`${R}단 동안 늘려 한 바퀴가 ${last.n}코가 됩니다.`, "이 둘레가 머리둘레입니다. 단마다 첫 코에 단수링을 겁니다."];
+    case "buckethat:body": return [`늘림 없이 ${R}단을 내려 뜹니다.`, `한 바퀴는 ${last.n}코입니다.`];
+    case "buckethat:rim": return [`챙을 ${R}단 뜹니다.`, `단마다 조금씩 늘려 ${top}코까지 넓힙니다.`];
+    case "buckethat:join": return ["챙을 접는 선에서 안으로 접어 감침질로 잇습니다.", "두 겹 챙이 됩니다."];
+    case "hoodscarf:panel": return [`${last.n}코로 ${R}단을 왕복해 내려 뜹니다.`, "뜨지 않고 남긴 코가 얼굴 자리입니다."];
+    case "hoodscarf:strap": return [`양 끝 ${last.n}코씩 ${posts}단을 뜹니다.`, "두 줄이 스카프 끈이 됩니다."];
+    case "earflap:panel": return [`사슬 ${first.n}코에서 ${rows.filter(r => !/시작 사슬$/.test(r.label)).length}단을 내려 뜹니다.`, "시작 사슬이 정수리 선입니다."];
+    case "earflap:strap": return [`양 끝 ${last.n}코씩 ${posts}단을 뜹니다.`, "두 줄이 귀덮개가 됩니다."];
+    case "earflap:rim": return [`얼굴선을 따라 ${last.n}코로 ${R}단을 뜹니다.`, "앞걸어와 뒤걸어를 번갈아 세로 골을 만듭니다."];
+    case "kerchief:rows": return [`${R}단을 왕복으로 뜹니다.`, `${first.n}코에서 ${last.n}코까지 단마다 늘립니다.`];
+    case "kerchief:handle": return [`사슬 ${last.n}코로 묶는 끈을 ${R}개 뜹니다.`, "긴 변의 양 끝에 하나씩 답니다."];
+    case "backpack:handle": return [`아래 고리 ${R - 1}개와 조임끈을 뜹니다.`, "끈은 입구를 한 바퀴 지나 양쪽 아래 고리에 묶습니다."];
+  }
+  return null;
+}
+
+function linesOf(part: Part, rows: Row[], next: Part | undefined, item?: string | null): [string, string] {
   const first = rows[0], last = rows[rows.length - 1], R = rows.length, grew = rows.some(r => r.inc > 0), shrank = rows.some(r => r.inc < 0);
+  const own = item ? wearLines(item, part, rows) : null; if (own) return own;
   switch (part) {
     case "start": return [`사슬 ${last.n}코를 만듭니다.`, next === "rounds" ? "꼬이지 않게 고리로 이어 둘레로 뜹니다." : "이 사슬에서 첫 단을 시작합니다."];
     case "bottom": return [`${R}단 동안 늘려 한 바퀴가 ${last.n}코가 됩니다.`, "단마다 첫 코에 단수링을 걸어 시작을 표시합니다."];
@@ -37,12 +63,12 @@ function linesOf(part: Part, rows: Row[], next: Part | undefined): [string, stri
 }
 
 /** The plan as step cards. `startName`: what a knitted piece calls its first step (코잡기). */
-export function stepCards(pp: Plan, startName?: string): StepCard[] {
+export function stepCards(pp: Plan, startName?: string, item?: string | null): StepCard[] {
   const out: StepCard[] = []; let i = 0;
   while (i < pp.rows.length) {
     const part = pp.rows[i].part; let j = i; while (j + 1 < pp.rows.length && pp.rows[j + 1].part === part) j++;
     const rows = pp.rows.slice(i, j + 1);
-    out.push({ no: "", part, title: part === "start" && startName ? startName : PART_KO[part], lines: linesOf(part, rows, pp.rows[j + 1]?.part), pic: CHARTED.includes(part) ? "chart" : "3d", from: i, to: j });
+    out.push({ no: "", part, title: part === "start" && startName ? startName : partKo(part, item), lines: linesOf(part, rows, pp.rows[j + 1]?.part, item), pic: CHARTED.includes(part) ? "chart" : "3d", from: i, to: j });
     i = j + 1;
   }
   // the last card is the finished piece: the plan's own last step (브러싱) when it has one

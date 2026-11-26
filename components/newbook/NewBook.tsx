@@ -1283,7 +1283,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     // the first thing on the stage (Kim): the yarn as it will look, before any shape
     intro: <YarnCheck source={swatchSrc} plan={swatchPlan} big />, startShape: yarnSet,
     dims: input.object === "coaster" || input.object === "bag" ? [input.a, input.object === "bag" && input.h ? input.h : input.shape === "circle" ? input.a : input.b ?? input.a] : undefined,
-    parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined), onClosed: () => setRev(r => r + 1),
+    parts: partsOf(pp, isKnit({ item: item.id }) ? "코잡기" : undefined, item.id), onClosed: () => setRev(r => r + 1),
     // 단추 / 라벨 dragged on the 3D (Kim): kept where they were let go, their size as it was
     onExtraMove: exMove, extraTools: { name: exName, size: exSize, remove: exRemove, replace: exReplace, isButton: exIsBtn, current: exPicOf },
     onShot: url => shots.set("draft", url) }) : null;

@@ -11,7 +11,8 @@ import { WorkMore } from "@/components/WorkMore";
 import { useYarn3D, YarnPreviewButton } from "@/src/features/yarn3d/YarnPreviewButton";
 import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
-import { clamp, fmt, PART_KO, plan, type Row } from "@/lib/pattern";
+import { clamp, fmt, plan, type Row } from "@/lib/pattern";
+import { isWear } from "@/lib/wear";
 import { partName, shownPlan } from "@/lib/knit";
 import { StepCards } from "@/components/StepCards";
 import "@/components/stepcards.css";
@@ -210,6 +211,7 @@ export function TrackScreen() {
   const nx = pp.rows[current + 1];
   const flag = !done && r.part === "rounds" && r.no === 1 ? "고리로 둥글게 이어 뜹니다. 단마다 첫 코에 빼뜨기로 닫습니다."
     : !done && r.part === "rows" && r.no === 2 ? "단 끝마다 사슬 1코를 세우고 뒤집습니다."
+    : !done && isWear(p.item) ? (r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? "여기부터 늘림 없이 아래로 내려 뜹니다." : "")
     : !done && r.part === "body" && pp.rows[r.idx - 1].part === "bottom" ? (pp.rows.some(x => x.part === "body" && x.inc) ? "여기부터 위로. 단마다 늘림 수만큼 고르게 늘립니다." : "여기부터 늘림 없이 위로.")
     : !done && r.part === "flap" && r.label === "덮개 1" ? "뒤판 가운데에서 시작해 왕복으로 뜹니다."
     : !done && r.label === "테두리 1" ? "몸통 끝. 테두리로 마무리합니다."
@@ -332,7 +334,7 @@ export function TrackScreen() {
           </div>
         </header>
         <div className="tk-progress">
-          <span className="tk-sec" id="trPart">{done ? "완성" : r.part === "start" ? <><b>{secNo(r.part)}</b>{partName(r.part, p!)}</> : <><b>{secNo(r.part)}</b>{PART_KO[r.part]} · {r.label}</>}</span>
+          <span className="tk-sec" id="trPart">{done ? "완성" : r.part === "start" ? <><b>{secNo(r.part)}</b>{partName(r.part, p!)}</> : <><b>{secNo(r.part)}</b>{partName(r.part, p!)} · {r.label}</>}</span>
           <div className="tk-bar" aria-hidden="true"><i id="trBar" style={{ width: (current / total * 100) + "%" }} /></div>
           <span className="tk-pos">{Math.min(current + 1, total)}<i>/</i>{total}</span>
         </div>
@@ -397,7 +399,7 @@ export function TrackScreen() {
                   {([["list", "단 목록"], ["cards", "단계 카드"]] as const).map(([k, tx]) => <button key={k} type="button" role="radio" aria-checked={stepView === k} onClick={() => pickStepView(k)}>{tx}</button>)}
                 </span>
                 {stepView === "list" && <button type="button" className="tk-more" aria-expanded={allRows} onClick={() => setAllRows(a => !a)}>{allRows ? "가까운 단만" : `전체 ${total}단 보기`}</button>}</div>
-              {stepView === "cards" && <StepCards p={p} pp={pp} current={current} startName={partName("start", p)} />}
+              {stepView === "cards" && <StepCards p={p} pp={pp} current={current} startName={isWear(p.item) ? undefined : partName("start", p)} />}
               <ol className="tk-list" id="trNext" hidden={stepView === "cards"}>
                 {shown.map(x => (
                   <li key={x.idx} className={x.idx < current ? "is-done" : x.idx === current ? "is-now" : ""}>

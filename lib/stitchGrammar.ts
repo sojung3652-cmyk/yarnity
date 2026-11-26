@@ -139,6 +139,10 @@ function layRow(items: Item[]): { st: ChartStitch[]; ch: Chart["ch"]; slots: Slo
 }
 
 // ------------------------------------------------------------------ 한국식 표기
+/** what a run of `n` chains is of an arch: a whole one, a half (a round that begins and ends with half an arch),
+ *  nothing. `big` the row's arch (its longest run): 5 and under as every net was counted before (4 and more a
+ *  whole, 2 a half) - a net of 3 chains has halves of 1, one of 7 halves of 3 (lib/pattern NET). */
+export const archOf = (n: number, big: number): number => (big === 3 ? (n === 3 ? 1 : n === 1 ? .5 : 0) : big >= 7 ? (n === big ? 1 : n === (big - 1) / 2 ? .5 : 0) : n >= 4 ? 1 : n === 2 ? .5 : 0);
 type KNode = { text: string } | { body: KNode[]; times: number };
 const K_STITCH = /(세길\s?긴뜨기|두길\s?긴뜨기|한길\s?긴뜨기|긴뜨기|짧은뜨기|빼뜨기)\s*(\d+)?/g;
 /** a row is in the Korean notation when it has its marks: (*), a [ ] or { } group, or a count closing it */
@@ -186,7 +190,7 @@ export function readKorean(line: string): KoreanRow | null {
   else if (am) { total = { kind: "arch", n: Number(am[1]) }; s = s.slice(0, am.index); }
   else if (tm) { total = { kind: "count", n: Number(tm[1]) }; s = s.slice(0, tm.index); }
   const nodes = splitKorean(s); if (!nodes) return null;
-  const c = { stitches: 0, chains: 0, arches: 0, base: 0, marks: 0 }; let begun = false;
+  const c = { stitches: 0, chains: 0, arches: 0, base: 0, marks: 0 }, runs: [number, number][] = []; let begun = false;
   const walk = (ns: KNode[], k: number) => {
     for (const nd of ns) {
       if ("body" in nd) { walk(nd.body, k * nd.times); continue; }
@@ -200,7 +204,7 @@ export function readKorean(line: string): KoreanRow | null {
         const n = Number(ch[1]);
         if (stand) c.stitches += k;
         else if (!begun) { /* the 기둥사슬: no stitch */ }
-        else { c.chains += n * k; c.arches += (n >= 4 ? 1 : n === 2 ? .5 : 0) * k; }
+        else { c.chains += n * k; runs.push([n, k]); }
         begun = true; continue;
       }
       t = t.replace(/(\d+)\s*코\s*건너\s*(뛰고|뛰기|뛰어)?/g, " ").trim(); if (!t) continue;       // skipped stitches make none
@@ -215,6 +219,8 @@ export function readKorean(line: string): KoreanRow | null {
     }
   };
   walk(nodes, 1);
+  // the row's arch is its longest run of chains (5, or a net of 3 or 7 - lib/koreanNotation archOf)
+  const big = Math.max(0, ...runs.map(r => r[0])); c.arches = runs.reduce((s, [n, k]) => s + archOf(n, big) * k, 0);
   const ok = !total ? true : total.kind === "count" ? (c.base && !c.stitches ? c.base : c.stitches + c.chains) === total.n
     : total.kind === "arch" ? c.arches === total.n : c.stitches === total.n && c.chains === total.ch;
   return { label, total, ...c, ok };

@@ -27,7 +27,7 @@ function ChartPic({ p, pp, card }: { p: Project; pp: Plan; card: StepCard }) {
  *  `flat`: no 3D picture (a phone: more than one 3D view ran its graphics memory out) - joining shows the
  *  joined edge's chart, the other shape steps their two lines alone. */
 export function StepCards({ p, pp, current, startName, onPick, flat }: { p: Project; pp: Plan; current?: number; startName?: string; onPick?: (row: number) => void; flat?: boolean }) {
-  const cards = useMemo(() => stepCards(pp, startName), [pp, startName]);
+  const cards = useMemo(() => stepCards(pp, startName, p.item), [pp, startName, p.item]);
   // a phone shows the web's own pages (components/mobile/useMobile): there the cards carry no 3D picture
   const phone = usePhone(), noLive = flat || phone !== false;
   return (

@@ -9,7 +9,7 @@ const { chromium } = require(root + "/node_modules/playwright");
 const BASE = process.env.BASE || "http://localhost:3000", OUT = path.join(root, "public", "protos");
 // the starters in the order the list shows them: the bag and pouch kinds, then every other item once
 const kinds = [...fs.readFileSync(path.join(root, "lib/prototypes.ts"), "utf8").matchAll(/^\s*\{ id: "(\w+)", group: "[^"]+", name: "([^"]+)"(?:[^\n]*?family: "([^"]+)", choice: \["([^"]+)")?/gm)].map(m => ({ id: m[1], name: m[2], family: m[3], choice: m[4] }));
-const items = [...fs.readFileSync(path.join(root, "lib/items.ts"), "utf8").matchAll(/^\s*\{ id: "(\w+)", name: "([^"]+)"/gm)].map(m => ({ id: m[1], name: m[2] })).filter(x => !["minibag", "bucket", "pouch"].includes(x.id));
+const items = [...fs.readFileSync(path.join(root, "lib/items.ts"), "utf8").matchAll(/^\s*\{ id: "(\w+)", name: "([^"]+)"/gm)].map(m => ({ id: m[1], name: m[2] })).filter(x => !["minibag", "bucket", "pouch"].includes(x.id) && !kinds.some(k => k.id === x.id)); // (a starter-only item - 모자, 소품 - is a kind already)
 const all = [...kinds, ...items];
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });

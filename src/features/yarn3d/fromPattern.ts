@@ -7,13 +7,15 @@
 //   tube                      n stitches x the "rounds" rounds     -> "tube"
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
 import { isChainRow, pieceLayout, pieceOf } from "@/lib/structure";
-import { CROCHET, grownHandle, openingN, plan, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
+import { CROCHET, NET, grownHandle, netArch, openingN, PACK_STRAP, plan, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
+import { isWear } from "@/lib/wear";
+import { bottleProfile, wornForm } from "./worn";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
 import { compileChart, type Chart, type ChartKey } from "@/lib/crochetChart";
 import { chartFor } from "@/lib/stitchCharts";
 import { chartFromSteps } from "@/lib/stitchGrammar";
-import type { WallStitch, YarnMaterial, YarnPattern, YarnShape } from "./engine";
+import type { WallStitch, YarnMaterial, YarnPattern, YarnShape, YarnStand } from "./engine";
 
 /** the pattern's own fields the engine reads (Draft and Project both have them) */
 export interface YarnSource extends PlanInput {
@@ -104,8 +106,11 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   if (!yarn3dSupported(p) || !pp.rows.length) return null;
   if (p.object === "bag" && (p.build === "panels" || p.build === "hobo1") && !p.free && !p.paint) { const q = builtAs(p, pp); return toYarnPattern(q, plan(q as PlanInput)); }
   const counts = (...parts: string[]) => pp.rows.filter(r => parts.includes(r.part)).map(r => Math.max(1, Math.round(r.n)));
-  let shape: YarnShape, rowColors: (string | undefined)[] | null = null;
-  if (p.paint) {
+  let shape: YarnShape, rowColors: (string | undefined)[] | null = null, stand: YarnStand | null = null, seam = false;
+  // 모자·후드 기본형 (lib/wear): set on a head as it is worn, every stitch of the plan's rows in its place
+  const worn = isWear(p.item) && !p.paint && !p.free ? wornForm(p, pp) : null;
+  if (worn) { shape = { kind: "form", key: worn.key, courses: worn.courses, size: worn.size }; stand = worn.stand; seam = !!worn.seam; }
+  else if (p.paint) {
     // a painted picture: its stitches as the pattern counts them, holes and colours as painted
     const { W, H } = paintSize(p.paint, pp.g);
     shape = { kind: "grid", W, H, wCm: p.paint.wCm, hCm: p.paint.hCm, cells: paintMask(p.paint, W, H), pieces: p.paint.pieces ?? 1 };
@@ -161,14 +166,18 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   // and how much of each half narrows from the plan's own counts
   const rimN = openingN(pp);
   const GH = p.object === "bag" && p.handle && p.handle !== "none" && p.handleKind === "grown" && rimN ? grownHandle(p, pp.g, rimN) : null;
-  const strap = p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : p.handleKind === "wrist" ? "wrist" as const : GH || p.handleCount === 1 ? "long" : p.handleCount === 2 ? "two" : handleCm >= 60 ? "long" : "two";
+  const strap = p.item === "backpack" && p.object === "bag" && !p.free ? "pack" as const : p.object !== "bag" || !p.handle || p.handle === "none" ? "none" : p.handleKind === "wrist" ? "wrist" as const : GH || p.handleCount === 1 ? "long" : p.handleCount === 2 ? "two" : handleCm >= 60 ? "long" : "two";
   // several materials picked: the one picked last is drawn (so pressing another one shows it at once)
   const material = [...(p.materials ?? [])].reverse().map(m => MAT[m]).find(Boolean) ?? "cotton";
   // a chart's other colours: the other yarns picked, or a lighter and a darker of the main one
   const more = (p.moreColors ?? []).filter(c => !c?.held).map(c => c?.hex).filter((h): h is string => !!h && /^#[0-9a-f]{6}$/i.test(h));
-  const colors = rowColors ? rowColors.map(c => c ?? color) : shape.kind === "chart" ? [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] : [color];
+  // (a motif hat's seams: the next yarn picked, or the yarn's own colour a tone deeper - Kim: 모티프 경계가 보이게)
+  const colors = rowColors ? rowColors.map(c => c ?? color) : shape.kind === "chart" ? [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] : seam ? [color, more[0] ?? shade(color, -.3)] : [color];
+  // 보틀백 (Kim: 병 모양 받침 위에): the bottle it is made for stands in it, drawn to the bag's own width
+  if (p.item === "bottlebag" && p.object === "bag" && !p.free) { const d = p.bottleD && p.bottleD > 0 ? p.bottleD : Math.max(2, p.a - 1), h = p.bottleH && p.bottleH > 0 ? p.bottleH : (p.h ?? 16) / .75; stand = { kind: "bottle", prof: bottleProfile(d / 2, h), fitTo: d }; }
+  const pack = p.item === "backpack" && p.object === "bag" && !p.free;
   // the stitch pattern picked, on a bag's body (the bottom stays plain, as it is worked)
-  const wc = p.object === "bag" && !p.free && !isKnit(p) ? (p.crochetChart ? wallOfRounds(p.crochetChart, pp)
+  const wc = p.object === "bag" && !p.free && !isKnit(p) && !worn ? (p.crochetChart ? wallOfRounds(p.crochetChart, pp, netArch(p))
     : p.chartName && chartFor(p.chartName) ? wallOfChart(chartFor(p.chartName)!) : null) : null;
   const wall = wc ? { ...wc, colors: [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] } : null;
   // 메탈사 held two or three strands together (Kim): the yarn drawn as thick as the strands make it
@@ -176,19 +185,21 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   // 사선 / 삼각형 덮개 (lib/structure): how wide it still is at its end, from the pattern's own rows
   const flapRows = pp.rows.filter(r => r.part === "flap"), flapTip = flapRows.length ? flapRows[flapRows.length - 1].n / Math.max(1, flapRows[0].n) : 1;
   const mm0 = p.yarnMm || LEVEL_MM[p.weight] || 3, yarnMm = pliesOf(p) > 1 ? pliedMm(mm0, pliesOf(p)) : mm0;
-  return { shape, colors, yarnMm, hookMm: hookMmOf(p), strap, strapCm: GH ? GH.lenCm : handleCm, material,
+  return { shape, colors, yarnMm, hookMm: hookMmOf(p), strap, strapCm: pack ? (p.tieCm && p.tieCm > 0 ? p.tieCm : PACK_STRAP) : GH ? GH.lenCm : handleCm, material,
+    ...(stand ? { stand } : {}),
     // 브러싱 (Kim): the finished piece brushed - more hair and longer by how hard it is brushed, on top of the
     // reader's own 털 양 / 털 길이 (a smooth yarn gets fuzz too: above 1 the 3D adds it)
     ...(br > 0 || (p.fuzzK != null && p.fuzzK !== 1) ? { fuzzK: (p.fuzzK ?? 1) + br * 3 } : {}), ...(br > 0 || (p.hairK != null && p.hairK !== 1) ? { hairK: (p.hairK ?? 1) * (1 + br * 1.5) } : {}),
-    ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
-    ...(p.free ? {} : p.item === "pouch" && p.gusset !== "box" && p.flapOver !== "top" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
+    // (a bottle's bag is held in shape by its bottle)
+    ...((p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10) || (stand?.kind === "bottle") ? { firm: true } : {}),
+    ...(p.free ? {} : p.item === "pouch" && p.gusset !== "box" && p.flapOver !== "top" ? { top: "pinch" as const } : p.item === "bucket" || pack ? { top: "cinch" as const } : {}),
     // with a flap the top closes to the gap asked (2cm when not said)
     ...(p.softK && p.softK !== 1 ? { softK: p.softK } : {}),
     // 합사 (Kim): the first added yarn held together with the main one - its colour twists in, its fibres show
     ...((h => h ? { marl: h.hex, marlShare: (h.yarnMm && h.yarnMm > 0 ? h.yarnMm : (p.yarnMm || 3)) / ((p.yarnMm || 3) + (h.yarnMm && h.yarnMm > 0 ? h.yarnMm : (p.yarnMm || 3))), ...((m => m && MAT[m] ? { marlMat: MAT[m] } : {})(h.materials?.length ? h.materials[h.materials.length - 1] : h.material)) } : {})((p.moreColors ?? []).find(c => c?.held && !!c.hex && /^#[0-9a-f]{6}$/i.test(c.hex)))),
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && !GH && p.flapOver !== "top" ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
     // a handle is flat or a tube (Kim: no strands): flat when not said
-    ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),
+    ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle && !pack ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),
     ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && !GH ? { flap: { cm: p.flapCm, shape: p.taper === "both" ? "triangle" as const : p.taper === "left" ? "slant-l" as const : p.taper === "right" ? "slant-r" as const : p.flapShape ?? "half", ...(p.taper ? { tip: flapTip } : {}), ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.crochetStitch === "blo" || (p.object === "bag" && p.build === "ribbed") ? { ridge: true } : {}),
@@ -222,9 +233,11 @@ function drawnRounds(rows: Plan["rows"]): { n: number; at: number }[] {
 }
 /** a picked pattern on the body, round by round as drawn: the evening round and the rim plain, each pattern
  *  round its repeat row (shell: the fans, then the fans half a repeat over...) */
-function wallOfRounds(k: ChartKey, pp: Plan): { W: number; H: number; t: WallStitch[][] } {
-  const rows = pp.rows.filter(r => r.part === "body" || r.part === "rim"), W = WALL[k][0].length, plain = Array<WallStitch>(W).fill("sc");
-  let pi = 0; const pat = rows.map(r => r.hk ? WALL[k][pi++ % WALL[k].length] : plain);
+function wallOfRounds(k: ChartKey, pp: Plan, arch = 5): { W: number; H: number; t: WallStitch[][] } {
+  // (a net of 3 or 7 chains - lib/pattern NET: a 짧은뜨기 and chains over its own multiple, the next round half over)
+  const cell = k === "net" && arch !== 5 ? [0, Math.floor(NET[arch].m / 2)].map(o => Array.from({ length: NET[arch].m }, (_, i): WallStitch => (i === o ? "sc" : "ch"))) : WALL[k];
+  const rows = pp.rows.filter(r => r.part === "body" || r.part === "rim"), W = cell[0].length, plain = Array<WallStitch>(W).fill("sc");
+  let pi = 0; const pat = rows.map(r => r.hk ? cell[pi++ % cell.length] : plain);
   const t = drawnRounds(rows).map(x => pat[x.at]);
   return { W, H: t.length, t };
 }

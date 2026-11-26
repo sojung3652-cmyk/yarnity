@@ -14,7 +14,9 @@ export type ItemId =
   | "basket" | "planter" | "pencil" | "cupholder"
   | "minibag" | "bucket" | "pouch"
   | "scarf" | "neckwarmer" | "headband"
-  | "dishcloth" | "bookmark" | "blanket" | "beanie";
+  | "dishcloth" | "bookmark" | "blanket" | "beanie"
+  // 모자·소품 기본형 (Kim; lib/wear): shown among the 기본형 only (their groups are not in GROUPS)
+  | "buckethat" | "motifhat" | "hoodscarf" | "earflap" | "kerchief" | "bottlebag" | "backpack";
 export type FieldKey = "a" | "b" | "h" | "circ" | "depth";
 export interface Field { key: FieldKey; label: string; min: number; max: number }
 /** Any length may be typed (Kim: no limits on sizes): from 1cm, and up to 30m only so that a slip of the
@@ -34,6 +36,9 @@ export interface Item {
 }
 
 export const GROUPS = ["납작한 것", "담는 것", "가방", "두르는 것", "그 밖에"] as const;
+/** the groups that are 기본형 only (Kim: 모자·소품 기본형): not in the lists of things to pick, nor told to Yarni */
+export const STARTER_GROUPS = ["모자", "소품"] as const;
+export const isStarterOnly = (it: { group: string }) => (STARTER_GROUPS as readonly string[]).includes(it.group);
 
 export const ITEMS: Item[] = [
   // ---- 납작한 것 (flat-round) ----
@@ -79,6 +84,22 @@ export const ITEMS: Item[] = [
     desc: "무릎에 덮는 담요", level: "보통", time: "한 달", method: "사슬 → 왕복뜨기" },
   { id: "beanie", name: "비니", group: "그 밖에", kind: "base-body", shapes: ["circle"], beta: true, defaults: { shape: "circle", a: 0, h: 0, handle: "none", circ: 56, depth: 20 }, range: { circ: [44, 62], depth: [15, 26] },
     desc: "정수리부터 둥글게 뜨는 모자", level: "보통", time: "주말 하루", method: "정수리(원형) → 몸통", note: "베타: 정수리가 평평하게 나올 수 있습니다." },
+  // ---- 모자 (lib/wear: counted from the head's round and height, not from a / b) ----
+  { id: "buckethat", name: "버킷햇", group: "모자", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 18, h: 8, handle: "none", circ: 56 }, range: { circ: [44, 64], h: [4, 14] },
+    desc: "정수리 원형에 곧은 옆과 챙이 달린 모자", level: "보통", time: "주말 하루", method: "정수리(원형) → 옆 → 챙" },
+  { id: "motifhat", name: "모티프 버킷햇", group: "모자", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 18, h: 7, handle: "none", circ: 56 }, range: { circ: [44, 64] },
+    desc: "사각 모티프를 이어 붙인 모자", level: "보통", time: "주말 이틀", method: "모티프 → 잇기" },
+  { id: "hoodscarf", name: "후드 스카프", group: "모자", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 18, h: 18, handle: "none", circ: 56 }, range: { circ: [44, 64] },
+    desc: "원형에서 시작하는 후드에 긴 끈이 이어진 스카프", level: "보통", time: "일주일", method: "정수리(원형) → 왕복뜨기 → 끈" },
+  { id: "earflap", name: "이어플랩 후드", group: "모자", kind: "base-body", shapes: ["rect"], defaults: { shape: "rect", a: 28, b: 2, h: 24, handle: "none", circ: 56 }, range: { circ: [44, 64] },
+    desc: "판을 반 접어 잇고 귀덮개를 길게 내린 후드", level: "쉬움", time: "주말 이틀", method: "판 → 귀덮개 → 잇기" },
+  { id: "kerchief", name: "삼각 헤드스카프", group: "모자", kind: "flat-rows", defaults: { a: 50, b: 26, circ: 56 }, range: { circ: [44, 64] },
+    desc: "한 꼭짓점에서 늘려 뜨는 삼각 스카프", level: "쉬움", time: "하루", method: "꼭짓점 → 왕복뜨기 → 끈" },
+  // ---- 소품 ----
+  { id: "bottlebag", name: "보틀백", group: "소품", kind: "base-body", shapes: ["circle"], handles: true, defaults: { shape: "circle", a: 8, h: 16.5, handle: "long", handleCm: 110 }, range: { a: [5, 14], h: [8, 30] },
+    desc: "병을 넣어 메는 그물 가방", level: "쉬움", time: "하루", method: "원형 바닥 → 그물 몸통 → 끈" },
+  { id: "backpack", name: "드로스트링 백팩", group: "소품", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 22, h: 30, handle: "none" }, range: { a: [14, 32], h: [18, 45] },
+    desc: "끈 하나로 조이고 메는 원통 배낭", level: "보통", time: "주말 이틀", method: "원형 바닥 → 몸통 → 끈 구멍 단 → 끈" },
 ];
 
 /** Handle lengths offered for bags (cm): carried in the hand, on the shoulder, across the body. */

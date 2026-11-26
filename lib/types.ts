@@ -146,6 +146,20 @@ export interface Draft {
   /** beanie inputs (converted to a / h by engineDims) */
   circ?: number;
   depth?: number;
+  /** 모자·소품 기본형 (lib/wear, lib/pattern PlanInput): the head's height, a hat's brim and whether it is double,
+   *  a motif hat's motifs round the head and its brim motifs' extra rounds, a cord / strip / flap's length and
+   *  width, the rows along a hood's face edge, a net's arch (3 / 5 / 7 chains), a bottle's own sizes */
+  headH?: number;
+  brimCm?: number;
+  brimFold?: boolean;
+  motifN?: number;
+  brimMore?: number;
+  tieCm?: number;
+  tieWcm?: number;
+  ribRows?: number;
+  netCh?: 3 | 5 | 7;
+  bottleD?: number;
+  bottleH?: number;
 }
 
 export interface YarnColor { hex?: string; name?: string; no?: string; lot?: string;

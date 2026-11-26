@@ -1,11 +1,11 @@
 // Shared between the /api/chat route and the client. No secrets here.
 
-import { HANDLE_PRESETS, ITEMS } from "./items";
+import { HANDLE_PRESETS, ITEMS, isStarterOnly } from "./items";
 
 // System prompt for "AI와 상의하기" in 도안 만들기 (components/newbook/AiPanel.tsx). The item list and the
 // ranges come from lib/items.ts, so the model knows exactly what the app can calculate. Every value it
 // proposes is checked again on the client (lib/aiApply.ts) and only applied when the user presses 책에 적용.
-const itemLines = ITEMS.map(it => {
+const itemLines = ITEMS.filter(it => !isStarterOnly(it)).map(it => {
   const r = Object.entries(it.range).map(([k, v]) => `${k} ${v![0]}~${v![1]}`).join(", ");
   return `- ${it.id}: ${it.name} (${it.group}${it.shapes ? `, 모양 ${it.shapes.join("/")}` : ""}${it.handles ? ", 손잡이" : ""}; ${r})`;
 }).join("\n");

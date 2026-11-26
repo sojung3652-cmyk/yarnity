@@ -78,7 +78,10 @@ export function autoName(d: Draft): string {
 }
 
 /** what the reader typed, read without the AI (no key, no network): the item by its words, the usual parts */
-const WORDS: [RegExp, ItemId][] = [[/슬라우치|호보|그물|네트|마켓백|골지|플리츠/, "minibag"], [/파우치|필통|동전지갑|지갑/, "pouch"], [/버킷|복조리|복주머니/, "bucket"], [/가방|백|토트|숄더|크로스/, "minibag"], [/바구니|바스켓|수납/, "basket"], [/화분/, "planter"], [/연필|펜꽂이/, "pencil"], [/컵\s*홀더|텀블러/, "cupholder"],
+const WORDS: [RegExp, ItemId][] = [
+  // 모자·소품 기본형 (Kim): before the bags' words - 텀블러백 is a bottle's bag, 백팩 no handbag, 후드 스카프 no 목도리
+  [/버킷\s*햇|벙거지/, "buckethat"], [/이어\s*플랩|귀달이/, "earflap"], [/헤드\s*스카프|두건|반다나/, "kerchief"], [/후드/, "hoodscarf"], [/보틀|물병|텀블러\s*백/, "bottlebag"], [/백팩|배낭/, "backpack"],
+  [/슬라우치|호보|그물|네트|마켓백|골지|플리츠/, "minibag"], [/파우치|필통|동전지갑|지갑/, "pouch"], [/버킷|복조리|복주머니/, "bucket"], [/가방|백|토트|숄더|크로스/, "minibag"], [/바구니|바스켓|수납/, "basket"], [/화분/, "planter"], [/연필|펜꽂이/, "pencil"], [/컵\s*홀더|텀블러/, "cupholder"],
   [/수세미/, "scrubber"], [/냄비\s*받침/, "trivet"], [/코스터|컵\s*받침/, "coaster"], [/테이블\s*매트|식탁\s*매트/, "placemat"], [/러그|발매트/, "rug"], [/목도리|머플러|스카프/, "scarf"], [/넥워머/, "neckwarmer"], [/헤어\s*밴드|머리띠/, "headband"],
   [/행주/, "dishcloth"], [/책갈피/, "bookmark"], [/담요|블랭킷/, "blanket"], [/비니|모자/, "beanie"]];
 export function guessItem(text: string): ItemId | null { for (const [re, id] of WORDS) if (re.test(text)) return id; return null; }

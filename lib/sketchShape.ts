@@ -1,7 +1,8 @@
 // 그려서 만들기 (Kim: "the bag in my head" - draw the whole piece, the AI reads its shape, Yarnity makes the
 // pattern and the 3D). What the AI returns (app/api/shape) and how it becomes a draft. The AI only describes;
 // every number is checked and kept inside the item's own ranges here, so a strange answer cannot break a draft.
-import { ITEM, ENGINE, type ItemId } from "./items";
+import { ITEM, ENGINE, isStarterOnly, type ItemId } from "./items";
+import { PROTOS, protoDraft } from "./prototypes";
 import type { Draft } from "./types";
 import type { Shape } from "./pattern";
 
@@ -60,6 +61,9 @@ export function readSpec(o: unknown): ShapeSpec | null {
 /** the spec as a draft: which item, its bottom and sizes (inside the item's ranges), the body, flap, handles,
  *  what is sewn on, the colour */
 export function specToDraft(d: Draft, s: ShapeSpec): Draft {
+  // 모자·소품 기본형 (Kim): the words name a starter - it comes up as its 기본형 does
+  const starter = s.item && isStarterOnly(ITEM[s.item]) ? PROTOS.find(p => p.id === s.item) : undefined;
+  if (starter) return protoDraft(d, starter);
   if (s.item && ITEM[s.item].kind !== "base-body" && ITEM[s.item].kind !== "flat-round") return wordsToFlat(d, s);
   // no handle drawn: never the handbag (Kim: a card wallet came out as 미니 손가방) - a closed piece is a pouch
   const id: ItemId = s.item ?? (s.kind === "pouch" || (s.kind === "bag" && !s.handles) ? "pouch" : s.kind === "basket" ? "basket" : s.kind === "coaster" ? (s.bottom === "oval" ? "placemat" : "coaster") : "minibag");

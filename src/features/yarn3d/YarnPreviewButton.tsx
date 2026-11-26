@@ -8,7 +8,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { ClothLabel } from "@/components/newbook/ClothLabel";
 import { ClothPatch } from "@/components/diary/Diary";
-import { PART_KO, plan as planOf, type Plan } from "@/lib/pattern";
+import { partKo, plan as planOf, type Plan } from "@/lib/pattern";
 import type { WorkExtra } from "./YarnWorkspace";
 import { toYarnPattern, type YarnSource } from "./fromPattern";
 import "./yarn3d-place.css";
@@ -18,13 +18,13 @@ const YarnPreview = dynamic(() => import("./YarnPreview"), { ssr: false });
 const YarnWorkspace = dynamic(() => import("./YarnWorkspace"), { ssr: false });
 
 /** a plan's parts in the order they are made, with their counts (the work screen's 부분) */
-export function partsOf(pp: Plan, startName?: string): [string, string][] {
+export function partsOf(pp: Plan, startName?: string, item?: string | null): [string, string][] {
   const out: [string, string][] = [];
   let i = 0;
   while (i < pp.rows.length) {
     const part = pp.rows[i].part; let j = i; while (j + 1 < pp.rows.length && pp.rows[j + 1].part === part) j++;
     const n = Math.round(pp.rows[j].n), c = j - i + 1;
-    out.push([part === "start" && startName ? startName : PART_KO[part], part === "handle" && pp.rows[i].grown ? `${c}단` : part === "start" || part === "handle" ? `${n}코` : `${c}단 · ${n}코`]);
+    out.push([part === "start" && startName ? startName : partKo(part, item), part === "handle" && pp.rows[i].grown ? `${c}단` : part === "start" || part === "handle" ? `${n}코` : `${c}단 · ${n}코`]);
     i = j + 1;
   }
   return out;
@@ -45,7 +45,7 @@ export function useYarn3D(source: YarnSource | null | undefined, pp?: Plan | nul
   const show = useCallback(() => { back.current = document.activeElement as HTMLElement | null; setOpen("wide"); }, []); // phones too: the web's work screen, laid out narrow (Kim, 11/25)
   // focus goes back to what opened it (when it is still on the screen)
   const close = useCallback(() => { setOpen(false); ex.current?.onClosed?.(); requestAnimationFrame(() => { if (back.current?.isConnected) back.current.focus({ preventScroll: true }); }); }, []);
-  const parts = useMemo(() => (thePlan ? partsOf(thePlan) : []), [thePlan]);
+  const parts = useMemo(() => (thePlan ? partsOf(thePlan, undefined, source?.item) : []), [thePlan, source?.item]);
   /** the overlay with what the screen knows only later in its render (도안 만들기: its steps as the panel) */
   const render = (e?: WorkExtra): ReactNode => {
     ex.current = e ?? extra;

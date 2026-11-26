@@ -3,7 +3,7 @@
 // around it, each turned to grow outward; rows and tubes as rows of + with their chains / slip stitches.
 // Browser-only: reads CSS colour tokens from :root.
 import { CHART_MULT } from "./crochetChart";
-import { dots, outline, paintMask, paintSize, type PaintShape, type Plan, type Row, type Shape } from "./pattern";
+import { dots, NET, outline, paintMask, paintSize, type PaintShape, type Plan, type Row, type Shape } from "./pattern";
 import { drawSym, type StitchSym } from "./stitchSymbols";
 import { isChainRow, pieceLayout, pieceOf, pieceRows } from "./structure";
 import type { Project } from "./types";
@@ -49,7 +49,7 @@ export function drawMap(cv: HTMLCanvasElement, pp: Plan, shape: Shape, upto: num
 
   // the centre: a magic ring, or the chain the oval / rect bottom starts from
   const st1 = stateOf(1);
-  if (shape === "circle") drawSym(ctx, "ring", cx, cy, Math.max(6, pp.g.h * sc * 0.9), 0, col[st1], weight);
+  if (shape === "circle" || pp.c <= 1) drawSym(ctx, "ring", cx, cy, Math.max(6, pp.g.h * sc * 0.9), 0, col[st1], weight);
   // oval / rect: the chain the bottom starts from
   else { const n = pp.c - 1, gap = pp.g.w * sc; for (let k = 0; k < n; k++) drawSym(ctx, "ch", cx + (k - (n - 1) / 2) * gap, cy, Math.min(size, gap * 1.1), 0, col[st1], weight); }
 
@@ -82,7 +82,9 @@ export function drawMap(cv: HTMLCanvasElement, pp: Plan, shape: Shape, upto: num
  *  round's start (the left edge) and ends with the other half - the start itself never moves sideways.
  *  `n` stitches are shown across `bw`. False: a pattern drawn as plain stitches still (구멍뜨기, V 스티치). */
 function drawWall(ctx: CanvasRenderingContext2D, w: NonNullable<Row["wall"]>, n: number, x0: number, bw: number, y: number, size: number, color: string, weight: number): boolean {
-  const m = CHART_MULT[w.k][0], gap = bw / n, reps = Math.max(1, Math.floor(n / m)), half = w.i % 2 === 1, at = (s: number) => x0 + (s + .5) * gap;
+  // (a net's arch of 3 or 7 chains - lib/pattern NET - stands over 3 or 5 stitches)
+  const A = w.k === "net" && w.ch ? NET[w.ch] : null, ac = A ? w.ch! : 5, ah = A ? A.half : 2;
+  const m = A ? A.m : CHART_MULT[w.k][0], gap = bw / n, reps = Math.max(1, Math.floor(n / m)), half = w.i % 2 === 1, at = (s: number) => x0 + (s + .5) * gap;
   const sym = (s: "sc" | "ch" | "dc", x: number, yy = y, ang = 0, k = 1) => drawSym(ctx, s, x, yy, size * k, ang, color, weight);
   // a fan: `count` 한길긴뜨기 from one stitch, leaning from `from` to `to` (radians), their feet together
   const fan = (x: number, count: number, from: number, to: number) => { for (let q = 0; q < count; q++) { const a = count === 1 ? 0 : from + (to - from) * q / (count - 1), r = size * .46; sym("dc", x + Math.sin(a) * r, y + size * .46 - Math.cos(a) * r, a); } };
@@ -95,8 +97,9 @@ function drawWall(ctx: CanvasRenderingContext2D, w: NonNullable<Row["wall"]>, n:
   }
   if (w.k === "moss") { for (let s = 0; s < reps * m; s++) sym(s % 2 === (half ? 1 : 0) ? "sc" : "ch", at(s), y, 0, s % 2 === (half ? 1 : 0) ? 1 : .7); return true; }
   if (w.k === "net") {
-    if (!half) for (let q = 0; q < reps; q++) { sym("sc", at(q * m)); arch(at(q * m), at(q * m + m), 5, .5); }
-    else { arch(at(0) - gap * .5, at(2), 2, .25); for (let q = 0; q < reps; q++) { sym("sc", at(q * m + 2)); if (q < reps - 1) arch(at(q * m + 2), at(q * m + 6), 5, .5); } arch(at(reps * m - 2), at(reps * m - 1) + gap * .5, 2, .25); }
+    const h = m / 2;
+    if (!half) for (let q = 0; q < reps; q++) { sym("sc", at(q * m)); arch(at(q * m), at(q * m + m), ac, .5); }
+    else { arch(at(0) - gap * .5, at(h), ah, .25); for (let q = 0; q < reps; q++) { sym("sc", at(q * m + h)); if (q < reps - 1) arch(at(q * m + h), at(q * m + h + m), ac, .5); } arch(at(reps * m - h), at(reps * m - 1) + gap * .5, ah, .25); }
     return true;
   }
   return false;
@@ -246,7 +249,7 @@ function drawPiece(cv: HTMLCanvasElement, p: Project, pp: Plan) {
       // the joined edge: along the bottom, and up the two sides as far as the panel goes
       const first = lay.at[0], yb = g.y1 + g.rowH * (chain ? .95 : .2);
       for (let c = 0; c < first[1]; c += 2) drawSym(g.ctx, "crab", g.X(first[0] + c), yb, g.size * .9, 0, g.now, g.wt);
-      lines.forEach((l, i) => { const y = g.yOf(i); if (y == null || l[0].post != null || i % 2) return; const [cx, n] = pos.get(l[0])!; drawSym(g.ctx, "crab", g.X(cx) - g.gap * .9, y, g.size * .9, -Math.PI / 2, g.now, g.wt); drawSym(g.ctx, "crab", g.X(cx + n - 1) + g.gap * .9, y, g.size * .9, Math.PI / 2, g.now, g.wt); });
+      if (p.item !== "earflap") lines.forEach((l, i) => { const y = g.yOf(i); if (y == null || l[0].post != null || i % 2) return; const [cx, n] = pos.get(l[0])!; drawSym(g.ctx, "crab", g.X(cx) - g.gap * .9, y, g.size * .9, -Math.PI / 2, g.now, g.wt); drawSym(g.ctx, "crab", g.X(cx + n - 1) + g.gap * .9, y, g.size * .9, Math.PI / 2, g.now, g.wt); });
     } : undefined,
   });
 }
@@ -285,10 +288,21 @@ function drawPaint(cv: HTMLCanvasElement, p: Project, pp: Plan) {
   cv.dataset.colors = String(f.palette.length);
 }
 
+/** A square motif (lib/wear 모티프 버킷햇): its rounds from the ring out, the corners' increases as V. While the
+ *  motifs are being joined, the motif made last, whole. */
+function drawMotif(cv: HTMLCanvasElement, p: Project, pp: Plan, at: number) {
+  let k = at; while (k > 0 && !pp.rows[k].motif) k--;
+  const name = pp.rows[k].motif?.name, rows = pp.rows.filter(r => r.motif?.name === name);
+  if (!rows.length) return drawGrid(cv, p, pp);
+  drawMap(cv, { ...pp, c: 1, rows }, "rect", rows.length, r => { const i = rows[r - 1].idx; return i < p.current ? "done" : i === p.current ? "now" : "future"; }, p.color);
+  cv.setAttribute("aria-label", `${name} 코 도안, ${rows.length}단 중 ${Math.min(rows.length, Math.max(1, rows.filter(r => r.idx <= p.current).length))}단째`);
+}
+
 export function drawTrack(cv: HTMLCanvasElement, p: Project, pp: Plan) {
   delete cv.dataset.folds; delete cv.dataset.lines; delete cv.dataset.colors;
   if (p.paint) return drawPaint(cv, p, pp);
   const cur = pp.rows[Math.max(0, Math.min(p.current, pp.rows.length - 1))];
+  if (cur && pp.rows.some(r => r.motif)) return drawMotif(cv, p, pp, cur.idx);
   if (cur && (cur.part === "panel" || cur.part === "strip" || cur.part === "strap" || cur.part === "join" || (cur.part === "flap" && pp.rows.some(r => r.part === "flap" && r.edge)) || (p.object === "rows" && pp.rows.some(r => r.edge)) || (cur.part === "finish" && pp.rows.some(r => r.part === "panel" || r.edge)))) return drawPiece(cv, p, pp);
   if (p.object === "rows" || p.object === "tube") return drawGrid(cv, p, pp);
   const R = pp.bottomRounds;
@@ -304,7 +318,7 @@ export function drawTrack(cv: HTMLCanvasElement, p: Project, pp: Plan) {
     wall: (ctx, r, y, size, color, wt, x0, bw) => !!r.wall && drawWall(ctx, r.wall, Math.min(cols, r.n), x0, bw, y, size, color, wt),
     cells: r => {
       const n = Math.min(cols, r.n), slip = r.part === "rim" && r.how.startsWith("빼뜨기"), ch = Math.min(n, Math.round(Math.abs(r.inc || 0) * n / r.n));
-      return Array.from({ length: n }, (_, k): [number, StitchSym, number?] => { const hit = ch > 0 && Math.floor((k + 1) * ch / n) !== Math.floor(k * ch / n); return [(k + .5) * cols / n - .5, slip ? "sl" : hit ? ((r.inc || 0) > 0 ? "inc" : "dec") : "sc", slip ? .8 : 1]; });
+      return Array.from({ length: n }, (_, k): [number, StitchSym, number?] => { const hit = ch > 0 && Math.floor((k + 1) * ch / n) !== Math.floor(k * ch / n); return [(k + .5) * cols / n - .5, slip ? "sl" : r.rib ? "dc" : hit ? ((r.inc || 0) > 0 ? "inc" : "dec") : "sc", slip ? .8 : 1]; });
     },
     label: "몸통을 옆에서 본 코 도안",
   });

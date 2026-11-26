@@ -34,7 +34,18 @@ import { stitchOf } from "@/lib/knit";
 export type YarnMaterial = "cotton" | "wool" | "mohair" | "linen" | "silk" | "chenille" | "raffia" | "cord" | "fur" | "metal"
   | "cashmere" | "alpaca" | "angora" | "sleep" | "boucle" | "scrub" | "tshirt" | "ribbon" | "jute" | "nylon";
 /** wrist: a loop to slip the hand through, hanging from the top's right corner (Kim: a wristlet) */
-export type YarnStrap = "none" | "two" | "long" | "wrist";
+/** pack: a drawstring backpack's one cord - round the opening, and down each side to a loop at the bottom */
+export type YarnStrap = "none" | "two" | "long" | "wrist" | "pack";
+/** a course of a piece whose stitches are set where they lie (YarnShape "form"; src/features/yarn3d/worn): the
+ *  stitches' places (x, y, z in cm, y up from the table), the course they stand on (an index; -1: none - a cord,
+ *  drawn as a strand), the point the fabric faces away from, and - when they are not the piece's own - the
+ *  stitches drawn (one for the course or one a stitch) and their colours' indexes. `ghost`: not drawn, only
+ *  stood on. */
+export interface FormCourse { p: number[]; closed?: boolean; on: number; ghost?: boolean; cen: [number, number, number]; ci?: number; cols?: number[]; ty?: WallStitch | WallStitch[] }
+/** what a piece is shown on (Kim: 모자·후드는 머리 모양 받침 위에, 보틀백은 병 모양 받침 위에 - 아주 연한 색): a lathe's
+ *  outline, [radius, height] in cm from the table up. `fitTo`: the piece's own width (cm) the outline was drawn
+ *  for - a piece the engine settles itself (a bottle's bag) is measured, and the stand made to that measure. */
+export interface YarnStand { kind: "head" | "bottle" | "torso"; prof: [number, number][]; fitTo?: number }
 /** what is drawn, in the pattern's own counts (stitches per course, bottom first) */
 export type YarnShape =
   | { kind: "round"; counts: number[]; flat: number }                       // magic ring; `flat` = rounds that lie flat (the bottom)
@@ -47,7 +58,10 @@ export type YarnShape =
   /** (`turn`: worked sideways - the rows stand upright in the piece, a row's stitches running up it; W, wCm are a row's, H, hCm the rows') */
   | { kind: "grid"; W: number; H: number; wCm: number; hCm: number; cells: number[]; pieces?: 1 | 2; turn?: boolean }
   // a crochet stitch pattern (lib/crochetChart: shells, mesh...), lying flat: every stitch from its base to its top
-  | { kind: "chart"; chart: Chart; wCm: number; hCm: number };
+  | { kind: "chart"; chart: Chart; wCm: number; hCm: number }
+  // a piece set where it lies when worn (a hat on a head): nothing settles. `key` names the form (what it was
+  // made from), `size` its width, depth and height in cm as the screen says them
+  | { kind: "form"; key: string; courses: FormCourse[]; size: [number, number, number | null] };
 export interface YarnPattern {
   shape: YarnShape;
   /** one colour per course, bottom first (a shorter list: its last colour goes on) */
@@ -126,6 +140,8 @@ export interface YarnPattern {
    *  row first - each cell the stitch worked there (sc, hdc, dc, tr, pop a bobble, ch a chain over a gap: a hole)
    *  and its colour (an index into `colors` here); the body's rounds take it round after round */
   wall?: { W: number; H: number; t: WallStitch[][]; c?: number[][]; colors?: string[] };
+  /** the stand under or inside the piece (a head, a bottle), in a very pale colour */
+  stand?: YarnStand;
 }
 export type WallStitch = "sc" | "hdc" | "dc" | "tr" | "pop" | "ch";
 export interface YarnInfo { round: boolean; widthCm: number; depthCm: number; heightCm: number | null; fit: string; skip: { stitch: number; row: number } | null }
@@ -231,14 +247,17 @@ export function stitchCount(s: YarnShape): number {
   if (s.kind === "oval" || s.kind === "rect") return s.chain + [...s.bottom, ...s.body].reduce((a, b) => a + b, 0);
   if (s.kind === "grid") return s.cells.filter(c => c >= 0).length * (s.pieces ?? 1);
   if (s.kind === "chart") return s.chart.st.length * 3 + s.chart.ch.length;
+  if (s.kind === "form") return s.courses.reduce((a, c) => a + (c.ghost ? 0 : c.p.length / 3), 0);
   return s.W * s.H;
 }
 
 type Edge = [number, number, number, number];
 type Bot = [number, number, number];
-interface Course { idx: number[]; closed: boolean; bot: Bot[] | null; ci: number; /** a round of the body (the wall), not the bottom */ body?: boolean }
+interface Course { idx: number[]; closed: boolean; bot: Bot[] | null; ci: number; /** a round of the body (the wall), not the bottom */ body?: boolean;
+  /** a form's course (FormCourse): the point its fabric faces away from, its stitches and their colours when they are its own */
+  cen?: THREE.Vector3; cols?: number[]; ty?: WallStitch | WallStitch[] }
 interface Knit { type: "flat" | "tube"; W: number; H: number; swap: boolean; wk: number; rk: number; rho: number; R: number }
-interface ItemData { P: THREE.Vector3[]; E: Edge[]; C: Course[]; rh: number; sw: number; knit: Knit | null; flat: number[]; fixed: boolean; skip: { stitch: number; row: number } | null; iter: number; done: boolean }
+interface ItemData { P: THREE.Vector3[]; E: Edge[]; C: Course[]; rh: number; sw: number; knit: Knit | null; flat: number[]; fixed: boolean; skip: { stitch: number; row: number } | null; iter: number; done: boolean; /** set where it lies (a form): it stays there, over its stand */ form?: boolean }
 
 export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, opts: ViewerOpts): YarnViewer | null {
   let renderer: THREE.WebGLRenderer;
@@ -692,7 +711,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     };
     const below = new Map<number, number>();
 
-    let knit: Knit | null = null, fixed = false, skip: ItemData["skip"] = null, rhOut = rh, swOut = sw;
+    let knit: Knit | null = null, fixed = false, form = false, skip: ItemData["skip"] = null, rhOut = rh, swOut = sw;
     if (kk > 1) skip = { stitch: kk, row: kk };
     if (s.kind === "round") round(s.counts, s.flat);
     else if (s.kind === "oval" || s.kind === "rect") { const b = aroundChain(s.chain, s.bottom, s.kind === "oval" ? stad : rectPath); if (s.body.length) wall(b, s.body, s.kind === "rect"); }
@@ -711,13 +730,24 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     } else if (s.kind === "grid") {
       const k = skipOf(s.W, s.H * (s.pieces ?? 1)), { ex, ey } = grid(s, k);
       fixed = true; skip = k > 1 ? { stitch: k, row: k } : null; rhOut = ey; swOut = ex;
+    } else if (s.kind === "form") {
+      // a piece set where it lies: its stitches as given; each stands on the nearest stitch of the course it is worked into
+      const U = 10 / MM, at: number[][] = s.courses.map(c => { const idx: number[] = []; for (let i = 0; i + 2 < c.p.length; i += 3) { P.push(new THREE.Vector3(c.p[i] * U, c.p[i + 1] * U, c.p[i + 2] * U)); idx.push(P.length - 1); } return idx; });
+      s.courses.forEach((c, k) => {
+        if (c.ghost) return;
+        const idx = at[k], below = c.on >= 0 ? at[c.on] : null; let bot: Bot[] | null = null;
+        if (below && below.length) bot = idx.map(n => { let b = below[0], bd = 1e9; for (const m of below) { const d = P[n].distanceToSquared(P[m]); if (d < bd) { bd = d; b = m; } } E.push([n, b, Math.sqrt(bd), 1]); return [b, b, 0] as Bot; });
+        for (let i = 0; i + (c.closed ? 0 : 1) < idx.length; i++) E.push([idx[i], idx[(i + 1) % idx.length], sw, 1]);
+        C.push({ idx, closed: !!c.closed, bot, ci: c.ci ?? 0, cen: new THREE.Vector3(c.cen[0] * U, c.cen[1] * U, c.cen[2] * U), ...(c.cols ? { cols: c.cols } : {}), ...(c.ty ? { ty: c.ty } : {}) });
+      });
+      fixed = true; form = true;
     } else {
       const k = skipOf(s.W, s.H), W = Math.max(6, Math.round(s.W / k)), H = Math.max(2, Math.round(s.H / k));
       const rho = s.circCm * 10 / MM / (2 * Math.PI), ey = s.hCm * 10 / MM / H;
       fixed = true; skip = k > 1 ? { stitch: k, row: k } : null; rhOut = ey; swOut = 2 * Math.PI * rho / W;
       tube(W, H, rho, ey, midCi(k, s.H));
     }
-    return { P, E, C, rh: rhOut, sw: swOut, knit, flat, fixed, skip, iter: 0, done: false };
+    return { P, E, C, rh: rhOut, sw: swOut, knit, flat, fixed, skip, iter: 0, done: false, ...(form ? { form } : {}) };
   }
   function relax(D: ItemData, passes: number) {
     const d = new THREE.Vector3();
@@ -878,15 +908,16 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           const n = c.idx[i];
           // the stitch worked here: the pattern's on the body (a drawn round standing for k of the pattern's takes
           // the repeat's row it starts on), else the piece's own stitch
-          const ty: WallStitch = wr >= 0 ? (wl!.t[wr]?.[(i * (D.skip?.stitch ?? 1)) % wl!.W] ?? "sc") : sH < 1.4 ? "sc" : sH < 2 ? "hdc" : "dc";
-          const col = wr >= 0 && wl!.c && wl!.colors ? (wl!.colors[wl!.c[wr]?.[(i * (D.skip?.stitch ?? 1)) % wl!.W] ?? 0] ?? color) : color;
+          const ty: WallStitch = c.ty ? (typeof c.ty === "string" ? c.ty : c.ty[i] ?? "sc") : wr >= 0 ? (wl!.t[wr]?.[(i * (D.skip?.stitch ?? 1)) % wl!.W] ?? "sc") : sH < 1.4 ? "sc" : sH < 2 ? "hdc" : "dc";
+          const col = c.cols ? colorOf(c.cols[i] ?? c.ci) : wr >= 0 && wl!.c && wl!.colors ? (wl!.colors[wl!.c[wr]?.[(i * (D.skip?.stitch ?? 1)) % wl!.W] ?? 0] ?? color) : color;
           const t = D.P[n].clone(), b0 = lp(c.bot![i]), nx = D.P[c.idx[(i + 1) % c.idx.length]], pv = D.P[c.idx[(i - 1 + c.idx.length) % c.idx.length]];
-          const alongV = flatY(c.closed || i < c.idx.length - 1 ? nx.clone().sub(t) : t.clone().sub(pv)), sw = Math.max(D.sw * .6, alongV.length());
+          const along0 = c.closed || i < c.idx.length - 1 ? nx.clone().sub(t) : t.clone().sub(pv), alongV = c.cen ? along0 : flatY(along0), sw = c.cen ? Math.min(D.sw * 1.6, Math.max(D.sw * .45, alongV.length())) : Math.max(D.sw * .6, alongV.length());
           const al = alongV.lengthSq() < 1e-12 ? new THREE.Vector3(1, 0, 0) : alongV.normalize();
           // straight under its own head (its base on the row below was half a stitch over)
           const dv = b0.clone().sub(t); dv.addScaledVector(al, -dv.dot(al)); const b = t.clone().add(dv), upV = t.clone().sub(b), h = upV.length() || D.rh, up = upV.clone().divideScalar(h);
           // out of the fabric: up for a flat piece, outward for a wall
-          const out = c.closed ? new THREE.Vector3(t.x - cx0, 0, t.z - cz0) : turned ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0); if (out.lengthSq() < 1e-12) out.set(0, 1, 0); out.normalize();
+          const out = c.cen ? new THREE.Vector3().crossVectors(al, up) : c.closed ? new THREE.Vector3(t.x - cx0, 0, t.z - cz0) : turned ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0); if (out.lengthSq() < 1e-12) out.set(0, 1, 0); out.normalize();
+          if (c.cen && out.dot(t.clone().sub(c.cen)) < 0) out.negate(); // a form's fabric faces away from its own middle
           if (ridgeRow) t.addScaledVector(out, R * 1.1);
           const P = (u: number, v: number, w: number) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, w * R);
           // the head: front half up over the fabric, back half under, wider than the stitch so the next one's hooks into it
@@ -920,6 +951,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     }
     if (over()) yield;
     strapH = 0; strapEnds = [];
+    addStand(D, R);
     { // the inside's shade (yarnMat): where the piece's middle, rim and bottom are
       const U = (mat.userData.inU ?? null) as { uIn: { value: THREE.Vector4 }; uInR: { value: THREE.Vector2 }; uInK: { value: THREE.Vector3 } } | null, top = D.C[D.C.length - 1];
       if (U) {
@@ -940,7 +972,33 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const at = (f: number) => { const q = D.P[L[((Math.round(f * c - .5) % c) + c) % c]].clone(); q.y = ry; return q; };
       // the strap's height from its length (cm): an arc of that length over the gap between its ends
       const len = pat.strapCm * 10 / MM;
-      if (pat.strap === "wrist") {
+      if (pat.strap === "pack") {
+        // 드로스트링 백팩 (Kim: 끈 하나가 입구를 조이고 어깨끈이 되는 구조): one cord - round the opening through its
+        // eyelets, out at the back, and down each side to a small loop at the bottom's edge. Two strands twisted.
+        let y0 = 1e9; for (const q of D.P) y0 = Math.min(y0, q.y);
+        let rb = 0, nb = 0; for (const q of D.P) if (q.y < y0 + D.rh * 2.5) { rb = Math.max(rb, Math.hypot(q.x - cx, q.z - cz)); nb++; } if (!nb) rb = rr;
+        const yE = ry - D.rh * 1.6, re = rr + R * 1.6, back = new THREE.Vector3(cx, yE, cz + re);
+        const ringPts = Array.from({ length: 48 }, (_, i) => { const a = i / 48 * Math.PI * 2; return new THREE.Vector3(cx + Math.sin(a) * re, yE + Math.sin(a * 6) * R * .5, cz - Math.cos(a) * re); });
+        const cord = (pts: THREE.Vector3[], closed: boolean) => {
+          const cv = new THREE.CatmullRomCurve3(pts, closed, "catmullrom", .5), sp = cv.getSpacedPoints(Math.max(48, Math.ceil(cv.getLength() / (R * .6)))), turns = Math.max(6, Math.round(cv.getLength() / (R * 7)));
+          for (const ph of [0, Math.PI]) {
+            const tw = sp.map((q, i) => { const T = sp[Math.min(sp.length - 1, i + 1)].clone().sub(sp[Math.max(0, i - 1)]).normalize(), B = Math.abs(T.y) > .9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0), Nn = new THREE.Vector3().crossVectors(B, T).normalize(), B2 = new THREE.Vector3().crossVectors(T, Nn), a = i / sp.length * Math.PI * 2 * turns + ph; return q.clone().addScaledVector(Nn, Math.cos(a) * R * .75).addScaledVector(B2, Math.sin(a) * R * .75); });
+            const g = buildYarn(tw, R * .95, { M, closed, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
+          }
+        };
+        cord(ringPts, true);
+        for (const sx of [-1, 1]) {
+          if (over()) yield;
+          const foot = new THREE.Vector3(cx + sx * (rb + R * 2.2), y0 + D.rh * 1.2, cz + rb * .3), span = back.distanceTo(foot), slack = Math.max(0, len - span);
+          const bow = Math.min(rr * 1.6, Math.sqrt(Math.max(0, (span + slack) ** 2 - span ** 2)) * .32);
+          const pts = Array.from({ length: 25 }, (_, i) => { const t = i / 24, s = Math.sin(Math.PI * t); return back.clone().lerp(foot, t).add(new THREE.Vector3(sx * bow * .45 * s, -bow * .12 * s, bow * s)); });
+          cord(pts, false);
+          // the loop the cord's end is tied to
+          cord(Array.from({ length: 14 }, (_, i) => { const a = i / 14 * Math.PI * 2; return foot.clone().add(new THREE.Vector3(sx * (Math.cos(a) - 1) * D.rh * .9, Math.sin(a) * D.rh * .9, 0)); }), true);
+          strapEnds.push(foot.clone());
+        }
+        strapEnds.push(back.clone());
+      } else if (pat.strap === "wrist") {
         // 손목 고리 (Kim): from the rim's right end, a loop of the strap's length hanging down beside the piece, flat
         // to the front, as a wristlet's strap hangs
         let P = D.P[L[0]].clone(); L.forEach(n => { if (D.P[n].x > P.x) P = D.P[n].clone(); }); P.y = ry;
@@ -1080,6 +1138,23 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (over()) yield;
     yield* haloShell(geos); fz = yield* fuzzLines(geos); if (fz) group.add(fz);
     addExtras(D, R); // the phone's work screen tries buttons and labels on too (the old phone overlay had none)
+  }
+  // ---------- 받침 (Kim: 모자·후드는 머리 모양 받침 위에, 보틀백은 병 모양 받침 위에 - 아주 연한 색): a lathe of the
+  // stand's outline, one mesh. A form is set over it already; a piece the engine settled itself (a bottle's bag)
+  // is measured - how wide its wall stands - and the stand made to that, standing on the piece's bottom.
+  function addStand(D: ItemData, R: number) {
+    const sd = pat.stand; if (!sd || sd.prof.length < 3) return;
+    const U = 10 / MM; let k = 1, y0 = 0;
+    if (sd.fitTo && !D.form) {
+      const b = boxOf(D); let rr = 0, n = 0; const cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+      for (const q of D.P) if (q.y > D.rh * 2) { rr += Math.hypot(q.x - cx, q.z - cz); n++; }
+      if (!n) return; rr = rr / n - R * 1.5;
+      const widest = Math.max(...sd.prof.map(q => q[0])); if (!(widest > 0) || rr <= 0) return;
+      k = rr / (widest * U); y0 = R * 1.6;
+    }
+    const pts = sd.prof.map(([x, y]) => new THREE.Vector2(Math.max(0, x) * U * k, y * U * k));
+    const m = new THREE.Mesh(new THREE.LatheGeometry(pts, 56), new THREE.MeshStandardMaterial({ color: lin(0xE6DFD4), roughness: .97, metalness: 0 }));
+    m.position.y = y0; m.castShadow = true; m.receiveShadow = false; m.userData.stand = true; group.add(m);
   }
   // ---------- a handle as it is made (Kim). Along its centre line `cl`, its flat face towards `nrm`:
   //   tube        rounds round it, one after another (a crocheted tube), as thick as strapWcm
@@ -1368,6 +1443,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const round = s.kind === "round" || s.kind === "tube";
     const h = s.kind === "tube" ? cm(my + D.rh) : my > D.rh * 2 ? cm(my) : null;
     if (s.kind === "chart") { opts.onInfo({ round: false, widthCm: s.wCm, depthCm: s.hCm, heightCm: null, fit, skip: null }); return { my: D.rh, mr: Math.max(dx, dz) / 2 }; }
+    if (s.kind === "form") { const r1 = (v: number) => Math.round(v * 10) / 10; opts.onInfo({ round: Math.abs(s.size[0] - s.size[1]) < .05, widthCm: r1(s.size[0]), depthCm: r1(s.size[1]), heightCm: s.size[2] == null ? null : r1(s.size[2]), fit, skip: null }); return { my, mr: Math.max(dx, dz) / 2 }; }
     if (s.kind === "grid") { opts.onInfo({ round: false, widthCm: s.wCm, depthCm: s.hCm, heightCm: null, fit, skip: D.skip }); return { my, mr: Math.max(dx, my) / 2 }; }
     opts.onInfo({ round, widthCm: cm(Math.max(dx, dz)), depthCm: cm(Math.min(dx, dz)), heightCm: h, fit, skip: D.skip });
     return { my, mr: Math.max(dx, dz) / 2 };
@@ -1663,7 +1739,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     if (!D.fixed) { relax(D, ppf); D.iter++; if (holo && holo.parent) updateHolo(D); }
     if (D.iter >= (reduced() ? 1 : iters)) {
       if (!D.fixed && D.iter < iters) relax(D, Math.round(ppf * iters * .75));
-      if (D.fixed) relax(D, 0); // centre it on the ground
+      if (D.fixed && !D.form) relax(D, 0); // centre it on the ground (a form is set over its stand already)
       D.done = true;
       rest = new Float32Array(D.P.length * 3); D.P.forEach((q, i) => { rest![i * 3] = q.x; rest![i * 3 + 1] = q.y; rest![i * 3 + 2] = q.z; }); soften(D);
       // the straps' height is known once the yarn is on: the camera, and 생성 중 put away, follow it
@@ -1902,7 +1978,8 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
   // what changes the shape (counts, yarn and hook, strap): anything else is colour
   // the stitch pattern of a knitted piece changes its yarn, not its shape
   // (a strap is put on with the yarn: its length and width do not settle the shape again)
-  const shapeKey = (p: YarnPattern) => JSON.stringify([{ ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm]);
+  // (a form is named by its key: its thousands of places are not written out to be compared)
+  const shapeKey = (p: YarnPattern) => JSON.stringify([p.shape.kind === "form" ? p.shape.key : { ...p.shape, stitch: undefined }, p.yarnMm, p.hookMm, p.stand ? [p.stand.kind, p.stand.fitTo, p.stand.prof.length, p.stand.prof[p.stand.prof.length - 1]] : null]);
   return {
     setPattern(p) {
       const reshape = shapeKey(p) !== shapeKey(pat), mat = p.material !== pat.material, refocus = p.focus !== pat.focus;
