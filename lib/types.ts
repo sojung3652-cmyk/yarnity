@@ -171,6 +171,19 @@ export interface Draft {
   rimChart?: import("./crochetChart").ChartKey;
   flapStepRows?: number;
   flapStepSt?: number;
+  /** 10종 더 (lib/pattern PlanInput): a balaclava's neck and face opening and ears, a boot's foot / ankle / cuff, a
+   *  ring handle's diameter, chain loops at a bag's sides, a cord bag shown drawn in, a motif scarf's colours */
+  neckCm?: number;
+  faceW?: number;
+  faceH?: number;
+  ears?: boolean;
+  footL?: number;
+  ankleCm?: number;
+  cuffCm?: number;
+  ringCm?: number;
+  chainLoops?: boolean;
+  cinched?: boolean;
+  motifColors?: "one" | "alt" | "ring";
 }
 
 export interface YarnColor { hex?: string; name?: string; no?: string; lot?: string;

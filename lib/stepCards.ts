@@ -42,6 +42,20 @@ function wearLines(item: string, part: Part, rows: Row[]): [string, string] | nu
     case "kerchief:rows": return [`${R}단을 왕복으로 뜹니다.`, `${first.n}코에서 ${last.n}코까지 단마다 늘립니다.`];
     case "kerchief:handle": return [`사슬 ${last.n}코로 묶는 끈을 ${R}개 뜹니다.`, "긴 변의 양 끝에 하나씩 답니다."];
     case "backpack:handle": return [`아래 고리 ${R - 1}개와 조임끈을 뜹니다.`, "끈은 입구를 한 바퀴 지나 양쪽 아래 고리에 묶습니다."];
+    case "knotbag:panel": return [`사슬 ${first.n}코로 ${rows.length - 1}단을 뜹니다.`, "반 접을 판입니다. 가운데 단이 바닥이 됩니다."];
+    case "knotbag:strap": return [`양 끝 ${last.n}코씩을 ${rows.filter(r => r.post === 0).length}단과 ${rows.filter(r => r.post === 1).length}단으로 이어 뜹니다.`, "짧은 쪽이 고리, 긴 쪽이 끈입니다."];
+    case "twoway:panel": { const body = rows.filter(r => !/시작 사슬$/.test(r.label)), eye = body.find(r => r.eyelet); return [`${last.n}코로 ${body.length / 2}단을 뜹니다. 같은 판을 2장 뜹니다.`, eye ? `${eye.label.replace(/^\S+ /, "")}이 끈 구멍 단입니다.` : "늘림 없이 곧게 뜹니다."]; }
+    case "twoway:handle": return ["손잡이 2개와 조임끈을 뜹니다.", "조임끈은 끈 구멍 단에 한 바퀴 꿰어 묶습니다."];
+    // (the rounds over the face are the same part again: they begin with the round that crosses the hole)
+    case "balaclava:body": return rows.some(r => r.bridge) ? [`얼굴 구멍 위를 사슬로 건너 다시 ${R}단을 둘레로 뜹니다.`, `한 바퀴는 ${last.n}코 그대로입니다.`] : [`목에서 시작해 ${R}단을 둘레로 올립니다.`, `한 바퀴는 ${first.n}코에서 ${top}코가 됩니다.`];
+    case "balaclava:panel": return [`얼굴 자리를 남기고 ${last.n}코로 ${R}단을 왕복합니다.`, "다음 단에서 사슬로 구멍 위를 건넙니다."];
+    case "balaclava:rim": return [`정수리를 ${R}단 동안 줄여 닫습니다.`, "단마다 6코씩 줄입니다."];
+    case "balaclava:join": return ["작은 원 두 장을 정수리 양옆에 답니다.", "코 수는 바뀌지 않습니다."];
+    case "motifscarf:join": { const n = rows.find(r => r.n > 0)?.n; return [n ? `두 겹을 함께 떠서 짧은뜨기 ${n}코로 잇습니다.` : "모티프를 맞대어 잇습니다.", "겉이 밖으로 오게 맞대어, 이은 선이 겉에서 보입니다."]; }
+    case "bigsocks:bottom": return [`발끝을 ${R}단 동안 늘려 한 바퀴가 ${last.n}코가 됩니다.`, "단마다 첫 코에 단수링을 걸어 시작을 표시합니다."];
+    case "bigsocks:body": return [`늘림 없이 ${R}단을 통으로 뜹니다.`, `한 바퀴는 ${last.n}코, 발과 목이 한 통입니다.`];
+    case "bigsocks:rim": return [`접는 선 한 단과 접는 단 ${R - 1}단을 뜹니다.`, "다 뜬 뒤 밖으로 접어 내립니다."];
+    case "ringbag:handle": return [`앞뒤 가운데 ${last.n}코씩을 링에 감싸 붙입니다.`, "링을 코 안에 넣고 짧은뜨기로 감쌉니다."];
     case "trapbag:panel": { const body = rows.filter(r => !/시작 사슬$/.test(r.label)); return [`${first.n}코에서 ${top}코까지 ${body.length / 2}단을 뜹니다. 같은 판을 2장 뜹니다.`, "양 끝에서 고르게 늘려 사다리꼴을 만듭니다."]; }
     case "trapbag:handle": return [`입구에서 이어 ${last.n}코로 ${R}단을 뜹니다.`, "끝을 반대쪽 옆선에 맞대고 감침질로 잇습니다."];
     case "bonnet:bottom": return [`${R}단 동안 늘려 한 바퀴가 ${last.n}코가 됩니다.`, "이 둘레가 머리둘레입니다. 단마다 첫 코에 단수링을 겁니다."];

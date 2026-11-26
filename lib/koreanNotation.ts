@@ -154,6 +154,10 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
     const k = Math.floor((no - 2) / 2);
     return ok(rd([...st(k, name), ...rep([...two, ...st(no - 2, name)], 5), ...two, ...st(no - 2 - k, name)]));
   }
+  // 10종 더 (lib/wear, lib/pattern): a panel's row of eyelets, a round that crosses the face with chains, a ring wrapped
+  if (r.eyelet) return ok([turnT, note("뒤집어서"), ...rep([sp(1), skip(1), ...st(1, name)], r.eyelet), ...st(r.n - 2 * r.eyelet, name)]);
+  if (r.bridge) return ok(rd([...st(r.n - r.bridge, name), sp(r.bridge)]));
+  if (r.part === "handle" && /링에 감싸며/.test(r.how)) return ok([note("링에 감싸며"), ...st(r.n, SC)]);
   if (r.vnet) return { toks: [note("뒤집어서 첫 아치 가운데까지 빼뜨기로 건너가"), turnT, ...st(1, SC, "아치 가운데에"), ...rep([sp(5), ...st(1, SC, "다음 아치 가운데에")], r.vnet)], end: "arch" };
   if (r.part === "start" && /고리 연결$/.test(r.how)) return { toks: [{ t: "ch", n: r.n, kind: "base" }, note("첫 사슬에 빼뜨기로 고리")], end: "base" };
   if (r.part === "flap" && r.step) return ok([turnT, note(`뒤집어서 첫 ${r.step}코는 빼뜨기로 건너가고`), ...st(r.n, name), note(`마지막 ${r.step}코는 남기고`)]);

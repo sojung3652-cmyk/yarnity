@@ -7,7 +7,7 @@
 //   tube                      n stitches x the "rounds" rounds     -> "tube"
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
 import { isChainRow, pieceLayout, pieceOf } from "@/lib/structure";
-import { CROCHET, NET, grownHandle, netArch, openingN, PACK_STRAP, plan, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
+import { CROCHET, NET, RING_CM, grownHandle, netArch, openingN, PACK_STRAP, plan, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
 import { isWear } from "@/lib/wear";
 import { bottleProfile, wornForm } from "./worn";
 import { hookMmOf } from "@/lib/yarn";
@@ -106,10 +106,10 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   if (!yarn3dSupported(p) || !pp.rows.length) return null;
   if (p.object === "bag" && (p.build === "panels" || p.build === "hobo1") && !p.free && !p.paint) { const q = builtAs(p, pp); return toYarnPattern(q, plan(q as PlanInput)); }
   const counts = (...parts: string[]) => pp.rows.filter(r => parts.includes(r.part)).map(r => Math.max(1, Math.round(r.n)));
-  let shape: YarnShape, rowColors: (string | undefined)[] | null = null, stand: YarnStand | null = null, seam = false;
+  let shape: YarnShape, rowColors: (string | undefined)[] | null = null, stand: YarnStand | null = null, seam = false, tones: ("main" | "second" | "seam")[] | null = null;
   // 모자·후드 기본형 (lib/wear): set on a head as it is worn, every stitch of the plan's rows in its place
   const worn = isWear(p.item) && !p.paint && !p.free ? wornForm(p, pp) : null;
-  if (worn) { shape = { kind: "form", key: worn.key, courses: worn.courses, size: worn.size }; stand = worn.stand; seam = !!worn.seam; }
+  if (worn) { shape = { kind: "form", key: worn.key, courses: worn.courses, size: worn.size }; stand = worn.stand; seam = !!worn.seam; tones = worn.tones ?? null; }
   else if (p.paint) {
     // a painted picture: its stitches as the pattern counts them, holes and colours as painted
     const { W, H } = paintSize(p.paint, pp.g);
@@ -172,7 +172,7 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   // a chart's other colours: the other yarns picked, or a lighter and a darker of the main one
   const more = (p.moreColors ?? []).filter(c => !c?.held).map(c => c?.hex).filter((h): h is string => !!h && /^#[0-9a-f]{6}$/i.test(h));
   // (a motif hat's seams: the next yarn picked, or the yarn's own colour a tone deeper - Kim: 모티프 경계가 보이게)
-  const colors = rowColors ? rowColors.map(c => c ?? color) : shape.kind === "chart" ? [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] : seam ? [color, more[0] ?? shade(color, -.3)] : [color];
+  const colors = rowColors ? rowColors.map(c => c ?? color) : shape.kind === "chart" ? [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] : tones ? tones.map(t => (t === "main" ? color : t === "second" ? more[0] ?? shade(color, .55) : shade(color, -.3))) : seam ? [color, more[0] ?? shade(color, -.3)] : [color];
   // 보틀백 (Kim: 병 모양 받침 위에): the bottle it is made for stands in it, drawn to the bag's own width
   if (p.item === "bottlebag" && p.object === "bag" && !p.free) { const d = p.bottleD && p.bottleD > 0 ? p.bottleD : Math.max(2, p.a - 1), h = p.bottleH && p.bottleH > 0 ? p.bottleH : (p.h ?? 16) / .75; stand = { kind: "bottle", prof: bottleProfile(d / 2, h), fitTo: d }; }
   const pack = p.item === "backpack" && p.object === "bag" && !p.free;
@@ -190,6 +190,9 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   const mm0 = p.yarnMm || LEVEL_MM[p.weight] || 3, yarnMm = pliesOf(p) > 1 ? pliedMm(mm0, pliesOf(p)) : mm0;
   return { shape, colors, yarnMm, hookMm: hookMmOf(p), strap, strapCm: pack ? (p.tieCm && p.tieCm > 0 ? p.tieCm : PACK_STRAP) : GH ? GH.lenCm : handleCm, material,
     ...(stand ? { stand } : {}),
+    // 링 손잡이백: its two rings, the top drawn together under them; 코인 미니백 / a clutch's chain: a small loop at each side
+    ...(p.item === "ringbag" && p.object === "bag" && !p.free ? { rings: { cm: p.ringCm && p.ringCm > 0 ? p.ringCm : RING_CM }, topGap: 1.5 } : {}),
+    ...(p.object === "bag" && !p.free && !worn && (p.item === "coinbag" || p.chainLoops) ? { sideLoops: true } : {}),
     // 브러싱 (Kim): the finished piece brushed - more hair and longer by how hard it is brushed, on top of the
     // reader's own 털 양 / 털 길이 (a smooth yarn gets fuzz too: above 1 the 3D adds it)
     ...(br > 0 || (p.fuzzK != null && p.fuzzK !== 1) ? { fuzzK: (p.fuzzK ?? 1) + br * 3 } : {}), ...(br > 0 || (p.hairK != null && p.hairK !== 1) ? { hairK: (p.hairK ?? 1) * (1 + br * 1.5) } : {}),

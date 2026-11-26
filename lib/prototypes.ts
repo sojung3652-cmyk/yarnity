@@ -43,6 +43,18 @@ const KINDS: Proto[] = [
   { id: "moonbag", group: "가방", name: "반달 미니백", note: "원 두 장 · 아래 반원만 잇기", item: "moonbag", over: { a: 20, holeW: 8, handle: "none" } },
   { id: "stepbag", group: "가방", name: "계단 덮개 미니백", note: "직사각형 통 · 계단식 덮개 · 짧은 어깨끈", item: "stepbag", over: { shape: "rect", gusset: "flat", a: 18, b: 1.5, h: 12, closure: "flap", flapCm: 8, flapShape: "square", flapStepRows: 2, flapStepSt: 2, handle: "short", handleCm: 50, handleCount: 1 } },
   { id: "phonebag", group: "가방", name: "폰 크로스백", note: "휴대폰 크기 · 장식 테두리 · 긴 끈", item: "phonebag", over: { shape: "rect", gusset: "flat", phoneW: 7.5, phoneH: 16, ...phoneDims(7.5, 16), b: 1.5, rimChart: "shell", handle: "long", handleCm: 120, handleCount: 1 } },
+  // 10종 더 (Kim: 실제 작품들에서 본 구조 원리)
+  { id: "knotbag", group: "가방", name: "매듭 손잡이백", note: "판 양 끝을 비대칭으로 길게 · 끼워 묶는 손잡이", item: "knotbag", over: { a: 24, h: 22, tieCm: 14, strapCm: 36, handleWcm: 5, handle: "none" } },
+  { id: "coinbag", group: "가방", name: "코인 미니백", note: "작은 직사각형 통 · 짧은 손잡이 둘 · 체인 걸이", item: "coinbag", over: { shape: "rect", gusset: "box", a: 11, b: 5, h: 9, handle: "short", handleCm: 18, handleCount: 2, handleWcm: 1.2 } },
+  { id: "traptote", group: "가방", name: "사다리꼴 토트", note: "좁은 바닥 · 넓은 입구 · 짧은 손잡이 둘", item: "traptote", over: { shape: "rect", gusset: "box", a: 14, b: 8, h: 20, topA: 26, handle: "short", handleCm: 40, handleCount: 2 } },
+  { id: "clutch", group: "가방", name: "접는 덮개 클러치", note: "직사각형 통 · 뒤판을 길게 올려 앞으로 접는 덮개", item: "clutch", over: { shape: "rect", gusset: "flat", a: 24, b: 1.5, h: 14, closure: "flap", flapCm: 8.5, flapShape: "square", handle: "none" } },
+  { id: "ringbag", group: "가방", name: "링 손잡이백", note: "금속 링에 입구를 감싸 붙이기", item: "ringbag", over: { shape: "rect", gusset: "flat", a: 26, b: 1.5, h: 20, ringCm: 12, handle: "none" } },
+  { id: "netbucket", group: "가방", name: "미니 그물 버킷", note: "원형 바닥 · 그물 몸통 · 짧은 손잡이", item: "netbucket", over: { shape: "circle", a: 16, h: 14, crochetChart: "net", netCh: 5, handle: "short", handleCm: 30, handleCount: 1 } },
+  { id: "twoway", group: "가방", name: "2WAY 조임 토트", note: "끈으로 조이면 복주머니, 펴면 토트", item: "twoway", over: { a: 30, h: 28, handle: "short", handleCm: 36 } },
+  { id: "balaclava", group: "모자", name: "바라클라바", note: "목부터 원통 · 얼굴 구멍 · 원형 정수리", item: "balaclava", over: { circ: 56, neckCm: 36, h: 8, faceW: 14, faceH: 12 } },
+  { id: "motifscarf", group: "소품", name: "모티프 머플러", note: "사각 모티프를 한 줄로 이어 띠", item: "motifscarf", over: { a: 14, b: 140 } },
+  // (Kim: 룸부츠 대신 그냥 오버사이즈 양말로)
+  { id: "bigsocks", group: "소품", name: "오버사이즈 양말", note: "발끝 원형 · 넉넉한 긴 통 · 접어 신기", item: "bigsocks", over: { footL: 24, ankleCm: 24, h: 16, cuffCm: 4 } },
   { id: "bonnet", group: "모자", name: "보닛", note: "원형 정수리 · 뒤통수 감싸기 · 턱끈", item: "bonnet", over: { circ: 56, headH: 20, tieCm: 30,
     // 옆 장식 (Kim: 지금 장식 붙이기 - 꽃 모티프): a flower at one side, moved or taken off in 장식
     extras: { items: [{ pic: "b-pearl-blossom", at: [.95, .8, 3] }] } } },
@@ -75,6 +87,7 @@ export function protoDraft(d: Draft, p: Proto): Draft {
     closure: "open", gusset: undefined, asm: undefined, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, extras: {},
     circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined, paint: undefined,
     headH: undefined, brimCm: undefined, brimFold: undefined, motifN: undefined, brimMore: undefined, tieCm: undefined, tieWcm: undefined, ribRows: undefined, netCh: undefined, bottleD: undefined, bottleH: undefined, pattern: undefined, crochetStitch: undefined,
+    neckCm: undefined, faceW: undefined, faceH: undefined, ears: undefined, footL: undefined, ankleCm: undefined, cuffCm: undefined, ringCm: undefined, chainLoops: undefined, cinched: undefined, motifColors: undefined, strapCm: undefined,
     bust: undefined, phoneW: undefined, phoneH: undefined, rimChart: undefined, flapStepRows: undefined, flapStepSt: undefined, holeW: undefined, holeH: undefined, handleWcm: undefined,
     // 가장자리 짧은뜨기 한 바퀴 (Kim: 손잡이 포함 가방의 테두리를 짧은뜨기로 - 가방은 켜 두기)
     edgeSc: p.group === "가방" || p.group === "파우치" ? true : undefined,

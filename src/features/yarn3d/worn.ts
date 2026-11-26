@@ -3,13 +3,15 @@
 // round the back of the head, strips hanging from its ends. The engine draws these places as they are (shape
 // "form": nothing settles, so nothing waits), over a stand in a very pale colour (Kim: 받침은 아주 연한 색).
 // Light: no three.js here. Units: cm, y up from the table, the front towards +z.
-import { bonnet, bucketHat, bustier, earflap, halter, hoodScarf, kerchief, moonBag, motifHat, trapBag, type WearId } from "@/lib/wear";
+import { balaclava, bonnet, bucketHat, bustier, earflap, halter, hoodScarf, kerchief, knotBag, moonBag, motifHat, motifScarf, bigSocks, trapBag, twoWay, type WearId } from "@/lib/wear";
 import type { Plan, PlanInput } from "@/lib/pattern";
 import type { FormCourse, WallStitch, YarnStand } from "./engine";
 
 const TAU = Math.PI * 2;
 type V3 = [number, number, number];
-export interface Worn { courses: FormCourse[]; /** null: it stands by itself (a bag) */ stand: YarnStand | null; size: [number, number, number | null]; key: string; /** more colours than the yarn's: a seam's */ seam?: boolean }
+export interface Worn { courses: FormCourse[]; /** null: it stands by itself (a bag) */ stand: YarnStand | null; size: [number, number, number | null]; key: string; /** more colours than the yarn's: a seam's */ seam?: boolean;
+  /** the colours its courses' indexes stand for, when not the yarn's alone: the yarn, the second yarn, a seam's */
+  tones?: ("main" | "second" | "seam")[] }
 
 /** a head as a lathe's outline ([radius, height] from the table up): a pole, a neck, a jaw, a skull as wide as
  *  `r` whose top is at `top` */
@@ -334,14 +336,156 @@ function halterForm(p: PlanInput, pp: Plan): Worn {
   return { courses: out, stand: { kind: "torso", prof: torsoProfile(r, bust) }, size: [2 * rho, 2 * rho, H.len], key: "" };
 }
 
+// ================================================================ 10종 더 (lib/wear)
+/** an arch `L` long over a foot `2 x half` wide (half an ellipse): where it is at the length `s` along it -
+ *  [across from -half to half, up] - and how long it is as drawn */
+function archOf(half: number, L: number): { at: (s: number) => [number, number]; len: number } {
+  const per = (b: number) => Math.PI * (3 * (half + b) - Math.sqrt((3 * half + b) * (half + 3 * b))) / 2;
+  let lo = .02, hi = Math.max(1, L); for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (per(m) < L) lo = m; else hi = m; }
+  const rise = L <= 2 * half * 1.02 ? .05 : (lo + hi) / 2, N = 80, pts: [number, number][] = [], acc = [0];
+  for (let i = 0; i <= N; i++) { const a = Math.PI * i / N; pts.push([-half * Math.cos(a), rise * Math.sin(a)]); if (i) acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); }
+  return { len: acc[N], at: s => { let i = 1; while (i < N && acc[i] < s) i++; const f = Math.min(1, Math.max(0, (s - acc[i - 1]) / Math.max(1e-6, acc[i] - acc[i - 1]))); return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f]; } };
+}
+/** a strand along points (nothing under it) */
+const strandOf = (pts: V3[], cen: V3, closed = false): FormCourse => ({ p: pts.flat(), on: -1, cen, ...(closed ? { closed: true } : {}) });
+
+// ---------------------------------------------------------------- 매듭 손잡이백
+/** One panel folded at the bottom: its first half down the front, its second up the back, a little full. The
+ *  short loop stands over one end of the opening; the long strap from the other end leans across and through it. */
+function knotForm(p: PlanInput, pp: Plan): Worn {
+  const g = pp.g, K = knotBag(p, g), out: FormCourse[] = [], c = K.W * g.w, R = K.R, y0 = .45, rise = g.h * .98, top = y0 + R * rise;
+  const bow = (t: number) => .06 + .42 * Math.sin(Math.PI * Math.min(1, t * .9 + .05));
+  const rowAt = (j: number, side: number) => { const th = bow((j + .5) / R), rad = c / (2 * th), q: number[] = []; for (let k = 0; k < K.W; k++) { const ph = -th + (k + .5) / K.W * 2 * th; q.push(rad * Math.sin(ph), y0 + (j + .5) * rise, side * (rad * (Math.cos(ph) - Math.cos(th)) + .15)); } return q; };
+  out.push({ p: rowAt(R - 1, 1).map((v, i) => (i % 3 === 1 ? v + rise : v)), on: -1, ghost: true, cen: [0, top / 2, 0] });
+  for (let i = 0; i < 2 * R; i++) { const front = i < R, j = front ? R - 1 - i : i - R; out.push({ p: rowAt(j, front ? 1 : -1), on: out.length - 1, cen: [0, y0 + (j + .5) * rise, 0] }); }
+  const last = out.length - 1, edge = out[last].p, deep = Math.abs(edge[Math.floor(K.W / 2) * 3 + 2]) + .1, xr = edge[(K.W - 1) * 3], xl = edge[0];
+  // the short loop, over the row's right end: an arch from the back's edge to the front's, wide enough for the
+  // strap to go through
+  const tw = K.T * g.w, A = archOf(tw / 2 + .7, K.PS * g.h), loopTop = A.at(A.len / 2)[1]; let on = last;
+  for (let i = 0; i < K.PS; i++) { const [u, v] = A.at((i + .5) / K.PS * A.len), q: number[] = []; for (let k = 0; k < K.T; k++) q.push(xr - k * g.w, top + v, u); out.push({ p: q, on, cen: [xr - tw / 2, top - 3, 0] }); on = out.length - 1; }
+  // the long strap, from the left end: one band up over the opening, down through the loop and a little beyond
+  // it (Kim: 긴 끈을 고리에 끼워 묶음)
+  const x0 = xl + tw / 2, x1 = xr - tw / 2, D = Math.max(2, x1 - x0), len = K.PL * g.h, tail = Math.min(4, len * .12), B2 = archOf(D / 2, Math.max(D * 1.08, len - tail)), yEnd = loopTop * .45;
+  const along = (d: number): [number, number] => { if (d <= B2.len) { const [u, v] = B2.at(d); return [x0 + D / 2 + u, top + v + yEnd * (u + D / 2) / D]; } const e = d - B2.len; return [x1 + e * .75, top + yEnd - e * .65]; };
+  on = last;
+  for (let i = 0; i < K.PL; i++) { const [x, yy] = along((i + .5) / K.PL * (B2.len + tail)), q: number[] = []; for (let k = 0; k < K.T; k++) q.push(x, yy, (k - (K.T - 1) / 2) * g.w); out.push({ p: q, on, cen: [x0 + D / 2, top - 4, 0] }); on = out.length - 1; }
+  return { courses: out, stand: null, size: [c, 2 * deep, K.h], key: "" };
+}
+
+// ---------------------------------------------------------------- 2WAY 조임 토트
+/** Two panels joined round three sides. Open: a tote, a little full. Drawn in (`cinched`): the cord's row
+ *  gathered to a third of its width, the body under it round, the rows over it standing out as a frill. */
+function twoWayForm(p: PlanInput, pp: Plan): Worn {
+  const g = pp.g, T = twoWay(p, g), out: FormCourse[] = [], c = T.W * g.w, R = T.R, y0 = .45, rise = g.h * .98, te = (T.eye - .5) / R, cin = !!p.cinched;
+  const bow = (t: number) => (cin ? .12 + .95 * Math.sin(Math.PI / 2 * Math.min(1, t / (te * .7))) : .06 + .4 * Math.sin(Math.PI * Math.min(1, t * .95 + .03)));
+  const pull = (t: number) => (cin ? 1 - .66 * Math.exp(-(((t - te) / .08) ** 2)) - (t < te ? .12 * (1 - Math.abs(t / te - .55) / .55) * 0 : 0) : 1);
+  const rowAt = (j: number, side: number) => {
+    const t = (j + .5) / R, th = bow(t), rad = c / (2 * th), k0 = pull(t), q: number[] = [];
+    for (let k = 0; k < T.W; k++) { const ph = -th + (k + .5) / T.W * 2 * th, frill = cin ? (1 - k0) * .9 * Math.sin(k * 1.25) + (t > te ? .5 * (t - te) / (1 - te) * Math.sin(k * .9) : 0) : 0; q.push(rad * Math.sin(ph) * k0, y0 + (j + .5) * rise, side * ((rad * (Math.cos(ph) - Math.cos(th))) * (cin ? Math.max(.45, k0) : 1) + .15 + frill)); }
+    return q;
+  };
+  let wide = 0, deep = 0;
+  for (const side of [1, -1]) {
+    out.push({ p: rowAt(0, side).map((v, i) => (i % 3 === 1 ? v - rise : v)), on: -1, ghost: true, cen: [0, y0, 0] });
+    for (let j = 0; j < R; j++) { const q = rowAt(j, side); out.push({ p: q, on: out.length - 1, cen: [0, y0 + (j + .5) * rise, 0] }); for (let i = 0; i < q.length; i += 3) { wide = Math.max(wide, Math.abs(q[i])); deep = Math.max(deep, Math.abs(q[i + 2])); } }
+  }
+  const top = y0 + R * rise, topRow = rowAt(R - 1, 1), zt = Math.abs(topRow[Math.floor(T.W / 2) * 3 + 2]), xt = Math.abs(topRow[0]), cen: V3 = [0, top, 0];
+  // the two handles (a chain and back: a cord each), over the front's and the back's top
+  for (const side of [1, -1]) { const A = archOf(xt * .45, T.hl), pts: V3[] = []; for (let i = 0; i <= 36; i++) { const [u, v] = A.at(i / 36 * A.len); pts.push([u, top + v, side * (zt + .25)]); } out.push(strandOf(pts, cen)); }
+  // the cord round the eyelets' row, its ends tied at the front when it is drawn in
+  const er = rowAt(T.eye - 1, 1), ye = y0 + (T.eye - .5) * rise, ex = Math.abs(er[0]) + .35, ez = Math.abs(er[Math.floor(T.W / 2) * 3 + 2]) + .45, ring: V3[] = [];
+  for (let i = 0; i < 44; i++) { const a = i / 44 * TAU; ring.push([ex * Math.sin(a), ye + .15 * Math.sin(a * 5), ez * Math.cos(a)]); }
+  out.push(strandOf(ring, [0, ye, 0], true));
+  if (cin) for (const s of [-1, 1]) out.push(cordTo([0, ye, ez], [s * 3.5, ye + 1.5, ez + 2.5], [s * 4.5, ye - Math.min(9, T.cordCm * .1), ez + 1.2], [0, ye, 0]));
+  return { courses: out, stand: null, size: [2 * wide, 2 * deep, T.h], key: "" };
+}
+
+// ---------------------------------------------------------------- 바라클라바
+/** From the neck up, on a head: the neck's rounds, the round that widens, the rounds under the face, the face's
+ *  rows open at the front, the round that crosses it, the rounds over it, the crown closing; ears on top. */
+function balaForm(p: PlanInput, pp: Plan): Worn {
+  const g = pp.g, B = balaclava(p, g), rho = B.N1 * g.w / TAU, rho0 = B.N0 * g.w / TAU, rs = Math.max(4, rho - .45), out: FormCourse[] = [];
+  const cap = capOf(B.R1 * g.h, rho), drop = cap(B.R1 * g.h)[1], M = B.neckRows + 1 + B.chin + B.faceRows + 1 + B.brow;
+  const topS = Math.max(3.3 * rs, drop + M * g.h + 1.5), top = topS + .4, cen: V3 = [0, top - 14, 0], yAt = (k: number) => top - drop - (M - k - .5) * g.h;   // k: 0 the lowest round of the tube
+  const span = TAU * (B.N1 - B.F) / B.N1; let k = 0;
+  out.push({ p: ring(B.N0, rho0, yAt(0) - g.h), on: -1, ghost: true, cen });
+  const full = (n: number, rad: number) => { out.push({ p: ring(n, rad, yAt(k)), closed: true, on: out.length - 1, cen: [0, yAt(k), 0] }); k++; };
+  for (let i = 0; i < B.neckRows; i++) full(B.N0, rho0);
+  full(B.N1, rho0 + (rho - rho0) * .6);
+  for (let i = 0; i < B.chin; i++) full(B.N1, rho);
+  for (let i = 0; i < B.faceRows; i++) { const n = B.N1 - B.F, q: number[] = []; for (let s = 0; s < n; s++) { const a = -span / 2 + (s + .5) / n * span; q.push(rho * Math.sin(a), yAt(k), -rho * Math.cos(a)); } out.push({ p: q, on: out.length - 1, cen: [0, yAt(k), 0] }); k++; }
+  for (let i = 0; i < 1 + B.brow; i++) full(B.N1, rho);
+  for (let r = B.R1 - 1; r >= 1; r--) { const [rad, dy] = cap((r - .5) * g.h); out.push({ p: ring(6 * r, Math.max(.05, rad), top - dy), closed: true, on: out.length - 1, cen }); }
+  if (B.ears) for (const sx of [-1, 1]) {
+    const ex = sx * rho * .52, ey = top - cap(rho * .52)[1] + 1.4 * g.h, ec: V3 = [ex, ey, -40];
+    out.push({ p: [ex, ey, 0], on: -1, ghost: true, cen: ec });
+    for (let r = 1; r <= 3; r++) { const n = 6 * r, rr = (r - .5) * g.h, q: number[] = []; for (let i = 0; i < n; i++) { const a = (i + .5) / n * TAU; q.push(ex + rr * Math.sin(a), ey + rr * Math.cos(a), 0); } out.push({ p: q, closed: true, on: out.length - 1, cen: ec }); }
+  }
+  return { courses: out, stand: { kind: "head", prof: headProfile(rs, topS) }, size: [2 * rho, 2 * rho, drop + M * g.h], key: "" };
+}
+
+// ---------------------------------------------------------------- 모티프 머플러
+/** The motifs in one line on the table, each its own square rounds from its middle out, in its colours. */
+function scarfForm(p: PlanInput, pp: Plan): Worn {
+  // (laid in a horseshoe, as a scarf lies round a neck, so that a long one is seen whole and is not taken for a
+  // mat: it is one line of motifs, bent where the line turns)
+  const g = pp.g, M = motifScarf(p, g), out: FormCourse[] = [], y = .35, S = M.E * g.w, len = M.n * S, Rc = 1.3 * S, bent = len >= Math.PI * Rc + 2 * S, L1 = bent ? (len - Math.PI * Rc) / 2 : 0, z0 = (L1 + Rc) / 2;
+  // the band's middle `s` along it (x, z), and the way across it there
+  const at = (t: number): [number, number, number, number] => {
+    if (!bent) return [t - len / 2, 0, 0, 1];
+    if (t <= L1) return [-Rc, z0 - t, 1, 0];
+    const a = (t - L1) / Rc;
+    return a <= Math.PI ? [-Rc * Math.cos(a), z0 - L1 - Rc * Math.sin(a), Math.cos(a), Math.sin(a)] : [Rc, z0 - L1 + (t - L1 - Math.PI * Rc), -1, 0];
+  };
+  for (let k = 0; k < M.n; k++) {
+    const sk = (k + .5) * S, [mx, mz] = at(sk), cen: V3 = [mx, -60, mz];
+    out.push({ p: [mx, y, mz], on: -1, ghost: true, cen });
+    for (let r = 1; r <= M.R; r++) {
+      const n = 8 * r, hs = (r - .5) * g.w, q: number[] = [];
+      for (let i = 0; i < n; i++) { const d = (i + .5) / n * 8 * hs, e = Math.min(3, Math.floor(d / (2 * hs))), u = d - e * 2 * hs - hs; const [x, z] = e === 0 ? [u, -hs] : e === 1 ? [hs, u] : e === 2 ? [-u, hs] : [-hs, -u], [px, pz, nx, nz] = at(sk + x); q.push(px + z * nx, y, pz + z * nz); }
+      const tone = M.colors === "alt" ? k % 2 : M.colors === "ring" && r >= M.turn ? 1 : 0;
+      out.push({ p: q, closed: true, on: out.length - 1, cen, ci: tone });
+    }
+  }
+  return { courses: out, stand: null, size: [M.lenCm, M.sideCm, null], key: "", tones: ["main", "second"] };
+}
+
+// ---------------------------------------------------------------- 오버사이즈 양말
+/** A pair, side by side: the toe's cap, the tube lying along the foot, turned up at the heel, loose up the leg,
+ *  the cuff folded down outside it. */
+function sockForm(p: PlanInput, pp: Plan): Worn {
+  const g = pp.g, B = bigSocks(p, g), toe = pp.rows.filter(r => r.part === "bottom"), rim = pp.rows.filter(r => r.part === "rim"), out: FormCourse[] = [];
+  const rho = B.N * g.w / TAU, cap = capOf(B.R * g.h, rho), capLen = cap(B.R * g.h)[1], rb = rho * .95, yc = rho + .3, Lf = Math.max(g.h, B.heel * g.h - rb * .6), z0 = (capLen + Lf) / 2;
+  // where the tube's middle is `s` along it from the toe's tip, and which way it goes there
+  const mid = (s: number): [V3, V3] => {
+    if (s <= capLen + Lf) return [[0, yc, z0 - s], [0, 0, -1]];
+    const a = (s - capLen - Lf) / rb, zh = z0 - capLen - Lf;
+    if (a <= Math.PI / 2) return [[0, yc + rb * (1 - Math.cos(a)), zh - rb * Math.sin(a)], [0, Math.sin(a), -Math.cos(a)]];
+    return [[0, yc + rb + (a - Math.PI / 2) * rb, zh - rb], [0, 1, 0]];
+  };
+  const round = (n: number, rad: number, s: number, x0: number): { p: number[]; c: V3 } => { const [c, t] = mid(s), u: V3 = [0, -t[2], t[1]], q: number[] = []; for (let i = 0; i < n; i++) { const a = (i + .5) / n * TAU; q.push(x0 + c[0] + rad * Math.cos(a), c[1] + rad * Math.sin(a) * u[1], c[2] + rad * Math.sin(a) * u[2]); } return { p: q, c: [x0 + c[0], c[1], c[2]] }; };
+  let height = 0;
+  for (const x0 of [-(rho + 1.4), rho + 1.4]) {
+    out.push({ p: [x0, yc, z0 + g.h * .2], on: -1, ghost: true, cen: [x0, yc, z0 - capLen] });
+    toe.forEach((r, i) => { const [rad, d] = cap((i + .5) * g.h), k = round(r.n, Math.max(.05, rad), d, x0); out.push({ p: k.p, closed: true, on: out.length - 1, cen: [x0, yc, z0 - capLen] }); });
+    let s = capLen, c: V3 = [x0, yc, 0];
+    // (loose up the leg: it slumps a little, round by round)
+    for (let j = 0; j < B.rows; j++) { s += g.h; const leg = j > B.heel ? 1 + .05 * Math.sin(j * 1.7) : 1, k = round(B.N, rho * leg, s - g.h / 2, x0); c = k.c; out.push({ p: k.p, closed: true, on: out.length - 1, cen: c }); }
+    rim.forEach((r, i) => { const k = round(r.n, rho + (i === 0 ? .25 : .6), s + g.h * .5 - (i === 0 ? 0 : i * g.h), x0); out.push({ p: k.p, closed: true, on: out.length - 1, cen: k.c }); height = Math.max(height, k.c[1]); });
+    height = Math.max(height, c[1]);
+  }
+  return { courses: out, stand: null, size: [B.foot, 4 * rho + 2.8, height + rho], key: "" };
+}
+
 const cache = new Map<string, Worn>();
 /** a wear piece as it is worn, from its plan (kept for the sizes it was made for: the same piece asked again
  *  - a colour changed, a screen opened - is not laid out again) */
 export function wornForm(p: PlanInput, pp: Plan): Worn | null {
-  const id = p.item as WearId, key = JSON.stringify([id, pp.g.h, pp.g.w, p.circ, p.h, p.headH, p.brimCm, p.brimFold, p.motifN, p.brimMore, p.tieCm, p.tieWcm, p.ribRows, p.crochetChart, pp.rows.length, p.a, p.topA, p.holeW, p.handleCm, p.handleWcm, p.bust]);
+  const id = p.item as WearId, key = JSON.stringify([id, pp.g.h, pp.g.w, p.circ, p.h, p.headH, p.brimCm, p.brimFold, p.motifN, p.brimMore, p.tieCm, p.tieWcm, p.ribRows, p.crochetChart, pp.rows.length, p.a, p.topA, p.holeW, p.handleCm, p.handleWcm, p.bust, p.b, p.strapCm, p.cinched, p.neckCm, p.faceW, p.faceH, p.ears, p.motifColors, p.footL, p.ankleCm, p.cuffCm]);
   const hit = cache.get(key); if (hit) return hit;
   const f = id === "buckethat" ? bucketForm(p, pp) : id === "motifhat" ? motifForm(p, pp) : id === "hoodscarf" ? hoodForm(p, pp) : id === "earflap" ? earflapForm(p, pp) : id === "kerchief" ? kerchiefForm(p, pp)
-    : id === "trapbag" ? trapForm(p, pp) : id === "moonbag" ? moonForm(p, pp) : id === "bonnet" ? bonnetForm(p, pp) : id === "bustier" ? bustierForm(p, pp) : id === "halter" ? halterForm(p, pp) : null;
+    : id === "trapbag" ? trapForm(p, pp) : id === "moonbag" ? moonForm(p, pp) : id === "bonnet" ? bonnetForm(p, pp) : id === "bustier" ? bustierForm(p, pp) : id === "halter" ? halterForm(p, pp)
+    : id === "knotbag" ? knotForm(p, pp) : id === "twoway" ? twoWayForm(p, pp) : id === "balaclava" ? balaForm(p, pp) : id === "motifscarf" ? scarfForm(p, pp) : id === "bigsocks" ? sockForm(p, pp) : null;
   if (!f) return null;
   f.key = key; if (cache.size > 12) cache.delete(cache.keys().next().value as string); cache.set(key, f);
   return f;

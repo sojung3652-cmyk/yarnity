@@ -56,6 +56,7 @@ export function yarnUse(pp: Plan, d: { weight: Weight | string; yarnMm?: number 
     else if (r.part === "handle") cm += r.n * (CH + BACK) * w; // a chain, then single crochet back along it
     else cm += r.n * SC * w;
   }
+  cm *= Math.max(1, pp.pairs ?? 1); // a pair (오버사이즈 양말): the rows are one's
   const m = Math.ceil((cm / 100) * MARGIN);
   const fromLabel = d.skeinG && d.skeinM ? (d.skeinM / d.skeinG) * 100 : null;
   const labelOk = fromLabel != null && fromLabel >= LABEL_RANGE[0] && fromLabel <= LABEL_RANGE[1];

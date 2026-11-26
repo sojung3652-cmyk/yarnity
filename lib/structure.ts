@@ -316,7 +316,15 @@ export function edgeRows(pp: Plan, p: PlanInput): Row[] {
   const ends: Row[] = [], body = (name: string) => rows.filter(r => r.part === "panel" && pieceOf(r) === name && !isChainRow(r));
   const discs = rows.filter(r => (r as Row & { disc?: { name: string; hole?: number } }).disc);
   const posts = rows.filter(r => r.post != null), band = rows.filter(r => r.part === "handle" && r.grown && r.grown.k !== "edge");
-  if (discs.length) {
+  if (p.item === "knotbag") {
+    // 매듭 손잡이백: the opening between the loop and the strap, with their inner sides; then their outer sides
+    const W = rows.find(r => r.part === "panel")?.n ?? 0, T = posts[0]?.n ?? 0, s = along(posts.filter(r => r.post === 0).length), l = along(posts.filter(r => r.post === 1).length), mid = Math.max(0, W - 2 * T);
+    ends.push(loop("rim", "입구 가장자리", 2 * mid + s + l, "입구와 고리 · 끈의 안쪽", `입구 ${mid}코씩 + 고리 안쪽 ${s}코 + 끈 안쪽 ${l}코 = ${2 * mid + s + l}코`));
+    ends.push(loop("rim", "고리와 끈 바깥 가장자리", s + l, "옆선에서 고리와 끈의 바깥쪽", `고리 ${s}코 + 끈 ${l}코`));
+  } else if (p.item === "twoway") {
+    const W = rows.find(r => r.part === "panel")?.n ?? 0;
+    ends.push(loop("rim", "입구 가장자리", 2 * W, "두 판의 위(입구)", `판 위 ${W}코씩 = ${2 * W}코`));
+  } else if (discs.length) {
     // two circles joined along their lower halves: the upper halves are the opening; a hand slot in each
     const N = Math.max(...discs.map(r => r.n));
     ends.push(loop("rim", "입구 가장자리", N, "두 원의 위 반원(입구)", `마지막 단 ${N}코의 절반씩, 두 원 = ${N}코`));

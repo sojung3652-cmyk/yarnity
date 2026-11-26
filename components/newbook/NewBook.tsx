@@ -1021,7 +1021,11 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
       : item.id === "bottlebag" ? `병 지름 ${draft.bottleD ?? 7}cm에 여유를 더한 바닥 지름 ${draft.a}cm, 한 바퀴 ${pp.last}코입니다. 몸통은 ${draft.h}cm, 그물 ${pp.rows.filter(r => r.wall).length}단입니다.`
       : item.id === "stepbag" ? (() => { const fl = pp.rows.filter(r => r.part === "flap"); return `시작 사슬 ${pp.c - 1}코, 한 바퀴 ${pp.last}코로 ${pp.bodyRows}단을 올립니다.` + (fl.length ? ` 덮개는 ${fl[0].n}코에서 ${fl[fl.length - 1].n}코까지 ${fl.length}단, 계단은 ${fl.filter(r => r.step).length}번입니다.` : ""); })()
       : item.id === "phonebag" ? (() => { const edge = pp.rows.find(r => r.part === "rim" && r.wall); return `휴대폰 ${draft.phoneW ?? 7.5} × ${draft.phoneH ?? 16}cm에 여유를 더해 시작 사슬 ${pp.c - 1}코, 한 바퀴 ${pp.last}코로 ${pp.bodyRows}단을 올립니다.` + (edge ? ` 테두리 무늬는 ${edge.wall!.reps}번 들어갑니다.` : ""); })()
-      : (() => { const N = openingN(pp), P = packCord(input, pp.g, N); return `입구 한 바퀴 ${N}코에 끈 구멍 ${Math.floor(N / 2)}개, 조임끈은 약 ${P.cm}cm(사슬 ${P.cord}코)입니다.`; })();
+      : item.id === "backpack" ? (() => { const N = openingN(pp), P = packCord(input, pp.g, N); return `입구 한 바퀴 ${N}코에 끈 구멍 ${Math.floor(N / 2)}개, 조임끈은 약 ${P.cm}cm(사슬 ${P.cord}코)입니다.`; })()
+      // (the bag engine's own starters: 코인 미니백, 사다리꼴 토트, 접는 덮개 클러치, 링 손잡이백, 미니 그물 버킷)
+      : (() => { const N = openingN(pp), flap = pp.rows.filter(r => r.part === "flap"), ringRow = pp.rows.find(r => r.how.includes("링에 감싸며"));
+        return (draft.shape === "circle" ? `바닥을 ${pp.bottomRounds}단 동안 늘려 한 바퀴 ${pp.last}코` : `시작 사슬 ${pp.c - 1}코, 바닥 ${pp.bottomRounds}단에 한 바퀴 ${pp.last}코`) + `, 몸통은 ${pp.bodyRows}단${N !== pp.last ? `, 입구는 ${N}코` : ""}입니다.`
+          + (flap.length ? ` 덮개는 ${flap[0].n}코로 ${flap.length}단입니다.` : "") + (ringRow ? ` 앞뒤 가운데 ${ringRow.n}코씩을 링에 감쌉니다.` : ""); })();
     const railParts: [string, string, boolean][] = kit
       ? [...kit.map((p): [string, string, boolean] => [p.key, p.title, true]), ...(isWear(item.id) && item.id !== "bonnet" ? [] : [["extra", "장식", !!(exNow.button || exNow.label || exNow.items?.length)] as [string, string, boolean]])]
       : built
@@ -1061,7 +1065,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
           {kit && kitPart && partNow !== "extra" && <>
             <h3>{kitPart.title}<small>{kitPart.sub}</small></h3>
             {kitPart.fields.length > 0 && <div className="nb-sliders nb-sliders-1">
-              {kitPart.fields.map(f => { const v = kitValue(draft, f); return <Slide key={f.key} label={f.label} min={f.min} max={f.max} step={f.step} value={v} onChange={x => apply(f.set ? f.set(draft, x) : { [f.key]: x })} text={`${v}${f.unit}`} />; })}
+              {kitPart.fields.map(f => { const v = kitValue(draft, f); return <Slide key={f.label} label={f.label} min={f.min} max={f.max} step={f.step} value={v} onChange={x => apply(f.set ? f.set(draft, x) : { [f.key]: x })} text={`${v}${f.unit}`} />; })}
             </div>}
             {kitPart.picks?.map(k => <Fragment key={k.label}>
               {kitPart.fields.length > 0 && <p className="nb-wsubhead">{k.label}</p>}

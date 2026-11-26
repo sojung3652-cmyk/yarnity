@@ -4,7 +4,7 @@
 // so keep the arithmetic (including rnd()'s toFixed(6) rounding) exactly as is.
 
 import { edgeRows, planHobo, planPanels, planRibbed, planTaper, taperFlap, taperNote } from "./structure";
-import { planBonnet, planBucketHat, planBustier, planEarflap, planHalter, planHoodScarf, planKerchief, planMotifHat, planMoonBag, planTrapBag } from "./wear";
+import { planBalaclava, planBonnet, planBucketHat, planBustier, planEarflap, planHalter, planHoodScarf, planKerchief, planKnotBag, planMotifHat, planMotifScarf, planMoonBag, planBigSocks, planTrapBag, planTwoWay } from "./wear";
 import { CHART_MULT, type ChartKey } from "./crochetChart";
 import { PATTERN_BY_ID, STITCH_PATTERNS, type Rep } from "./stitchPatterns";
 
@@ -43,6 +43,14 @@ export const WEAR_PARTS: Record<string, Partial<Record<Part, string>>> = {
   bonnet: { bottom: "정수리", panel: "뒤통수", handle: "턱끈" },
   bustier: { panel: "모티프", join: "띠 잇기", flap: "컵", handle: "어깨끈" },
   halter: { body: "그물 몸통", flap: "앞 V", handle: "목끈" },
+  knotbag: { panel: "판", strap: "고리와 끈" },
+  twoway: { handle: "손잡이와 조임끈" },
+  coinbag: { handle: "손잡이와 고리" },
+  ringbag: { handle: "링" },
+  clutch: { handle: "체인 고리" },
+  balaclava: { body: "목과 머리", panel: "얼굴 구멍", rim: "정수리", flap: "귀 장식", join: "귀 달기" },
+  motifscarf: { panel: "모티프", join: "잇기" },
+  bigsocks: { bottom: "발끝", body: "발과 목", rim: "접는 단", finish: "한 짝 더" },
 };
 /** a part's name for a piece (its own where it has one) */
 export const partKo = (part: Part, item?: string | null): string => (item && WEAR_PARTS[item]?.[part]) || PART_KO[part];
@@ -158,6 +166,20 @@ export interface PlanInput {
   rimChart?: ChartKey | null;
   flapStepRows?: number | null;
   flapStepSt?: number | null;
+  /** 10종 더 (lib/wear): a neck's round, a face opening's width and height, ears sewn on (바라클라바); a foot's
+   *  length, an ankle's round, a cuff's height (오버사이즈 양말); a ring handle's diameter; two small loops for a chain at a
+   *  bag's sides; a cord bag shown drawn in (the 3D only); how a line of motifs is coloured */
+  neckCm?: number | null;
+  faceW?: number | null;
+  faceH?: number | null;
+  ears?: boolean | null;
+  footL?: number | null;
+  ankleCm?: number | null;
+  cuffCm?: number | null;
+  ringCm?: number | null;
+  chainLoops?: boolean | null;
+  cinched?: boolean | null;
+  motifColors?: "one" | "alt" | "ring" | null;
 }
 
 /** items that are knitted with needles (the rest is crochet) */
@@ -283,6 +305,10 @@ export interface Row {
   step?: number;
   /** a row of a net that comes to a point (홀터 탑): its arches */
   vnet?: number;
+  /** a row of eyelets in a flat panel (a chain over every other stitch): how many */
+  eyelet?: number;
+  /** a round that crosses an opening left below it with chains (a balaclava's face): how many */
+  bridge?: number;
   /** a row of a handle grown out of the opening (grownHandle): picked up, narrowing, straight, or the edging
    *  round an opening is finished with; which of the two feet; its stitch */
   grown?: { k: "pick" | "dec" | "even" | "edge"; side: 0 | 1; st: CrochetStitch; /** worked in the body's stitch pattern: a repeat's stitches */ unit?: number };
@@ -338,6 +364,8 @@ export interface Plan {
   last: number;
   /** a stitch pattern's repeat moved the count (repOf / fitCount): unset when it fits as the size gives it */
   fit?: Fit;
+  /** the piece is made this many times (a pair of boots): the rows are one's, the yarn all of them */
+  pairs?: number;
 }
 
 type RawRow = Omit<Row, "idx" | "label">;
@@ -571,6 +599,11 @@ function planSc(p: PlanInput): Plan {
   if (p.item === "motifhat") return planMotifHat(p, gauge(p));
   if (p.item === "hoodscarf") return planHoodScarf(p, gauge(p), planBottom);
   if (p.item === "earflap") return planEarflap(p, gauge(p));
+  if (p.item === "knotbag") return planKnotBag(p, gauge(p));
+  if (p.item === "twoway") return planTwoWay(p, gauge(p));
+  if (p.item === "balaclava") return planBalaclava(p, gauge(p));
+  if (p.item === "motifscarf") return planMotifScarf(p, gauge(p));
+  if (p.item === "bigsocks") return planBigSocks(p, gauge(p), planBottom);
   if (p.item === "trapbag") return planTrapBag(p, gauge(p));
   if (p.item === "moonbag") return planMoonBag(p, gauge(p));
   if (p.item === "bonnet") return planBonnet(p, gauge(p), planBottom);
@@ -604,7 +637,9 @@ function planSc(p: PlanInput): Plan {
     // the opening's stitches: the bottom's last round scaled by the perimeter (circle: diameter ratio;
     // oval / rect: length and width both grow by topA - a, perimeter ~ 2 (a - b) + pi b)
     const b0 = (p.b as number) || p.a;
-    const top = p.topA && p.topA !== p.a
+    // (사다리꼴 토트: only its width grows to the opening - a square bottom's round is 2 x (width + depth))
+    const top = p.item === "traptote" && p.topA && p.topA !== p.a ? snap(Math.round(last * (p.topA + b0) / (p.a + b0)))
+      : p.topA && p.topA !== p.a
       ? snap(Math.round(last * (p.shape === "circle" ? p.topA / p.a : (2 * (p.a - b0) + Math.PI * (b0 + p.topA - p.a)) / (2 * (p.a - b0) + Math.PI * b0))))
       : last;
     let prevN = last;
@@ -656,7 +691,10 @@ function planSc(p: PlanInput): Plan {
       rows.push({ part: "rim", n: rimN, how: `짧은뜨기 ${rimN}코`, why: `입구를 단단하게 · 한 바퀴 ${rimN}코 = 무늬 ${edging.m}코 × ${edging.reps}회`, inc: 0 } as Row);
       rows.push({ ...edging.rows[1], part: "rim", why: `테두리 무늬 한 단 · ${edging.rows[1].why}` } as Row);
     }
-    for (let i = 0; i < (grown || slots || edging ? 0 : 2); i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${wall.m}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
+    // 링 손잡이백 (Kim: 금속 링에 입구를 감싸 붙이기): after one round of 짧은뜨기, the front's and the back's middle
+    // stitches are worked round a ring each (the ring inside the stitch), a few left at each side as a slit
+    const ring = p.item === "ringbag" ? ringWrap(p, g, rimN) : null;
+    for (let i = 0; i < (grown || slots || edging ? 0 : ring ? 1 : 2); i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${wall.m}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
     // (호보백에는 덮개가 없다 - Kim: a handle grown out of the opening leaves no edge for a flap to fall from)
     if (p.flapCm && p.flapCm > 0 && !grown) {
       // over the top (Kim): it crosses the top's width first (as wide as the bottom is, b), then falls - more rows
@@ -724,6 +762,19 @@ function planSc(p: PlanInput): Plan {
       else for (let i = 0; i < 2; i++) rows.push({ part: "handle", n: ch, how: `사슬 ${ch}코 (약 ${len}cm), 짧은뜨기로 되돌아 뜨고 양쪽에 연결`, why: `${len}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm`, inc: 0 } as Row);
     }
   }
+  if (p.object === "bag" && p.item === "ringbag") {
+    const W = ringWrap(p, g, openingN({ rows }));
+    for (const [q, side] of ["앞", "뒤"].entries()) rows.push({ part: "handle", n: W.n, inc: 0, own: true, label: `링 ${q + 1}`,
+      how: `입구 ${side}쪽 가운데 ${W.n}코를 링에 감싸며 짧은뜨기 ${W.n}코 (양 끝 ${W.slit}코씩은 옆트임으로 남깁니다)`,
+      why: q ? `링 1과 같은 ${W.n}코` : `입구 ${W.rimN}코의 절반 ${W.half}코 가운데 ${W.n}코 · 링 지름 ${fmt(W.cm)}cm의 둘레 ${fmt(W.round)}cm 가운데 ${fmt(W.n * g.w)}cm를 감쌉니다` + (W.tight ? " · 링보다 넓어 코를 모아 가며 감쌉니다" : "") } as Row);
+  }
+  // 체인 걸이 (Kim: 코인 미니백 - 양 옆에 체인을 걸 고리; 클러치의 체인 끈 옵션): a small loop at each side of the opening
+  if (p.object === "bag" && (p.item === "coinbag" || p.chainLoops)) {
+    const k = Math.max(3, rnd(CHAIN_LOOP / (g.w * 0.85)));
+    for (const q of [0, 1]) rows.push({ part: "handle", n: k, inc: 0, own: true, label: `체인 고리 ${q + 1}`,
+      how: `사슬 ${k}코 (약 ${fmt(CHAIN_LOOP)}cm), 빼뜨기로 되돌아와 입구 ${q ? "반대쪽" : "한쪽"} 옆선에 고리로 연결`,
+      why: `고리 ${fmt(CHAIN_LOOP)}cm ÷ 사슬 한 코 ${fmt(g.w * 0.85 * 10)}mm = ${k}코` + (q ? "" : " · 체인 끈을 여기에 겁니다") } as Row);
+  }
   // 드로스트링 백팩 (Kim: 끈 하나가 입구를 조이고 어깨끈이 되는 구조): a loop at each side of the bottom, and one
   // cord - through the eyelet round, each end down to a loop - that closes the top and is the two straps
   if (p.object === "bag" && p.item === "backpack") {
@@ -750,6 +801,14 @@ function planSc(p: PlanInput): Plan {
   return { g, c, rows, bottomRounds: bottom.length, bodyRows: rows.filter(r => r.part === "body").length, last, ...(fit ? { fit } : {}) };
 }
 
+/** a chain hook's loop (cm); a ring handle's diameter when none is typed, and the share of half the opening it takes */
+export const CHAIN_LOOP = 2.5, RING_CM = 12, RING_SHARE = .8;
+/** 링 손잡이백: half the opening's round, its middle 80% worked round the ring - never more than three quarters of
+ *  the ring's own round holds (then the stitches are gathered on it) */
+export function ringWrap(p: Pick<PlanInput, "ringCm">, g: { w: number }, rimN: number) {
+  const cm = p.ringCm && p.ringCm > 0 ? p.ringCm : RING_CM, round = Math.PI * cm, half = Math.floor(rimN / 2), n = Math.max(4, Math.min(half, Math.round(half * RING_SHARE)));
+  return { cm, round, rimN, half, n, slit: Math.max(0, Math.floor((half - n) / 2)), tight: n * g.w > round * .75 };
+}
 /** 드로스트링 백팩: a bottom loop's length, a strap's length when none is typed (cm) */
 export const PACK_LOOP = 5, PACK_STRAP = 70;
 /** the backpack's cord: once round the opening and a strap down each side; and a bottom loop's chains */

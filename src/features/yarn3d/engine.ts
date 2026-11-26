@@ -143,6 +143,10 @@ export interface YarnPattern {
   wall?: { W: number; H: number; t: WallStitch[][]; c?: number[][]; colors?: string[] };
   /** the stand under or inside the piece (a head, a bottle), in a very pale colour */
   stand?: YarnStand;
+  /** 링 손잡이백: two metal rings standing over the opening, front and back (their diameter, cm) */
+  rings?: { cm: number };
+  /** a small loop of yarn at each side of the opening (a chain strap's hooks) */
+  sideLoops?: boolean;
 }
 export type WallStitch = "sc" | "hdc" | "dc" | "tr" | "pop" | "ch";
 export interface YarnInfo { round: boolean; widthCm: number; depthCm: number; heightCm: number | null; fit: string; skip: { stitch: number; row: number } | null }
@@ -1133,6 +1137,23 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           const cv = new THREE.CatmullRomCurve3(pts), g = buildYarn(cv.getSpacedPoints(Math.ceil(cv.getLength() / (R * .6 * step))), R, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
         });
       }
+      }
+    }
+    if ((pat.rings || pat.sideLoops) && (pat.shape.kind === "round" || pat.shape.kind === "oval" || pat.shape.kind === "rect")) {
+      const top = D.C[D.C.length - 1].idx; let ry = 0, x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+      top.forEach(n => { const q = D.P[n]; ry += q.y / top.length; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); });
+      const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+      if (pat.rings) {
+        // the rings: metal, upright, each sunk a little into the edge it is wrapped in. (No mirror of the room on
+        // them: making that picture froze the screen for half a second the first time a ring bag was opened -
+        // Kim: 렉 없이 - so they shine by the lamps alone.)
+        const rr = pat.rings.cm * 10 / MM / 2, tube = Math.max(R * 1.2, rr * .085);
+        for (const s of [1, -1]) { const m = new THREE.Mesh(new THREE.TorusGeometry(rr, tube, 14, 64), new THREE.MeshStandardMaterial({ color: lin(0xD2AE62), roughness: .34, metalness: .35 })); m.position.set(cx, ry + rr * .8, cz + s * Math.max(R * 1.8, (z1 - z0) * .22)); m.castShadow = true; group.add(m); }
+        strapH = Math.max(strapH, rr * 1.8 + tube);
+      }
+      if (pat.sideLoops) for (const s of [1, -1]) {
+        const lr = D.rh * 1.25, c0 = new THREE.Vector3(s > 0 ? x1 + lr * .7 : x0 - lr * .7, ry - D.rh * .4, cz), pts = Array.from({ length: 16 }, (_, i) => { const a = i / 16 * Math.PI * 2; return c0.clone().add(new THREE.Vector3(Math.cos(a) * lr, Math.sin(a) * lr, 0)); });
+        const g = buildYarn(new THREE.CatmullRomCurve3(pts, true, "catmullrom", .5).getSpacedPoints(48), R * .95, { M, closed: true, color: colorOf(D.C[D.C.length - 1].ci) }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g);
       }
     }
     meshes.slice(strapFrom).forEach(m => { m.userData.part = "strap"; });

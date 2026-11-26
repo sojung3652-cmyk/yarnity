@@ -18,7 +18,9 @@ export type ItemId =
   // 모자·소품 기본형 (Kim; lib/wear): shown among the 기본형 only (their groups are not in GROUPS)
   | "buckethat" | "motifhat" | "hoodscarf" | "earflap" | "kerchief" | "bottlebag" | "backpack"
   // 작은 가방 · 보닛 · 옷 기본형 (Kim; lib/wear, lib/pattern)
-  | "trapbag" | "moonbag" | "stepbag" | "phonebag" | "bonnet" | "bustier" | "halter";
+  | "trapbag" | "moonbag" | "stepbag" | "phonebag" | "bonnet" | "bustier" | "halter"
+  // 10종 더 (Kim)
+  | "knotbag" | "coinbag" | "traptote" | "clutch" | "ringbag" | "netbucket" | "twoway" | "balaclava" | "motifscarf" | "bigsocks";
 export type FieldKey = "a" | "b" | "h" | "circ" | "depth";
 export interface Field { key: FieldKey; label: string; min: number; max: number }
 /** Any length may be typed (Kim: no limits on sizes): from 1cm, and up to 30m only so that a slip of the
@@ -111,6 +113,26 @@ export const ITEMS: Item[] = [
     desc: "납작한 통에 계단 모양 덮개를 단 가방", level: "보통", time: "주말 하루", method: "납작 통 → 덮개 → 끈" },
   { id: "phonebag", name: "폰 크로스백", group: "작은 가방", kind: "base-body", shapes: ["rect"], handles: true, defaults: { shape: "rect", a: 8.5, b: 1.5, h: 17, handle: "long", handleCm: 120 }, range: { a: [6, 12], h: [11, 21] },
     desc: "휴대폰이 들어가는 납작한 크로스백", level: "쉬움", time: "하루", method: "납작 통 → 테두리 → 끈" },
+  { id: "knotbag", name: "매듭 손잡이백", group: "작은 가방", kind: "base-body", shapes: ["rect"], defaults: { shape: "rect", a: 24, b: 2, h: 22, handle: "none" }, range: { a: [14, 36], h: [14, 34] },
+    desc: "긴 끈을 짧은 고리에 끼워 드는 가방", level: "쉬움", time: "주말 하루", method: "판 → 고리와 끈 → 잇기" },
+  { id: "coinbag", name: "코인 미니백", group: "작은 가방", kind: "base-body", shapes: ["rect"], handles: true, defaults: { shape: "rect", a: 11, b: 5, h: 9, handle: "short", handleCm: 18 }, range: { a: [8, 16], b: [3, 8], h: [6, 14] },
+    desc: "체인을 걸 수 있는 아주 작은 가방", level: "쉬움", time: "한나절", method: "박스 바닥 → 몸통 → 손잡이 → 고리" },
+  { id: "traptote", name: "사다리꼴 토트", group: "작은 가방", kind: "base-body", shapes: ["rect"], handles: true, defaults: { shape: "rect", a: 14, b: 8, h: 20, handle: "short", handleCm: 40 }, range: { a: [8, 26], b: [4, 14], h: [12, 34] },
+    desc: "바닥은 좁고 입구는 넓은 토트", level: "보통", time: "주말 하루", method: "바닥 → 늘리는 몸통 → 손잡이" },
+  { id: "clutch", name: "접는 덮개 클러치", group: "작은 가방", kind: "base-body", shapes: ["rect"], handles: true, defaults: { shape: "rect", a: 24, b: 1.5, h: 14, handle: "none" }, range: { a: [16, 34], h: [9, 20] },
+    desc: "뒤판을 길게 올려 앞으로 접는 클러치", level: "쉬움", time: "주말 하루", method: "납작 통 → 덮개" },
+  { id: "ringbag", name: "링 손잡이백", group: "작은 가방", kind: "base-body", shapes: ["rect"], handles: true, defaults: { shape: "rect", a: 26, b: 1.5, h: 20, handle: "none" }, range: { a: [18, 36], h: [14, 30] },
+    desc: "금속 링을 손잡이로 쓰는 가방", level: "보통", time: "주말 하루", method: "납작 통 → 링에 감싸 붙이기" },
+  { id: "netbucket", name: "미니 그물 버킷", group: "작은 가방", kind: "base-body", shapes: ["circle"], handles: true, defaults: { shape: "circle", a: 16, h: 14, handle: "short", handleCm: 30 }, range: { a: [10, 24], h: [8, 22] },
+    desc: "짧고 넓은 그물 버킷", level: "쉬움", time: "하루", method: "원형 바닥 → 그물 몸통 → 손잡이" },
+  { id: "twoway", name: "2WAY 조임 토트", group: "작은 가방", kind: "base-body", shapes: ["rect"], defaults: { shape: "rect", a: 30, b: 2, h: 28, handle: "short", handleCm: 36 }, range: { a: [20, 40], h: [18, 38] },
+    desc: "끈으로 조이면 복주머니가 되는 토트", level: "쉬움", time: "주말 이틀", method: "판 2장 → 잇기 → 손잡이 → 조임끈" },
+  { id: "balaclava", name: "바라클라바", group: "모자", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 18, h: 8, handle: "none", circ: 56 }, range: { circ: [44, 64] },
+    desc: "목부터 머리까지 감싸고 얼굴만 내놓는 모자", level: "보통", time: "일주일", method: "목 원통 → 얼굴 구멍 → 정수리" },
+  { id: "motifscarf", name: "모티프 머플러", group: "소품", kind: "base-body", shapes: ["rect"], defaults: { shape: "rect", a: 14, b: 140, h: 1, handle: "none" }, range: { a: [8, 24], b: [80, 220] },
+    desc: "사각 모티프를 한 줄로 이은 머플러", level: "쉬움", time: "일주일", method: "모티프 → 한 줄로 잇기" },
+  { id: "bigsocks", name: "오버사이즈 양말", group: "소품", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 9, h: 16, handle: "none" }, range: { h: [8, 34] },
+    desc: "넉넉한 통으로 뜨는 긴 양말", level: "쉬움", time: "일주일", method: "발끝(원형) → 긴 통 → 접는 단" },
   { id: "bonnet", name: "보닛", group: "모자", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 18, h: 10, handle: "none", circ: 56 }, range: { circ: [44, 64] },
     desc: "뒤통수를 감싸고 턱끈으로 묶는 모자", level: "보통", time: "주말 하루", method: "정수리(원형) → 왕복뜨기 → 턱끈" },
   // ---- 옷 ----
