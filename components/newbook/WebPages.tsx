@@ -145,13 +145,22 @@ export function Slide({ label, min, max, step, value, onChange, text, nudge }: {
 }
 /** 털 양 / 털 길이 (Kim: turned while looking): only how the 3D draws the yarn, the pattern's counts stay. */
 function HairSliders({ draft, patch }: { draft: Draft; patch: Patch }) {
-  const f = draft.fuzzK ?? 1, h = draft.hairK ?? 1;
-  return (
+  const f = draft.fuzzK ?? 1, h = draft.hairK ?? 1, b = draft.brush ?? 0;
+  return (<>
     <div className="nb-sliders">
       <Slide label="털 양" min={0} max={8} step={0.1} value={f} onChange={v => patch({ fuzzK: v })} text={f === 0 ? "없음" : `${Math.round(f * 100)}%`} />
       <Slide label="털 길이" min={0.3} max={6} step={0.1} value={h} onChange={v => patch({ hairK: v })} text={`${Math.round(h * 100)}%`} />
     </div>
-  );
+    {/* 브러싱 (Kim): the finished piece brushed - a last step in the pattern, more hair in the 3D, no count moved */}
+    <div className="nb-brush">
+      <p className="nb-wsubhead">브러싱</p>
+      <Tiles label="브러싱" value={b > 0 ? "on" : "off"} cols={2} onPick={v => patch({ brush: v === "on" ? (b > 0 ? b : .5) : undefined })} options={[["off", "끄기", "뜬 그대로"], ["on", "켜기", "다 뜬 뒤 빗기"]]} />
+      {b > 0 && <>
+        <div className="nb-sliders nb-sliders-1"><Slide label="브러싱 정도" min={.05} max={1} step={.05} value={b} onChange={v => patch({ brush: Math.round(v * 100) / 100 })} text={`${Math.round(b * 100)}%`} /></div>
+        <p className="nb-tip">켜면 3D의 털 양과 털 길이가 그만큼 올라갑니다. 코 수는 바뀌지 않고, 도안 마지막에 빗는 단계가 더해집니다.</p>
+      </>}
+    </div>
+  </>);
 }
 
 // ---------------------------------------------------------------- the work screen's 실 panel (크게 보기)

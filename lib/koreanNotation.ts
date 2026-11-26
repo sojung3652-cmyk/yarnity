@@ -109,12 +109,23 @@ function wallToks(k: ChartKey, i: number, r: number): Tok[] {
 }
 
 /** one row of a plan as pieces. `raw`: the plan as lib/pattern plan() gives it (before its 기둥사슬 text). */
-export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end: "count" | "arch" | "split" | "base" } {
+export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end: "count" | "arch" | "split" | "base" | "none" } {
   const r = raw.rows[i], TC = raw.turn ?? 1, cs = p.crochetStitch && p.crochetStitch !== "sc" ? p.crochetStitch : null;
   const name = !cs ? SC : cs === "blo" ? "이랑 짧은뜨기" : CROCHET[cs].ko, prev = i > 0 ? raw.rows[i - 1].n : 0;
   const rd = (body: Tok[], lead: Tok[] = []) => round(body, TC, lead), ok = (toks: Tok[]) => ({ toks, end: "count" as const });
   const turnT: Tok = { t: "ch", n: TC, kind: "turn" };
 
+  // ---- 구조 부품 (lib/structure): a step with no stitch of its own, joining, a panel / a strip / a post or a
+  // cord, and any flat row that loses stitches at its ends (a slant, a triangle - a flat piece's or a flap's)
+  if (r.part === "finish" || (r.part === "join" && !r.n)) return { toks: [note(r.how)], end: "none" };
+  if (r.part === "join") return ok([note("두 겹을 함께 떠서"), ...st(r.n, "되돌아짧은뜨기")]);
+  if (r.part === "panel" || r.part === "strip" || r.part === "strap") {
+    if (/시작 사슬$/.test(r.label)) return { toks: [{ t: "ch", n: r.n, kind: "base" }], end: "base" };
+    const d = r.edge ? r.edge[0] : 0;
+    if (d > 0) return ok([turnT, note("뒤집어서"), ...st(d + 1, name, "첫 코에"), ...st(prev - 2, name), ...st(d + 1, name, "마지막 코에")]);
+    return ok([turnT, ...(/뒤집어서/.test(r.how) ? [note("뒤집어서")] : /새 실을 걸어/.test(r.how) ? [note("새 실을 걸어")] : []), ...st(r.n, name)]);
+  }
+  if (r.work && (r.work[0] || r.work[1])) { const tog: Tok = { t: "tog", n: 2, name }; return ok([turnT, note("뒤집어서"), ...rep([tog], r.work[0]), ...st(r.n - r.work[0] - r.work[1], name), ...rep([tog], r.work[1])]); }
   // ---- a painted picture: its rows as they are, the holes as chains
   if (p.paint) {
     if (r.part === "start") return { toks: [{ t: "ch", n: Math.max(1, r.n - 1), kind: "base" }], end: "base" };
@@ -192,6 +203,7 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
 export function withKorean(raw: Plan, p: PlanInput): Plan {
   const rows = raw.rows.map((r, i): Row => {
     const { toks, end } = rowToks(raw, p, i), c = countToks(toks), text = printToks(toks);
+    if (end === "none") return r; // a step, not a row of stitches: its own words, no count
     // a flat piece's first line is its base chain alone (its 기둥사슬 belongs to row 1, as withChains has it)
     const n = end === "base" ? c.base : r.n;
     const tail = end === "arch" ? `(아치 ${c.arch}개)` : end === "split" ? `(${SC} ${c.st}코 · 사슬 ${c.ch}코)` : `(${n}코)`;

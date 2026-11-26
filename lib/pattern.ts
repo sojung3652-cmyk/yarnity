@@ -3,6 +3,7 @@
 // tests/pattern.test.ts checks every output against a verbatim copy of the original,
 // so keep the arithmetic (including rnd()'s toFixed(6) rounding) exactly as is.
 
+import { planHobo, planPanels, planTaper, taperFlap, taperNote } from "./structure";
 import { CHART_MULT, type ChartKey } from "./crochetChart";
 import { PATTERN_BY_ID, STITCH_PATTERNS, type Rep } from "./stitchPatterns";
 
@@ -14,14 +15,16 @@ export type Shape = "circle" | "oval" | "rect";
  *  (The 19 items in lib/items.ts map onto these four.) */
 export type ObjectKind = "coaster" | "bag" | "rows" | "tube";
 export type Handle = "short" | "long" | "none";
-export type Part = "bottom" | "body" | "rim" | "flap" | "handle" | "start" | "rows" | "rounds";
+export type Part = "bottom" | "body" | "rim" | "flap" | "handle" | "start" | "rows" | "rounds"
+  // 구조 부품 (lib/structure): a flat panel, the strip between two panels, joining, a cord or a strap grown from a few stitches, what is done after the last stitch
+  | "panel" | "strip" | "join" | "strap" | "finish";
 
 export const HOOKS: [HookKey, number][] = [["2호", 2.0], ["3호", 2.3], ["4호", 2.5], ["5호", 3.0], ["6호", 3.5], ["7호", 4.0], ["8호", 5.0], ["10호", 6.0]];
 export const HOOK_MM: Record<string, number> = Object.fromEntries(HOOKS);
 export const YARN: Record<Weight, number> = { thin: 0.9, medium: 1.0, thick: 1.15 };
 export const YARN_KO: Record<Weight, string> = { thin: "가는 실", medium: "보통", thick: "굵은 실" };
 export const SHAPE_KO: Record<Shape, string> = { circle: "원형", oval: "타원", rect: "사각" };
-export const PART_KO: Record<Part, string> = { bottom: "바닥", body: "몸통", rim: "테두리", flap: "덮개", handle: "손잡이", start: "시작 사슬", rows: "왕복뜨기", rounds: "둘레뜨기" };
+export const PART_KO: Record<Part, string> = { bottom: "바닥", body: "몸통", rim: "테두리", flap: "덮개", handle: "손잡이", start: "시작 사슬", rows: "왕복뜨기", rounds: "둘레뜨기", panel: "판", strip: "띠", join: "잇기", strap: "끈", finish: "마무리" };
 
 export const rnd = (x: number) => Math.round(+x.toFixed(6));
 export const fmt = (n: number, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toString();
@@ -81,6 +84,26 @@ export interface PlanInput {
    *  yarn is not this yarn's). */
   plies?: number | null;
   materials?: string[] | null;
+  /** 만드는 방법 (lib/structure, Kim: 구조 원리): "panels" two flat panels and a strip between them, "hobo1" a
+   *  panel whose two ends go on up as posts that join into a strap. None: a bottom worked round, a wall on it. */
+  build?: "panels" | "hobo1" | null;
+  /** a panel's lower corners, 0 square .. 1 as round as they can be */
+  corner?: number | null;
+  /** panels: the strip's width (cm), and whether it goes on as the handle (handleCm more) */
+  stripCm?: number | null;
+  stripHandle?: boolean | null;
+  /** hobo: a post's stitches, the strap's length (cm), and the back worked from the other side of the chain */
+  postSt?: number | null;
+  strapCm?: number | null;
+  hoboFold?: boolean | null;
+  /** 사선 / 삼각형: a flat piece or a flap loses stitches at this edge (both: a triangle) down to `taperTip`
+   *  stitches, which can go on as a cord `taperCordCm` long */
+  taper?: "left" | "right" | "both" | null;
+  taperTip?: number | null;
+  taperCord?: boolean | null;
+  taperCordCm?: number | null;
+  /** 브러싱 (0 off .. 1): the finished piece brushed - a last step in the words, hairier in the 3D, no count moved */
+  brush?: number | null;
 }
 
 /** items that are knitted with needles (the rest is crochet) */
@@ -196,6 +219,12 @@ export interface Row {
   /** a row of a handle grown out of the opening (grownHandle): picked up, narrowing, straight, or the edging
    *  round an opening is finished with; which of the two feet; its stitch */
   grown?: { k: "pick" | "dec" | "even" | "edge"; side: 0 | 1; st: CrochetStitch; /** worked in the body's stitch pattern: a repeat's stitches */ unit?: number };
+  /** a row of a flat piece that changes width (lib/structure): the stitches gained (+) or lost (-) at the piece's
+   *  left and right edge - the symbol chart and the 3D set the row there; `work`: lost at the row's start and end
+   *  as it is worked (rows turn); `post`: which of a hobo panel's two posts */
+  edge?: [number, number];
+  work?: [number, number];
+  post?: 0 | 1;
 }
 
 /** the stitches round a bag's opening: its last round, before any flap or handle */
@@ -363,11 +392,19 @@ export function planPaint(p: PlanInput): Plan {
 /** The plan in the picked crochet stitch: worked out in single crochet (taller rows from gauge), then each row
  *  says its own stitch, and its turning chain is the stitch's own (withChains reads Plan.turn). */
 export function plan(p: PlanInput): Plan {
-  const pp = planSc(p), st = p.crochetStitch;
+  const pp = brushed(planSc(p), p), st = p.crochetStitch;
   if (!st || st === "sc") return pp;
   const c = CROCHET[st], name = st === "blo" ? "짧은뜨기 이랑뜨기(뒷고리)" : c.ko;
-  const rows = pp.rows.map(r => ({ ...r, how: r.how.replace(/짧은뜨기/g, name) }));
+  // (되돌아짧은뜨기 - crab stitch, the joining - is its own stitch whatever the piece is worked in)
+  const rows = pp.rows.map(r => ({ ...r, how: r.how.replace(/(?<!되돌아)짧은뜨기/g, name) }));
   return { ...pp, rows, turn: c.turn };
+}
+/** 브러싱 (Kim): the finished piece is brushed - one more step after the last stitch, no stitch of its own */
+function brushed(pp: Plan, p: PlanInput): Plan {
+  if (!(p.brush && p.brush > 0)) return pp;
+  const row = { part: "finish", n: 0, inc: 0, own: true, idx: pp.rows.length, label: "마무리", how: "다 뜬 뒤 브러시로 표면을 빗어 털 질감을 냅니다",
+    why: `브러싱 ${Math.round(Math.min(1, p.brush) * 100)}% · 결을 따라 가볍게 여러 번 빗습니다. 코 수는 바뀌지 않습니다` } as Row;
+  return { ...pp, rows: [...pp.rows, row] };
 }
 
 /** a crochet stitch pattern worked in the round up a bag's body (lib/crochetChart CHART_ROWS, in rounds: each
@@ -430,8 +467,11 @@ function bodyPattern(k: ChartKey, last: number, hCm: number, g: Gauge): { rows: 
 function planSc(p: PlanInput): Plan {
   if (p.paint) return planPaint(p);
   if (p.free) return planFree(p);
+  if (p.object === "rows" && p.taper) { const g0 = gauge({ ...p, measuredH: null }); return planTaper(p, p.measuredH ? { ...gauge(p), w: p.measuredW || g0.w } : g0, g0); }
   if (p.object === "rows") return planRows(p);
   if (p.object === "tube") return planTube(p);
+  if (p.object === "bag" && p.build === "panels") return planPanels(p, gauge(p));
+  if (p.object === "bag" && p.build === "hobo1") return planHobo(p, gauge(p));
   const g = gauge(p);
   // a bag's body in a stitch pattern: the bottom ends on the pattern's multiple, and the body keeps that count
   const rep = p.object === "bag" ? repOf(p) : null, snap = (n: number) => rep ? fitCount(n, rep, false, rep.n) : n;
@@ -483,7 +523,8 @@ function planSc(p: PlanInput): Plan {
     // edging rounds finish what is left of the opening.)
     const grown = p.handle !== "none" && !!p.handle && p.handleKind === "grown";
     for (let i = 0; i < (grown ? 0 : 2); i++) rows.push({ part: "rim", n: rimN, how: i === 0 ? (wall ? `무늬 위에 짧은뜨기 ${rimN}코 (${wall.rim})` : `짧은뜨기 ${rimN}코`) : `빼뜨기 ${rimN}코로 마무리`, why: i === 0 && wall ? `무늬 ${wall.reps}회 × ${CHART_MULT[wk!][0]}코 = ${rimN}코 · 입구를 단단하게` : "입구를 단단하게", inc: 0 } as Row);
-    if (p.flapCm && p.flapCm > 0) {
+    // (호보백에는 덮개가 없다 - Kim: a handle grown out of the opening leaves no edge for a flap to fall from)
+    if (p.flapCm && p.flapCm > 0 && !grown) {
       // over the top (Kim): it crosses the top's width first (as wide as the bottom is, b), then falls - more rows
       const over = p.flapOver === "top" && p.shape !== "circle" && p.gusset !== "flat" ? Math.max(0, (p.b as number) || 0) : 0;
       // where the flap is worked from (Kim): the back's own top edge. The top closed (오므림): half the rim. A body
@@ -492,8 +533,15 @@ function planSc(p: PlanInput): Plan {
       const bw = (p.b as number) || 0, thick = p.shape !== "circle" && p.gusset !== "flat" && bw > 0 && (p.gusset === "box" || p.flapOver === "top");
       const fn = Math.max(4, thick ? Math.round(rimN * p.a / (2 * p.a + 2 * bw)) : Math.round(rimN / 2)), fr = Math.max(2, rnd((p.flapCm + over) / g.h)), fo = over ? rnd(over / g.h) : 0;
       const from = thick ? `뒤판 윗변 ${fn}코 (옆면 두 변과 앞판은 빼고)` : `입구 둘레의 절반, 뒤판 ${fn}코`;
-      for (let i = 0; i < fr; i++) rows.push({ part: "flap", n: fn, how: i === 0 ? `뒤판 마지막 단에 이어서 ${from}에 짧은뜨기 ${fn}코` : i === fr - 1 ? `사슬 1, 뒤집어서 짧은뜨기 ${fn}코 · 가운데에 사슬 고리(단추 구멍)` : `사슬 1, 뒤집어서 짧은뜨기 ${fn}코${fo && i === fo ? " · 여기서부터 앞으로 꺾여 내려옵니다" : ""}`,
-        why: i === 0 ? `${thick ? `윗면 ${p.a} × ${bw}cm 중 뒤쪽 가로 한 변` : `입구 ${rimN}코의 절반`} = ${fn}코 · ${over ? `윗면 ${over}cm + ` : ""}덮개 ${p.flapCm}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${fr}단` : `${fn}코 그대로`, inc: 0 } as Row);
+      // 사선 / 삼각형 (lib/structure): the flap loses stitches at an edge, or at both, down to its tip
+      const tf = p.taper ? taperFlap(fn, fr, p.taper, p.taperTip, p.taperCord ? { cm: p.taperCordCm && p.taperCordCm > 0 ? p.taperCordCm : 20, g } : null) : null;
+      for (let i = 0; i < fr; i++) {
+        const n = tf ? tf.t.counts[i] : fn, end = i === fr - 1 && !(tf && tf.cord.length) ? " · 가운데에 사슬 고리(단추 구멍)" : fo && i === fo ? " · 여기서부터 앞으로 꺾여 내려옵니다" : "";
+        rows.push({ part: "flap", n, how: i === 0 ? `뒤판 마지막 단에 이어서 ${from}에 짧은뜨기 ${fn}코` : tf ? tf.how(i) + end : `사슬 1, 뒤집어서 짧은뜨기 ${fn}코${end}`,
+          why: i === 0 ? `${thick ? `윗면 ${p.a} × ${bw}cm 중 뒤쪽 가로 한 변` : `입구 ${rimN}코의 절반`} = ${fn}코 · ${over ? `윗면 ${over}cm + ` : ""}덮개 ${p.flapCm}cm ÷ 코 높이 ${fmt(g.h * 10)}mm = ${fr}단${tf ? ` · ${taperNote(fn, tf.t, p.taper!)}` : ""}` : tf ? tf.why(i) : `${fn}코 그대로`,
+          inc: tf ? n - tf.t.counts[Math.max(0, i - 1)] : 0, ...(tf ? { edge: tf.edge(i), work: tf.work(i) } : {}) } as Row);
+      }
+      if (tf) rows.push(...tf.cord);
     }
     if (p.handle !== "none") {
       const len = p.handleCm && p.handleCm > 0 ? p.handleCm : p.handle === "long" ? 90 : 25, ch = rnd(len / (g.w * 0.85));
@@ -535,7 +583,7 @@ function planSc(p: PlanInput): Plan {
     else if (r.part === "body") r.label = `${bottom.length + (++bo)}단`;
     else if (r.part === "rim") r.label = `테두리 ${++ri}`;
     else if (r.part === "flap") r.label = `덮개 ${++fl}`;
-    else if (!r.grown) r.label = `손잡이 ${++ha}`;
+    else if (r.part === "handle" && !r.grown) r.label = `손잡이 ${++ha}`;
   });
   // what the pattern did to the size: the round's stitches over the width of the piece laid flat (a round bottom:
   // its diameter; an oval or a square one: its length, the round shared by its two long sides)

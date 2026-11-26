@@ -6,7 +6,8 @@
 //   back and forth            n stitches x the "rows" rows         -> "rows" (목도리: knitted, Kim)
 //   tube                      n stitches x the "rounds" rounds     -> "tube"
 // Not drawn: a bag's flap (덮개; the prototype has nothing for it).
-import { CROCHET, grownHandle, openingN, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
+import { isChainRow, pieceLayout } from "@/lib/structure";
+import { CROCHET, grownHandle, openingN, plan, paintMask, paintSize, pliedMm, pliesOf, type Plan, type PlanInput } from "@/lib/pattern";
 import { hookMmOf } from "@/lib/yarn";
 import { isKnit } from "@/lib/knit";
 import { compileChart, type Chart, type ChartKey } from "@/lib/crochetChart";
@@ -85,8 +86,23 @@ function ownChart(p: YarnSource, pp: Plan, counts: (...parts: string[]) => numbe
   return chartFromSteps((p.ownSteps ?? "").split(/\n+/), cols, rows);
 }
 
+/** 구조 부품 (lib/structure) as the piece they make, for the 3D: two panels with a strip between them stand as a
+ *  box as wide as the panel, as deep as the strip, as tall as the panel - the strip its handle when it goes on
+ *  as one; a hobo's two panels joined stand as a flat bag, its posts the strap from end to end. (The 3D shows the
+ *  finished form; the rows it is made of are the pattern's and the symbol chart's.) */
+function builtAs(p: YarnSource, pp: Plan): YarnSource {
+  const g = pp.g, one = { build: undefined, handleKind: undefined, handleCount: 1 as const, handleStyle: "flat-rows" as const, flapCm: null };
+  if (p.build === "panels") {
+    const sw = p.stripCm && p.stripCm > 0 ? p.stripCm : 6, ring = !!p.stripHandle && p.handle !== "none";
+    return { ...p, build: undefined, shape: "rect", b: sw, gusset: "box", ...(ring ? { ...one, handle: "short", handleWcm: sw, handleCm: p.handleCm && p.handleCm > 0 ? p.handleCm : 50 } : {}) };
+  }
+  const post = pp.rows.find(r => r.post != null)?.n ?? 5;
+  return { ...p, ...one, shape: (p.corner ?? 0) >= .5 ? "oval" : "rect", b: 2, gusset: "flat", handle: "short", handleWcm: Math.max(1, post * g.w), handleCm: p.strapCm && p.strapCm > 0 ? p.strapCm : 60 };
+}
+
 export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
   if (!yarn3dSupported(p) || !pp.rows.length) return null;
+  if (p.object === "bag" && (p.build === "panels" || p.build === "hobo1") && !p.free && !p.paint) { const q = builtAs(p, pp); return toYarnPattern(q, plan(q as PlanInput)); }
   const counts = (...parts: string[]) => pp.rows.filter(r => parts.includes(r.part)).map(r => Math.max(1, Math.round(r.n)));
   let shape: YarnShape, rowColors: (string | undefined)[] | null = null;
   if (p.paint) {
@@ -98,6 +114,10 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     // a drawn shape: its rounds as they are, each in the colour drawn at its height
     const rr = pp.rows.filter(r => r.part === "bottom" || r.part === "body"); if (!rr.length) return null;
     shape = { kind: "round", counts: rr.map(r => Math.max(1, Math.round(r.n))), flat: pp.bottomRounds }; rowColors = rr.map(r => r.color);
+  } else if (p.object === "rows" && p.taper && !isKnit(p) && pp.rows.some(r => r.edge)) {
+    // 사선 / 삼각형 (lib/structure): the piece as its rows lie - the grid the symbol chart draws, stitch for stitch
+    const body = pp.rows.filter(r => !isChainRow(r) && r.part !== "finish"), lay = pieceLayout(body);
+    shape = { kind: "grid", W: lay.W, H: body.length, wCm: lay.W * pp.g.w, hCm: body.length * pp.g.h, cells: lay.cells, pieces: 1 };
   } else if (p.object === "rows" && p.ownOn && p.ownSteps && !isKnit(p) && ownChart(p, pp, counts)) {
     // 직접 적기: the reader's own steps, worked out stitch by stitch
     const ch = ownChart(p, pp, counts)!, g = pp.g;
@@ -145,19 +165,24 @@ export function toYarnPattern(p: YarnSource, pp: Plan): YarnPattern | null {
     : p.chartName && chartFor(p.chartName) ? wallOfChart(chartFor(p.chartName)!) : null) : null;
   const wall = wc ? { ...wc, colors: [color, more[0] ?? shade(color, .55), more[1] ?? shade(color, -.45)] } : null;
   // 메탈사 held two or three strands together (Kim): the yarn drawn as thick as the strands make it
+  const br = Math.max(0, Math.min(1, p.brush ?? 0));
+  // 사선 / 삼각형 덮개 (lib/structure): how wide it still is at its end, from the pattern's own rows
+  const flapRows = pp.rows.filter(r => r.part === "flap"), flapTip = flapRows.length ? flapRows[flapRows.length - 1].n / Math.max(1, flapRows[0].n) : 1;
   const mm0 = p.yarnMm || LEVEL_MM[p.weight] || 3, yarnMm = pliesOf(p) > 1 ? pliedMm(mm0, pliesOf(p)) : mm0;
   return { shape, colors, yarnMm, hookMm: hookMmOf(p), strap, strapCm: GH ? GH.lenCm : handleCm, material,
-    ...(p.fuzzK != null && p.fuzzK !== 1 ? { fuzzK: p.fuzzK } : {}), ...(p.hairK != null && p.hairK !== 1 ? { hairK: p.hairK } : {}),
+    // 브러싱 (Kim): the finished piece brushed - more hair and longer by how hard it is brushed, on top of the
+    // reader's own 털 양 / 털 길이 (a smooth yarn gets fuzz too: above 1 the 3D adds it)
+    ...(br > 0 || (p.fuzzK != null && p.fuzzK !== 1) ? { fuzzK: (p.fuzzK ?? 1) + br * 3 } : {}), ...(br > 0 || (p.hairK != null && p.hairK !== 1) ? { hairK: (p.hairK ?? 1) * (1 + br * 1.5) } : {}),
     ...(p.free && pp.rows.length && pp.rows[pp.rows.length - 1].n <= 10 ? { firm: true } : {}),
     ...(p.free ? {} : p.item === "pouch" && p.gusset !== "box" && p.flapOver !== "top" ? { top: "pinch" as const } : p.item === "bucket" ? { top: "cinch" as const } : {}),
     // with a flap the top closes to the gap asked (2cm when not said)
     ...(p.softK && p.softK !== 1 ? { softK: p.softK } : {}),
     // 합사 (Kim): the first added yarn held together with the main one - its colour twists in, its fibres show
     ...((h => h ? { marl: h.hex, marlShare: (h.yarnMm && h.yarnMm > 0 ? h.yarnMm : (p.yarnMm || 3)) / ((p.yarnMm || 3) + (h.yarnMm && h.yarnMm > 0 ? h.yarnMm : (p.yarnMm || 3))), ...((m => m && MAT[m] ? { marlMat: MAT[m] } : {})(h.materials?.length ? h.materials[h.materials.length - 1] : h.material)) } : {})((p.moreColors ?? []).find(c => c?.held && !!c.hex && /^#[0-9a-f]{6}$/i.test(c.hex)))),
-    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && p.flapOver !== "top" ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
+    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && !GH && p.flapOver !== "top" ? { topGap: p.topGapCm ?? 2 } : {}), ...(p.topFold === "tuck" ? { topFold: "tuck" as const } : {}),
     // a handle is flat or a tube (Kim: no strands): flat when not said
     ...(p.object === "bag" && p.handle && p.handle !== "none" && !p.handleStyle ? { strapStyle: "flat-rows" as const, strapWcm: p.handleWcm ?? 2.5 } : {}),
-    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 ? { flap: { cm: p.flapCm, shape: p.flapShape ?? "half", ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
+    ...(p.object === "bag" && p.flapCm && p.flapCm > 0 && !GH ? { flap: { cm: p.flapCm, shape: p.taper === "both" ? "triangle" as const : p.taper === "left" ? "slant-l" as const : p.taper === "right" ? "slant-r" as const : p.flapShape ?? "half", ...(p.taper ? { tip: flapTip } : {}), ...(p.flapOver === "top" ? { over: true } : {}), ...(p.flapColor ? { color: p.flapColor } : {}) } } : {}),
     ...(p.crochetStitch && p.crochetStitch !== "sc" ? { stitchH: CROCHET[p.crochetStitch].h } : {}),
     ...(p.crochetStitch === "blo" ? { ridge: true } : {}),
     ...(wall ? { wall } : {}),

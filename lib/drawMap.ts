@@ -5,6 +5,7 @@
 import { CHART_MULT } from "./crochetChart";
 import { dots, outline, type Plan, type Row, type Shape } from "./pattern";
 import { drawSym, type StitchSym } from "./stitchSymbols";
+import { isChainRow, pieceLayout, pieceOf, pieceRows } from "./structure";
 import type { Project } from "./types";
 
 type St = "done" | "now" | "future";
@@ -90,7 +91,46 @@ function drawWall(ctx: CanvasRenderingContext2D, w: NonNullable<Row["wall"]>, n:
   return false;
 }
 
+/** A flat piece that changes width (lib/structure: a panel with rounded corners, a strip, a hobo's posts, a
+ *  slant or a triangle, a flap that narrows), row over row as it lies: each row's stitches where pieceLayout
+ *  sets them - the same grid the 3D draws. A gain at an edge is a V there, a loss an upturned V; the base chain
+ *  lies under the first row. While the piece is being joined (잇기) its edge is ringed with 되돌아짧은뜨기.
+ *  A long piece shows the rows round the one being made. */
+function drawPiece(cv: HTMLCanvasElement, p: Project, pp: Plan) {
+  const { ctx, W, H } = setup(cv), col = colors(p.color);
+  const ci = Math.max(0, Math.min(p.current, pp.rows.length - 1)); let k = ci;
+  while (k > 0 && pieceOf(pp.rows[k]) == null) k--;
+  // joining: the panel being joined (its name leads the step's), not the piece worked last
+  if (pp.rows[ci].part === "join") { const name = pp.rows[ci].label.slice(0, 2), j = pp.rows.findIndex(r => r.part === "panel" && (pieceOf(r) === name || !/^(앞판|뒤판)/.test(pp.rows[ci].label))); if (j >= 0) k = j; }
+  const key = pieceOf(pp.rows[k]) ?? pieceOf(pp.rows.find(r => pieceOf(r) != null) ?? pp.rows[0]);
+  let a = k, b = k; while (a > 0 && pieceOf(pp.rows[a - 1]) === key) a--; while (b < pp.rows.length - 1 && pieceOf(pp.rows[b + 1]) === key) b++;
+  const all = pp.rows.slice(a, b + 1), chain = all.find(isChainRow), body = all.filter(r => !isChainRow(r));
+  if (!body.length) return drawGrid(cv, p, pp);
+  const lay = pieceLayout(body), lines = pieceRows(body), pos = new Map(body.map((r, i) => [r, lay.at[i]] as const));
+  const joining = pp.rows[ci].part === "join", stOf = (r: Row): St => (r.idx < p.current ? "done" : r.idx === p.current ? "now" : "future");
+  const SHOW = 44, at = Math.max(0, lines.findIndex(l => l.some(r => r.idx >= p.current))), from = lines.length > SHOW ? Math.max(0, Math.min(at - 20, lines.length - SHOW)) : 0, to = Math.min(lines.length, from + SHOW);
+  const gap = Math.min(22, Math.min(W * .72, 470) / lay.W), bw = gap * lay.W, x0 = (W - bw) / 2, rowH = Math.min(20, (H - 96) / (to - from + 1.5)), y1 = H - 50;
+  const size = Math.max(5, Math.min(rowH * .88, gap * 1.3)), wt = size < 8 ? 1 : 1.2, X = (c: number) => x0 + (c + .5) * gap;
+  if (chain && from === 0) { const [cx, n] = lay.at[0], st: St = chain.idx < p.current ? "done" : chain.idx === p.current ? "now" : "future"; for (let c = 0; c < n; c++) drawSym(ctx, "ch", X(cx + c), y1, Math.min(size, gap * 1.05), 0, col[st], wt); }
+  for (let i = from; i < to; i++) for (const r of lines[i]) {
+    const [cx, n] = pos.get(r)!, y = y1 - (i - from + 1) * rowH, st = stOf(r), e = r.edge ?? [0, 0];
+    for (let c = 0; c < n; c++) {
+      const sym: StitchSym = (c === 0 && e[0] > 0) || (c === n - 1 && e[1] > 0) ? "inc" : c < -e[0] || c >= n + e[1] ? "dec" : "sc";
+      drawSym(ctx, sym, X(cx + c), y, size, 0, col[st], wt);
+    }
+  }
+  if (joining && from === 0) {
+    // the joined edge: up one side, along the bottom, up the other (a strip: its two long edges)
+    const c = col.now, first = lay.at[0], yb = y1 + rowH * (chain ? .9 : .2);
+    for (let c0 = 0; c0 < first[1]; c0 += 2) drawSym(ctx, "crab", X(first[0] + c0), yb, size * .9, 0, c, wt);
+    for (let i = from; i < to; i += 2) { const row = lines[i][0]; if (row.post != null) break; const [cx, n] = pos.get(row)!, y = y1 - (i - from + 1) * rowH; drawSym(ctx, "crab", X(cx) - gap * .9, y, size * .9, -Math.PI / 2, c, wt); drawSym(ctx, "crab", X(cx + n - 1) + gap * .9, y, size * .9, Math.PI / 2, c, wt); }
+  }
+  cv.setAttribute("aria-label", `${key ?? "편물"} 코 도안, ${lines.length}단 중 ${Math.min(lines.length, at + 1)}단째${joining ? ", 잇는 자리 표시" : ""}`);
+}
+
 export function drawTrack(cv: HTMLCanvasElement, p: Project, pp: Plan) {
+  const cur = pp.rows[Math.max(0, Math.min(p.current, pp.rows.length - 1))];
+  if (cur && (cur.part === "panel" || cur.part === "strip" || cur.part === "strap" || cur.part === "join" || (cur.part === "flap" && pp.rows.some(r => r.part === "flap" && r.edge)) || (p.object === "rows" && pp.rows.some(r => r.edge)) || (cur.part === "finish" && pp.rows.some(r => r.part === "panel" || r.edge)))) return drawPiece(cv, p, pp);
   if (p.object === "rows" || p.object === "tube") return drawGrid(cv, p, pp);
   const R = pp.bottomRounds;
   if (p.current < R || p.object !== "bag") {

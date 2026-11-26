@@ -74,6 +74,24 @@ export interface Draft {
   handleKind?: "wrist" | "grown";
   /** a handle grown out of the opening (lib/pattern grownHandle): the width of its foot (cm). Its stitch is the body's. */
   handleBaseCm?: number;
+  /** 만드는 방법 (lib/structure, Kim: 구조 원리로 조립하기 부품): two panels and a strip, or a panel whose ends go
+   *  on up as the strap; none = a bottom worked round. Their sizes: a x h the panel, `corner` its lower corners
+   *  (0-1), `stripCm` / `stripHandle` the strip, `postSt` / `strapCm` / `hoboFold` the hobo's posts */
+  build?: "panels" | "hobo1";
+  corner?: number;
+  stripCm?: number;
+  stripHandle?: boolean;
+  postSt?: number;
+  strapCm?: number;
+  hoboFold?: boolean;
+  /** 사선 / 삼각형 (lib/structure taper): a flat piece or a flap narrowing at an edge or both, to `taperTip`
+   *  stitches that can go on as a cord */
+  taper?: "left" | "right" | "both";
+  taperTip?: number;
+  taperCord?: boolean;
+  taperCordCm?: number;
+  /** 브러싱 (Kim): the finished piece brushed, 0 (off) .. 1 - a last step in the pattern, more hair in the 3D */
+  brush?: number;
   /** 직접 적기 (Kim): a crochet pattern written in the reader's own words, row by row - the 3D works it out
    *  stitch by stitch (lib/stitchGrammar); `ownOn` shows it instead of the picked pattern */
   ownSteps?: string;

@@ -44,7 +44,13 @@ const SHAPE_KO = { circle: "원", oval: "타원", rect: "네모" } as const;
 /** the parts a draft is made of, in the order they are worked: [part, what it is] */
 export function partLines(d: Draft): [string, string][] {
   const it = ITEM[itemIdOf(d)], out: [string, string][] = [];
-  if (it.kind === "base-body") {
+  if (it.kind === "base-body" && d.build) {
+    // 구조 부품 (lib/structure): what the piece is put together from
+    out.push(["판", `${d.a} × ${d.h}cm · ${d.build === "hobo1" && d.hoboFold ? "한 장으로 이어서" : "2장"}${(d.corner ?? 0) > .02 ? " · 둥근 모서리" : ""}`]);
+    if (d.build === "panels") out.push(["띠", `너비 ${d.stripCm ?? 6}cm · 옆과 바닥${d.stripHandle && d.handle !== "none" ? ` · 손잡이 ${d.handleCm ?? 50}cm까지` : ""}`]);
+    else out.push(["끈", `기둥 ${d.postSt ?? 5}코 · ${d.strapCm ?? 60}cm`]);
+    if (d.build === "panels" && !d.stripHandle && d.handle !== "none") out.push(["손잡이", `끈 2개 · ${d.handleCm ?? 45}cm`]);
+  } else if (it.kind === "base-body") {
     out.push(["바닥", d.shape === "circle" ? `원 지름 ${d.a}cm` : d.gusset === "flat" ? `${d.a}cm · 면과 면 잇기 (납작)` : `${SHAPE_KO[d.shape]} ${d.a} × ${d.b}cm`]);
     const f = bodyOf(d), top = d.profile ? Math.round(d.a * d.profile[d.profile.length - 1] / d.profile[0]) : d.topA ?? d.a;
     out.push(["몸통", `높이 ${d.h}cm · 입구 ${top}cm` + (d.profile ? " · 둥글게" : f.top > d.a + .4 ? " · 위로 넓게" : f.top < d.a - .4 ? " · 위로 좁게" : " · 일자")]);

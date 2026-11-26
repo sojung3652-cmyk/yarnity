@@ -154,7 +154,7 @@ export function PatternScreen() {
                       <tr>
                         <th scope="row">{label}</th>
                         <td><GlossText text={r.how} /><small>{r.why}</small></td>
-                        <td className="ps-n">{r.n}<span>코</span></td>
+                        <td className="ps-n">{r.n > 0 && <>{r.n}<span>코</span></>}</td>
                       </tr>
                       {r.part === "bottom" && r.no === 3 && <tr className="ps-note"><td colSpan={3}><span>※</span>여기서 한 번 지름을 재면 남은 단을 다시 계산합니다.</td></tr>}
                       {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <tr className="ps-note"><td colSpan={3}><span>※</span>5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드립니다.</td></tr>}

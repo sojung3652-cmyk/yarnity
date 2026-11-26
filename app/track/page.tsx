@@ -212,10 +212,13 @@ export function TrackScreen() {
   const showMeasure = !flat && current === 3 && !p.measuredH && pp.bottomRounds > 3;
   const showMeasureRows = flat && current === 6 && !p.measuredH && pp.bodyRows > 5; // start chain + 5 rows done
   // the symbols this work's chart uses, in the order of a symbol table
-  const syms: StitchSym[] = flat
-    ? ["ch", "sc"]
+  // (구조 부품: a panel's corners gain at its edges, a slant or a triangle loses there, joining is 되돌아짧은뜨기)
+  const built = pp.rows.some(x => x.part === "panel" || x.part === "join");
+  const syms: StitchSym[] = built ? ["ch", "sc", ...(pp.rows.some(x => x.edge && x.edge[0] > 0) ? ["inc" as const] : []), ...(pp.rows.some(x => x.part === "join" && x.n) ? ["crab" as const] : [])]
+    : flat
+    ? ["ch", "sc", ...(pp.rows.some(x => x.edge && (x.edge[0] < 0 || x.edge[1] < 0)) ? ["dec" as const] : [])]
     // (a stitch pattern's rounds are drawn in their own symbols: 한길긴뜨기 for a shell's fans, chains for 모스 and 그물)
-    : [p.shape === "circle" ? "ring" : "ch", ...(p.shape === "circle" && pp.rows.some(x => x.wall && (x.wall.k === "moss" || x.wall.k === "net")) ? ["ch" as const] : []), "sc", "inc", ...(pp.rows.some(x => x.wall?.k === "shell") ? ["dc" as const] : []), ...(p.object === "bag" && pp.rows.some(x => x.part === "rim") ? ["sl" as const] : [])];
+    : [p.shape === "circle" ? "ring" : "ch", ...(p.shape === "circle" && pp.rows.some(x => x.wall && (x.wall.k === "moss" || x.wall.k === "net")) ? ["ch" as const] : []), "sc", "inc", ...(pp.rows.some(x => x.wall?.k === "shell") ? ["dc" as const] : []), ...(p.object === "bag" && pp.rows.some(x => x.part === "rim") ? ["sl" as const] : []), ...(pp.rows.some(x => x.part === "flap" && x.edge) ? ["dec" as const] : [])];
   // sections in pattern order (01 바닥, 02 몸통...), as on the pattern sheet
   const parts = pp.rows.map(x => x.part).filter((x, i, a) => a.indexOf(x) === i);
   const secNo = (part: Row["part"]) => String(parts.indexOf(part) + 1).padStart(2, "0");
@@ -249,7 +252,7 @@ export function TrackScreen() {
             <><p className="mst-row">완성</p><p className="mst-how">마지막 단까지 다 떴습니다.</p></>
           ) : (
             <>
-              <div className="mst-top"><span className="mst-row">{vr.label}</span><span className="mst-count">{fromN != null && <small>{fromN}→</small>}<b>{vr.n}</b> 코</span></div>
+              <div className="mst-top"><span className="mst-row">{vr.label}</span><span className="mst-count">{vr.n > 0 && <>{fromN != null && <small>{fromN}→</small>}<b>{vr.n}</b> 코</>}</span></div>
               <p className="mst-how">{vr.how}</p>
               <p className="mst-why">{vr.why || "시작"}</p>
               {!other && flag && <p className="mst-tip">{flag}</p>}
@@ -354,7 +357,7 @@ export function TrackScreen() {
               ) : (
                 <>
                   <div className="tk-card-top"><span className="tk-row">{vr.label}</span>
-                    <span className="tk-count" id="trCount">{fromN != null && <>{fromN}<i>→</i></>}{vr.n}<span>코</span></span></div>
+                    <span className="tk-count" id="trCount">{vr.n > 0 && <>{fromN != null && <>{fromN}<i>→</i></>}{vr.n}<span>코</span></>}</span></div>
                   <p className="tk-how" id="trHow">{vr.how}</p>
                   <p className="tk-why" id="trWhy">{vr.why}</p>
                   {!other && flag && <p className="flag tk-flag" id="trFlag">{flag}</p>}
@@ -386,7 +389,7 @@ export function TrackScreen() {
               <ol className="tk-list" id="trNext">
                 {shown.map(x => (
                   <li key={x.idx} className={x.idx < current ? "is-done" : x.idx === current ? "is-now" : ""}>
-                    <span className="tk-l-no">{x.label}</span><span className="tk-l-how">{x.how}</span><span className="tk-l-n">{x.n}<small>코</small></span>
+                    <span className="tk-l-no">{x.label}</span><span className="tk-l-how">{x.how}</span><span className="tk-l-n">{x.n > 0 && <>{x.n}<small>코</small></>}</span>
                   </li>
                 ))}
               </ol>

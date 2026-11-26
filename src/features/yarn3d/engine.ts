@@ -114,7 +114,9 @@ export interface YarnPattern {
   strapColor?: string;
   /** a bag's flap (덮개): worked from the back of the opening, over the top and down the front (Kim: it has to show) */
   /** over: it covers the open top flat, front to back, and turns down at the front edge (Kim) */
-  flap?: { cm: number; shape: "half" | "square" | "triangle"; color?: string; over?: boolean };
+  /** (`slant-l` / `slant-r`: its left or its right edge comes in row by row - lib/structure taper; `tip`: how wide
+   *  a slant or a triangle still is at its end, against its width at the top) */
+  flap?: { cm: number; shape: "half" | "square" | "triangle" | "slant-l" | "slant-r"; color?: string; over?: boolean; tip?: number };
   /** the crochet stitch's height against single crochet (긴뜨기 ~1.6, 한길긴뜨기 ~2.2) */
   stitchH?: number;
   /** 이랑뜨기 (back loop only): the front loop left unworked stands up as a ridge along each row */
@@ -1163,11 +1165,16 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     const total = acc[acc.length - 1], rows = Math.max(3, Math.round(total / D.rh));
     const at = (sv: number) => { let i = 1; while (i < acc.length - 1 && acc[i] < sv) i++; const t = (sv - acc[i - 1]) / Math.max(1e-9, acc[i] - acc[i - 1]); const a = line[i - 1], b = line[i]; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, b[2] < 0 ? -1 : (a[2] < 0 ? 0 : a[2]) + ((b[2]) - (a[2] < 0 ? 0 : a[2])) * t]; };
     const half = (u: number) => f.shape === "square" ? hw : f.shape === "triangle" ? hw * Math.max(.06, 1 - u) : hw * Math.sqrt(Math.max(.01, 1 - u * u));
+    // the row's two ends from the middle (a slant keeps one edge and brings the other in; a triangle with a tip
+    // left stops narrowing at the tip's width)
+    const tipK = Math.max(.04, Math.min(1, f.tip ?? .06));
+    const ext = (u: number): [number, number] => f.shape === "slant-l" ? [-hw + 2 * hw * (1 - tipK) * u, hw] : f.shape === "slant-r" ? [-hw, hw - 2 * hw * (1 - tipK) * u]
+      : f.shape === "triangle" && f.tip != null ? [-hw * (1 - (1 - tipK) * u), hw * (1 - (1 - tipK) * u)] : [-half(u), half(u)];
     // its face down the front, where it truly is: inside the picked outline (반달 / 네모 / 세모), out from the wall
     // there (Kim: 덮개에 장식을 붙이면 덮개 위에)
     flapArea = { cx, hw, yTop: ry + lift, yBot: ry + lift - drop, out, face: (x, y) => {
       const u = (ry + lift - y) / (drop + lift); if (u < 0 || u > 1) return null;
-      if (Math.abs(x - cx) > half(u)) return null;
+      const [xa, xb] = ext(u); if (x - cx < xa || x - cx > xb) return null;
       return Math.max(z1, frontZ(y)) + out;
     } };
     let prev: THREE.Vector3[] | null = null, tip: THREE.Vector3 | null = null;
@@ -1184,10 +1191,10 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     };
     const JOIN = 3; // rows over which the flap leaves the back's edge for its own line
     for (let r0 = 0; r0 <= rows; r0++) {
-      const [z, y, u] = at(total * r0 / rows), w = u < 0 ? hw : half(u), n = Math.max(2, Math.round(2 * w / D.sw)), row: THREE.Vector3[] = [];
+      const [z, y, u] = at(total * r0 / rows), [xa, xb] = u < 0 ? [-hw, hw] : ext(u), n = Math.max(2, Math.round((xb - xa) / D.sw)), row: THREE.Vector3[] = [];
       const fj = r0 >= JOIN ? 1 : r0 / JOIN, ease = fj * fj * (3 - 2 * fj);
       for (let i = 0; i <= n; i++) {
-        const x = cx - w + 2 * w * i / n, rim = fj < 1 ? rimAt(x) : null;
+        const x = cx + xa + (xb - xa) * i / n, rim = fj < 1 ? rimAt(x) : null;
         row.push(rim ? new THREE.Vector3(x, rim[1] + (y - rim[1]) * ease + R * .5 * (1 - ease), rim[0] + (z - rim[0]) * ease) : new THREE.Vector3(x, y, z));
       }
       const mk = (pts: THREE.Vector3[], rr: number) => { if (pts.length < 2) return; const cv = new THREE.CatmullRomCurve3(pts, false, "catmullrom", .5), sp = cv.getSpacedPoints(Math.max(8, Math.ceil(cv.getLength() / (rr * .75 * step)))); const g = buildYarn(sp, rr, { M, color }), m = new THREE.Mesh(g, mat); m.castShadow = true; group.add(m); meshes.push(m); geos.push(g); };
