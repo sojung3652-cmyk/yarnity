@@ -983,6 +983,19 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
     const base = item.kind === "base-body" && item.id !== "beanie" && !kit && !draft.free && !draft.paint, form = bodyOf(draft);
     const rng = (k: "a" | "b" | "h", d: [number, number]) => item.range[k] ?? d;
     const hasFlap = !!draft.flapCm, flapNow = draft.flapCm ?? 0;
+    // 가장자리 짧은뜨기 한 바퀴 (Kim: 손잡이 포함 가방의 테두리를 짧은뜨기로 - 결과물이 깔끔하고 견고): the rounds
+    // the plan put in (lib/structure edgeRows), said in one line
+    const bagLike = isBag(item) || item.group === "작은 가방", borders = pp.rows.filter(r => r.border);
+    const edgeLine = !borders.length ? "이 가방은 입구와 손잡이가 이미 짧은뜨기로 끝나서 더 두를 곳이 없습니다."
+      : `${borders.map(r => `${r.label} ${r.n}코`).join(", ")}를 짧은뜨기로 한 바퀴씩 두릅니다.`;
+    const edgeBox = bagLike ? (
+      <div className="nb-edge">
+        <p className="nb-wsubhead">가장자리</p>
+        <Tiles label="가장자리" value={draft.edgeSc ? "on" : "off"} cols={2} onPick={v => patch({ edgeSc: v === "on" ? true : undefined })}
+          options={[["off", "없음", "뜬 그대로"], ["on", "한 바퀴", "짧은뜨기로 두르기"]]} />
+        {draft.edgeSc && <p className="nb-fit" role="status">{edgeLine}</p>}
+      </div>
+    ) : null;
     // 만드는 방법 (Kim: 구조 원리, lib/structure): a bottom worked round, two panels and a strip, or a hobo panel
     const built = base ? draft.build : undefined;
     const pickBuild = (v: string) => v === "panels" ? apply({ build: "panels", shape: "rect", corner: draft.corner ?? .35, stripCm: draft.stripCm ?? 6, stripHandle: draft.stripHandle ?? true, handle: draft.handle === "none" ? "short" : draft.handle, handleKind: undefined, handleCm: draft.handleCm ?? 50, flapCm: null, closure: "open", profile: undefined, asm: undefined, topA: null })
@@ -1056,6 +1069,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             </Fragment>)}
             <p className="nb-fit" role="status">{kitLine}</p>
             <p className="nb-help">{kitPart.help}</p>
+            {kitPart === kit[kit.length - 1] && edgeBox}
           </>}
           {partNow === "shape" && <>
             <h3>판<small>{built === "hobo1" ? "사슬에서 시작해 왕복으로 뜹니다" : built === "ribbed" ? "옆으로 떠서 세로 골을 냅니다" : "같은 판을 2장 뜹니다"}</small></h3>
@@ -1080,6 +1094,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             </div>
             <p className="nb-fit" role="status">{ribbedNote(input, pp.g)}</p>
             <p className="nb-help">구멍 자리의 단에서는 아래쪽과 위쪽을 따로 뜨고, 다음 단에서 사슬로 구멍 위를 건너 다시 잇습니다.</p>
+            {edgeBox}
           </>}
           {partNow === "strip" && <>
             <h3>띠<small>옆면과 바닥을 한 번에</small></h3>
@@ -1090,6 +1105,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             <div className="nb-sliders nb-sliders-1"><Slide label="손잡이" min={15} max={120} step={1} value={Math.min(120, handleCmOf(draft))} onChange={v => patch({ handle: "short", handleCm: v })} text={`${handleCmOf(draft)}cm`} /></div>
             <p className="nb-fit" role="status">{stripNote(input, pp.g)}</p>
             <p className="nb-help">잇기 전에 마커링으로 두 판의 옆면·바닥 위치를 먼저 맞춘 뒤, 되돌아짧은뜨기로 잇습니다.</p>
+            {edgeBox}
           </>}
           {partNow === "strap" && <>
             <h3>끈<small>판 양 끝이 그대로 올라갑니다</small></h3>
@@ -1099,6 +1115,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             </div>
             <p className="nb-fit" role="status">{hoboNote(input, pp.g)}</p>
             <p className="nb-help">판 양 끝의 몇 코만 각각 길게 떠서 두 기둥을 만들고, 끝을 이어 어깨끈으로 씁니다.</p>
+            {edgeBox}
           </>}
           {partNow === "size" && <>
             <h3>크기<small>{item.name}</small></h3>
@@ -1143,6 +1160,7 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             {handleMake}
             {handleSliders}
             <p className="nb-help">{draft.handleKind === "grown" ? "입구의 양쪽 옆선에서 몸통과 같은 무늬로 양 끝을 줄이며 올려 뜨고, 꼭대기에서 두 끝을 잇습니다. 따로 달지 않습니다." : draft.handleKind === "wrist" ? "손목에 끼는 고리는 약 20~30cm입니다." : "손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다."}</p>
+            {edgeBox}
           </>)}
           {partNow === "top" && <>
             <h3>입구<small>한 번 더 누르면 뺍니다</small></h3>

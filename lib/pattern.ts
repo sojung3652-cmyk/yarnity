@@ -3,7 +3,7 @@
 // tests/pattern.test.ts checks every output against a verbatim copy of the original,
 // so keep the arithmetic (including rnd()'s toFixed(6) rounding) exactly as is.
 
-import { planHobo, planPanels, planRibbed, planTaper, taperFlap, taperNote } from "./structure";
+import { edgeRows, planHobo, planPanels, planRibbed, planTaper, taperFlap, taperNote } from "./structure";
 import { planBonnet, planBucketHat, planBustier, planEarflap, planHalter, planHoodScarf, planKerchief, planMotifHat, planMoonBag, planTrapBag } from "./wear";
 import { CHART_MULT, type ChartKey } from "./crochetChart";
 import { PATTERN_BY_ID, STITCH_PATTERNS, type Rep } from "./stitchPatterns";
@@ -128,6 +128,8 @@ export interface PlanInput {
   taperTip?: number | null;
   taperCord?: boolean | null;
   taperCordCm?: number | null;
+  /** 가장자리 짧은뜨기 한 바퀴 (lib/structure edgeRows) */
+  edgeSc?: boolean | null;
   /** 브러싱 (0 off .. 1): the finished piece brushed - a last step in the words, hairier in the 3D, no count moved */
   brush?: number | null;
   /** 모자·소품 기본형 (lib/wear, Kim): the head's round and height (cm), a hat's brim (its width; worked double and
@@ -292,6 +294,9 @@ export interface Row {
   /** a hole in the row (a ribbed panel's hand hole): from which stitch, how many, and 1 when chains cross it */
   gap?: [number, number, number];
   post?: 0 | 1;
+  /** a round of 짧은뜨기 round a free edge (가장자리, lib/structure edgeRows): "loop" all the way round and closed,
+   *  "edge" along an edge from one end to the other (a flap's) */
+  border?: "loop" | "edge";
 }
 
 /** the stitches round a bag's opening: its last round, before any flap or handle */
@@ -464,12 +469,21 @@ export function planPaint(p: PlanInput): Plan {
  *  says its own stitch, and its turning chain is the stitch's own (withChains reads Plan.turn). */
 export function plan(p: PlanInput): Plan {
   // (a ribbed panel is always worked in the back loop: that is what makes its ribs)
-  const pp = brushed(snapped(planSc(p), p), p), st = p.build === "ribbed" && p.object === "bag" ? "blo" : p.crochetStitch;
-  if (!st || st === "sc") return pp;
+  // (the edging is 짧은뜨기 whatever the piece is worked in: it goes on after the stitch is named; the last steps after it)
+  const done = (q: Plan) => brushed(snapped(edged(q, p), p), p);
+  const pp = planSc(p), st = p.build === "ribbed" && p.object === "bag" ? "blo" : p.crochetStitch;
+  if (!st || st === "sc") return done(pp);
   const c = CROCHET[st], name = st === "blo" ? "짧은뜨기 이랑뜨기(뒷고리)" : c.ko;
   // (되돌아짧은뜨기 - crab stitch, the joining - is its own stitch whatever the piece is worked in)
   const rows = pp.rows.map(r => ({ ...r, how: r.how.replace(/(?<!되돌아)짧은뜨기/g, name) }));
-  return { ...pp, rows, turn: c.turn };
+  return done({ ...pp, rows, turn: c.turn });
+}
+/** 가장자리 짧은뜨기 (Kim): the edging rounds put in where they are worked, every row numbered again */
+function edged(pp: Plan, p: PlanInput): Plan {
+  if (!p.edgeSc || p.object !== "bag" || p.free || p.paint) return pp;
+  const rows = edgeRows(pp, p); if (rows === pp.rows) return pp;
+  rows.forEach((r, i) => { r.idx = i; });
+  return { ...pp, rows };
 }
 /** 자석 단추 (Kim: 입구 안쪽 자석 단추): sewn on inside the opening after the last stitch - a step, no stitch of its own */
 function snapped(pp: Plan, p: PlanInput): Plan {

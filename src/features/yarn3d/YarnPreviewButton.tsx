@@ -24,7 +24,7 @@ export function partsOf(pp: Plan, startName?: string, item?: string | null): [st
   while (i < pp.rows.length) {
     const part = pp.rows[i].part; let j = i; while (j + 1 < pp.rows.length && pp.rows[j + 1].part === part) j++;
     const n = Math.round(pp.rows[j].n), c = j - i + 1;
-    out.push([part === "start" && startName ? startName : partKo(part, item), part === "handle" && pp.rows[i].grown ? `${c}단` : part === "start" || part === "handle" ? `${n}코` : `${c}단 · ${n}코`]);
+    out.push([part === "start" && startName ? startName : partKo(part, item), part === "handle" && pp.rows[i].grown ? `${c}단` : part === "handle" ? `${Math.round(pp.rows[i].n)}코` : part === "start" ? `${n}코` : `${c}단 · ${n}코`]);
     i = j + 1;
   }
   return out;

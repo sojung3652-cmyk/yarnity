@@ -17,7 +17,9 @@ import { useApp } from "@/components/AppProvider";
  *  members (Kim: 누르면 둘 중에 선택). */
 const COUNT = ["한", "두", "세", "네"];
 function Protos({ onPick }: { onPick: (p: Proto) => void }) {
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(null), [grp, setGrp] = useState(PROTO_GROUPS[0]);
+  // (a family is one card: the chip counts the cards there are, not the starters)
+  const cardsIn = (g: string) => new Set(PROTOS.filter(p => p.group === g).map(p => p.family ?? p.id)).size;
   // (a picture that is not there leaves its place empty; the card still works by its name)
   const pic = (id: string) => <img className="ask-pic" src={`/protos/${id}.webp`} alt="" width={360} height={360} loading="lazy" decoding="async" onError={e => { e.currentTarget.style.visibility = "hidden"; }} />;
   const card = (p: Proto, name: string, note: string, onClick: () => void, expanded?: boolean) => (
@@ -26,18 +28,22 @@ function Protos({ onPick }: { onPick: (p: Proto) => void }) {
   return (
     <div className="ask-protos">
       <p className="ask-protos-lead">누르면 바로 그 모양이 3D로 나옵니다. 크기와 부품은 모양에서 고쳐 나가면 됩니다.</p>
-      {PROTO_GROUPS.map(g => {
+      {/* 그룹 이름으로 고르기 (Kim, 목록 B): the cards of the group picked, the list kept short */}
+      <div className="ask-chips" role="tablist" aria-label="기본형 묶음">
+        {PROTO_GROUPS.map(g => <button key={g} type="button" role="tab" aria-selected={g === grp} onClick={() => { setGrp(g); setOpen(null); }}>{g}<small>{cardsIn(g)}</small></button>)}
+      </div>
+      {PROTO_GROUPS.filter(g => g === grp).map(g => {
         const list = PROTOS.filter(p => p.group === g), seen = new Set<string>();
         return (
-          <div key={g} className="ask-grp"><b>{g}</b>
+          <div key={g} className="ask-grp" role="tabpanel" aria-label={g}>
             <span>{list.map(p => {
               if (!p.family) return card(p, p.name, p.note, () => onPick(p));
               if (seen.has(p.family)) return null;
               seen.add(p.family);
-              const members = list.filter(x => x.family === p.family), on = open === p.family, fam = p.family;
+              const members = list.filter(x => x.family === p.family), on = open === p.family, fam = p.family, cover = members.find(m => m.cover) ?? p;
               return (
                 <div key={fam} className={"ask-fam" + (on ? " is-open" : "")}>
-                  {card(p, fam, on ? "닫기" : `${COUNT[members.length - 1] ?? members.length} 가지 방식`, () => setOpen(on ? null : fam), on)}
+                  {card(cover, fam, on ? "닫기" : `${COUNT[members.length - 1] ?? members.length} 가지 방식`, () => setOpen(on ? null : fam), on)}
                   {on && members.map(m => card(m, m.choice?.[0] ?? m.name, m.choice?.[1] ?? m.note, () => onPick(m)))}
                 </div>
               );
@@ -126,15 +132,16 @@ export function AskInline({ draft, onApply }: { draft: Draft; onApply: (d: Draft
   return (
     <div className="ask-in">
       <p className="ask-in-h">무엇을 떠 볼까요</p>
-      <button type="button" className="ask-proto ask-pick" disabled={off} onClick={() => setChat(c => ({ ...c, open: true, conv: "new", shape: true, prefill: null }))}>
-        <b><i aria-hidden="true">1</i>Yarni와 대화하기</b>
-        {off && <span>지금은 Yarni를 쓸 수 없습니다.</span>}
-      </button>
+      {/* (Kim: 기본형이 위로, 누르면 그 바로 아래에 목록이 펼쳐지게) */}
       <button type="button" className="ask-proto ask-pick" aria-expanded={list} onClick={() => setList(v => !v)}>
-        <b><i aria-hidden="true">2</i>기본형으로 시작하기</b>
+        <b><i aria-hidden="true">1</i>기본형으로 시작하기</b>
         <span>{list ? "닫기" : "토트백, 버킷백, 파우치… 바로 고르기"}</span>
       </button>
       {list && <Protos onPick={p => onApply(protoDraft(draft, p))} />}
+      <button type="button" className="ask-proto ask-pick" disabled={off} onClick={() => setChat(c => ({ ...c, open: true, conv: "new", shape: true, prefill: null }))}>
+        <b><i aria-hidden="true">2</i>Yarni와 대화하기</b>
+        {off && <span>지금은 Yarni를 쓸 수 없습니다.</span>}
+      </button>
     </div>
   );
 }

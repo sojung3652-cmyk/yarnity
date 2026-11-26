@@ -121,6 +121,8 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
 
   // ---- 구조 부품 (lib/structure): a step with no stitch of its own, joining, a panel / a strip / a post or a
   // cord, and any flat row that loses stitches at its ends (a slant, a triangle - a flat piece's or a flap's)
+  // 가장자리 짧은뜨기: round a free edge (closed into its first stitch), or along one from end to end
+  if (r.border) return ok(r.border === "loop" ? round(st(r.n, SC), 1, [note(r.how.replace(/ 사슬 1, .*$/, ""))]) : [note("새 실을 걸어"), { t: "ch", n: 1, kind: "turn" }, ...st(r.n, SC)]);
   if (r.part === "finish" || (r.part === "join" && !r.n)) return { toks: [note(r.how)], end: "none" };
   // (모티프와 후드는 겉에서 짧은뜨기로 잇는다 - lib/wear; a bag's edges in 되돌아짧은뜨기)
   if (r.part === "join") return ok([note("두 겹을 함께 떠서"), ...st(r.n, /되돌아짧은뜨기/.test(r.how) ? "되돌아짧은뜨기" : SC)]);

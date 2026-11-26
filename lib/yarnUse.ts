@@ -51,6 +51,7 @@ export function yarnUse(pp: Plan, d: { weight: Weight | string; yarnMm?: number 
   let cm = 0;
   for (const r of pp.rows) {
     if (r.part === "start") cm += r.n * CH * w;
+    else if (r.border) cm += r.n * SC * w; // 가장자리 짧은뜨기: a round of 짧은뜨기 whatever part it edges
     else if (r.part === "handle" && r.grown) cm += r.n * SC * CROCHET[r.grown.st].h * w; // a handle grown out of the opening: rows of its stitch, a taller stitch more yarn
     else if (r.part === "handle") cm += r.n * (CH + BACK) * w; // a chain, then single crochet back along it
     else cm += r.n * SC * w;

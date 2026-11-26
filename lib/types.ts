@@ -95,6 +95,9 @@ export interface Draft {
   taperTip?: number;
   taperCord?: boolean;
   taperCordCm?: number;
+  /** 가장자리 짧은뜨기 (Kim): a round of 짧은뜨기 round every free edge of a bag - its handles, its flap, an opening
+   *  with no 짧은뜨기 edge of its own (lib/structure edgeRows) */
+  edgeSc?: boolean;
   /** 브러싱 (Kim): the finished piece brushed, 0 (off) .. 1 - a last step in the pattern, more hair in the 3D */
   brush?: number;
   /** 직접 적기 (Kim): a crochet pattern written in the reader's own words, row by row - the 3D works it out

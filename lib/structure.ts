@@ -279,3 +279,82 @@ export function pieceRows(rows: Row[]): Row[][] {
   return out;
 }
 
+
+// ---------------------------------------------------------------- 가장자리 짧은뜨기 (Kim: 손잡이 포함 가방의 테두리를 짧은뜨기로)
+/** A round of 짧은뜨기 round every free edge of a bag, so it looks finished and holds its shape. What a free edge
+ *  is depends on how the bag is made, so it is read off the plan's own rows:
+ *    a handle made apart (a chain, worked back along it)   round it before it is sewn on: its two long sides
+ *                                                           and an end each = 2 x its chain + 2
+ *    a flap                                                 its two sides and its end: 2 x its rows' height
+ *                                                           over a stitch's width + its first row
+ *    an opening with no 짧은뜨기 edge of its own             round the opening: panels' tops, strip ends, posts'
+ *                                                           long sides, a band's sides, a hand hole
+ *  A row's height over a stitch's width turns rows into stitches along a side. An opening that already ends in a
+ *  round of 짧은뜨기 (a bag worked round from its bottom, a handle grown out of it) is left as it is.
+ *  The rows given are the plan's, in order; the edging rounds are put in where they are worked. */
+export function edgeRows(pp: Plan, p: PlanInput): Row[] {
+  const g = pp.g, along = (rows: number) => Math.max(2, rnd(rows * g.h / g.w)), rows = pp.rows;
+  // 을 / 를 by the last syllable said (a bracket's words count, the bracket itself not)
+  const obj = (s: string) => { const c = [...s.replace(/[\s)]+$/, "")].pop() ?? ""; const k = c.charCodeAt(0) - 0xac00; return k >= 0 && k < 11172 && k % 28 ? "을" : "를"; };
+  const loop = (part: Row["part"], label: string, n: number, where: string, why: string): Row =>
+    ({ part, n, inc: 0, own: true, border: "loop", label, how: `${where}${obj(where)} 따라 사슬 1, ${SC} ${n}코로 한 바퀴 두르고 첫 코에 빼뜨기`, why } as Row);
+  const out: Row[] = [];
+  let lastFlap = -1; rows.forEach((r, i) => { if (r.part === "flap") lastFlap = i; });
+  rows.forEach((r, i) => {
+    const strap = r.part === "handle" && !r.own && !r.grown && !r.border && /되돌아/.test(r.how);
+    out.push(strap ? { ...r, how: r.how.replace(/(\S+에 (?:함께 )?연결)$/, "가장자리를 두른 뒤 $1") } : r);
+    if (strap) out.push(loop("handle", `${r.label} 가장자리`, 2 * r.n + 2, `연결하기 전에 ${r.label} 둘레`, `긴 변 ${r.n}코씩 + 양 끝 1코씩 = ${2 * r.n + 2}코 · 손잡이가 늘어나지 않고 단단해집니다`));
+    if (i === lastFlap) {
+      const fl = rows.filter(x => x.part === "flap"), side = along(fl.length), n = 2 * side + fl[0].n;
+      // (in the edging, not in the flap: the flap's own rows - its counts, the 3D's flap, its chart - stay its own)
+      out.push({ part: "rim", n, inc: 0, own: true, border: "edge", label: "덮개 가장자리", how: `덮개 한쪽 아래 끝에 새 실을 걸어 사슬 1, 옆 · 끝 · 옆을 따라 ${SC} ${n}코`,
+        why: `옆 ${fl.length}단 × 코 높이 ${fmt(g.h * 10)}mm ÷ 코 너비 ${fmt(g.w * 10)}mm = ${side}코씩, 끝 ${fl[0].n}코 · 덮개 가장자리가 깔끔해집니다` } as Row);
+    }
+  });
+  // the opening, when it has no 짧은뜨기 edge of its own
+  if (rows.some(r => (r.part === "rim" && !r.border) || r.grown?.k === "edge")) return out.length === rows.length ? rows : out;
+  const ends: Row[] = [], body = (name: string) => rows.filter(r => r.part === "panel" && pieceOf(r) === name && !isChainRow(r));
+  const discs = rows.filter(r => (r as Row & { disc?: { name: string; hole?: number } }).disc);
+  const posts = rows.filter(r => r.post != null), band = rows.filter(r => r.part === "handle" && r.grown && r.grown.k !== "edge");
+  if (discs.length) {
+    // two circles joined along their lower halves: the upper halves are the opening; a hand slot in each
+    const N = Math.max(...discs.map(r => r.n));
+    ends.push(loop("rim", "입구 가장자리", N, "두 원의 위 반원(입구)", `마지막 단 ${N}코의 절반씩, 두 원 = ${N}코`));
+    for (const r of discs) { const d = (r as Row & { disc: { name: string; hole?: number } }).disc; if (d.hole) ends.push(loop("rim", `${d.name} 손잡이 구멍 가장자리`, 2 * d.hole, `${d.name} 손잡이 구멍 둘레`, `사슬 ${d.hole}코 쪽과 건너뛴 ${d.hole}코 쪽 = ${2 * d.hole}코`)); }
+  } else if (posts.length) {
+    // a hobo panel: each panel's two posts are joined into an arch - inside it the panel's middle and the posts'
+    // inner sides, outside it the posts' outer sides all round
+    let outer = 0;
+    for (const name of ["앞판", "뒤판"]) {
+      const W = body(name).pop()?.n ?? 0, ps = posts.filter(r => pieceOf(r) === name); if (!ps.length) continue;
+      const post = ps[0].n, side = along(ps.filter(r => r.post === 0).length), mid = Math.max(0, W - 2 * post), n = mid + 2 * side; outer += 2 * side;
+      ends.push(loop("rim", `${name} 입구 가장자리`, n, `${name} 입구와 두 기둥의 안쪽`, `가운데 ${mid}코 + 기둥 안쪽 ${side}코씩 = ${n}코`));
+    }
+    if (outer) ends.push(loop("rim", "끈 바깥 가장자리", outer, "옆선에서 두 끈의 바깥쪽", `기둥 바깥쪽 ${outer / 4}코씩, 네 변 = ${outer}코`));
+  } else if (p.build === "panels") {
+    const W = body("앞판").pop()?.n ?? 0, strip = rows.filter(r => r.part === "strip" && !isChainRow(r)), S = strip[0]?.n ?? 0;
+    const ring = !!p.stripHandle && p.handle !== "none", HR = ring ? Math.max(2, rnd((p.handleCm && p.handleCm > 0 ? p.handleCm : 50) / g.h)) : 0;
+    if (ring) for (const name of ["앞쪽", "뒤쪽"]) ends.push(loop("rim", `${name} 입구 가장자리`, W + along(HR), `${name} 판의 위와 띠 손잡이의 ${name} 옆선`, `판 위 ${W}코 + 손잡이 옆선 ${along(HR)}코`));
+    else ends.push(loop("rim", "입구 가장자리", 2 * W + 2 * S, "두 판의 위와 양쪽 띠 끝", `판 위 ${W}코씩 + 띠 끝 ${S}코씩 = ${2 * W + 2 * S}코`));
+  } else if (p.build === "ribbed") {
+    // worked sideways: the panels' tops are their rows' ends; each panel's hand hole is rows by stitches
+    const R = body("앞판").length, top = along(R);
+    ends.push(loop("rim", "입구 가장자리", 2 * top, "두 판의 위(단의 끝)", `${R}단 × 코 높이 ÷ 코 너비 = ${top}코씩, 두 판 = ${2 * top}코`));
+    for (const name of ["앞판", "뒤판"]) {
+      const hole = body(name).filter(r => r.gap && !r.gap[2]); if (!hole.length) continue;
+      const hs = hole[0].gap![1], n = 2 * hs + 2 * along(hole.length);
+      ends.push(loop("rim", `${name} 손잡이 구멍 가장자리`, n, `${name} 손잡이 구멍 둘레`, `위아래 ${hs}코씩 + 양옆 ${along(hole.length)}코씩 = ${n}코`));
+    }
+  } else if (band.length && rows.some(r => r.part === "panel")) {
+    // panels with a band grown from one side to the other: front and back, each with one of the band's sides
+    const W = body("앞판").pop()?.n ?? 0, T = band[0].n, side = along(band.length);
+    for (const name of ["앞쪽", "뒤쪽"]) ends.push(loop("rim", `${name} 입구 가장자리`, Math.max(0, W - T) + side, `${name} 입구와 손잡이 띠의 ${name} 옆선`, `입구 ${W} - 띠 ${T} = ${Math.max(0, W - T)}코 + 띠 옆선 ${side}코`));
+  } else if (rows.some(r => r.part === "body")) {
+    const N = [...rows].reverse().find(r => r.part === "body")!.n;
+    ends.push(loop("rim", "입구 가장자리", N, "입구", `몸통 마지막 단 ${N}코`));
+  }
+  if (!ends.length) return out.length === rows.length ? rows : out;
+  // after the last row of the making and the joining, before what is done after the last stitch
+  let at = out.length; while (at > 0 && out[at - 1].part === "finish") at--;
+  return [...out.slice(0, at), ...ends, ...out.slice(at)];
+}

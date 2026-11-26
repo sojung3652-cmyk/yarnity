@@ -7,7 +7,9 @@ import type { Draft } from "./types";
 
 /** `family`: starters shown as ONE card that opens into its members (Kim: 호보백을 누르면 둘 중에 선택) - `choice`
  *  is a member's own name and line there */
-export type Proto = { id: string; group: string; name: string; note: string; item: ItemId; over?: Partial<Draft>; family?: string; choice?: [string, string] };
+export type Proto = { id: string; group: string; name: string; note: string; item: ItemId; over?: Partial<Draft>; family?: string; choice?: [string, string];
+  /** the member whose picture stands for the family's card (Kim: 호보백은 이어 뜨는 호보백 그림으로) */
+  cover?: boolean };
 
 const KINDS: Proto[] = [
   { id: "tote", group: "가방", name: "토트백", note: "네모 · 손잡이 2개", item: "minibag", over: { shape: "rect", a: 26, b: 9, h: 22, handle: "short", handleCm: 50, handleCount: 2, gusset: "box" } },
@@ -19,7 +21,7 @@ const KINDS: Proto[] = [
   { id: "netbag", group: "가방", name: "네트백", note: "그물 몸통 · 짧은뜨기 테두리", item: "minibag", over: { shape: "rect", gusset: "box", a: 24, b: 8, h: 26, crochetChart: "net", handle: "short", handleKind: "rim", handleCount: 2, handleCm: 40, drape: true } },
   { id: "ribtote", group: "가방", name: "골지 토트", note: "옆으로 떠서 세로 골", item: "minibag", over: { shape: "rect", build: "ribbed", a: 28, h: 26, holeW: 10, holeH: 3, handle: "none" } },
   // (the handle is the body itself going on up - lib/pattern grownHandle; it was "호보백" before the one above took the name)
-  { id: "hobo", group: "가방", name: "이어 뜨는 호보백", note: "타원 · 이어 뜨는 손잡이", family: "호보백", choice: ["몸통에서 이어 뜨기", "타원 바닥 · 입구에서 손잡이가 이어짐"], item: "minibag", over: { shape: "oval", a: 28, b: 10, h: 18, handle: "short", handleKind: "grown", handleCount: 1, handleCm: 56, handleWcm: 3 } },
+  { id: "hobo", group: "가방", name: "이어 뜨는 호보백", note: "타원 · 이어 뜨는 손잡이", cover: true, family: "호보백", choice: ["몸통에서 이어 뜨기", "타원 바닥 · 입구에서 손잡이가 이어짐"], item: "minibag", over: { shape: "oval", a: 28, b: 10, h: 18, handle: "short", handleKind: "grown", handleCount: 1, handleCm: 56, handleWcm: 3 } },
   { id: "round", group: "가방", name: "둥근 손가방", note: "원 · 손잡이 1개", item: "minibag", over: { shape: "circle", a: 15, h: 15, handle: "short", handleCm: 50, handleCount: 1 } },
   { id: "flapbag", group: "가방", name: "덮개 크로스백", note: "네모 · 덮개 · 긴 끈", item: "minibag", over: { shape: "rect", a: 20, b: 6, h: 15, gusset: "box", closure: "flap", flapCm: 9, flapShape: "half", flapOver: "top", handle: "long", handleCm: 120, handleCount: 1 } },
   { id: "bucket", group: "가방", name: "버킷백", note: "원 · 끈 조이기", item: "bucket", over: { closure: "drawstring" } },
@@ -48,13 +50,21 @@ const KINDS: Proto[] = [
   { id: "halter", group: "옷", name: "그물 홀터 탑", note: "그물 몸통 · V로 모으는 앞 · 목끈", family: "뷔스티에 · 홀터 탑", choice: ["그물 홀터 탑", "그물 몸통 · V로 모으는 앞 · 목끈"], item: "halter", over: { bust: 84, h: 30, tieCm: 45 } },
 ];
 const BAGS = new Set<ItemId>(["minibag", "bucket", "pouch"]);
+/** 기본형 정리 (Kim: 이름만 다르고 크기만 다른 것은 하나로 - 크기는 슬라이더로): the pieces made the same way as
+ *  another card, shown on that card's line instead (their items stay: saved works and typed words still find
+ *  them; the kept item's sliders reach their sizes) */
+const SAME_AS: Partial<Record<ItemId, ItemId>> = { trivet: "coaster", scrubber: "coaster", rug: "placemat", planter: "basket", pencil: "basket", cupholder: "basket", blanket: "dishcloth", bookmark: "dishcloth", headband: "neckwarmer" };
+const ALSO: Partial<Record<ItemId, string>> = { coaster: "냄비받침 · 수세미도 크기만 다르게", placemat: "러그도 크기만 다르게", basket: "화분 커버 · 연필꽂이 · 컵 홀더도", dishcloth: "담요 · 책갈피도 크기만 다르게", neckwarmer: "헤어밴드도 높이만 다르게" };
+/** the list's groups (Kim: 그룹 이름으로 고르기): the items' own groups gathered into fewer */
+const GROUP_OF: Record<string, string> = { "납작한 것": "생활 소품", "담는 것": "생활 소품", "그 밖에": "생활 소품", "두르는 것": "소품" };
+export const PROTO_ORDER = ["가방", "파우치", "모자", "옷", "소품", "생활 소품"];
 
 /** every 기본형, grouped as shown: the bag and pouch kinds, then every other piece once */
 export const PROTOS: Proto[] = [
   ...KINDS,
-  ...ITEMS.filter(i => !BAGS.has(i.id) && !isStarterOnly(i)).map(i => ({ id: i.id, group: i.id === "beanie" ? "모자" : i.group, name: i.name, note: "", item: i.id })),
+  ...ITEMS.filter(i => !BAGS.has(i.id) && !isStarterOnly(i) && !SAME_AS[i.id]).map(i => ({ id: i.id, group: i.id === "beanie" ? "모자" : GROUP_OF[i.group] ?? i.group, name: i.name, note: ALSO[i.id] ?? "", item: i.id })),
 ];
-export const PROTO_GROUPS = [...new Set(PROTOS.map(p => p.group))];
+export const PROTO_GROUPS = [...PROTO_ORDER.filter(g => PROTOS.some(p => p.group === g)), ...new Set(PROTOS.map(p => p.group).filter(g => !PROTO_ORDER.includes(g)))];
 
 /** the draft as the 기본형: the item's own defaults (nothing of the piece before), then the kind's own parts */
 export function protoDraft(d: Draft, p: Proto): Draft {
@@ -66,6 +76,8 @@ export function protoDraft(d: Draft, p: Proto): Draft {
     circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined, paint: undefined,
     headH: undefined, brimCm: undefined, brimFold: undefined, motifN: undefined, brimMore: undefined, tieCm: undefined, tieWcm: undefined, ribRows: undefined, netCh: undefined, bottleD: undefined, bottleH: undefined, pattern: undefined, crochetStitch: undefined,
     bust: undefined, phoneW: undefined, phoneH: undefined, rimChart: undefined, flapStepRows: undefined, flapStepSt: undefined, holeW: undefined, holeH: undefined, handleWcm: undefined,
+    // 가장자리 짧은뜨기 한 바퀴 (Kim: 손잡이 포함 가방의 테두리를 짧은뜨기로 - 가방은 켜 두기)
+    edgeSc: p.group === "가방" || p.group === "파우치" ? true : undefined,
     ...p.over,
   };
 }

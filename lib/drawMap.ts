@@ -137,7 +137,7 @@ export function foldRows<T>(rows: T[], same: (a: T, b: T) => boolean, keep = -1,
 /** what makes two rows "the same row": their part, their count, what they gain or lose and where, their pattern round */
 export const rowSig = (r: Row) => [r.part, r.n, r.inc || 0, r.edge ? r.edge.join(",") : "", r.gap ? r.gap.join(",") : "", r.wall ? `${r.wall.k}${r.wall.i ? 1 + (r.wall.i % 2) : 0}` : "", r.post ?? "", r.how.startsWith("빼뜨기") ? "s" : ""].join("|");
 /** a row's own number, as it stands at the chart's side ("12단" -> 12, "앞판 기둥1 7단" -> 7, "테두리 1" -> 1) */
-export const rowNo = (r: Row) => r.label.match(/(\d+)\s*단?$/)?.[1] ?? r.label;
+export const rowNo = (r: Row) => r.label.match(/(\d+)\s*단?$/)?.[1] ?? "";
 /** the count changes in this row (the only rows that carry "(총 ○코)") */
 export const rowChanges = (r: Row) => !!(r.inc || (r.edge && (r.edge[0] || r.edge[1])));
 const isRim = (r: Row) => r.part === "rim" || r.grown?.k === "edge";
@@ -152,6 +152,8 @@ interface ChartSpec {
   /** a stitch pattern's round drawn in its own symbols (true when it was) */
   wall?: (ctx: CanvasRenderingContext2D, r: Row, y: number, size: number, color: string, wt: number, x0: number, bw: number) => boolean;
   chain?: { row: Row; from: number; n: number } | null;
+  /** room under the chain (px) for something drawn there (a handle's edging round) */
+  under?: number;
   label: string;
   after?: (g: { ctx: CanvasRenderingContext2D; X: (c: number) => number; y1: number; rowH: number; yOf: (line: number) => number | null; size: number; wt: number; now: string; gap: number }) => void;
 }
@@ -163,7 +165,7 @@ function drawLines(cv: HTMLCanvasElement, p: Project, s: ChartSpec) {
   const CAP = small ? 30 : 40;
   if (disp.length > CAP) { const at = Math.max(0, disp.findIndex(d => "row" in d && d.i >= Math.max(0, keep))), from = Math.max(0, Math.min(at - CAP / 2, disp.length - CAP)); cut = from > 0; disp = disp.slice(from, from + CAP); }
   const left = small ? 30 : 62, right = small ? 50 : 76, bw = Math.min(W - left - right, s.cols * 22, 470), gap = bw / s.cols, x0 = left + (W - left - right - bw) / 2;
-  const y1 = H - 58, rowH = Math.min(22, (y1 - 18) / (disp.length + 1)), size = Math.max(5, Math.min(rowH * .88, gap * 1.3)), wt = size < 8 ? 1 : 1.2, X = (c: number) => x0 + (c + .5) * gap;
+  const y1 = H - 58 - (s.under ?? 0), rowH = Math.min(22, (y1 - 18) / (disp.length + 1)), size = Math.max(5, Math.min(rowH * .88, gap * 1.3)), wt = size < 8 ? 1 : 1.2, X = (c: number) => x0 + (c + .5) * gap;
   const fam = getComputedStyle(document.body).fontFamily || "serif", font = (px: number, bold = false) => `${bold ? "600 " : ""}${px}px ${fam}`;
   const rimCol = (st: St) => (st === "now" ? col.now : st === "done" ? RIM_INK : "rgba(181,86,46,.38)");
   if (s.chain && !cut) { const st = stOf(s.chain.row); for (let c = 0; c < s.chain.n; c++) drawSym(ctx, "ch", X(s.chain.from + c), y1, Math.min(size, gap * 1.05), 0, col[st], wt); }
@@ -201,7 +203,7 @@ function drawLines(cv: HTMLCanvasElement, p: Project, s: ChartSpec) {
   });
   // under the chart: the stitches' numbers, every fifth ringed (when not every stitch is drawn the numbers are
   // the stitches the columns stand for, and only the ringed ones are written)
-  const scaled = !!s.real && s.real !== s.cols, noOf = (c: number) => (scaled ? Math.max(1, Math.round((c + .5) * (s.real as number) / s.cols)) : c + 1), yn = y1 + 20;
+  const scaled = !!s.real && s.real !== s.cols, noOf = (c: number) => (scaled ? Math.max(1, Math.round((c + .5) * (s.real as number) / s.cols)) : c + 1), yn = y1 + 20 + (s.under ?? 0);
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   for (let c = 0; c < s.cols; c++) {
     const fifth = (c + 1) % 5 === 0;
@@ -211,7 +213,7 @@ function drawLines(cv: HTMLCanvasElement, p: Project, s: ChartSpec) {
   }
   ctx.globalAlpha = 1;
   // the start, and the way the work goes: a first row is worked from the right end to the left
-  const ya = y1 + 40; ctx.font = font(fs); ctx.fillStyle = NOTE_INK; ctx.textAlign = "right"; ctx.fillText("시작", x0 + bw, ya);
+  const ya = y1 + 40 + (s.under ?? 0); ctx.font = font(fs); ctx.fillStyle = NOTE_INK; ctx.textAlign = "right"; ctx.fillText("시작", x0 + bw, ya);
   const ax = x0 + bw - ctx.measureText("시작").width - 8; ctx.strokeStyle = NOTE_INK; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(ax, ya); ctx.lineTo(ax - 30, ya); ctx.moveTo(ax - 23, ya - 4); ctx.lineTo(ax - 30, ya); ctx.lineTo(ax - 23, ya + 4); ctx.stroke();
   if (scaled && !small) { ctx.textAlign = "left"; ctx.globalAlpha = .75; ctx.font = font(fs - 1); ctx.fillText(`${s.real}코 가운데 ${s.cols}코만 그렸습니다`, x0, ya); ctx.globalAlpha = 1; }
   s.after?.({ ctx, X, y1, rowH, yOf: i => ys.get(i) ?? null, size, wt, now: col.now, gap });
@@ -226,6 +228,9 @@ function drawLines(cv: HTMLCanvasElement, p: Project, s: ChartSpec) {
 function drawPiece(cv: HTMLCanvasElement, p: Project, pp: Plan) {
   const ci = Math.max(0, Math.min(p.current, pp.rows.length - 1)); let k = ci;
   while (k > 0 && pieceOf(pp.rows[k]) == null) k--;
+  // 가장자리 짧은뜨기 round a bag made of panels: the front panel, its top ringed in the edging's colour
+  const ring = pp.rows[ci].border === "loop" && pp.rows[ci].part === "rim" ? pp.rows[ci] : null;
+  if (ring) { const j = pp.rows.findIndex(r => r.part === "panel"); if (j >= 0) k = j; }
   // joining: the panel being joined (its name leads the step's), not the piece worked last
   if (pp.rows[ci].part === "join") { const name = pp.rows[ci].label.slice(0, 2), j = pp.rows.findIndex(r => r.part === "panel" && (pieceOf(r) === name || !/^(앞판|뒤판)/.test(pp.rows[ci].label))); if (j >= 0) k = j; }
   const key = pieceOf(pp.rows[k]) ?? pieceOf(pp.rows.find(r => pieceOf(r) != null) ?? pp.rows[0]);
@@ -244,8 +249,12 @@ function drawPiece(cv: HTMLCanvasElement, p: Project, pp: Plan) {
       }
       return out;
     },
-    label: `${key ?? "편물"} 코 도안, ${lines.length}단 중 ${Math.min(lines.length, Math.max(0, lines.findIndex(l => l.some(r => r.idx >= p.current))) + 1)}단째${joining ? ", 잇는 자리 표시" : ""}`,
-    after: joining ? g => {
+    label: `${key ?? "편물"} 코 도안, ${lines.length}단 중 ${Math.min(lines.length, Math.max(0, lines.findIndex(l => l.some(r => r.idx >= p.current))) + 1)}단째${joining ? ", 잇는 자리 표시" : ring ? ", 가장자리 짧은뜨기 표시" : ""}`,
+    after: ring ? g => {
+      // the top row's stitches, each with a stitch of the edging over it
+      const li = lines.length - 1, y = g.yOf(li); if (y == null) return;
+      for (const r of lines[li]) { const [cx, n] = pos.get(r)!; for (let c = 0; c < n; c++) drawSym(g.ctx, "sc", g.X(cx + c), y - g.rowH, g.size * .9, 0, ring.idx === p.current ? g.now : ring.idx < p.current ? RIM_INK : "rgba(181,86,46,.38)", g.wt); }
+    } : joining ? g => {
       // the joined edge: along the bottom, and up the two sides as far as the panel goes
       const first = lay.at[0], yb = g.y1 + g.rowH * (chain ? .95 : .2);
       for (let c = 0; c < first[1]; c += 2) drawSym(g.ctx, "crab", g.X(first[0] + c), yb, g.size * .9, 0, g.now, g.wt);
@@ -300,10 +309,31 @@ function drawMotif(cv: HTMLCanvasElement, p: Project, pp: Plan, at: number) {
   cv.setAttribute("aria-label", `${name} 코 도안, ${rows.length}단 중 ${Math.min(rows.length, Math.max(1, rows.filter(r => r.idx <= p.current).length))}단째`);
 }
 
+/** A handle made apart (Kim: 손잡이도 다른 도안들처럼 기호도안으로): its chain, the row of 짧은뜨기 worked back
+ *  along it, and - with 가장자리 짧은뜨기 - the round of 짧은뜨기 all round it in the edging's colour, above the
+ *  row, under the chain and at its two ends. A long chain is drawn shorter (the numbers under it are its own). */
+function drawHandle(cv: HTMLCanvasElement, p: Project, pp: Plan, at: number) {
+  const r0 = pp.rows[at], h = r0.border ? pp.rows[at - 1] : r0, b = r0.border ? r0 : pp.rows[at + 1]?.border ? pp.rows[at + 1] : null;
+  const real = Math.max(1, h.n), cols = Math.min(40, real), stB: St = !b ? "future" : b.idx < p.current ? "done" : b.idx === p.current ? "now" : "future";
+  drawLines(cv, p, {
+    lines: [[h]], cols, real, chain: { row: h, from: 0, n: cols }, under: b ? 16 : 0,
+    cells: () => Array.from({ length: cols }, (_, c): [number, StitchSym] => [c, "sc"]),
+    label: `${h.label} 코 도안${b ? ", 가장자리 짧은뜨기 표시" : ""}`,
+    after: b ? g => {
+      const color = stB === "now" ? g.now : stB === "done" ? RIM_INK : "rgba(181,86,46,.38)", top = g.y1 - 2 * g.rowH, bot = g.y1 + Math.max(12, g.rowH * .8), k = g.size * .85;
+      for (let c = 0; c < cols; c++) { drawSym(g.ctx, "sc", g.X(c), top, k, 0, color, g.wt); drawSym(g.ctx, "sc", g.X(c), bot, k, Math.PI, color, g.wt); }
+      for (const [x, a] of [[g.X(0) - g.gap, -Math.PI / 2], [g.X(cols - 1) + g.gap, Math.PI / 2]] as const) drawSym(g.ctx, "sc", x, g.y1 - g.rowH / 2, k, a, color, g.wt);
+    } : undefined,
+  });
+}
+
 export function drawTrack(cv: HTMLCanvasElement, p: Project, pp: Plan) {
   delete cv.dataset.folds; delete cv.dataset.lines; delete cv.dataset.colors;
   if (p.paint) return drawPaint(cv, p, pp);
-  const cur = pp.rows[Math.max(0, Math.min(p.current, pp.rows.length - 1))];
+  const ci = Math.max(0, Math.min(p.current, pp.rows.length - 1)), cur = pp.rows[ci];
+  if (cur && cur.part === "handle" && !cur.grown && !cur.own) return drawHandle(cv, p, pp, ci);
+  if (cur && cur.part === "handle" && cur.border && ci > 0 && !pp.rows[ci - 1].own) return drawHandle(cv, p, pp, ci);
+  if (cur && cur.border === "loop" && cur.part === "rim" && pp.rows.some(r => r.part === "panel")) return drawPiece(cv, p, pp);
   // a motif's or a circle's round - and, while they are being joined, the one made last (a top's cups after its
   // motifs are flat pieces of their own: drawn as rows)
   if (cur && (cur.motif || cur.disc || ((cur.part === "join" || cur.part === "finish") && (() => { let k = cur.idx; while (k > 0 && pp.rows[k].part === "join") k--; return !!(pp.rows[k].motif || pp.rows[k].disc); })()))) return drawMotif(cv, p, pp, cur.idx);
