@@ -20,6 +20,8 @@ import { useShot } from "@/lib/useShot";
 import { ITEM, itemIdOf } from "@/lib/items";
 import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
 import { isKnit, partName, shownPlan } from "@/lib/knit";
+import { StepCards } from "@/components/StepCards";
+import "@/components/stepcards.css";
 import { KOREAN_LEGEND } from "@/lib/koreanNotation";
 import { hookLabel, hookMmOf, yarnWeightText } from "@/lib/yarn";
 import { WorkMore } from "@/components/WorkMore";
@@ -42,6 +44,8 @@ export default function PatternPage() {
 }
 
 const STYLE_KEY = "iyarn.notation";
+// 단 목록 | 단계 카드 (Kim): which of the two the rows are shown as - kept on this device, the same key the knitting screen uses
+const VIEW_KEY = "iyarn.steps";
 export function PatternScreen() {
   const { ready, active: p, updateProject } = useApp();
   const book = useBook();
@@ -55,6 +59,9 @@ export function PatternScreen() {
   const [style, setStyle] = useState<"plain" | "korean">("plain");
   useEffect(() => { try { if (localStorage.getItem(STYLE_KEY) === "korean") setStyle("korean"); } catch {} }, []);
   const pickStyle = (s: "plain" | "korean") => { setStyle(s); try { localStorage.setItem(STYLE_KEY, s); } catch {} };
+  const [view, setView] = useState<"list" | "cards">("list");
+  useEffect(() => { try { if (localStorage.getItem(VIEW_KEY) === "cards") setView("cards"); } catch {} }, []);
+  const pickView = (v: "list" | "cards") => { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch {} };
   if (!ready || !p) return <Making />;
 
   const knit = isKnit(p), pp = shownPlan(p, knit ? "plain" : style), it = ITEM[itemIdOf(p)];
@@ -137,13 +144,22 @@ export function PatternScreen() {
 
         {/* the rows, section by section */}
         <section className="ps-rows" id="patRows" aria-label="단별 도안">
-          {!knit && <div className="ps-style">
+          <div className="ps-style">
+            <span className="sc-seg" role="radiogroup" aria-label="도안 보기">
+              {([["list", "단 목록"], ["cards", "단계 카드"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={view === k} onClick={() => pickView(k)}>{t}</button>)}
+            </span>
+          </div>
+          {!knit && view === "list" && <div className="ps-style">
             <span className="ps-seg" role="radiogroup" aria-label="도안 글 표기">
               {([["plain", "풀어 쓰기"], ["korean", "한국식 표기"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={style === k} onClick={() => pickStyle(k)}>{t}</button>)}
             </span>
           </div>}
-          {!knit && style === "korean" && <p className="ps-legend">{KOREAN_LEGEND}</p>}
-          {sections.map((s, k) => (
+          {!knit && view === "list" && style === "korean" && <p className="ps-legend">{KOREAN_LEGEND}</p>}
+          {view === "cards" && <>
+            <StepCards p={p} pp={pp} startName={knit ? "코잡기" : undefined} />
+            <p className="sc-credit">이 기호도안은 Yarnity가 공식으로 계산해 만든 것입니다.</p>
+          </>}
+          {view === "list" && sections.map((s, k) => (
             <div key={k} className="ps-part">
               <h2 className="ps-part-title"><span className="ps-part-no">{String(k + 1).padStart(2, "0")}</span>{partName(s.part, p)}
                 <span className="ps-part-cnt">{s.part === "handle" && !s.rows.some(x => x.r.grown) ? count(s.part) + "개" : s.part === "start" ? "" : count(s.part) + "단"}</span></h2>

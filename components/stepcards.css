@@ -1,0 +1,32 @@
+/* 단계 카드 보기 (components/StepCards): a big number, a short title, two lines, one picture - on the paper of
+   the page it sits in (도안 보기, 뜨는 중), in that page's own ink */
+.sc-list{list-style:none;margin:0;padding:0;border-top:1.5px solid currentColor}
+.sc-card{display:grid;grid-template-columns:64px minmax(0,1fr) 220px;gap:18px;align-items:center;padding:16px 4px;border-bottom:1px solid rgba(110,95,88,.22)}
+.sc-no{font-size:34px;line-height:1;font-weight:500;letter-spacing:.02em;color:#D77286;font-variant-numeric:tabular-nums}
+.sc-text h3{margin:0 0 4px;font-size:17px;font-weight:600;line-height:1.35;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sc-text h3 small{font-size:12px;font-weight:500;color:#D77286}
+.sc-text p{margin:0;font-size:13.5px;line-height:1.6;color:#6E5F58}
+.sc-go{margin-top:8px;padding:0;border:0;background:none;font:inherit;font-size:12.5px;color:#8C7E77;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.sc-go:hover{color:#4A3D38}
+.sc-pic{height:170px;border:1px solid rgba(110,95,88,.2);border-radius:6px;background:rgba(255,255,255,.45);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.sc-pic canvas{width:100%;height:100%;display:block}
+.sc-pic-3d{background:#26221F}
+.sc-pic-3d .y3-page{position:absolute;inset:0;width:100%;height:100%}
+.sc-wait{font-size:12px;color:#8C7E77;padding:0 12px;text-align:center;line-height:1.5}
+.sc-pic-3d .sc-wait{color:#D9CBBE}
+.sc-card.is-done .sc-no{color:#B9ABA3}
+.sc-card.is-done .sc-text{opacity:.72}
+.sc-card.is-now{background:rgba(240,193,202,.22)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* which of the two views: 단 목록 | 단계 카드 */
+.sc-seg{display:inline-flex;border:1px solid rgba(110,95,88,.35);border-radius:6px;overflow:hidden}
+.sc-seg button{border:0;background:none;font:inherit;font-size:13px;padding:6px 14px;color:#6E5F58;cursor:pointer}
+.sc-seg button[aria-checked="true"]{background:rgba(240,193,202,.45);color:#4A3D38;font-weight:600}
+.sc-credit{margin:8px 0 0;font-size:11.5px;line-height:1.5;color:#8C7E77}
+.sc-tip{margin:8px 0 0;font-size:12.5px;line-height:1.6;color:#6E5F58}
+@media (max-width:767.98px){
+  .sc-card{grid-template-columns:44px minmax(0,1fr);gap:12px;padding:14px 2px}
+  .sc-no{font-size:26px}
+  .sc-pic{grid-column:1 / -1;height:150px}
+  .sc-text h3{font-size:16px}
+}

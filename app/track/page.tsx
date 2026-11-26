@@ -13,6 +13,8 @@ import "./track.css";
 import type { StitchSym } from "@/lib/stitchSymbols";
 import { clamp, fmt, PART_KO, plan, type Row } from "@/lib/pattern";
 import { partName, shownPlan } from "@/lib/knit";
+import { StepCards } from "@/components/StepCards";
+import "@/components/stepcards.css";
 import type { Project } from "@/lib/types";
 import { useMobile } from "@/components/mobile/useMobile";
 import { MobileTopBar, MoreButton } from "@/components/mobile/MobileTopBar";
@@ -116,6 +118,10 @@ export function TrackScreen() {
   const cvRef = useRef<HTMLCanvasElement>(null);
   const [wakeOn, setWakeOn] = useState(false);
   const [allRows, setAllRows] = useState(false);
+  // 단 목록 | 단계 카드 (Kim): the rows as a list, or the pattern as a few step cards - kept on this device
+  const [stepView, setStepView] = useState<"list" | "cards">("list");
+  useEffect(() => { try { if (localStorage.getItem("iyarn.steps") === "cards") setStepView("cards"); } catch {} }, []);
+  const pickStepView = (v: "list" | "cards") => { setStepView(v); try { localStorage.setItem("iyarn.steps", v); } catch {} };
   // 이전 단 / 다음 단: the card can show another row to read ahead or look back; the progress stays put
   // (only 한 단 끝 / 되돌리기 move it). Back to the row being made whenever the progress moves.
   const [view, setView] = useState<number | null>(null);
@@ -267,7 +273,7 @@ export function TrackScreen() {
         ) : (
           <section className="mst-chart" aria-label="코 도안">
             <div className="mst-chart-pic"><canvas ref={cvRef} role="img" aria-label="코 도안" /></div>
-            <div><p className="mst-chart-title">코 도안</p><p className="mst-chart-text">진하게 보이는 줄이 지금 뜨는 단입니다.</p>
+            <div><p className="mst-chart-title">코 도안</p><p className="mst-chart-text">진하게 보이는 줄이 지금 뜨는 단입니다.</p><p className="sc-credit">이 기호도안은 Yarnity가 공식으로 계산해 만든 것입니다.</p>
               <button type="button" className="mst-link" onClick={() => setBigChart(true)}>크게 보기</button></div>
           </section>
         )}
@@ -336,7 +342,9 @@ export function TrackScreen() {
           <section className="tk-chart" aria-label="코 도안">
             <h2 className="tk-box-title">코 도안</h2>
             <div className="tk-graph"><canvas id="trCanvas" ref={cvRef} role="img" aria-label="코 도안" /></div>
-            <StitchLegend syms={syms} />
+            {!p.paint && <StitchLegend syms={syms} />}
+            {p.paint && p.paint.palette.length > 1 && <p className="sc-tip">색이 바뀌는 코 앞: 앞 코의 마지막 고리를 빼기 직전에 다음 색으로 바꿉니다. 쓰지 않는 색은 안에 감싸서 함께 가져갑니다.</p>}
+            <p className="sc-credit">이 기호도안은 Yarnity가 공식으로 계산해 만든 것입니다.</p>
           </section>
 
           <section className="tk-side" aria-label="지금 뜨는 단">
@@ -384,9 +392,13 @@ export function TrackScreen() {
 
             {/* the rows around this one */}
             <div className="tk-rows">
-              <div className="tk-rows-head"><h2 className="tk-box-title">단 목록</h2>
-                <button type="button" className="tk-more" aria-expanded={allRows} onClick={() => setAllRows(a => !a)}>{allRows ? "가까운 단만" : `전체 ${total}단 보기`}</button></div>
-              <ol className="tk-list" id="trNext">
+              <div className="tk-rows-head"><h2 className="tk-box-title">{stepView === "cards" ? "단계 카드" : "단 목록"}</h2>
+                <span className="sc-seg" role="radiogroup" aria-label="단 보기">
+                  {([["list", "단 목록"], ["cards", "단계 카드"]] as const).map(([k, tx]) => <button key={k} type="button" role="radio" aria-checked={stepView === k} onClick={() => pickStepView(k)}>{tx}</button>)}
+                </span>
+                {stepView === "list" && <button type="button" className="tk-more" aria-expanded={allRows} onClick={() => setAllRows(a => !a)}>{allRows ? "가까운 단만" : `전체 ${total}단 보기`}</button>}</div>
+              {stepView === "cards" && <StepCards p={p} pp={pp} current={current} startName={partName("start", p)} />}
+              <ol className="tk-list" id="trNext" hidden={stepView === "cards"}>
                 {shown.map(x => (
                   <li key={x.idx} className={x.idx < current ? "is-done" : x.idx === current ? "is-now" : ""}>
                     <span className="tk-l-no">{x.label}</span><span className="tk-l-how">{x.how}</span><span className="tk-l-n">{x.n > 0 && <>{x.n}<small>코</small></>}</span>

@@ -364,6 +364,8 @@ export function planFree(p: PlanInput): Plan {
 /** A painted picture as rows (Kim: draw it freely, holes and all). Worked flat from the bottom: each row in
  *  single crochet over its painted stitches, a chain over each hole (the next row works into the chain), a
  *  colour change where the picture changes colour. Rows with nothing painted are left out. */
+/** what a painted picture's row says where its colour changes (Kim: 두 색 그림 넣기 - tapestry crochet) */
+export const COLOR_SWAP = "색이 바뀌는 코 앞: 앞 코의 마지막 고리를 빼기 직전에 다음 색으로 바꿉니다. 쓰지 않는 색은 안에 감싸서 함께 가져갑니다.";
 export function planPaint(p: PlanInput): Plan {
   const g = gauge(p), f = p.paint as PaintShape, { W, H } = paintSize(f, g), m = paintMask(f, W, H), multi = f.palette.length > 1;
   const rows: Row[] = []; let span = 0, first = true, last = 0;
@@ -381,7 +383,9 @@ export function planPaint(p: PlanInput): Plan {
     const top = Number(Object.entries(cnt).sort((x, y) => y[1] - x[1])[0][0]);
     if (first) { span = b - a + 1; rows.push({ part: "start", n: span + 1, how: `사슬 ${span + 1}코`, why: `첫 단의 폭 ${span}코, 기둥 사슬 1코 더` + (f.pieces === 2 ? " · 같은 모양으로 2장을 떠서 옆과 아래를 잇습니다" : ""), inc: 0 } as Row); }
     const lead = first ? "" : `${a + 1}번째 코부터: `;
-    rows.push({ part: "rows", n, how: (first ? "두 번째 사슬부터 " : `사슬 1, 뒤집어서 ${lead}`) + parts.join(", "), why: `이 단 ${n}코`, inc: 0, ...(f.palette[top] ? { color: f.palette[top] } : {}) } as Row);
+    // 두 색 그림 넣기 (Kim): a row that changes colour says how, before the stitch where it does
+    const swaps = multi ? row.slice(a, b + 1).filter(c => c >= 0).reduce((k, c, i, arr) => k + (i && arr[i - 1] !== c ? 1 : 0), 0) : 0;
+    rows.push({ part: "rows", n, how: (first ? "두 번째 사슬부터 " : `사슬 1, 뒤집어서 ${lead}`) + parts.join(", "), why: `이 단 ${n}코` + (swaps ? ` · 색 바꿈 ${swaps}번 · ${COLOR_SWAP}` : ""), inc: 0, ...(f.palette[top] ? { color: f.palette[top] } : {}) } as Row);
     first = false; last = n;
   }
   if (!rows.length) rows.push({ part: "start", n: 2, how: "사슬 2코", why: "그린 곳이 없습니다", inc: 0 } as Row);
