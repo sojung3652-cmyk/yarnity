@@ -600,7 +600,7 @@ function knitTopForm(p: PlanInput, pp: Plan): Worn {
   const g = pp.g, K = knitTop(p, g), out: FormCourse[] = [], r = Math.max(6, K.bust / 6.15), below = pp.rows.filter(x => (x.part === "body" || x.part === "rim") && !/^목둘레/.test(x.label)).length;
   // (and the sleeves, hanging down their line from the underarm, above it too)
   const sleeveDrop = pp.rows.filter(x => x.part === "strap" && x.n > 0).length * g.h * .95 + 4;
-  const bust = Math.max(2.3 * r + 1, K.AR * g.h * .95 + Math.max(below * g.h, sleeveDrop) + 2 - 1.04 * r), body = bodyOf(r, bust), off = .7;
+  const bust = Math.max(2.3 * r + 1, K.AR * g.h * .95 + Math.max(below * g.h, sleeveDrop) + 2 - 1.04 * r), body = bodyOf(r, bust), off = 1.3;   // (a loose knit stands a little off the body - Kim: 사진처럼)
   const panel = pp.rows.filter(x => x.part === "panel" && x.n > 0 && /단$/.test(x.label)), shTop = bust + 1.04 * r, rh = g.h * .95;
   // a panel's row: its middle at the back (a = 0) or the front (a = PI), on the body from side to side; wider than
   // that it lies looser, in soft folds (`gap`: the front's neck, stitches left out at its middle)
@@ -652,10 +652,11 @@ function knitTopForm(p: PlanInput, pp: Plan): Worn {
       if (!front && i === 0) backTop = q; if (front && i === K.ND) frontMid = q;
     });
   }
-  // the body round by round from the underarm down, the hem's rib at its foot: hanging straight from the bust, its ease in folds
+  // the body round by round from the underarm down, the hem's rib at its foot: hanging from the bust and easing a
+  // little out towards the hem, in a few broad soft folds (Kim: 사진처럼 넉넉하게 흘러내리는 느낌)
   const rows = pp.rows.filter(x => (x.part === "body" || x.part === "rim") && !/^목둘레/.test(x.label));
   out.push({ p: clothRing(body, under + g.h * .5, K.N, g.w, off, 0, Math.max(under, bust), 7, 0), on: -1, ghost: true, cen: [0, under, 0] });
-  rows.forEach((x, i) => { const y = under - (i + .5) * g.h; out.push({ p: clothRing(body, y, x.n, g.w, off, i * .03, Math.max(y, bust), 9, Math.min(2.4, i * .12), Math.min(1.8, i * .045)), closed: true, on: out.length - 1, cen: [0, y, 0], kn: x.part === "rim" ? "rib" : "st" }); });
+  rows.forEach((x, i) => { const y = under - (i + .5) * g.h; out.push({ p: clothRing(body, y, x.n, g.w, off + Math.min(2.2, (under - y) * .07), i * .025, Math.max(y, bust), 6, Math.min(3.2, i * .14), Math.min(2.4, i * .06)), closed: true, on: out.length - 1, cen: [0, y, 0], kn: x.part === "rim" ? "rib" : "st" }); });
   // the sleeves (Kim: 팔뚝 - 어깨 끝에서 소맷부리까지 곧은 사선): the sleeve's outer line runs straight from the shoulder's
   // tip, through the point a sleeve's width out from the body's side at the underarm, on down to the cuff - the arm
   // a little away from the body, nothing puffed out past that line; its inner side starts at the underarm
@@ -675,8 +676,8 @@ function knitTopForm(p: PlanInput, pp: Plan): Worn {
       // the middle of the round: its outer edge on the line (a sleeve narrowing to the cuff keeps that edge straight)
       const c: V3 = [outU[0] + dir[0] * d - uo[0] * ru, outU[1] + dir[1] * d - uo[1] * ru, 0];
       // (니트는 흐물: soft folds, more of them towards the cuff)
-      const fd = .16 * Math.min(1, d / Ls);
-      for (let k = 0; k < n; k++) { const a = (k + .5) / n * TAU, f = 1 + fd * Math.sin(6 * a + d * .18) * Math.abs(Math.sin(a)); q.push(c[0] + uo[0] * Math.cos(a) * ru * (1 + fd * .3 * Math.sin(5 * a)), c[1] + uo[1] * Math.cos(a) * ru, Math.sin(a) * rz * f); }
+      const fd = .24 * Math.min(1, d / Ls);
+      for (let k = 0; k < n; k++) { const a = (k + .5) / n * TAU, f = 1 + fd * Math.sin(4 * a + d * .12) * Math.abs(Math.sin(a)); q.push(c[0] + uo[0] * Math.cos(a) * ru * (1 + fd * .35 * Math.sin(3 * a + d * .1)), c[1] + uo[1] * Math.cos(a) * ru, Math.sin(a) * rz * f); }
       return q;
     };
     // 진동 둘레 (Kim: 모든 편물은 이어져 있어야): the sleeve is picked up from the armhole's own edge - the shoulder,
