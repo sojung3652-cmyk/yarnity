@@ -647,23 +647,27 @@ function knitTopForm(p: PlanInput, pp: Plan): Worn {
   const rows = pp.rows.filter(x => (x.part === "body" || x.part === "rim") && !/^목둘레/.test(x.label));
   out.push({ p: clothRing(body, under + g.h * .5, K.N, g.w, off, 0, Math.max(under, bust), 7, 0), on: -1, ghost: true, cen: [0, under, 0] });
   rows.forEach((x, i) => { const y = under - (i + .5) * g.h; out.push({ p: clothRing(body, y, x.n, g.w, off, i * .03, Math.max(y, bust), 9, Math.min(2.4, i * .12), Math.min(1.8, i * .045)), closed: true, on: out.length - 1, cen: [0, y, 0], kn: x.part === "rim" ? "rib" : "st" }); });
-  // the sleeves: from the shoulder point, leaving it sideways and turning down and a little out, as an arm hangs
+  // the sleeves (Kim: 팔뚝 - 어깨 끝에서 소맷부리까지 곧은 사선): the sleeve's outer line runs straight from the shoulder's
+  // tip, through the point a sleeve's width out from the body's side at the underarm, on down to the cuff - the arm
+  // a little away from the body, nothing puffed out past that line; its inner side starts at the underarm
   const sleeve = pp.rows.filter(x => x.part === "strap" && x.n > 0), Ls = Math.max(4, sleeve.length * g.h), armH = shTop - under;
+  const sideSec = sectionOf(body, Math.max(under, bust), off), sideX = Math.abs(sideSec.at(sideSec.sAt(Math.PI / 2))[0]);
   for (const s of [-1, 1]) {
-    const rA = (sleeve[0]?.n ?? K.P) * g.w / TAU, o: V3 = [s * Math.max(reach * .97, 1.12 * r), shTop - armH / 2 - .3, 0];   // (its first round fills the armhole, shoulder to underarm)
-    // the line down the sleeve's middle: a curve leaving the armhole sideways, then down and out about 20 degrees
-    const P1: V3 = [o[0] + s * rA * .7, o[1] - rA * .2, 0], P2: V3 = [o[0] + s * (rA * .7 + Ls * .2), o[1] - Ls * .97, 0], N = 120, line: V3[] = [], acc = [0];
-    for (let i = 0; i <= N; i++) { const t = i / N, u = 1 - t; line.push([u * u * o[0] + 2 * u * t * P1[0] + t * t * P2[0], u * u * o[1] + 2 * u * t * P1[1] + t * t * P2[1], 0]); if (i) acc.push(acc[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1])); }
-    const scale = Ls / acc[N];
+    const n0 = sleeve[0]?.n ?? K.P, W0 = 2 * n0 * g.w / TAU * .95, Sx = Math.max(reach, 1.05 * r);
+    // (the line about 24 degrees off straight down, as Kim drew it; at the underarm the sleeve's inner side may lie
+    // a little against the body's side, as a sleeve gathers there)
+    const top: V3 = [s * Sx, shTop, 0], outU: V3 = [s * Math.max(Sx + armH * Math.tan(24 * Math.PI / 180), sideX + W0 * .6), under, 0], ln = Math.hypot(outU[0] - top[0], outU[1] - top[1]) || 1;
+    const dir: V3 = [(outU[0] - top[0]) / ln, (outU[1] - top[1]) / ln, 0];
+    // across the sleeve in the picture's plane, outward-up (a = 0 of a round: the sleeve's top, then its front)
+    const u: V3 = dir[1] * s < 0 ? [-dir[1], dir[0], 0] : [dir[1], -dir[0], 0], uo: V3 = u[0] * s > 0 ? u : [-u[0], -u[1], 0];
+    const o: V3 = [outU[0] - s * W0 / 2, under, 0];   // the round at the underarm: from the body's side out to the line
     const ringAt = (n: number, d: number, ph: number): number[] => {
-      let i = 1; while (i < N && acc[i] * scale < d) i++; const c = line[i], tx = line[i][0] - line[i - 1][0], ty = line[i][1] - line[i - 1][1], tl = Math.hypot(tx, ty) || 1;
-      const ux = -ty / tl * s, uy = tx / tl * s, rad = n * g.w / TAU, q: number[] = [];
-      // (the armhole is tall and narrow: the first rounds an upright oval as long round as they are, rounding out
-      // down the arm; soft: a hanging sleeve settles a little flat front to back, in a few shallow folds)
-      const e = Math.min(1, d / (8 * g.h)), aH = Math.max(rad, armH / 2), A1 = aH + (rad - aH) * e, B0 = Math.max(.3 * rad, 2 * rad - aH), B1 = B0 + (rad - B0) * e;
-      // (니트는 흐물: a soft sleeve falls flat front to back and gathers in folds, more of them towards the cuff)
-      const fd = .2 * Math.min(1, d / Ls);
-      for (let k = 0; k < n; k++) { const a = (k + .5) / n * TAU, f = 1 + fd * Math.sin(6 * a + d * .18); q.push(c[0] + ux * Math.cos(a) * A1 * f, c[1] + uy * Math.cos(a) * A1 * f, Math.sin(a) * B1 * f * .72); }
+      const rad = n * g.w / TAU, ru = rad * .95, rz = rad * .78, q: number[] = [];
+      // the middle of the round: its outer edge on the line (a sleeve narrowing to the cuff keeps that edge straight)
+      const c: V3 = [outU[0] + dir[0] * d - uo[0] * ru, outU[1] + dir[1] * d - uo[1] * ru, 0];
+      // (니트는 흐물: soft folds, more of them towards the cuff)
+      const fd = .16 * Math.min(1, d / Ls);
+      for (let k = 0; k < n; k++) { const a = (k + .5) / n * TAU, f = 1 + fd * Math.sin(6 * a + d * .18) * Math.abs(Math.sin(a)); q.push(c[0] + uo[0] * Math.cos(a) * ru * (1 + fd * .3 * Math.sin(5 * a)), c[1] + uo[1] * Math.cos(a) * ru, Math.sin(a) * rz * f); }
       return q;
     };
     // 진동 둘레 (Kim: 모든 편물은 이어져 있어야): the sleeve is picked up from the armhole's own edge - the shoulder,
@@ -678,7 +682,8 @@ function knitTopForm(p: PlanInput, pp: Plan): Worn {
     const onLoop = (u: number): V3 => { const Lq = la[loop.length], t = (((u % 1) + 1) % 1) * Lq; let i = 1; while (i < loop.length && la[i] < t) i++; const p0 = loop[i - 1], p1 = loop[i % loop.length], f = (t - la[i - 1]) / Math.max(1e-9, la[i] - la[i - 1]); return [p0[0] + (p1[0] - p0[0]) * f, p0[1] + (p1[1] - p0[1]) * f, p0[2] + (p1[2] - p0[2]) * f]; };
     const sleeveRing = (n: number, d: number, ph: number): number[] => {
       const q = ringAt(n, d, ph); if (loop.length < 4) return q;
-      const t = Math.min(1, d / (10 * g.h)), e = t * t * (3 - 2 * t);
+      // (eased over as many rows as the armhole is deep: the sleeve's cap, no row pulled apart from the next)
+      const t = Math.min(1, d / Math.max(10 * g.h, armH * .55)), e = t * t * (3 - 2 * t);
       for (let k = 0; k < n; k++) { const p0 = onLoop((k + .5) / n); for (let j = 0; j < 3; j++) q[3 * k + j] = p0[j] + (q[3 * k + j] - p0[j]) * e; }
       return q;
     };
