@@ -60,6 +60,12 @@ const KINDS: Proto[] = [
     extras: { items: [{ pic: "b-pearl-blossom", at: [.95, .8, 3] }] } } },
   { id: "bustier", group: "옷", name: "모티프 뷔스티에", note: "모티프 띠 · 삼각 컵 · 어깨끈", family: "뷔스티에 · 홀터 탑", choice: ["모티프 뷔스티에", "모티프 띠 · 삼각 컵 · 어깨끈"], item: "bustier", over: { bust: 84, h: 14, tieCm: 40 } },
   { id: "halter", group: "옷", name: "그물 홀터 탑", note: "그물 몸통 · V로 모으는 앞 · 목끈", family: "뷔스티에 · 홀터 탑", choice: ["그물 홀터 탑", "그물 몸통 · V로 모으는 앞 · 목끈"], item: "halter", over: { bust: 84, h: 30, tieCm: 45 } },
+  // 실제 도안들에서 배운 원리로 (Kim): 대바늘 가방, 트레이, 두 색 손잡이 그물 가방, 위에서부터 뜨는 니트 탑 - the design,
+  // the stitch and the colours Yarnity's, every one changeable
+  { id: "knitfold", group: "가방", name: "접어 만드는 대바늘 가방", note: "긴 직사각형 · 접어 옆선 · 남긴 코로 끈", item: "knitfold", over: { a: 30, h: 26, handleWcm: 4, strapCm: 60, craft: "knit" } },
+  { id: "netduo", group: "가방", name: "두 색 손잡이 그물 가방", note: "네모 바닥 · 그물 몸통 · 먼저 뜨는 손잡이", item: "minibag", over: { shape: "rect", gusset: "box", a: 24, b: 8, h: 22, crochetChart: "net", handle: "short", handleCount: 2, handleCm: 45, handleFirst: true, handleColor: "#9C7A62" } },
+  { id: "tray", group: "소품", name: "트레이", note: "매직링 네모 바닥 · 꺾임선 · 볼록 테두리", item: "tray", over: { shape: "rect", a: 24, b: 16, h: 4, bottomStart: "ring", crease: "back", bulge: .4, extras: { items: [{ pic: "f-daisy", at: [0, .55, 3] }] } } },
+  { id: "knittop", group: "옷", name: "위에서부터 뜨는 니트 탑", note: "뒤판 어깨부터 · 앞판 어깨 줍기 · 원통 몸통", item: "knittop", over: { bust: 92, h: 52, sleeveCm: 40, craft: "knit" } },
 ];
 const BAGS = new Set<ItemId>(["minibag", "bucket", "pouch"]);
 /** 기본형 정리 (Kim: 이름만 다르고 크기만 다른 것은 하나로 - 크기는 슬라이더로): the pieces made the same way as
@@ -83,7 +89,7 @@ export function protoDraft(d: Draft, p: Proto): Draft {
   const it = ITEM[p.item], dv = it.defaults;
   return {
     ...d, item: p.item, object: ENGINE[it.kind], shape: dv.shape ?? "rect", a: dv.a, b: dv.b ?? dv.a, h: dv.h ?? 0,
-    handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, handleBaseCm: undefined, handleFar: undefined, build: undefined, taper: undefined, taperCord: undefined, crochetChart: undefined, drape: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
+    handle: dv.handle ?? "none", handleCm: dv.handleCm ?? null, handleCount: undefined, handleKind: undefined, handleBaseCm: undefined, handleFar: undefined, handleFirst: undefined, sleeveCm: undefined, bottomStart: undefined, crease: undefined, bulge: undefined, craft: undefined, build: undefined, taper: undefined, taperCord: undefined, crochetChart: undefined, drape: undefined, topA: null, flapCm: null, flapShape: undefined, flapOver: undefined,
     closure: "open", gusset: undefined, asm: undefined, profile: undefined, depthProfile: undefined, flapColor: undefined, handleColor: undefined, extras: {},
     circ: dv.circ, depth: dv.depth, itemPicked: true, free: undefined, paint: undefined,
     headH: undefined, brimCm: undefined, brimFold: undefined, motifN: undefined, brimMore: undefined, tieCm: undefined, tieWcm: undefined, ribRows: undefined, netCh: undefined, bottleD: undefined, bottleH: undefined, pattern: undefined, crochetStitch: undefined,

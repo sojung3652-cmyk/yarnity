@@ -20,7 +20,9 @@ export type ItemId =
   // 작은 가방 · 보닛 · 옷 기본형 (Kim; lib/wear, lib/pattern)
   | "trapbag" | "moonbag" | "stepbag" | "phonebag" | "bonnet" | "bustier" | "halter"
   // 10종 더 (Kim)
-  | "knotbag" | "coinbag" | "traptote" | "clutch" | "ringbag" | "netbucket" | "twoway" | "balaclava" | "motifscarf" | "bigsocks";
+  | "knotbag" | "coinbag" | "traptote" | "clutch" | "ringbag" | "netbucket" | "twoway" | "balaclava" | "motifscarf" | "bigsocks"
+  // 대바늘 기본형 · 트레이 (Kim; lib/knitwear, lib/pattern)
+  | "knitfold" | "knittop" | "tray";
 export type FieldKey = "a" | "b" | "h" | "circ" | "depth";
 export interface Field { key: FieldKey; label: string; min: number; max: number }
 /** Any length may be typed (Kim: no limits on sizes): from 1cm, and up to 30m only so that a slip of the
@@ -133,6 +135,12 @@ export const ITEMS: Item[] = [
     desc: "사각 모티프를 한 줄로 이은 머플러", level: "쉬움", time: "일주일", method: "모티프 → 한 줄로 잇기" },
   { id: "bigsocks", name: "오버사이즈 양말", group: "소품", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 9, h: 16, handle: "none" }, range: { h: [8, 34] },
     desc: "넉넉한 통으로 뜨는 긴 양말", level: "쉬움", time: "일주일", method: "발끝(원형) → 긴 통 → 접는 단" },
+  { id: "knitfold", name: "접어 만드는 대바늘 가방", group: "작은 가방", kind: "base-body", shapes: ["rect"], defaults: { shape: "rect", a: 30, b: 2, h: 26, handle: "none" }, range: { a: [16, 44], h: [14, 40] },
+    desc: "긴 직사각형 하나를 접어 만드는 대바늘 가방", level: "보통", time: "일주일", method: "긴 판 → 접어 옆선 → 남긴 코로 끈 → 메리야스 잇기" },
+  { id: "knittop", name: "위에서부터 뜨는 니트 탑", group: "옷", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 30, h: 52, handle: "none" }, range: { h: [36, 70] },
+    desc: "뒤판 어깨에서 시작해 위에서부터 뜨는 니트 탑", level: "보통", time: "한 달", method: "뒤판 → 앞판 어깨 줍기 → 원통 몸통 → 소매 줍기" },
+  { id: "tray", name: "트레이", group: "소품", kind: "base-body", shapes: ["rect"], defaults: { shape: "rect", a: 24, b: 16, h: 4, handle: "none" }, range: { a: [10, 40], b: [8, 30], h: [2, 10] },
+    desc: "꺾임선과 볼록 테두리로 모양이 잡히는 트레이", level: "보통", time: "한나절", method: "매직링 네모 바닥 → 꺾임선 → 낮은 옆면 → 볼록 테두리" },
   { id: "bonnet", name: "보닛", group: "모자", kind: "base-body", shapes: ["circle"], defaults: { shape: "circle", a: 18, h: 10, handle: "none", circ: 56 }, range: { circ: [44, 64] },
     desc: "뒤통수를 감싸고 턱끈으로 묶는 모자", level: "보통", time: "주말 하루", method: "정수리(원형) → 왕복뜨기 → 턱끈" },
   // ---- 옷 ----

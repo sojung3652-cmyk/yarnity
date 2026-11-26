@@ -21,6 +21,8 @@ import { ITEM, itemIdOf } from "@/lib/items";
 import { kitSize } from "@/lib/wear";
 import { fmt, plan, SHAPE_KO, type Row } from "@/lib/pattern";
 import { isKnit, partName, shownPlan } from "@/lib/knit";
+import { GAUGE_NOTE, patternGauge } from "@/lib/phrasing";
+import { multiSized, SIZE_KEYS, SIZE_NOTE, SIZES } from "@/lib/sizes";
 import { StepCards } from "@/components/StepCards";
 import "@/components/stepcards.css";
 import { KOREAN_LEGEND } from "@/lib/koreanNotation";
@@ -61,11 +63,18 @@ export function PatternScreen() {
   useEffect(() => { try { if (localStorage.getItem(STYLE_KEY) === "korean") setStyle("korean"); } catch {} }, []);
   const pickStyle = (s: "plain" | "korean") => { setStyle(s); try { localStorage.setItem(STYLE_KEY, s); } catch {} };
   const [view, setView] = useState<"list" | "cards">("list");
+  // 여러 사이즈 한 번에 (Kim): S (M) L together, the size picked in bold - kept on this device
+  const [sizesAll, setSizesAll] = useState(false);
+  useEffect(() => { try { if (localStorage.getItem("iyarn.sizes") === "all") setSizesAll(true); } catch {} }, []);
+  const pickSizes = (all: boolean) => { setSizesAll(all); try { localStorage.setItem("iyarn.sizes", all ? "all" : "mine"); } catch {} };
   useEffect(() => { try { if (localStorage.getItem(VIEW_KEY) === "cards") setView("cards"); } catch {} }, []);
   const pickView = (v: "list" | "cards") => { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch {} };
   if (!ready || !p) return <Making />;
 
-  const knit = isKnit(p), pp = shownPlan(p, knit ? "plain" : style), it = ITEM[itemIdOf(p)];
+  const knit = isKnit(p), it = ITEM[itemIdOf(p)];
+  // S (M) L together (lib/sizes): the size picked's rows, each number as the three sizes' own where they have that row
+  const sized = SIZES[p.item ?? ""] ? multiSized(p, q => shownPlan(q, knit ? "plain" : style)) : null, multi = sizesAll && sized ? sized : null;
+  const pp = multi?.plan ?? shownPlan(p, knit ? "plain" : style);
   const rounds = p.object === "coaster" || p.object === "bag";
 
   // the rows in sections by part; runs of identical rows read as one line ("26–50단")
@@ -138,6 +147,8 @@ export function PatternScreen() {
             <h2 className="ps-box-title">게이지</h2>
             <p className="ps-gauge"><b>{fmt(pp.g.h * 10)}</b><span>mm</span></p>
             <p className="ps-small">한 코 높이 · {pp.g.measured ? "직접 잰 값" : "예상 값"}</p>
+            {/* 게이지 안내 (Kim): the pattern's own gauge in 10cm, and what to do when the reader's differs */}
+            <p className="ps-small">{`도안 기준 게이지는 10cm에 ${patternGauge(p).st10}코, ${patternGauge(p).rows10}단입니다. ${GAUGE_NOTE}`}</p>
             <p className="ps-small">{rounds ? "3단을 뜬 뒤 지름을 재면 남은 단을 내 손에 맞게 다시 계산합니다." : "5단을 뜬 뒤 폭과 높이를 재면 남은 단 수를 고쳐 드립니다."}</p>
             {isKnit(p) ? <p className="ps-small ps-rule"><b>겉면 · 안면</b> 홀수 단은 겉면, 짝수 단은 안면에서 뜹니다. 단 끝에서 편물을 뒤집어 다음 단을 뜹니다.</p> : <p className="ps-small ps-rule"><b>기둥사슬</b> {p.object === "rows" ? "단 끝에서 기둥사슬 1코를 세우고 뒤집어 다음 단을 뜹니다." : "한 단을 첫 코에 빼뜨기로 닫고, 바로 그 자리 위에 다음 단의 기둥사슬 1코를 세웁니다."} 짧은뜨기의 기둥사슬은 코 수에 세지 않습니다.</p>}
           </div>
@@ -145,6 +156,12 @@ export function PatternScreen() {
 
         {/* the rows, section by section */}
         <section className="ps-rows" id="patRows" aria-label="단별 도안">
+          {sized && <div className="ps-style">
+            <span className="sc-seg" role="radiogroup" aria-label="사이즈 표기">
+              {([["mine", "내 사이즈만"], ["all", `${SIZE_KEYS.join(" (").replace(/ \(L$/, ") L")} 함께`]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={(k === "all") === sizesAll} onClick={() => pickSizes(k === "all")}>{t}</button>)}
+            </span>
+          </div>}
+          {multi && <p className="ps-legend">{SIZE_NOTE} 굵은 숫자가 고른 사이즈({SIZE_KEYS[multi.chosen]})입니다.</p>}
           <div className="ps-style">
             <span className="sc-seg" role="radiogroup" aria-label="도안 보기">
               {([["list", "단 목록"], ["cards", "단계 카드"]] as const).map(([k, t]) => <button key={k} type="button" role="radio" aria-checked={view === k} onClick={() => pickView(k)}>{t}</button>)}
@@ -170,8 +187,8 @@ export function PatternScreen() {
                     <Fragment key={r.idx}>
                       <tr>
                         <th scope="row">{label}</th>
-                        <td><GlossText text={r.how} /><small>{r.why}</small></td>
-                        <td className="ps-n">{r.n > 0 && <>{r.n}<span>코</span></>}</td>
+                        <td>{multi ? <Sized text={r.how} at={multi.chosen} /> : <GlossText text={r.how} />}<small>{r.why}</small></td>
+                        <td className="ps-n">{r.n > 0 && <>{multi && r.nSizes ? <Sized text={r.nSizes.join(" (").replace(/ \((\d+)$/, ") $1")} at={multi.chosen} /> : r.n}<span>코</span></>}</td>
                       </tr>
                       {r.part === "bottom" && r.no === 3 && <tr className="ps-note"><td colSpan={3}><span>※</span>여기서 한 번 지름을 재면 남은 단을 다시 계산합니다.</td></tr>}
                       {(r.part === "rows" || r.part === "rounds") && r.no === 1 && <tr className="ps-note"><td colSpan={3}><span>※</span>5단을 뜬 뒤 폭{r.part === "rounds" ? "(둘레)" : ""}과 높이를 재면 남은 단 수를 고쳐 드립니다.</td></tr>}
@@ -187,4 +204,12 @@ export function PatternScreen() {
       </article>
     </main>
   );
+}
+
+/** a row written for three sizes (lib/sizes): "70 (78) 90" with the size picked in bold */
+function Sized({ text, at }: { text: string; at: 0 | 1 | 2 }) {
+  const parts = text.split(/(\d+(?:\.\d+)? \(\d+(?:\.\d+)?\) \d+(?:\.\d+)?)/);
+  return <>{parts.map((s, i) => { const m = s.match(/^(\S+) \((\S+)\) (\S+)$/); if (!m || i % 2 === 0) return <Fragment key={i}>{s}</Fragment>;
+    const v = [m[1], m[2], m[3]], b = (k: number) => (k === at ? <b className="ps-size">{v[k]}</b> : <span className="ps-size-other">{v[k]}</span>);
+    return <span key={i} className="ps-sizes">{b(0)} ({b(1)}) {b(2)}</span>; })}</>;
 }

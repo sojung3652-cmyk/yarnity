@@ -55,6 +55,8 @@ import { bookPause } from "@/src/features/yarn3d/pause";
 import { setSheet, useSheet, WEB_SHEETS3 } from "@/components/mobile/sheetStore";
 import { PATTERN_BY_ID, chartNameOf } from "@/lib/stitchPatterns";
 import { autoName, bodyOf, bodyPatch, bodyWidth, partLines, scaleDraft } from "@/lib/assemble";
+import { SIZE_KEYS, SIZES, sizeOf, type SizeKey } from "@/lib/sizes";
+import { COLORS } from "./YarnStep";
 import { hoboNote, ribbedNote, stripNote, taper, taperNote } from "@/lib/structure";
 import { isWear, KITS, kitSize, kitValue, motifHat, wearNote } from "@/lib/wear";
 import { packCord } from "@/lib/pattern";
@@ -1064,6 +1066,10 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
         <div className="asm-card" role="tabpanel">
           {kit && kitPart && partNow !== "extra" && <>
             <h3>{kitPart.title}<small>{kitPart.sub}</small></h3>
+            {/* 사이즈 (Kim: S/M/L) - on the first card of a piece that comes in sizes; 직접 is the slider's own */}
+            {kitPart === kit[0] && SIZES[item.id] && (s => <Tiles label="사이즈" value={SIZE_KEYS[sizeOf(draft) ?? -1] ?? "own"} cols={4}
+              onPick={v => { const i = SIZE_KEYS.indexOf(v as SizeKey); if (i >= 0) apply({ [s.key]: s.v[i] }); }}
+              options={[...SIZE_KEYS.map((k, i): [string, string, string] => [k, k, `${s.label} ${s.v[i]}`]), ["own", "직접", "슬라이더"]]} />)(SIZES[item.id]!)}
             {kitPart.fields.length > 0 && <div className="nb-sliders nb-sliders-1">
               {kitPart.fields.map(f => { const v = kitValue(draft, f); return <Slide key={f.label} label={f.label} min={f.min} max={f.max} step={f.step} value={v} onChange={x => apply(f.set ? f.set(draft, x) : { [f.key]: x })} text={`${v}${f.unit}`} />; })}
             </div>}
@@ -1139,11 +1145,21 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
               <Slide label={draft.shape === "circle" ? "지름" : "가로"} min={ra[0]} max={ra[1]} step={.5} value={draft.a} onChange={v => setBottom("a", v)} text={`${draft.a}cm`} nudge={d => nextStop("a", d)} />
               {draft.shape !== "circle" && draft.gusset !== "flat" && <Slide label="너비 (두께)" min={rb[0]} max={Math.min(rb[1], Math.max(rb[0], draft.a - 1))} step={.5} value={draft.b} onChange={v => setBottom("b", v)} text={`${draft.b}cm`} nudge={d => nextStop("b", d)} />}
             </div>
+            {/* 바닥 시작 (Kim: 매직링에서 시작하는 둥근 직사각형 바닥) - a square bottom with width */}
+            {draft.shape === "rect" && draft.gusset !== "flat" && <>
+              <p className="nb-wsubhead">바닥 시작</p>
+              <Tiles label="바닥 시작" value={draft.bottomStart ?? "chain"} cols={2} onPick={v => patch({ bottomStart: v === "ring" ? "ring" : undefined })}
+                options={[["chain", "사슬에서", "지금 방식"], ["ring", "매직링에서", "네 모서리에 늘림"]]} />
+            </>}
             {fitLine}
             <p className="nb-help">{draft.shape === "circle" ? "원 바닥은 통처럼 둥근 몸통이 됩니다." : draft.gusset === "flat" ? "시작 사슬 양쪽을 한 바퀴 떠서 앞판과 뒤판이 바로 맞붙습니다. 납작한 파우치가 됩니다." : draft.shape === "oval" ? "타원 바닥은 두께가 있는 부드러운 몸통이 됩니다. 너비는 언제든 바꿀 수 있습니다." : "네모 바닥은 두께가 있는 각진 몸통이 됩니다. 너비는 언제든 바꿀 수 있습니다."}</p>
           </>}
           {partNow === "body" && <>
             <h3>몸통<small>{`가장 넓은 곳 ${widest}cm`}</small></h3>
+            {/* 꺾임선 (Kim): the side's first round in one loop only */}
+            <p className="nb-wsubhead">꺾임선 <small>바닥과 옆 사이 첫 단</small></p>
+            <Tiles label="꺾임선" value={draft.crease ?? "none"} cols={3} onPick={v => patch({ crease: v === "none" ? undefined : v as "back" | "front" })}
+              options={[["none", "없음"], ["back", "뒤이랑", "또렷한 꺾임"], ["front", "앞이랑", "바깥 선"]]} />
             <div className="nb-sliders nb-sliders-1">
               <Slide label="높이" min={rh[0]} max={rh[1]} step={.5} value={draft.h} onChange={v => setBottom("h", v)} text={`${draft.h}cm`} nudge={d => nextStop("h", d)} />
               <Slide label="위 너비" min={Math.max(3, Math.round(draft.a * .4))} max={Math.round(draft.a * 2)} step={.5} value={form.top} onChange={v => setBody({ top: v })} text={`${form.top}cm`} />
@@ -1165,9 +1181,27 @@ export function useNewBook(inBook?: WizStep, inSheet?: number): NewBookView {
             {handleSliders}
             <p className="nb-help">{draft.handleKind === "grown" ? "입구의 양쪽 옆선에서 몸통과 같은 무늬로 양 끝을 줄이며 올려 뜨고, 꼭대기에서 두 끝을 잇습니다. 따로 달지 않습니다." : draft.handleKind === "wrist" ? "손목에 끼는 고리는 약 20~30cm입니다." : "손에 드는 토트 약 50cm, 어깨에 메는 숄더 약 70cm, 몸에 두르는 크로스 약 120cm입니다."}</p>
             {edgeBox}
+            {/* 두 색 손잡이 (Kim): the handles made first in their own colour - the colour changeable */}
+            {draft.handleFirst && <div className="nb-edge">
+              <p className="nb-wsubhead">손잡이 색 <small>먼저 떠서 입구에서 함께 겁니다</small></p>
+              <div className="cs-dots" role="radiogroup" aria-label="손잡이 색">
+                {COLORS.map(([nm, hex]) => <button key={nm} type="button" role="radio" className="cs-dot" title={nm} aria-label={nm} aria-checked={(draft.handleColor ?? "").toUpperCase() === hex.toUpperCase()} style={{ background: hex }} onClick={() => patch({ handleColor: hex })} />)}
+              </div>
+            </div>}
           </>)}
           {partNow === "top" && <>
             <h3>입구<small>한 번 더 누르면 뺍니다</small></h3>
+            {/* 볼록 테두리 (Kim): the side's end widened and narrowed back - the edge rolls out */}
+            <div className="nb-sliders nb-sliders-1"><Slide label="볼록 테두리" min={0} max={1} step={.05} value={draft.bulge ?? 0} onChange={v => patch({ bulge: v < .03 ? undefined : Math.round(v * 100) / 100 })} text={(draft.bulge ?? 0) < .03 ? "없음" : `${Math.round((draft.bulge ?? 0) * 100)}%`} /></div>
+            {item.id === "tray" && <>
+              <p className="nb-help">트레이는 와이어 코어 실을 권합니다. 손으로 잡은 모양이 그대로 유지됩니다.</p>
+              {/* 라벨 위치 (Kim: 트레이 - 라벨 달기 위치 선택) */}
+              <p className="nb-wsubhead">라벨 위치</p>
+              <Tiles label="라벨 위치" value={!exNow.items?.length ? "none" : (exNow.items[0].at[0] > .5 ? "side" : "front")} cols={3}
+                onPick={v => patch({ extras: { ...exNow, items: v === "none" ? [] : [{ pic: exNow.items?.[0]?.pic ?? "f-daisy", at: v === "side" ? [.96, .55, 3] : [0, .55, 3] }] } })}
+                options={[["front", "앞 가운데"], ["side", "옆면"], ["none", "없음"]]} />
+            </>}
+            {(draft.bulge ?? 0) >= .03 && (r => r ? <p className="nb-fit" role="status">{`옆면 끝에서 ${r.inc}코 늘렸다가 한 단 그대로 뜨고, 다음 단에서 다시 줄입니다.`}</p> : null)(pp.rows.find(x => x.bulge && x.inc > 0))}
             <Tiles label="입구" value={exNow.zipper ? "zipper" : closureNow === "flap" || closureNow === "drawstring" || closureNow === "magnet" ? closureNow : "open"} cols={3} onPick={v => {
               const now = exNow.zipper ? "zipper" : closureNow, c = (v === now ? "open" : v) as "open" | "flap" | "drawstring" | "zipper";
               patch({ closure: c === "zipper" ? "zipper" : c, flapCm: c === "flap" ? (draft.flapCm ?? Math.max(4, Math.round(draft.h * .5))) : null,

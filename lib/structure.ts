@@ -280,6 +280,18 @@ export function pieceRows(rows: Row[]): Row[][] {
 }
 
 
+// ---------------------------------------------------------------- 단에서 코 줍기 (Kim: 게이지의 코/단 비율로 "n단에 m코")
+/** Stitches picked up along `rows` rows' ends to make `total` (a row's height over a stitch's width): the
+ *  smallest "n단에 m코" (n up to 6) nearest that rate - what the hands do as they go along the edge. */
+export function pickUp(rows: number, total: number): { n: number; m: number; text: string } {
+  const rate = total / Math.max(1, rows); let best = { n: 1, m: Math.max(1, Math.round(rate)), e: Infinity };
+  for (let n = 1; n <= 6; n++) { const m = Math.max(1, Math.round(rate * n)), e = Math.abs(m / n - rate); if (e < best.e - 1e-9) best = { n, m, e }; }
+  return { n: best.n, m: best.m, text: `${best.n}단에 ${best.m}코씩` };
+}
+export const PICK_NOTE = "손땀에 따라 한 코씩 조절해도 됩니다";
+/** the words for stitches picked up along a side of rows */
+export const pickWhy = (rows: number, total: number) => `${rows}단에서 ${total}코 (약 ${pickUp(rows, total).text} 줍습니다 · ${PICK_NOTE})`;
+
 // ---------------------------------------------------------------- 가장자리 짧은뜨기 (Kim: 손잡이 포함 가방의 테두리를 짧은뜨기로)
 /** A round of 짧은뜨기 round every free edge of a bag, so it looks finished and holds its shape. What a free edge
  *  is depends on how the bag is made, so it is read off the plan's own rows:
@@ -308,7 +320,7 @@ export function edgeRows(pp: Plan, p: PlanInput): Row[] {
       const fl = rows.filter(x => x.part === "flap"), side = along(fl.length), n = 2 * side + fl[0].n;
       // (in the edging, not in the flap: the flap's own rows - its counts, the 3D's flap, its chart - stay its own)
       out.push({ part: "rim", n, inc: 0, own: true, border: "edge", label: "덮개 가장자리", how: `덮개 한쪽 아래 끝에 새 실을 걸어 사슬 1, 옆 · 끝 · 옆을 따라 ${SC} ${n}코`,
-        why: `옆 ${fl.length}단 × 코 높이 ${fmt(g.h * 10)}mm ÷ 코 너비 ${fmt(g.w * 10)}mm = ${side}코씩, 끝 ${fl[0].n}코 · 덮개 가장자리가 깔끔해집니다` } as Row);
+        why: `옆 ${pickWhy(fl.length, side)}씩, 끝 ${fl[0].n}코 · 덮개 가장자리가 깔끔해집니다` } as Row);
     }
   });
   // the opening, when it has no 짧은뜨기 edge of its own
@@ -336,7 +348,7 @@ export function edgeRows(pp: Plan, p: PlanInput): Row[] {
     for (const name of ["앞판", "뒤판"]) {
       const W = body(name).pop()?.n ?? 0, ps = posts.filter(r => pieceOf(r) === name); if (!ps.length) continue;
       const post = ps[0].n, side = along(ps.filter(r => r.post === 0).length), mid = Math.max(0, W - 2 * post), n = mid + 2 * side; outer += 2 * side;
-      ends.push(loop("rim", `${name} 입구 가장자리`, n, `${name} 입구와 두 기둥의 안쪽`, `가운데 ${mid}코 + 기둥 안쪽 ${side}코씩 = ${n}코`));
+      ends.push(loop("rim", `${name} 입구 가장자리`, n, `${name} 입구와 두 기둥의 안쪽`, `가운데 ${mid}코 + 기둥 안쪽 ${side}코씩 = ${n}코 · 기둥 옆은 ${pickWhy(ps.filter(r => r.post === 0).length, side)}`));
     }
     if (outer) ends.push(loop("rim", "끈 바깥 가장자리", outer, "옆선에서 두 끈의 바깥쪽", `기둥 바깥쪽 ${outer / 4}코씩, 네 변 = ${outer}코`));
   } else if (p.build === "panels") {
@@ -347,7 +359,7 @@ export function edgeRows(pp: Plan, p: PlanInput): Row[] {
   } else if (p.build === "ribbed") {
     // worked sideways: the panels' tops are their rows' ends; each panel's hand hole is rows by stitches
     const R = body("앞판").length, top = along(R);
-    ends.push(loop("rim", "입구 가장자리", 2 * top, "두 판의 위(단의 끝)", `${R}단 × 코 높이 ÷ 코 너비 = ${top}코씩, 두 판 = ${2 * top}코`));
+    ends.push(loop("rim", "입구 가장자리", 2 * top, "두 판의 위(단의 끝)", `판마다 ${pickWhy(R, top)}, 두 판 = ${2 * top}코`));
     for (const name of ["앞판", "뒤판"]) {
       const hole = body(name).filter(r => r.gap && !r.gap[2]); if (!hole.length) continue;
       const hs = hole[0].gap![1], n = 2 * hs + 2 * along(hole.length);

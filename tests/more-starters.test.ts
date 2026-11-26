@@ -40,7 +40,8 @@ const courses = (p: PlanInput): FormCourse[] => { const y = yp(p); expect(y.shap
 describe("기본형 목록: 10종 더", () => {
   it("seven bags after 폰 크로스백, 바라클라바 among the hats, 모티프 머플러 and 오버사이즈 양말 in 소품", () => {
     const bags = PROTOS.filter(p => p.group === "가방"), at = bags.findIndex(p => p.id === "phonebag");
-    expect(bags.slice(at + 1).map(p => [p.id, p.name, p.note])).toEqual([
+    // (the four after them, from 실제 도안들에서 배운 원리: tests/pattern-plus)
+    expect(bags.slice(at + 1, at + 8).map(p => [p.id, p.name, p.note])).toEqual([
       ["knotbag", "매듭 손잡이백", "판 양 끝을 비대칭으로 길게 · 끼워 묶는 손잡이"], ["coinbag", "코인 미니백", "작은 직사각형 통 · 짧은 손잡이 둘 · 체인 걸이"],
       ["traptote", "사다리꼴 토트", "좁은 바닥 · 넓은 입구 · 짧은 손잡이 둘"], ["clutch", "접는 덮개 클러치", "직사각형 통 · 뒤판을 길게 올려 앞으로 접는 덮개"],
       ["ringbag", "링 손잡이백", "금속 링에 입구를 감싸 붙이기"], ["netbucket", "미니 그물 버킷", "원형 바닥 · 그물 몸통 · 짧은 손잡이"], ["twoway", "2WAY 조임 토트", "끈으로 조이면 복주머니, 펴면 토트"]]);

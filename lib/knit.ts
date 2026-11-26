@@ -7,6 +7,7 @@
 // Not here yet: a knitting gauge of its own. The counts are the engine's (a knitted row is lower than a
 // crocheted one), so a knitted piece relies on the measuring step after the first rows.
 import { withKorean } from "./koreanNotation";
+import { phrased } from "./phrasing";
 import { partKo, isKnit, plan, withChains, type Part, type Plan, type PlanInput, type Row } from "./pattern";
 
 export interface KnitStitch {
@@ -89,7 +90,8 @@ export function withKnit(pp: Plan, p: { stitch?: string | null; a?: number }): P
  *  `style` "korean" (Kim: 한국식 표기로도 보기): the crochet rows in the Korean notation (lib/koreanNotation) - the
  *  same counts, written another way; a knitted piece reads the same either way. */
 export function shownPlan(p: PlanInput & { item?: string; stitch?: string | null }, style: "plain" | "korean" = "plain"): Plan {
-  return isKnit(p) ? withKnit(plan(p), p) : style === "korean" ? withKorean(plan(p), p) : withChains(plan(p));
+  // (도안 글 규칙 - lib/phrasing: 반복 문구, 마커를 거는 이유)
+  return phrased(isKnit(p) ? withKnit(plan(p), p) : style === "korean" ? withKorean(plan(p), p) : withChains(plan(p)));
 }
 /** A part's heading: a knitted piece starts with 코잡기, not a chain. */
 export const partName = (part: Part, p: { item?: string }) => (part === "start" && isKnit(p) ? "코잡기" : partKo(part, p.item));

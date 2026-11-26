@@ -121,6 +121,13 @@ export function rowToks(raw: Plan, p: PlanInput, i: number): { toks: Tok[]; end:
 
   // ---- 구조 부품 (lib/structure): a step with no stitch of its own, joining, a panel / a strip / a post or a
   // cord, and any flat row that loses stitches at its ends (a slant, a triangle - a flat piece's or a flap's)
+  // 매직링에서 시작하는 네모 바닥: the ring, then each round's increases spread (the corners and the long sides)
+  if (r.part === "bottom" && p.shape === "rect" && p.bottomStart === "ring" && p.gusset !== "flat") {
+    if (i === 0) return ok(round(st(8, name, "매직링에"), TC));
+    return ok(round(evenToks(prev, r.n, name), TC, [note("네 모서리 코마다 3코")]));
+  }
+  // 꺾임선: the side's first round in one loop only
+  if (r.crease && !r.wall) return ok(round(evenToks(prev, r.n, name), TC, [note(r.crease === "back" ? "뒤이랑으로" : "앞이랑으로")]));
   // 가장자리 짧은뜨기: round a free edge (closed into its first stitch), or along one from end to end
   if (r.border) return ok(r.border === "loop" ? round(st(r.n, SC), 1, [note(r.how.replace(/ 사슬 1, .*$/, ""))]) : [note("새 실을 걸어"), { t: "ch", n: 1, kind: "turn" }, ...st(r.n, SC)]);
   if (r.part === "finish" || (r.part === "join" && !r.n)) return { toks: [note(r.how)], end: "none" };

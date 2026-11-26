@@ -10,7 +10,7 @@ export const HOOK_MM_RANGE: [number, number] = [0.4, 25];
 export const HOOK_YARN_RATIO: [number, number] = [0.6, 2.5];
 export const MAX_TEXT = 40;
 
-export const MATERIALS = ["코튼", "울", "메리노", "캐시미어", "알파카", "모헤어", "아크릴", "나일론", "폴리에스터", "리넨", "실크", "대나무", "벨벳(셔닐)", "라피아", "코드사", "페이크퍼", "메탈사", "혼방"];
+export const MATERIALS = ["코튼", "울", "메리노", "캐시미어", "알파카", "모헤어", "아크릴", "나일론", "폴리에스터", "리넨", "실크", "대나무", "벨벳(셔닐)", "라피아", "코드사", "페이크퍼", "메탈사", "와이어 코어", "혼방"];
 /** 메탈사 (Kim: a short tip when it is picked) */
 export const METAL_TIP = "탄성이 없어 잘 풀립니다. 실타래를 지퍼백에 넣고 함께 뽑아 쓰면 엉키지 않습니다.";
 /** The web's list (도안 만들기, 3D): the yarns above and more that the 3D draws each in its own way (Kim: as

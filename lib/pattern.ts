@@ -3,6 +3,7 @@
 // tests/pattern.test.ts checks every output against a verbatim copy of the original,
 // so keep the arithmetic (including rnd()'s toFixed(6) rounding) exactly as is.
 
+import { planKnitFold, planKnitTop } from "./knitwear";
 import { edgeRows, planHobo, planPanels, planRibbed, planTaper, taperFlap, taperNote } from "./structure";
 import { planBalaclava, planBonnet, planBucketHat, planBustier, planEarflap, planHalter, planHoodScarf, planKerchief, planKnotBag, planMotifHat, planMotifScarf, planMoonBag, planBigSocks, planTrapBag, planTwoWay } from "./wear";
 import { CHART_MULT, type ChartKey } from "./crochetChart";
@@ -51,6 +52,9 @@ export const WEAR_PARTS: Record<string, Partial<Record<Part, string>>> = {
   balaclava: { body: "목과 머리", panel: "얼굴 구멍", rim: "정수리", flap: "귀 장식", join: "귀 달기" },
   motifscarf: { panel: "모티프", join: "잇기" },
   bigsocks: { bottom: "발끝", body: "발과 목", rim: "접는 단", finish: "한 짝 더" },
+  // 대바늘 기본형 (lib/knitwear)
+  knitfold: { panel: "판", strap: "끈", rim: "입구 테두리" },
+  knittop: { panel: "뒤판 · 앞판", body: "몸통", rim: "밑단", strap: "소매", finish: "소매 하나 더" },
 };
 /** a part's name for a piece (its own where it has one) */
 export const partKo = (part: Part, item?: string | null): string => (item && WEAR_PARTS[item]?.[part]) || PART_KO[part];
@@ -138,6 +142,17 @@ export interface PlanInput {
   taperCordCm?: number | null;
   /** 가장자리 짧은뜨기 한 바퀴 (lib/structure edgeRows) */
   edgeSc?: boolean | null;
+  /** 바닥 시작 (Kim: 매직링에서 시작하는 둥근 직사각형 바닥): a square-cornered bottom started from a magic ring,
+   *  its increases gathered at the four corners (and the long sides' extra spread along them); none: from a chain */
+  bottomStart?: "chain" | "ring" | null;
+  /** 꺾임선: the first round of the side worked in the back (or the front) loop only - the bottom and the side fold sharply */
+  crease?: "back" | "front" | null;
+  /** 볼록 테두리 (0 .. 1): at the side's end a round that widens, one as wide, one that narrows back - the edge rolls out */
+  bulge?: number | null;
+  /** a knitted top's sleeve, from the underarm (cm) */
+  sleeveCm?: number | null;
+  /** 두 색 손잡이 (Kim): the handles made first, in their own colour, and caught in at the opening's edge */
+  handleFirst?: boolean | null;
   /** 브러싱 (0 off .. 1): the finished piece brushed - a last step in the words, hairier in the 3D, no count moved */
   brush?: number | null;
   /** 모자·소품 기본형 (lib/wear, Kim): the head's round and height (cm), a hat's brim (its width; worked double and
@@ -184,8 +199,10 @@ export interface PlanInput {
 
 /** items that are knitted with needles (the rest is crochet) */
 const KNIT_ITEMS = new Set(["scarf"]);
+/** knitted pieces of their own make (lib/knitwear): knitted whatever they are worked as */
+const KNIT_MADE = new Set(["knitfold", "knittop"]);
 /** knitted: the needle picked (Draft.craft; knitting is worked out for flat pieces in rows), else the item's own */
-export const isKnit = (p: { item?: string; craft?: string | null; object?: string }) =>
+export const isKnit = (p: { item?: string; craft?: string | null; object?: string }) => KNIT_MADE.has(p.item ?? "") ||
   p.craft === "knit" ? (p.object == null || p.object === "rows") : p.craft === "crochet" ? false : KNIT_ITEMS.has(p.item ?? "");
 
 // ---- a pattern's repeat and the stitch counts (Kim: learned from how patterns are written, the principle only) ----
@@ -323,6 +340,11 @@ export interface Row {
   /** a round of 짧은뜨기 round a free edge (가장자리, lib/structure edgeRows): "loop" all the way round and closed,
    *  "edge" along an edge from one end to the other (a flap's) */
   border?: "loop" | "edge";
+  /** the round the side's crease is worked on (꺾임선), and the rounds of a rolled edge (볼록 테두리) */
+  crease?: "back" | "front";
+  bulge?: true;
+  /** written for three sizes at once (lib/sizes multiSized): the three counts, S M L */
+  nSizes?: [number, number, number];
 }
 
 /** the stitches round a bag's opening: its last round, before any flap or handle */
@@ -401,6 +423,7 @@ export function planBottom(p: PlanInput, g: Gauge, rep?: Rep | null): { rows: Ra
     return { rows, c: 0 };
   }
   const b = p.b as number, flat = p.gusset === "flat";
+  if (p.shape === "rect" && !flat && p.bottomStart === "ring") return ringRect(p, g, rep);
   // flat (면과 면 잇기, Kim): the chain as long as the piece, worked round both its sides once - that round is the
   // whole bottom, and the body goes straight up from it, front and back meeting at the bottom edge
   const straight = Math.max(g.w * 2, flat ? p.a - g.w * 2 : p.a - b);
@@ -493,13 +516,84 @@ export function planPaint(p: PlanInput): Plan {
   return { g, c: span + 1, rows, bottomRounds: 0, bodyRows: rows.filter(x => x.part === "rows").length, last };
 }
 
+/** 매직링에서 시작하는 둥근 직사각형 바닥 (Kim): the same bottom as the chain's - as many rounds (half its width
+ *  over a round's height), the same last round (its perimeter) - begun from a magic ring of 8. A round's increases:
+ *  8 at the four corners (a corner stitch worked 3 times), and what the long sides still need spread along the
+ *  two of them - as many as are left over the rounds left, never more than the round before has stitches. The
+ *  corners are marked on round 1. A stitch pattern on the body: the last round is fitted to its repeat. */
+function ringRect(p: PlanInput, g: Gauge, rep?: Rep | null): { rows: RawRow[]; c: number; from?: number } {
+  const b = p.b as number, straight = Math.max(g.w * 2, p.a - b), c = Math.max(3, rnd(straight / g.w) + 1), R = Math.max(3, rnd((b / 2) / g.h));
+  const n0 = 2 * (c - 1) + 6 + 8 * (R - 1), m = rep && rep.n > 1 ? rep.n : 0, target = m ? fitCount(n0, rep!, false, n0 - 8, n0 * 2) : n0;
+  const rows: RawRow[] = [{ part: "bottom", n: 8, inc: 0, how: "매직링에 짧은뜨기 8코 · 1, 3, 5, 7번째 코에 마커", why: "네 모서리가 될 코에 마커를 겁니다 · 늘림 자리를 확인하려는 것입니다" }];
+  let T = 8, r = 1;
+  while (T < target) {
+    r++; const left = Math.max(1, R - r + 1), need = target - T;
+    const inc = need <= 8 ? need : clamp(Math.ceil(need / left), 8, T), corner = Math.min(8, inc) - (Math.min(8, inc) % 2), extra = inc - corner;
+    const how = (corner === 8 ? "네 모서리 코마다 3코 뜨기" : `네 모서리 중 ${corner / 2}곳에서 3코 뜨기`) + (extra ? `, 긴 두 변에서 늘림 ${extra}코를 고르게 나눠서` : "");
+    rows.push({ part: "bottom", n: T + inc, inc, how, why: `${T} + 늘림 ${inc} = ${T + inc}${extra ? ` · 모서리 8코 + 긴 변 ${extra}코` : ""}${r === R && T + inc === target && m ? ` · 무늬가 ${m}코 단위라 ${target}코로 맞춥니다` : ""}` });
+    T += inc;
+  }
+  return { rows, c: 2, ...(target !== n0 ? { from: n0 } : {}) };
+}
+
+/** 꺾임선 · 볼록 테두리 (Kim): the side's first round in one loop only, the rolled edge at its end - put on the
+ *  rows the plan made, so none of its counts move (only the rolled edge's own rounds come in, and return to the
+ *  side's count) */
+function formed(pp: Plan, p: PlanInput): Plan {
+  if (p.object !== "bag" || p.free || p.paint || p.build || (!p.crease && !(p.bulge && p.bulge > 0))) return pp;
+  let rows = pp.rows.map(r => ({ ...r }));
+  const first = rows.findIndex(r => r.part === "body");
+  if (p.crease && first >= 0) {
+    const r = rows[first], loop = p.crease === "back" ? "뒤이랑(뒷고리에만)" : "앞이랑(앞고리에만)";
+    rows[first] = { ...r, crease: p.crease, how: `${loop}으로 ${r.how}`, why: `${r.why} · 꺾임선: 바닥과 옆 사이가 또렷하게 꺾입니다` };
+  }
+  if (p.bulge && p.bulge > 0) {
+    let last = -1; rows.forEach((r, i) => { if (r.part === "body") last = i; });
+    if (last >= 0) {
+      const N = rows[last].n, k = Math.max(2, 2 * Math.round(N * .12 * Math.min(1, p.bulge)));
+      const roll: Row[] = [
+        { part: "body", n: N + k, inc: k, bulge: true, how: `짧은뜨기 ${N + k}코 (늘림 ${k}코를 고르게 나눠서)`, why: `볼록 테두리 · ${N} + 늘림 ${k} = ${N + k} · 바깥으로 벌어지기 시작합니다` } as Row,
+        { part: "body", n: N + k, inc: 0, bulge: true, how: `늘림 없이 짧은뜨기 ${N + k}코`, why: "볼록 테두리 · 가장 넓은 단입니다" } as Row,
+        { part: "body", n: N, inc: -k, bulge: true, how: `짧은뜨기 ${N}코 (줄임 ${k}번을 고르게 나눠서)`, why: `볼록 테두리 · ${N + k} - 줄임 ${k} = ${N} · 테두리가 바깥으로 말립니다` } as Row,
+      ];
+      rows = [...rows.slice(0, last + 1), ...roll, ...rows.slice(last + 1)];
+    }
+  }
+  const nb = rows.filter(r => r.part === "bottom").length; let bo = 0;
+  rows.forEach((r, i) => { r.idx = i; if (r.part === "body") r.label = `${nb + (++bo)}단`; });
+  return { ...pp, rows, bodyRows: bo };
+}
+/** 두 색 손잡이 (Kim: 손잡이를 다른 색으로 먼저 뜨고 입구 테두리에서 함께 걸어 고정): the handles made apart go
+ *  first - in their own colour, before the bottom - and the opening's first edging round catches their ends */
+function handlesFirst(pp: Plan, p: PlanInput): Plan {
+  if (!p.handleFirst || p.object !== "bag") return pp;
+  const apart = (r?: Row) => !!r && r.part === "handle" && !r.own && !r.grown && !r.border;
+  const first: Row[] = [], rest: Row[] = [];
+  pp.rows.forEach((r, i) => { (apart(r) || (r.border && r.part === "handle" && apart(pp.rows[i - 1])) ? first : rest).push(r); });
+  if (!first.length) return pp;
+  const hs = first.map(r => r.border ? r : { ...r, how: r.how.replace(/(가장자리를 두른 뒤 )?(?:\S+에 (?:함께 )?연결)$/, "$1끝은 입구 테두리에서 함께 걸어 고정합니다"),
+    why: `${r.why} · 손잡이 색 실로 바닥보다 먼저 떠 둡니다` });
+  const ri = rest.findIndex(r => r.part === "rim" && !r.border && !r.how.startsWith("빼뜨기"));
+  if (ri >= 0) rest[ri] = { ...rest[ri], how: `${rest[ri].how} · 먼저 떠 둔 손잡이의 두 끝을 앞뒤 자리에 대고 함께 걸어 뜹니다`, why: `${rest[ri].why} · 손잡이가 입구에 단단히 고정됩니다` };
+  const rows = [...hs, ...rest]; rows.forEach((r, i) => { r.idx = i; });
+  return { ...pp, rows };
+}
+/** 모양 잡히는 실 (Kim: 와이어 코어): the shape is set by hand at the end, and its slip stitches are worked loosely */
+export const WIRE = "와이어 코어";
+function wired(pp: Plan, p: PlanInput): Plan {
+  if (!(p.materials ?? []).includes(WIRE)) return pp;
+  const row = { part: "finish", n: 0, inc: 0, own: true, idx: pp.rows.length, label: "모양 잡기", how: "다 뜬 뒤 손으로 모양을 잡아 줍니다",
+    why: "와이어 코어는 구부린 모양을 그대로 지킵니다 · 빼뜨기는 느슨하게 떠야 다음 코에 바늘이 잘 들어갑니다" } as Row;
+  return { ...pp, rows: [...pp.rows, row] };
+}
+
 /** The plan in the picked crochet stitch: worked out in single crochet (taller rows from gauge), then each row
  *  says its own stitch, and its turning chain is the stitch's own (withChains reads Plan.turn). */
 export function plan(p: PlanInput): Plan {
   // (a ribbed panel is always worked in the back loop: that is what makes its ribs)
   // (the edging is 짧은뜨기 whatever the piece is worked in: it goes on after the stitch is named; the last steps after it)
-  const done = (q: Plan) => brushed(snapped(edged(q, p), p), p);
-  const pp = planSc(p), st = p.build === "ribbed" && p.object === "bag" ? "blo" : p.crochetStitch;
+  const done = (q: Plan) => brushed(wired(snapped(handlesFirst(edged(q, p), p), p), p), p);
+  const pp = formed(planSc(p), p), st = p.build === "ribbed" && p.object === "bag" ? "blo" : p.crochetStitch;
   if (!st || st === "sc") return done(pp);
   const c = CROCHET[st], name = st === "blo" ? "짧은뜨기 이랑뜨기(뒷고리)" : c.ko;
   // (되돌아짧은뜨기 - crab stitch, the joining - is its own stitch whatever the piece is worked in)
@@ -604,6 +698,8 @@ function planSc(p: PlanInput): Plan {
   if (p.item === "balaclava") return planBalaclava(p, gauge(p));
   if (p.item === "motifscarf") return planMotifScarf(p, gauge(p));
   if (p.item === "bigsocks") return planBigSocks(p, gauge(p), planBottom);
+  if (p.item === "knitfold") return planKnitFold(p, gauge(p));
+  if (p.item === "knittop") return planKnitTop(p, gauge(p));
   if (p.item === "trapbag") return planTrapBag(p, gauge(p));
   if (p.item === "moonbag") return planMoonBag(p, gauge(p));
   if (p.item === "bonnet") return planBonnet(p, gauge(p), planBottom);

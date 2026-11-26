@@ -120,6 +120,9 @@ export interface YarnPattern {
    *  foot's share of the opening's round (0-.5), `dec` the share of each half that narrows. It is drawn as the
    *  body's own rounds going on up - the same stitches, the same stitch pattern */
   strapGrown?: { foot: number; dec: number };
+  /** 꺾임선: the side's first round worked in the back (or front) loop only - its unworked loops stand as a ridge
+   *  outside (or inside) at the fold */
+  crease?: "back" | "front";
   /** things sewn on to try in the 3D only (Kim: 단추, 라벨, 지퍼), with where and how big (Kim): `buttonAt` /
    *  `labelAt` = [across the front -1..1, up 0..1, size in cm]; `zipOpen` 0 closed .. 1 open; the button's colour */
   extras?: { button?: boolean; label?: boolean; zipper?: boolean; buttonAt?: [number, number, number]; labelAt?: [number, number, number]; zipOpen?: number; buttonColor?: string; zipColor?: "gold" | "silver" | "brass"; tab?: boolean; buttonPic?: string; labelPic?: string;
@@ -898,6 +901,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
     };
     // the body's rounds counted from the bottom's edge, for a stitch pattern laid on them (pat.wall)
     let bodyN = 0;
+    const firstBody = D.C.findIndex(c => c.body);
     const wl = pat.wall && pat.wall.W > 0 && pat.wall.H > 0 ? pat.wall : null;
     if (D.knit) yield* buildKnit(D, R, mat, geos);
     else for (let ci = 0; ci < D.C.length; ci++) {
@@ -905,7 +909,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
       const c = D.C[ci];
       const tops = c.idx.map(n => D.P[n].clone()), saw: THREE.Vector3[] = [];
       let cx0 = 0, cz0 = 0; tops.forEach(q => { cx0 += q.x; cz0 += q.z; }); cx0 /= tops.length || 1; cz0 /= tops.length || 1;
-      const ridgeRow = !!pat.ridge && (c.closed || ci % 2 === 0);
+      const ridgeRow = (!!pat.ridge && (c.closed || ci % 2 === 0)) || (!!pat.crease && ci === firstBody), ridgeIn = !pat.ridge && pat.crease === "front";
       if (c.bot && loops) {
         const color = colorOf(c.ci), wr = wl && c.body ? (bodyN++ * (D.skip?.row ?? 1)) % wl.H : -1;
         for (let i = 0; i < c.idx.length; i++) {
@@ -923,7 +927,7 @@ export function createYarnViewer(canvas: HTMLCanvasElement, first: YarnPattern, 
           // out of the fabric: up for a flat piece, outward for a wall
           const out = c.cen ? new THREE.Vector3().crossVectors(al, up) : c.closed ? new THREE.Vector3(t.x - cx0, 0, t.z - cz0) : turned ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0); if (out.lengthSq() < 1e-12) out.set(0, 1, 0); out.normalize();
           if (c.cen && out.dot(t.clone().sub(c.cen)) < 0) out.negate(); // a form's fabric faces away from its own middle
-          if (ridgeRow) t.addScaledVector(out, R * 1.1);
+          if (ridgeRow) t.addScaledVector(out, ridgeIn ? -R * 1.1 : R * 1.1);
           const P = (u: number, v: number, w: number) => t.clone().addScaledVector(al, u * sw).addScaledVector(up, v * h).addScaledVector(out, w * R);
           // the head: front half up over the fabric, back half under, wider than the stitch so the next one's hooks into it
           // 사슬 over a gap (mesh, net, moss): a chain lying along the row at the head's height, nothing below - a hole

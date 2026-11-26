@@ -11,7 +11,7 @@ const PASTEL: Record<ItemId, string> = {
   dishcloth: "#CFE2F0", bookmark: "#F5E3A6", blanket: "#F9D8DF", beanie: "#F4CFD3",
   // 모자·소품 기본형 (their cards carry a photo of the 3D, not this drawing)
   buckethat: "#F4CFD3", motifhat: "#F5E3A6", hoodscarf: "#CBD8BF", earflap: "#CFE2F0", kerchief: "#F9D8DF", bottlebag: "#CFE2F0", backpack: "#EBD7B8",
-  knotbag: "#CBD8BF", coinbag: "#F5E3A6", traptote: "#F7CDB0", clutch: "#F4CFD3", ringbag: "#EBD7B8", netbucket: "#CFE2F0", twoway: "#F9D8DF", balaclava: "#CFE2F0", motifscarf: "#F5E3A6", bigsocks: "#F4CFD3",
+  knitfold: "#E8D5C4", knittop: "#D9E4F2", tray: "#EFE3C8", knotbag: "#CBD8BF", coinbag: "#F5E3A6", traptote: "#F7CDB0", clutch: "#F4CFD3", ringbag: "#EBD7B8", netbucket: "#CFE2F0", twoway: "#F9D8DF", balaclava: "#CFE2F0", motifscarf: "#F5E3A6", bigsocks: "#F4CFD3",
   trapbag: "#F7CDB0", moonbag: "#F9D8DF", stepbag: "#CBD8BF", phonebag: "#CFE2F0", bonnet: "#F5E3A6", bustier: "#F4CFD3", halter: "#EBD7B8",
 };
 const LEAF = "#B5C9A4";

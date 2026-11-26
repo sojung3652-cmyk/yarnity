@@ -12,6 +12,7 @@
 // the sizes typed: a round or a width over a stitch's width, a height or a length over a row's height. The 3D
 // (src/features/yarn3d/worn), the words and the symbol chart all read these rows.
 import type { Gauge, Plan, PlanInput, Row } from "./pattern";
+import { knitFold, knitTop } from "./knitwear";
 import type { Draft } from "./types";
 
 const rnd = (x: number) => Math.round(+x.toFixed(6));
@@ -22,9 +23,9 @@ const mm = (v: number) => fmt(v * 10);
 const pos = (v: number | null | undefined, d: number) => (v != null && v > 0 ? v : d);
 
 export type WearId = "buckethat" | "motifhat" | "hoodscarf" | "earflap" | "kerchief" | "trapbag" | "moonbag" | "bonnet" | "bustier" | "halter"
-  | "knotbag" | "twoway" | "balaclava" | "motifscarf" | "bigsocks";
+  | "knotbag" | "twoway" | "balaclava" | "motifscarf" | "bigsocks" | "knitfold" | "knittop";
 /** the pieces counted here: each is put together its own way, and drawn in the 3D as it is worn or carried */
-export const WEAR_IDS: WearId[] = ["buckethat", "motifhat", "hoodscarf", "earflap", "kerchief", "trapbag", "moonbag", "bonnet", "bustier", "halter", "knotbag", "twoway", "balaclava", "motifscarf", "bigsocks"];
+export const WEAR_IDS: WearId[] = ["knitfold", "knittop", "buckethat", "motifhat", "hoodscarf", "earflap", "kerchief", "trapbag", "moonbag", "bonnet", "bustier", "halter", "knotbag", "twoway", "balaclava", "motifscarf", "bigsocks"];
 export const isWear = (item?: string | null): item is WearId => !!item && (WEAR_IDS as string[]).includes(item);
 /** the sizes each starts from (cm): the head's round, its height, a brim, a cord or a flap */
 export const WEAR_DEFAULT = { circ: 56, side: 8, brim: 6, headH: 24, hoodH: 28, tie: { hoodscarf: 60, earflap: 30, kerchief: 25 } as Record<string, number>, tieW: 8, motifN: 8, brimMore: 1, rib: 3 };
@@ -494,6 +495,8 @@ export function planBigSocks(p: PlanInput, g: Gauge, bottom: Bottom): Plan {
 /** the line the screen shows under a wear piece's sizes */
 export function wearNote(p: PlanInput, g: Gauge, g0: Gauge = g): string {
   switch (p.item) {
+    case "knitfold": { const B = knitFold(p, g); return `${B.W}코로 ${B.L}단을 떠서 반 접고, 남긴 ${B.K}코로 끈 ${B.SR}단을 떠서 잇습니다. 입구 테두리는 짧은뜨기 ${B.top}코입니다.`; }
+    case "knittop": { const K = knitTop(p, g); return `뒤판 ${K.T}코에서 진동 ${K.AR}단 동안 늘려 ${K.Half}코, 몸통은 한 바퀴 ${K.N}코로 ${K.BR}단, 소매는 ${K.P}코에서 ${K.d ? `${K.every}단마다 줄여 ${K.P - 2 * K.d}코` : "곧게"}입니다.`; }
     case "buckethat": { const H = bucketHat(p, g); return `정수리를 ${H.R}단 동안 늘려 한 바퀴 ${H.N}코(${fmt(H.N * g.w)}cm)가 되면, 늘림 없이 ${H.S}단을 내려 뜹니다.` + (H.B ? ` 챙은 ${H.B}단, 마지막 단 ${H.counts[H.B - 1]}코입니다.` : ""); }
     case "motifhat": { const M = motifHat(p, g); return `모티프 하나는 ${M.R}단, 한 변 ${M.E}코(${fmt(M.sizeCm)}cm)입니다. 옆 ${M.n}장의 둘레는 ${fmt(M.roundCm)}cm(머리둘레 ${M.circ}cm), 정수리는 ${M.Rc}단, 챙은 ${M.Rb}단짜리 ${M.n}장입니다.`; }
     case "hoodscarf": { const H = hoodScarf(p, g); return `정수리를 ${H.R}단 동안 늘려 ${H.N}코, 그 가운데 ${H.W}코로 ${H.H}단을 왕복해 내려 뜹니다. 양 끝 ${H.T}코씩 ${H.PR}단이 스카프 끈입니다.`; }
@@ -544,10 +547,23 @@ export function kitSize(d: { item?: string; free?: unknown; paint?: unknown }): 
   const k = !d.free && !d.paint && d.item ? KITS[d.item] : undefined; if (!k) return null;
   const dd = d as Draft;
   const lead: Record<string, string> = { bottlebag: "병 ", phonebag: "휴대폰 ", trapbag: "", moonbag: "", stepbag: "", bustier: "", halter: "",
-    knotbag: "", coinbag: "", traptote: "바닥 ", clutch: "", ringbag: "", netbucket: "바닥 ", twoway: "", balaclava: "", motifscarf: "", bigsocks: "" };
+    knotbag: "", coinbag: "", traptote: "바닥 ", clutch: "", ringbag: "", netbucket: "바닥 ", twoway: "", balaclava: "", motifscarf: "", bigsocks: "", knitfold: "", knittop: "" };
   return d.item === "backpack" ? `바닥 지름 ${dd.a}cm · 높이 ${dd.h}cm` : `${lead[d.item!] ?? "머리"}${k[0].sum(dd)}`;
 }
 export const KITS: Record<string, KitPart[]> = {
+  // 대바늘 기본형 (lib/knitwear)
+  knitfold: [
+    { key: "fold", title: "판", sub: "긴 판 하나를 반 접습니다", fields: [F("a", "너비", 16, 44, 30), F("h", "높이", 14, 40, 26)],
+      help: "높이의 두 배로 길게 떠서 가운데에서 반 접고 양 옆선을 잇습니다. 접힌 선이 바닥이 됩니다.", sum: d => `너비 ${d.a}cm · 높이 ${d.h}cm` },
+    { key: "kstrap", title: "끈", sub: "마지막 단에서 남긴 코로 이어 뜹니다", fields: [F("handleWcm", "끈 너비", 2.5, 8, 4), F("strapCm", "끈 길이", 30, 110, 60, 1)],
+      help: "마지막 단에서 끈 너비만큼만 남기고 코막음한 뒤, 남긴 코로 끈을 떠서 반대쪽 시작 코와 메리야스 잇기로 잇습니다. 입구는 코바늘 짧은뜨기로 두릅니다.", sum: d => `끈 ${d.strapCm ?? 60}cm · 너비 ${d.handleWcm ?? 4}cm` },
+  ],
+  knittop: [
+    { key: "bust", title: "몸", sub: "입는 사람의 치수입니다", fields: [F("bust", "가슴둘레", 76, 120, 92, 1), F("h", "총 길이", 36, 70, 52, 1)],
+      help: "가슴둘레에 여유 8cm를 더해 앞뒤 판과 몸통의 코 수를 정합니다. 총 길이는 어깨에서 밑단까지입니다.", sum: d => `가슴둘레 ${d.bust ?? 92}cm · 길이 ${d.h}cm` },
+    { key: "sleeve", title: "소매", sub: "진동 둘레에서 코를 주워 뜹니다", fields: [F("sleeveCm", "소매 길이", 8, 56, 40, 1)],
+      help: "진동 둘레의 단에서 코를 주워 둘레로 뜨고, 겨드랑이 양쪽에서 일정한 간격으로 줄여 소맷부리까지 좁힙니다.", sum: d => `소매 ${d.sleeveCm ?? 40}cm` },
+  ],
   buckethat: [
     { ...head(F("h", "옆 높이", 4, 14, WEAR_DEFAULT.side)), sub: "정수리에서 시작해 내려 뜹니다", help: "머리둘레에 닿을 때까지만 정수리를 늘립니다. 그 뒤로는 코 수 그대로 옆을 뜹니다." },
     { key: "brim", title: "챙", sub: "단마다 같은 비율로 늘립니다", fields: [F("brimCm", "챙 너비", 0, 12, WEAR_DEFAULT.brim)],

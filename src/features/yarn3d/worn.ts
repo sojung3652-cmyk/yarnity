@@ -3,6 +3,7 @@
 // round the back of the head, strips hanging from its ends. The engine draws these places as they are (shape
 // "form": nothing settles, so nothing waits), over a stand in a very pale colour (Kim: 받침은 아주 연한 색).
 // Light: no three.js here. Units: cm, y up from the table, the front towards +z.
+import { knitFold, knitTop } from "@/lib/knitwear";
 import { balaclava, bonnet, bucketHat, bustier, earflap, halter, hoodScarf, kerchief, knotBag, moonBag, motifHat, motifScarf, bigSocks, trapBag, twoWay, type WearId } from "@/lib/wear";
 import type { Plan, PlanInput } from "@/lib/pattern";
 import type { FormCourse, WallStitch, YarnStand } from "./engine";
@@ -477,13 +478,61 @@ function sockForm(p: PlanInput, pp: Plan): Worn {
   return { courses: out, stand: null, size: [B.foot, 4 * rho + 2.8, height + rho], key: "" };
 }
 
+// ================================================================ 대바늘 기본형 (lib/knitwear)
+/** 접어 만드는 대바늘 가방: the long panel folded at its middle row - the front's rows from the fold up, the
+ *  back's the same behind - each row bowing out a little as a filled bag's do; the strap from the front's right
+ *  end up over the side and down to the back's, as an arch as long as its rows. */
+function knitFoldForm(p: PlanInput, pp: Plan): Worn {
+  const g = pp.g, B = knitFold(p, g), out: FormCourse[] = [], R = B.L / 2, c = B.W * g.w, y0 = .45, rise = g.h * .98, top = y0 + R * rise;
+  const bow = (t: number) => .07 + .36 * Math.sin(Math.PI * Math.min(1, t * .85 + .1));
+  const rowAt = (j: number, side: number, n = B.W, from = 0) => { const th = bow((j + .5) / R), rad = c / (2 * th), q: number[] = []; for (let k = from; k < from + n; k++) { const ph = -th + (k + .5) / B.W * 2 * th; q.push(rad * Math.sin(ph), y0 + (j + .5) * rise, side * (rad * (Math.cos(ph) - Math.cos(th)) + .25)); } return q; };
+  out.push({ p: rowAt(0, 1).map((v, i) => (i % 3 === 1 ? y0 : v)), on: -1, ghost: true, cen: [0, top / 2, 0] });
+  // the fold is the bottom: the front's rows from it up, then the back's (worked on from the front's last row in the panel; drawn here as they hang)
+  for (let i = 0; i < 2 * R; i++) { const front = i < R, j = front ? R - 1 - i : i - R; out.push({ p: rowAt(j, front ? 1 : -1), on: out.length - 1, cen: [0, y0 + (j + .5) * rise, 0] }); }
+  // the strap: K stitches at the right end, from the front over the side to the back
+  const last = out.length - 1, edge = out[last].p, deep = Math.max(.6, Math.abs(edge[Math.floor(B.W / 2) * 3 + 2])), xr = edge[(B.W - 1) * 3], A = archOf(deep + .4, B.SR * g.h);
+  let on = last;
+  for (let i = 0; i < B.SR; i++) { const [u, v] = A.at((i + .5) / B.SR * A.len), q: number[] = []; for (let k = 0; k < B.K; k++) q.push(xr - k * g.w, top + v, u); out.push({ p: q, on, cen: [xr - B.K * g.w / 2, top - 3, 0] }); on = out.length - 1; }
+  return { courses: out, stand: null, size: [c, 2 * deep, B.h], key: "" };
+}
+/** 위에서부터 뜨는 니트 탑, on a torso: the back's rows down its back from the shoulders and the front's down its
+ *  front (each row a share of the round at its height, as wide as its stitches), the body's rounds from the
+ *  underarm to the hem, and each sleeve's rounds round an arm sloping down and out from the shoulder. */
+function knitTopForm(p: PlanInput, pp: Plan): Worn {
+  const g = pp.g, K = knitTop(p, g), out: FormCourse[] = [], rho = K.N * g.w / TAU, r = Math.max(6, rho - .9), bust = 2.3 * r + 1;
+  const skin = (y: number) => Math.max(rho * .86, torsoR(r, bust, y) + .7), panel = pp.rows.filter(x => x.part === "panel" && x.n > 0 && /단$/.test(x.label));
+  // the yoke from the underarm up to the shoulder line: its rows closer than the body's (it lies over the
+  // shoulders' slope), each a half ellipse as long as its stitches - wide and shallow, as shoulders are
+  const shoulder = bust + 1.12 * r, under = bust + .25 * r, rowH = (shoulder - under) / Math.max(1, K.AR);
+  const half = (n: number) => { const X = n * g.w / 2.553; return [X, .6 * X] as const; };
+  const arcRow = (n: number, y: number, side: number) => { const t = torsoR(r, bust, y) + .7, [X0, Z0] = half(n), X = Math.max(X0, t), Z = Math.max(Z0, t), q: number[] = []; for (let k = 0; k < n; k++) { const a = -Math.PI / 2 + (k + .5) / n * Math.PI; q.push(X * Math.sin(a) * side, y, Z * Math.cos(a) * side); } return q; };
+  for (const [name, side] of [["뒤판", -1], ["앞판", 1]] as const) {
+    const rows = panel.filter(x => x.label.startsWith(name));
+    out.push({ p: arcRow(rows[0]?.n ?? K.T, shoulder + rowH * .5, side), on: -1, ghost: true, cen: [0, shoulder, 0] });
+    rows.forEach((x, i) => { const y = shoulder - (i + .5) * rowH; out.push({ p: arcRow(x.n, y, side), on: out.length - 1, cen: [0, y, 0] }); });
+  }
+  // the body round by round from the underarm down, the hem's rib at its foot
+  const body = pp.rows.filter(x => x.part === "body" || x.part === "rim");
+  out.push({ p: ring(K.N, skin(under), under + g.h * .5), on: -1, ghost: true, cen: [0, under, 0] });
+  body.forEach((x, i) => { const y = under - (i + .5) * g.h; out.push({ p: ring(x.n, skin(y), y), closed: true, on: out.length - 1, cen: [0, y, 0] }); });
+  // the sleeves: round an arm from the shoulder, sloping down and out
+  const sleeve = pp.rows.filter(x => x.part === "strap" && x.n > 0), sy = under + (shoulder - under) * .7;
+  for (const s of [-1, 1]) {
+    const o: V3 = [s * (half(K.T + 2 * K.gained(Math.round(K.AR * .3)))[0] + .2), sy, 0], dx = s * .5, dy = -1, L = Math.hypot(dx, dy), ax: V3 = [dx / L, dy / L, 0], u: V3 = [-ax[1] * s, ax[0] * s, 0];
+    const ringAt = (n: number, d: number): number[] => { const rad = n * g.w / TAU, c: V3 = [o[0] + ax[0] * d, o[1] + ax[1] * d, 0], q: number[] = []; for (let k = 0; k < n; k++) { const a = (k + .5) / n * TAU; q.push(c[0] + u[0] * Math.cos(a) * rad, c[1] + u[1] * Math.cos(a) * rad, Math.sin(a) * rad); } return q; };
+    out.push({ p: ringAt(sleeve[0]?.n ?? K.P, -g.h * .5), on: -1, ghost: true, cen: [o[0], o[1], 0] });
+    sleeve.forEach((x, i) => { const d = (i + .5) * g.h; out.push({ p: ringAt(x.n, d), closed: true, on: out.length - 1, cen: [o[0] + ax[0] * d, o[1] + ax[1] * d, 0] }); });
+  }
+  return { courses: out, stand: { kind: "torso", prof: torsoProfile(r, bust) }, size: [2 * rho + 2 * K.sleeveCm * .45, 2 * rho, K.len], key: "" };
+}
+
 const cache = new Map<string, Worn>();
 /** a wear piece as it is worn, from its plan (kept for the sizes it was made for: the same piece asked again
  *  - a colour changed, a screen opened - is not laid out again) */
 export function wornForm(p: PlanInput, pp: Plan): Worn | null {
-  const id = p.item as WearId, key = JSON.stringify([id, pp.g.h, pp.g.w, p.circ, p.h, p.headH, p.brimCm, p.brimFold, p.motifN, p.brimMore, p.tieCm, p.tieWcm, p.ribRows, p.crochetChart, pp.rows.length, p.a, p.topA, p.holeW, p.handleCm, p.handleWcm, p.bust, p.b, p.strapCm, p.cinched, p.neckCm, p.faceW, p.faceH, p.ears, p.motifColors, p.footL, p.ankleCm, p.cuffCm]);
+  const id = p.item as WearId, key = JSON.stringify([id, pp.g.h, pp.g.w, p.circ, p.h, p.headH, p.brimCm, p.brimFold, p.motifN, p.brimMore, p.sleeveCm, p.strapCm, p.tieCm, p.tieWcm, p.ribRows, p.crochetChart, pp.rows.length, p.a, p.topA, p.holeW, p.handleCm, p.handleWcm, p.bust, p.b, p.strapCm, p.cinched, p.neckCm, p.faceW, p.faceH, p.ears, p.motifColors, p.footL, p.ankleCm, p.cuffCm]);
   const hit = cache.get(key); if (hit) return hit;
-  const f = id === "buckethat" ? bucketForm(p, pp) : id === "motifhat" ? motifForm(p, pp) : id === "hoodscarf" ? hoodForm(p, pp) : id === "earflap" ? earflapForm(p, pp) : id === "kerchief" ? kerchiefForm(p, pp)
+  const f = id === "knitfold" ? knitFoldForm(p, pp) : id === "knittop" ? knitTopForm(p, pp) : id === "buckethat" ? bucketForm(p, pp) : id === "motifhat" ? motifForm(p, pp) : id === "hoodscarf" ? hoodForm(p, pp) : id === "earflap" ? earflapForm(p, pp) : id === "kerchief" ? kerchiefForm(p, pp)
     : id === "trapbag" ? trapForm(p, pp) : id === "moonbag" ? moonForm(p, pp) : id === "bonnet" ? bonnetForm(p, pp) : id === "bustier" ? bustierForm(p, pp) : id === "halter" ? halterForm(p, pp)
     : id === "knotbag" ? knotForm(p, pp) : id === "twoway" ? twoWayForm(p, pp) : id === "balaclava" ? balaForm(p, pp) : id === "motifscarf" ? scarfForm(p, pp) : id === "bigsocks" ? sockForm(p, pp) : null;
   if (!f) return null;

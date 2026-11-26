@@ -40,7 +40,7 @@ const sizes = (cs: FormCourse[]) => cs.map(c => c.p.length / 3);
 
 describe("기본형 목록: 모자 · 소품", () => {
   it("the seven are there, in their groups, with their names and notes", () => {
-    const list = PROTOS.filter(p => p.group === "모자" || p.group === "소품").map(p => [p.group, p.name, p.note]);
+    const list = PROTOS.filter(p => (p.group === "모자" || p.group === "소품") && p.id !== "tray").map(p => [p.group, p.name, p.note]); // (트레이: tests/pattern-plus)
     expect(list).toEqual([
       ["모자", "버킷햇", "정수리 원형 · 곧은 옆 · 늘리는 챙"], ["모자", "모티프 버킷햇", "사각 모티프 이어 붙이기"], ["모자", "후드 스카프", "원형에서 시작하는 후드 · 긴 끈"],
       ["모자", "이어플랩 후드", "판을 접은 후드 · 긴 귀덮개"], ["모자", "삼각 헤드스카프", "한 꼭짓점에서 늘리는 삼각형 · 묶는 끈"],

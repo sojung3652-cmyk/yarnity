@@ -12,7 +12,8 @@ import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "r
 import type { Draft, YarnColor } from "@/lib/types";
 import { SmoothRange } from "./SmoothRange";
 import { ColorStudio } from "./ColorStudio";
-import { CROCHET, fmt, isMetalYarn, pliedMm, YARN_KO, type CrochetStitch, type Weight } from "@/lib/pattern";
+import { CROCHET, fmt, isMetalYarn, pliedMm, YARN_KO, type CrochetStitch, type PlanInput, type Weight } from "@/lib/pattern";
+import { GAUGE_NOTE, needleAdvice } from "@/lib/phrasing";
 import { clean, HOOK_CHIPS, HOOK_MM_RANGE, HOOK_YARN_RATIO, hookMmOf, hookYarnMismatch, MATERIALS_WEB, MAX_TEXT, METAL_TIP, parseNum, weightFromMm, YARN_MM_RANGE } from "@/lib/yarn";
 import { KNIT_STITCHES, stitchOf, type KnitStitch } from "@/lib/knit";
 import { familiesOf, PATTERN_BY_ID, STITCH_PATTERNS, type StitchPattern } from "@/lib/stitchPatterns";
@@ -103,7 +104,22 @@ export function WebItems({ value, onPick, tried, hint, extra }: { value: ItemId 
 }
 
 // the materials shown at once (the rest under 더 보기); the 3D draws each of them its own way
-const WEB_MATERIALS = ["코튼", "울", "알파카", "모헤어", "앙고라", "수면사", "벨벳(셔닐)", "부클레", "페이크퍼", "수세미실", "리넨", "실크", "라피아", "패브릭얀", "코드사", "메탈사"];
+const WEB_MATERIALS = ["코튼", "울", "알파카", "모헤어", "앙고라", "수면사", "벨벳(셔닐)", "부클레", "페이크퍼", "수세미실", "리넨", "실크", "라피아", "패브릭얀", "코드사", "메탈사", "와이어 코어"];
+/** 내 게이지: the stitches and rows the reader counts in 10cm of a swatch, and the hook advised from them */
+function MyGauge({ draft, patch }: { draft: Draft; patch: Patch }) {
+  const box = (id: string, label: string, v: number | undefined, key: "mySt10" | "myRows10", unit: string) => (
+    <span className="nb-box nb-gbox"><label htmlFor={id}>{label}</label><input id={id} inputMode="decimal" autoComplete="off" value={v ?? ""} placeholder="—"
+      onChange={e => { const n = parseNum(e.target.value); patch({ [key]: Number.isFinite(n) && n > 0 && n < 80 ? Math.round(n * 10) / 10 : undefined }); }} /><small>{unit}</small></span>
+  );
+  const adv = draft.mySt10 && draft.hook ? needleAdvice(draft as unknown as PlanInput, draft.mySt10) : null;
+  return (
+    <div className="nb-mygauge">
+      <p className="nb-wsubhead">내 게이지 <small>선택 · 10cm 안</small></p>
+      <div className="nb-wrow">{box("gSt", "코 수", draft.mySt10, "mySt10", "코")}{box("gRow", "단 수", draft.myRows10, "myRows10", "단")}</div>
+      {adv ? <p className="nb-fit" role="status">{adv.text}</p> : <p className="nb-help">{GAUGE_NOTE}</p>}
+    </div>
+  );
+}
 
 /** 메탈사 (Kim): a thin yarn, held two or three strands together as a rule - how many, and what to mind with it.
  *  Only while 메탈사 is among the materials. The strands thicken the gauge (lib/pattern PLY_K) and the 3D's yarn. */
@@ -414,6 +430,8 @@ export function WebHook({ draft, patch, tried }: { draft: Draft; patch: Patch; t
       {showErr && <p className="nb-err" id="hErr">{err}</p>}
       {mis ? <p className="nb-wnote is-warn" role="status">{mis === "thin" ? "이 실에는 바늘이 가늡니다. 편물이 빳빳해질 수 있습니다." : "이 실에는 바늘이 굵습니다. 편물이 성글어질 수 있습니다."}</p>
         : fit.length > 0 && <p className="nb-wnote">{`실 ${yarnMm}mm에는 ${fit.length > 1 ? `${fit[0]}~${fit[fit.length - 1]}` : fit[0]}가 잘 맞습니다.`}</p>}
+      {/* 내 게이지 (Kim: 게이지를 입력하면 바늘 추천) - optional; it does not change the counts, it says which hook */}
+      <MyGauge draft={draft} patch={patch} />
       {/* Kim: say that the yarn against the hook decides how close the fabric is */}
       <p className="nb-help nb-ratio">편물이 얼마나 촘촘한지는 실 굵기와 바늘 굵기의 비율로 정해집니다. 실보다 바늘이 가늘수록 촘촘하고 단단해지고, 굵을수록 성글고 부드러워집니다.{Number.isFinite(mm) && yarnMm ? ` 지금은 바늘이 실의 ${(mm / yarnMm).toFixed(1)}배입니다.` : ""}</p>
     </div>

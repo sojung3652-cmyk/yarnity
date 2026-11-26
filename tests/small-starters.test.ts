@@ -41,7 +41,7 @@ describe("기본형 목록: 작은 가방 · 보닛 · 옷", () => {
     expect(bags.slice(at, at + 4).map(p => [p.name, p.note])).toEqual([["사다리꼴 주머니백", "바닥 없는 사다리꼴 두 장 · 띠 손잡이"], ["반달 미니백", "원 두 장 · 아래 반원만 잇기"], ["계단 덮개 미니백", "직사각형 통 · 계단식 덮개 · 짧은 어깨끈"], ["폰 크로스백", "휴대폰 크기 · 장식 테두리 · 긴 끈"]]);
     expect(PROTOS.filter(p => p.group === "모자").map(p => p.name)).toEqual(["버킷햇", "모티프 버킷햇", "후드 스카프", "이어플랩 후드", "삼각 헤드스카프", "바라클라바", "보닛", "비니"]);
     expect(PROTOS.find(p => p.id === "bonnet")!.note).toBe("원형 정수리 · 뒤통수 감싸기 · 턱끈");
-    const tops = PROTOS.filter(p => p.group === "옷");
+    const tops = PROTOS.filter(p => p.group === "옷" && !p.id.startsWith("knit")); // (위에서부터 뜨는 니트 탑: tests/pattern-plus)
     expect(tops.map(p => [p.id, p.family, p.choice?.[0]])).toEqual([["bustier", "뷔스티에 · 홀터 탑", "모티프 뷔스티에"], ["halter", "뷔스티에 · 홀터 탑", "그물 홀터 탑"]]);
     expect(new Set(PROTOS.map(p => p.id)).size).toBe(PROTOS.length);
     // starters only: the lists of things to pick are as they were

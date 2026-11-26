@@ -3,6 +3,7 @@ import type { ChartKey } from "@/lib/crochetChart";
 import { shownPlan } from "@/lib/knit";
 import { countToks, evenToks, printToks, rowToks, withKorean } from "@/lib/koreanNotation";
 import { HOOKS, plan, withChains, type PlanInput } from "@/lib/pattern";
+import { phrased } from "@/lib/phrasing";
 import { chartFromSteps, isKorean, koreanToSteps, readKorean } from "@/lib/stitchGrammar";
 
 // 한국식 표기: every row the plan can write is read back (lib/stitchGrammar readKorean) and what it adds up to is
@@ -114,7 +115,9 @@ describe("how the rows read", () => {
   });
   it("shownPlan: the plain words unless asked; a knitted piece is knitting either way", () => {
     const bag: PlanInput = { ...base, shape: "circle", a: 15, h: 15, object: "bag", handle: "short" };
-    expect(shownPlan(bag)).toEqual(withChains(plan(bag)));
+    // (with the pattern's own words on the rows: 반복 문구, 마커 이유 - lib/phrasing; the counts and the rows' words are withChains')
+    expect(shownPlan(bag)).toEqual(phrased(withChains(plan(bag))));
+    expect(shownPlan(bag).rows.map(r => [r.n, r.how])).toEqual(withChains(plan(bag)).rows.map(r => [r.n, r.how]));
     expect(shownPlan(bag, "korean").rows[2].how).toBe("사슬 1 - (*)[짧은뜨기 1코 - 다음 코에 짧은뜨기 2코] 6회 반복 - (*)빼뜨기 (18코)");
     const scarf = { ...base, shape: "rect" as const, a: 18, b: 150, object: "rows" as const, item: "scarf" };
     expect(shownPlan(scarf, "korean")).toEqual(shownPlan(scarf));
